@@ -1,0 +1,190 @@
+{
+  "recordedAt": "2026-10-14T11:35:23.480Z",
+  "goalAchieved": false,
+  "change": "Call-local memoization of rejected immutable working-set equations. Finite residual failures and private compact LU failures retain converged:false, exact residual and owned diagnostic directions across basis and batch retries.",
+  "invariants": [
+    "No reuse across linear calls, poses, geometry changes or cancellation.",
+    "Retained/incremental factors, modified Newton, condensation, and public LU rejection hooks preserve the original retry path.",
+    "An uncertified result may propose a contact release only through the existing recovery rule; it can never become a published motion.",
+    "The final original force, contact, length and friction certificates remain unchanged."
+  ],
+  "options": {
+    "reuseRejectedWorkingSet": true,
+    "dt": 0.016666666666666666,
+    "forceTolerance": 0.000001,
+    "lengthTolerance": 0.00001,
+    "adaptiveMesh": false
+  },
+  "exactComparison": {
+    "report": "001-rejected-set-all-throughput.json",
+    "passed": true,
+    "stepsPerVersion": 600,
+    "runs": [
+      {
+        "version": "before",
+        "repeat": 0,
+        "summary": {
+          "steps": 300,
+          "totalMs": 11746.07874900001,
+          "medianMs": 25.2862499999992,
+          "p95Ms": 90.14600000000064,
+          "maxMs": 523.9343329999974,
+          "cpuStepsPerSecond": 25.540438337818927,
+          "withinBudget": 4
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 4031,
+        "difficultSteps": [
+          {
+            "step": 203,
+            "cpuMs": 485.37262499999997,
+            "factorizations": 444,
+            "subdivisions": 1
+          },
+          {
+            "step": 288,
+            "cpuMs": 523.9343329999974,
+            "factorizations": 521,
+            "subdivisions": 1
+          }
+        ]
+      },
+      {
+        "version": "after",
+        "repeat": 0,
+        "summary": {
+          "steps": 300,
+          "totalMs": 11435.033830999972,
+          "medianMs": 25.55304099999921,
+          "p95Ms": 81.96437499999956,
+          "maxMs": 468.6919999999991,
+          "cpuStepsPerSecond": 26.235165057991402,
+          "withinBudget": 2
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584,
+        "difficultSteps": [
+          {
+            "step": 203,
+            "cpuMs": 468.6919999999991,
+            "factorizations": 426,
+            "subdivisions": 1
+          },
+          {
+            "step": 288,
+            "cpuMs": 391.85804199999984,
+            "factorizations": 305,
+            "subdivisions": 1
+          }
+        ]
+      },
+      {
+        "version": "before",
+        "repeat": 1,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10726.628333999979,
+          "medianMs": 24.724417000004905,
+          "p95Ms": 80.53987500000221,
+          "maxMs": 487.75004199999967,
+          "cpuStepsPerSecond": 27.96778173520714,
+          "withinBudget": 1
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 4031,
+        "difficultSteps": [
+          {
+            "step": 203,
+            "cpuMs": 459.7747079999972,
+            "factorizations": 444,
+            "subdivisions": 1
+          },
+          {
+            "step": 288,
+            "cpuMs": 487.75004199999967,
+            "factorizations": 521,
+            "subdivisions": 1
+          }
+        ]
+      },
+      {
+        "version": "after",
+        "repeat": 1,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10365.746524999977,
+          "medianMs": 24.677083000002312,
+          "p95Ms": 76.63645800000086,
+          "maxMs": 459.8966250000012,
+          "cpuStepsPerSecond": 28.941475587548258,
+          "withinBudget": 1
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584,
+        "difficultSteps": [
+          {
+            "step": 203,
+            "cpuMs": 459.8966250000012,
+            "factorizations": 426,
+            "subdivisions": 1
+          },
+          {
+            "step": 288,
+            "cpuMs": 370.54449999999633,
+            "factorizations": 305,
+            "subdivisions": 1
+          }
+        ]
+      }
+    ],
+    "warmCpuReductionPercent": 3.364354555439586,
+    "factorizationReductionPercent": 11.089059786653433,
+    "maxWorldDifferenceMm": 0,
+    "runtimeSourceHashesVerified": true
+  },
+  "browser": {
+    "report": "001-browser-rejected-set.json",
+    "screenshot": "001-browser-rejected-set.jpg",
+    "passed": true,
+    "steps": 300,
+    "physicsHz": 22.914582076380817,
+    "renderFps": 59.272385637571716,
+    "wallSeconds": 13.092099999904633,
+    "simulationSeconds": 5,
+    "stepCpuMs": {
+      "median": 26.09999990463257,
+      "p95": 77.2000002861023,
+      "max": 378.80000019073486
+    },
+    "consoleErrors": 0
+  },
+  "tests": {
+    "passed": 72,
+    "failed": 0,
+    "groups": [
+      {
+        "report": "001-rejected-set-tests.log",
+        "passed": 63
+      },
+      {
+        "report": "001-rejected-set-retained-tests.log",
+        "passed": 9
+      }
+    ]
+  },
+  "build": {
+    "passed": true,
+    "report": "001-rejected-set-build.log",
+    "warning": "Existing bundle-size warning"
+  },
+  "limitations": [
+    "Two 300-step continuations from the final captured crossover, not the complete manually demonstrated maneuver.",
+    "The warm paired CPU run improved by about 3.4%; absolute timings vary with machine load.",
+    "Browser run uses a lightweight preview and excludes full fluoroscopy and app idle catch-up work.",
+    "60 accepted physics steps per real second remains unachieved."
+  ]
+}

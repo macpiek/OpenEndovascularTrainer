@@ -1,0 +1,28 @@
+{
+  "baseline": "/tmp/oet-discovery-row-baseline.Qo4N3A",
+  "experimentalSha256": {
+    "src/physics/kirchhoffSharedAxisNative.js": "20f577f6361de52be449a53636683838ab5c51a61ea54b705cffd50e90d37ac7",
+    "src/physics/kirchhoffSharedAxisVesselWitnesses.js": "fee1088b03fbaca989db4532098166ede302b6aaaf57ab46bc970788e7733779",
+    "src/physics/kirchhoffSharedAxisConstraintRows.js": "f1f525be0b8ef5f2ec261d37e22cfa72269ad83fd5428a5f33aa199c6186293b",
+    "src/physics/kirchhoffSharedAxisAppSystem.js": "0ed2ffdc79b6aafc999d308d17f383575cdbbc484b4655d516fab54f1626df78",
+    "src/physics/kirchhoffSharedAxisReplay.js": "c2b7f912960e035f6e15db2a4c2252837e73dd07e3593d0c02f10db4062a16cb",
+    "src/physics/kirchhoffSharedAxisRestore.js": "b6043a7730c096f690781dc422e8d615539e37c86793bd993a91d47d47e89bfc",
+    "src/simulator.js": "7f3487a8b620473c208003f0c2c29a9e16fbe6bc374d41ca465664086a418619",
+    "scripts/benchmark-crossover-throughput.mjs": "df7c36f1fa7dda5fddc7dab480e9cdba5cc30b5ba8a0250f7bff8bf4e615c21c",
+    "scripts/benchmark-crossover-reduced-model.mjs": "f97572e2ce96a6260b285bb1d97db881e2da851f38526ceb3761333cb69454b6",
+    "scripts/test-suites.json": "ee1942a00c44653a95391a66837b1f87d60edf8ed05a7b019b61b5f5f532b1aa",
+    "tests/kirchhoffSharedAxisDiscoveryProbes.test.js": "53a750ab4ab21ea53bf00e463b12b53f5c3efb4f45009ed983f3dc28fd9ff6ee"
+  },
+  "restoredSha256": {
+    "src/physics/kirchhoffSharedAxisNative.js": "5dd45a6b8a635c66271a706c0e308296fc9f8884ba6e1c60164fee695a2252de",
+    "src/physics/kirchhoffSharedAxisVesselWitnesses.js": "f3879eeed06d74dcfe4ffcfdfbd327f1ab3f4e7c7a3e7b44e3e8af71d5cce1cc",
+    "src/physics/kirchhoffSharedAxisConstraintRows.js": "3e24cb3c17723cdf30e3c874e31ec5967deddfd191b8a3632604ae41358b6362",
+    "src/physics/kirchhoffSharedAxisAppSystem.js": "9c1db2c71427b65a87233a6e7f0a3c447b2a601f6729edf7f52d753281ccc025",
+    "src/physics/kirchhoffSharedAxisReplay.js": "074a5f6551e604a9ad6ff751b5a5cabe3639fa461ab3f106996b2531f42ad71a",
+    "src/physics/kirchhoffSharedAxisRestore.js": "ec3e3760c042d53c4516d36cc1f30a59cbfe2edbb648ef784804cca69dc15175",
+    "src/simulator.js": "05ef61924c82b824670fbcde6e0b7489da7536d64e4ec5e6c9f76823e90a1516",
+    "scripts/benchmark-crossover-throughput.mjs": "32e1dd445f365aa68850c5238de2df2f7c87a8ddb748f6574bafd21e7aee77c1",
+    "scripts/benchmark-crossover-reduced-model.mjs": "b10f06e02693ad842b7f820b23470d6a38f01b19929ed12521d1c02a144ff873",
+    "scripts/test-suites.json": "5d61d59448f2b67d69fb569a1969c0ca08d9037b7b5d22edc3835545e129aa9b"
+  }
+}

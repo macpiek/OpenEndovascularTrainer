@@ -2,13 +2,13 @@ import test,{after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
-import {loadCoupledRuntimeAnatomy} from './helpers/coupledRuntimeFixture.js';
+import {loadHistoricalSharedAxisAnatomy} from './helpers/historicalSharedAxisAnatomy.js';
 import {restoreSharedAxisReplay} from './helpers/sharedAxisReplay.js';
 import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
 import {createContactResult} from '../src/physics/collision/vesselContactField.js';
 
 const fixture=JSON.parse(gunzipSync(readFileSync(new URL('./fixtures/shared-axis/anatomy-wire-569.80-poor-prediction.json.gz',import.meta.url))));
-const anatomy=await loadCoupledRuntimeAnatomy();after(()=>anatomy.dispose());
+const anatomy=loadHistoricalSharedAxisAnatomy('open');after(()=>anatomy.dispose());
 const snapshot=(c,t)=>({t,face:c.faceIndex,distance:c.signedDistance,gap:c.signedGap,inside:c.inside,source:c.source});
 test('certified samples preserve exact mesh distances, face selection and endpoint-first order without SDF work',()=>{
     const field=anatomy.field;

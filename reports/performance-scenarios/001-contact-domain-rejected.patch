@@ -1,0 +1,140 @@
+--- a/src/physics/kirchhoffSharedAxisConstraintRows.js
++++ b/src/physics/kirchhoffSharedAxisConstraintRows.js
+@@ -2,6 +2,10 @@
+ // Geometry is immutable for a pose token. It contains no reactions: multiplier
+ // updates at an unchanged pose must still assemble fresh forces and tangents.
+ const poseGeometry = new WeakMap(), positionMasks = new WeakMap();
++// Native samplers can declare a fixed material-coordinate domain. Outside
++// that domain their exact row is (gap=1, J=0), independent of pose, radius or
++// reactions. Keep the row/order for replay and linear-system equivalence.
++const outsideDomainContact=Object.freeze({gap:1,jacobian:Object.freeze([0,0,0,0,0,0])});
+ 
+ export function sharedAxisPositionDofMask(layout) {
+     let mask=positionMasks.get(layout);
+@@ -113,7 +117,7 @@
+         if(prepareOnly)prepareOnly.index=index;
+         if(prepared?.error&&prepared.index===index)throw prepared.error;
+         const def=s.definitions[index],e=def.edge,a=s.positions[e],b=s.positions[e+1],length=geometry.lengths[e];
+-        let gap,J,gapHessian=null,row;
++        let gap,J,gapHessian=null,row,inactiveRange;
+         if(storage&&!prepareOnly) {
+             row=rows[index]??storage.rowBuffers?.[index];
+             if(storage.definitions[index]!==def) {
+@@ -145,6 +149,10 @@
+         } else if(prepared?.contacts) {
+             const contact=prepared.contacts[index];
+             gap=contact.gap;J=contact.jacobian;gapHessian=contact.hessian??null;
++        } else if((inactiveRange=(def.evaluate??s.wallSamples[def.sample])?.sharedAxisInactiveRange)&&
++            (s.coordinates[e]>=inactiveRange.end||s.coordinates[e+1]<=inactiveRange.start)) {
++            gap=outsideDomainContact.gap;J=outsideDomainContact.jacobian;
++            if(prepareOnly)prepareOnly.contacts[index]=outsideDomainContact;
+         } else {
+             const owner=outerMaterialAt(s,e,def.witness?.t??1,def.witness?.owner),needHessian=(withTangent||retainWallHessians)&&(s.multipliers[index]!==0||(s.primalCompliantContacts&&def.witness));
+             const cache=(s.cacheMechanicalAssembly||retainWallHessians)?(storage?.contacts??(s.wallGeometryCache??=new Map())):null,cached=cache?.get(def);
+--- a/src/physics/kirchhoffSharedAxisContacts.js
++++ b/src/physics/kirchhoffSharedAxisContacts.js
+@@ -35,6 +35,7 @@
+     wallSamples[0].sharedAxisGeometryOnly=true;
+     wallSamples[0].sharedAxisSheath=true;
+     wallSamples[0].contactOutputOwned=true;
++    wallSamples[0].sharedAxisInactiveRange=Object.freeze({start:-Infinity,end:length});
+     if(contactField) wallSamples.push(createSharedAxisVesselDiscovery(contactField,length,{retainDiscoveryCertificates,continuousDiscoverySign,certifiedDiscoverySamples,continuousSegmentContacts,candidateMargin:contactCandidateMargin}));
+     return {rebaseNearTips:localCoordinates,startCoordinate:-extension,boundaryCoordinates:[0,length],wallSamples,length,origin,
+         samplePosition:coordinate=>start.map((v,i)=>v+coordinate*axis[i])};
+--- a/src/physics/kirchhoffSharedAxisVesselWitnesses.js
++++ b/src/physics/kirchhoffSharedAxisVesselWitnesses.js
+@@ -208,6 +208,7 @@
+         return {gap:1,jacobian:[0,0,0,0,0,0]};
+     };
+     sample.sharedAxisGeometryOnly=true;sample.sharedAxisDiscovery=true;
++    sample.sharedAxisInactiveRange=Object.freeze({start:sheathLength,end:Infinity});
+     sample.sharedAxisCompleteDiscovery=allSamples;
+     sample.discoveryCache=clearance;
+     sample.captureDiscoveryState=()=>({meshIdentity:sharedAxisGeometryIdentity(field.fallbackGeometry),
+--- /dev/null
++++ b/tests/kirchhoffSharedAxisContactDomain.test.js
+@@ -0,0 +1,84 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {BufferGeometry,Float32BufferAttribute} from 'three';
++import {createSharedAxisNative,assembleSharedAxisNative,feedSharedAxisNative,captureSharedAxisNative,restoreSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
++import {createSharedAxisContacts} from '../src/physics/kirchhoffSharedAxisContacts.js';
++import {createSharedAxisVesselDiscovery} from '../src/physics/kirchhoffSharedAxisVesselWitnesses.js';
++import {createSharedAxisConstraintRowPool} from '../src/physics/kirchhoffSharedAxisConstraintRows.js';
++
++function fixture(enabled){
++    const geometry=new BufferGeometry().setAttribute('position',new Float32BufferAttribute([-100,-100,50,100,-100,50,0,100,50],3));
++    const field={fallbackGeometry:geometry,voxelSize:1,queryCapsuleSoA(x,y,z,r,index,out,face,inside,clearance,branch,near,length,count,physical,finite,visit){
++        const contact={source:'sparse-sdf-bvh',faceIndex:0,signedDistance:50,signedGap:50-r[0],inside:true,segmentT:.5};
++        for(let i=0;i<=count;i++)visit?.(contact,i/count);
++        return Object.assign(out,contact);
++    }};
++    const contacts=createSharedAxisContacts({sheath:{start:[0,0,0],end:[12,0,0],innerRadius:2}});
++    contacts.wallSamples.push(createSharedAxisVesselDiscovery(field,12,{queryReuse:false}));
++    const calls=[];
++    contacts.wallSamples=contacts.wallSamples.map((sample,index)=>{
++        const wrapped=Object.assign(input=>{calls.push({index,a:input.coordinateA,b:input.coordinateB});return sample(input);},sample);
++        if(!enabled)delete wrapped.sharedAxisInactiveRange;
++        return wrapped;
++    });
++    const state=createSharedAxisNative({...contacts,maxBendAngle:Math.PI/3,minimumEdgeLength:0,fractionalTipThreshold:.01,
++        tools:[{id:'wire',insertion:40.001},{id:'catheter',type:'pigtail',insertion:40,radius:.8}]});
++    return {state,calls,geometry,pool:createSharedAxisConstraintRowPool()};
++}
++const summary=(s,m)=>({energy:m.energy,force:m.force,torque:m.torque,constraint:m.constraint,gradient:s.chain.gradient.slice(),
++    tangent:s.chain.tangent.slice(),rows:m.rows.map(r=>({kind:r.kind,edge:r.edge,sample:r.sample,sampleT:r.sampleT,
++        gap:r.gap,jacobian:r.jacobian.slice(),multiplier:r.multiplier,hessian:r.geometricHessian?.slice()}))});
++
++for(const buffered of [false,true])for(const preflight of [false,true])test(`fixed contact domains preserve exact rows, forces and tangents (buffers=${buffered}, preflight=${preflight})`,()=>{
++    const reference=fixture(false),actual=fixture(true);
++    try{
++        for(const step of [0,1,2]){
++            const outputs=[];
++            for(const f of [reference,actual]){
++                const s=f.state;
++                // The material coordinate, not world-space position, decides
++                // whether the original sampler is shielded by the introducer.
++                for(let i=0;i<s.positions.length;i++)s.positions[i][1]=.03*Math.sin(i+step);
++                s.geometryKey=Symbol('domain-test');s.multipliers.forEach((_,i)=>{s.multipliers[i]=i%3===0?.125:i%3===1?-.25:0;});
++                s.cacheMechanicalAssembly=true;
++                const bank=buffered?f.pool.acquire():null;
++                outputs.push([true,false,true].map(withTangent=>summary(s,assembleSharedAxisNative(s,
++                    {withTangent,rowStorage:bank,earlyContactPreflight:preflight,reuseConstraintWork:true}))));
++            }
++            assert.deepEqual(outputs[1],outputs[0]);
++        }
++        assert.ok(actual.calls.length<reference.calls.length);
++        assert.ok(actual.calls.filter(c=>c.index===0).every(c=>c.a<12));
++        assert.ok(actual.calls.filter(c=>c.index===1).every(c=>c.b>12));
++        assert.ok(reference.calls.some(c=>c.index===0&&c.a>=12));
++        assert.ok(reference.calls.some(c=>c.index===1&&c.b<=12));
++    }finally{reference.geometry.dispose();actual.geometry.dispose();}
++});
++
++test('feed and a restored pose retain the exact sheath outlet and fractional-tip rows',()=>{
++    const reference=fixture(false),actual=fixture(true);
++    try{
++        for(const insertion of [11.999,12,12.001,35]){
++            const outputs=[];
++            for(const f of [reference,actual]){
++                const s=f.state=feedSharedAxisNative(f.state,{wire:insertion+.001,catheter:insertion});
++                const saved=captureSharedAxisNative(s),bank=f.pool.acquire();s.cacheMechanicalAssembly=true;
++                for(let i=0;i<s.positions.length;i++)s.positions[i][1]+=.01;
++                s.geometryKey=Symbol('trial');assembleSharedAxisNative(s,{rowStorage:bank});
++                restoreSharedAxisNative(s,saved);
++                outputs.push(summary(s,assembleSharedAxisNative(s,{rowStorage:bank,earlyContactPreflight:true,reuseConstraintWork:true})));
++            }
++            assert.deepEqual(outputs[1],outputs[0]);
++        }
++    }finally{reference.geometry.dispose();actual.geometry.dispose();}
++});
++
++test('a discovery fork preserves the fixed domain without sharing mutable metadata',()=>{
++    const f=fixture(true);
++    try{
++        const sample=f.state.wallSamples[1],fork=sample.forkDiscovery();
++        assert.deepEqual(fork.sharedAxisInactiveRange,{start:12,end:Infinity});
++        assert.equal(Object.isFrozen(fork.sharedAxisInactiveRange),true);
++        assert.notEqual(fork.sharedAxisInactiveRange,sample.sharedAxisInactiveRange);
++    }finally{f.geometry.dispose();}
++});

@@ -1,0 +1,307 @@
+{
+  "candidate": "reports/performance-scenarios/027-projective-full-app.json.gz",
+  "candidateSha256": "5f76fc8016361e16ee1cb5b49fb852846409be5f34b29066f63c45a109a02645",
+  "referenceSha256": "bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac",
+  "acceptanceMode": "functional",
+  "shapeDifferenceLimitMm": null,
+  "qualityModel": "projective-geometry",
+  "newtonEquilibriumCertified": false,
+  "workerSteps": 7507,
+  "complete": true,
+  "acceptedSteps": 7507,
+  "targetSteps": 7507,
+  "error": null,
+  "verifiedInputPrefix": true,
+  "physicalChecks": 15014,
+  "maxPenetration": 0.0000049744837221227245,
+  "maxLength": 0.000004996282657600942,
+  "maxAbsoluteLength": 0.000004968840277896902,
+  "maxShear": 0.000004996282657658867,
+  "maximumShapeDifferenceMm": 158.61288629254716,
+  "functionalRoute": {
+    "checkpoints": [
+      {
+        "stage": 0,
+        "passed": true,
+        "wire": {
+          "region": "ipsilateral",
+          "point": [
+            -11.145923059943026,
+            -308.4141841965277,
+            6.817858744341631
+          ],
+          "edgeIndex": 5734,
+          "distanceMm": 2.3531550026241415,
+          "radiusMm": 4.419711112976074
+        },
+        "catheter": {
+          "region": "aorta",
+          "point": [
+            -2.071671107853805,
+            -272.2718136955317,
+            9.0216320247978
+          ],
+          "edgeIndex": 5343,
+          "distanceMm": 1.2822724978542228,
+          "radiusMm": 7.92020845413208
+        }
+      },
+      {
+        "stage": 1,
+        "passed": true,
+        "wire": {
+          "region": "ipsilateral",
+          "point": [
+            -12.506475062910544,
+            -309.3142756885343,
+            6.185200739539361
+          ],
+          "edgeIndex": 5734,
+          "distanceMm": 1.7648143908901752,
+          "radiusMm": 4.419711112976074
+        },
+        "catheter": {
+          "region": "contralateral-common",
+          "point": [
+            0.9224232530172554,
+            -298.4319648796271,
+            0.6682389234957711
+          ],
+          "edgeIndex": 5651,
+          "distanceMm": 1.9275703074826724,
+          "radiusMm": 4.311280727386475
+        }
+      },
+      {
+        "stage": 2,
+        "passed": true,
+        "wire": {
+          "region": "contralateral-external",
+          "point": [
+            27.306852865726853,
+            -334.28284612809546,
+            -14.719505013884323
+          ],
+          "edgeIndex": 6061,
+          "distanceMm": 3.8265487730484384,
+          "radiusMm": 3.0875083255767826
+        },
+        "catheter": {
+          "region": "contralateral-common",
+          "point": [
+            8.334927209260284,
+            -306.301607950904,
+            -3.449057908226319
+          ],
+          "edgeIndex": 5763,
+          "distanceMm": 3.797181179999787,
+          "radiusMm": 4.6237305068969725
+        }
+      },
+      {
+        "stage": 3,
+        "passed": true,
+        "wire": {
+          "region": "contralateral-external",
+          "point": [
+            82.90890682897732,
+            -535.4312823040316,
+            -3.616218239588812
+          ],
+          "edgeIndex": 8762,
+          "distanceMm": 2.5394367426780278,
+          "radiusMm": 2.2371182441711426
+        },
+        "catheter": {
+          "region": "contralateral-external",
+          "point": [
+            66.21116563906057,
+            -470.2812406199638,
+            15.511043839667478
+          ],
+          "edgeIndex": 8247,
+          "distanceMm": 0.8384853456516165,
+          "radiusMm": 2.755270481109619
+        }
+      },
+      {
+        "stage": 4,
+        "passed": true,
+        "wire": {
+          "region": "contralateral-external",
+          "point": [
+            106.25593304381275,
+            -1021.1689256560018,
+            -69.5934537545617
+          ],
+          "edgeIndex": 10276,
+          "distanceMm": 1.050260838011051,
+          "radiusMm": 0.6000000238418579
+        },
+        "catheter": {
+          "region": "contralateral-external",
+          "point": [
+            97.63617485989569,
+            -986.391378033951,
+            -68.98949824806925
+          ],
+          "edgeIndex": 10136,
+          "distanceMm": 0.8684621529489507,
+          "radiusMm": 0.6000000238418579
+        }
+      }
+    ],
+    "routeChecksPassed": true,
+    "fullManeuverVerified": false,
+    "visualReviewRequired": true,
+    "scope": "Coarse tip branch checks at five stages. Does not certify wall containment, pigtail seating, femoral entry, jitter or freedom from blocking."
+  },
+  "summary": {
+    "all": {
+      "steps": 7507,
+      "wallMs": 245736.80000019073,
+      "physicsHz": 30.548945050127507,
+      "p50CpuMs": 2.799999952316284,
+      "p95CpuMs": 5.299999713897705,
+      "p99CpuMs": 8,
+      "maxCpuMs": 26.09999966621399,
+      "intervalsOverBudget": 6695
+    },
+    "duringMotion": {
+      "steps": 3645,
+      "wallMs": 137420.00000166893,
+      "physicsHz": 26.52452335872313,
+      "p50CpuMs": 2.9000000953674316,
+      "p95CpuMs": 5.600000381469727,
+      "p99CpuMs": 8.5,
+      "maxCpuMs": 23.40000057220459,
+      "intervalsOverBudget": 3364
+    },
+    "stationary": {
+      "steps": 3862,
+      "wallMs": 108316.7999985218,
+      "physicsHz": 35.65467222123165,
+      "p50CpuMs": 2.700000047683716,
+      "p95CpuMs": 4.999999761581421,
+      "p99CpuMs": 7.400000095367432,
+      "maxCpuMs": 26.09999966621399,
+      "intervalsOverBudget": 3331
+    },
+    "minimumMovingWindowHz": 9.796398191236879,
+    "stages": [
+      {
+        "label": "Pigtail nad rozwidleniem, prowadnik cofnięty, ogonek skierowany w drugą stronę",
+        "steps": 1249,
+        "wallMs": 27126.10000014305,
+        "physicsHz": 46.044215718198096,
+        "p50CpuMs": 3,
+        "p95CpuMs": 4.999999761581421,
+        "p99CpuMs": 8,
+        "maxCpuMs": 15.599999904632568,
+        "intervalsOverBudget": 886,
+        "duringMotion": {
+          "steps": 872,
+          "wallMs": 19409.200000047684,
+          "physicsHz": 44.92714795034611,
+          "p50CpuMs": 3,
+          "p95CpuMs": 4.6000001430511475,
+          "p99CpuMs": 6.799999952316284,
+          "maxCpuMs": 15.599999904632568,
+          "intervalsOverBudget": 649
+        }
+      },
+      {
+        "label": "Pigtail oparty o rozwidlenie, końcówka w przeciwległej biodrówce",
+        "steps": 591,
+        "wallMs": 12580.399999856949,
+        "physicsHz": 46.97783854302886,
+        "p50CpuMs": 2.8999996185302734,
+        "p95CpuMs": 4.200000047683716,
+        "p99CpuMs": 5.500000476837158,
+        "maxCpuMs": 8.399999856948853,
+        "intervalsOverBudget": 448,
+        "duringMotion": {
+          "steps": 127,
+          "wallMs": 3143.300000667572,
+          "physicsHz": 40.40339769447009,
+          "p50CpuMs": 3.0999999046325684,
+          "p95CpuMs": 4.599999666213989,
+          "p99CpuMs": 8.099999904632568,
+          "maxCpuMs": 8.399999856948853,
+          "intervalsOverBudget": 123
+        }
+      },
+      {
+        "label": "Prowadnik przez pigtaila w przeciwległej biodrówce",
+        "steps": 846,
+        "wallMs": 22000.900000095367,
+        "physicsHz": 38.45297237823602,
+        "p50CpuMs": 2.799999952316284,
+        "p95CpuMs": 5.300000190734863,
+        "p99CpuMs": 8.600000381469727,
+        "maxCpuMs": 17.700000047683716,
+        "intervalsOverBudget": 719,
+        "duringMotion": {
+          "steps": 115,
+          "wallMs": 4220.100000619888,
+          "physicsHz": 27.25053908274868,
+          "p50CpuMs": 2.799999952316284,
+          "p95CpuMs": 8.599998950958252,
+          "p99CpuMs": 10.5,
+          "maxCpuMs": 11.200000286102295,
+          "intervalsOverBudget": 105
+        }
+      },
+      {
+        "label": "Po korektach: prowadnik w biodrowej zewnętrznej i udowej",
+        "steps": 3530,
+        "wallMs": 94304.09999990463,
+        "physicsHz": 37.43209468096901,
+        "p50CpuMs": 2.499999761581421,
+        "p95CpuMs": 4.499999761581421,
+        "p99CpuMs": 6.6000001430511475,
+        "maxCpuMs": 10.900000095367432,
+        "intervalsOverBudget": 3351,
+        "duringMotion": {
+          "steps": 1579,
+          "wallMs": 43860.30000042915,
+          "physicsHz": 36.00066574976802,
+          "p50CpuMs": 2.5,
+          "p95CpuMs": 4.6000001430511475,
+          "p99CpuMs": 7.1000001430511475,
+          "maxCpuMs": 9.999999761581421,
+          "intervalsOverBudget": 1535
+        }
+      },
+      {
+        "label": "Oba narzędzia wsunięte na prawie maksymalną długość",
+        "steps": 1291,
+        "wallMs": 89725.30000019073,
+        "physicsHz": 14.388360919353355,
+        "p50CpuMs": 3.5,
+        "p95CpuMs": 6.900000810623169,
+        "p99CpuMs": 10.59999966621399,
+        "maxCpuMs": 26.09999966621399,
+        "intervalsOverBudget": 1291,
+        "duringMotion": {
+          "steps": 952,
+          "wallMs": 66787.09999990463,
+          "physicsHz": 14.254249697941061,
+          "p50CpuMs": 3.5999999046325684,
+          "p95CpuMs": 6.800000190734863,
+          "p99CpuMs": 10.5,
+          "maxCpuMs": 23.40000057220459,
+          "intervalsOverBudget": 952
+        }
+      }
+    ],
+    "maximumShapeDifferenceMm": 158.61288629254716
+  },
+  "performanceTargetMet": false,
+  "goalAchieved": false,
+  "limitations": [
+    "Incomplete replay timing describes only its observed prefix.",
+    "Coarse branch checks do not replace review of pigtail seating, femoral entry, jitter and operator control.",
+    "PD geometric admissibility does not certify Newton equilibrium; friction remains an approximate positional model."
+  ]
+}

@@ -1,0 +1,177 @@
+{
+  "recordedAt": "2026-10-14T11:04:19.536Z",
+  "goalAchieved": false,
+  "change": "Reduce repeated coefficient and pivot reads inside the active-contact basis elimination loop. Original support order, arithmetic, tie-breaks, rank threshold and physical equations are unchanged.",
+  "certificates": {
+    "dt": 0.016666666666666666,
+    "forceTolerance": 0.000001,
+    "lengthTolerance": 0.00001,
+    "penetrationToleranceMm": 0.00001,
+    "relaxed": false
+  },
+  "paired": {
+    "report": "001-basis-scalar-long.json",
+    "passed": true,
+    "stepsPerVersion": 600,
+    "maxWorldDifferenceMm": 0,
+    "summary": {
+      "before": {
+        "steps": 600,
+        "totalMs": 23436.749457000053,
+        "medianMs": 25.679958000000624,
+        "p95Ms": 89.99983300000167,
+        "maxMs": 525.6330420000013,
+        "cpuStepsPerSecond": 25.600819819353955,
+        "withinBudget": 0
+      },
+      "after": {
+        "steps": 600,
+        "totalMs": 22712.39526500008,
+        "medianMs": 25.711499999997613,
+        "p95Ms": 83.8885420000006,
+        "maxMs": 501.72812500000146,
+        "cpuStepsPerSecond": 26.41729298030504,
+        "withinBudget": 2
+      }
+    },
+    "totalTimeReductionPercent": 3.0906768591308365
+  },
+  "short": {
+    "report": "001-basis-scalar-loop.json",
+    "passed": true,
+    "summary": {
+      "before": {
+        "steps": 200,
+        "totalMs": 9194.167004999992,
+        "medianMs": 31.703707999997278,
+        "p95Ms": 109.35641699999996,
+        "maxMs": 328.12241600000016,
+        "cpuStepsPerSecond": 21.752922248555585,
+        "withinBudget": 0
+      },
+      "after": {
+        "steps": 200,
+        "totalMs": 8359.659505999993,
+        "medianMs": 30.580667000001995,
+        "p95Ms": 89.85145799999918,
+        "maxMs": 260.81291599999986,
+        "cpuStepsPerSecond": 23.924419392494833,
+        "withinBudget": 0
+      }
+    }
+  },
+  "isolated": {
+    "report": "001-basis-scalar-isolated.json",
+    "recordedAt": "2026-10-14T11:00:24.563Z",
+    "passed": true,
+    "snapshots": 17,
+    "before": {
+      "runs": 340,
+      "totalMs": 478.6701669999984,
+      "medianMs": 1.3337499999997817
+    },
+    "after": {
+      "runs": 340,
+      "totalMs": 459.0357910000025,
+      "medianMs": 1.2757080000001224
+    },
+    "scope": "Dependency preparation only on actual first-step crossover Newton rows; every repetition rebuilds the Jacobian basis, exact reactions/active set/trace comparison; not full-step throughput",
+    "command": "node scripts/benchmark-crossover-basis.mjs /tmp/oet-contact-stage9-baseline reports/performance-scenarios/001-basis-scalar-isolated.json"
+  },
+  "browser": {
+    "report": "001-browser-basis-scalar.json",
+    "screenshot": "001-browser-basis-scalar.jpg",
+    "passed": true,
+    "acceptedSteps": 300,
+    "physicsHz": 22.253707096943337,
+    "renderFps": 58.4530706413045,
+    "simulationSeconds": 5,
+    "wallSeconds": 13.480899999856948,
+    "stepCpuMs": {
+      "median": 27.299999952316284,
+      "p95": 82.79999995231628,
+      "max": 473.3000009059906
+    },
+    "consoleErrors": 0
+  },
+  "tests": {
+    "passed": 76,
+    "failed": 0,
+    "report": "001-basis-scalar-tests.log"
+  },
+  "build": {
+    "passed": true,
+    "report": "001-basis-scalar-build.log",
+    "warning": "Existing chunk-size warning"
+  },
+  "diffCheckPassed": true,
+  "rejectedExperiments": [
+    {
+      "name": "Native inactive material interval shortcut",
+      "patch": "001-inactive-interval-rejected.patch",
+      "report": "001-inactive-interval-long.json",
+      "maxWorldDifferenceMm": 0,
+      "summary": {
+        "before": {
+          "steps": 600,
+          "totalMs": 22848.74061699998,
+          "medianMs": 25.389208000000508,
+          "p95Ms": 87.58854200000133,
+          "maxMs": 534.4048330000005,
+          "cpuStepsPerSecond": 26.2596529960862,
+          "withinBudget": 1
+        },
+        "after": {
+          "steps": 600,
+          "totalMs": 23196.20296099995,
+          "medianMs": 25.401083000000654,
+          "p95Ms": 88.08570900000632,
+          "maxMs": 628.3068749999984,
+          "cpuStepsPerSecond": 25.86630238616152,
+          "withinBudget": 1
+        }
+      },
+      "reason": "No sustained speedup; long paired comparison was slower. All production changes and experiment-only tests reverted."
+    },
+    {
+      "name": "Free length rows before constrained-root length rows in basis preparation",
+      "patch": "001-local-length-basis-rejected.patch",
+      "report": "001-local-length-basis-relaxed-comparison.json",
+      "maxWorldDifferenceMm": 0.00011310284683072935,
+      "summary": {
+        "before": {
+          "steps": 200,
+          "totalMs": 7399.682166999994,
+          "medianMs": 27.444916999998895,
+          "p95Ms": 83.44979200000034,
+          "maxMs": 239.4265830000004,
+          "cpuStepsPerSecond": 27.02818789865467,
+          "withinBudget": 0
+        },
+        "after": {
+          "steps": 200,
+          "totalMs": 7940.8119949999855,
+          "medianMs": 27.64191699999901,
+          "p95Ms": 97.50908300000083,
+          "maxMs": 321.51541599999973,
+          "cpuStepsPerSecond": 25.186341160819836,
+          "withinBudget": 0
+        }
+      },
+      "reason": "Changed solver path, increased factorization count and was slower. Prototype reverted, including opt-in flag."
+    }
+  ],
+  "profiling": {
+    "report": "001-warm-cpu-summary.json",
+    "command": "OET_CROSSOVER_CPU_PROFILE=/tmp/oet-current-warm.cpuprofile node scripts/benchmark-crossover-throughput.mjs '' reports/performance-scenarios/001-profiled-warm.json '{\"contactCandidateMargin\":0.01,\"lazyBasisCoefficients\":true,\"deferActiveBasis\":true}'",
+    "scope": "Second repetition, excludes anatomy loading, replay restoration and flow construction; includes inspector bookkeeping. Not a timing comparison."
+  },
+  "limitations": [
+    "The measured gain is modest (about 3% overall); the long-run median was effectively unchanged. Machine load varies.",
+    "The isolated preparation timing is not full physics throughput.",
+    "Browser uses a lightweight axis preview and excludes full fluoroscopy. The 22.3 Hz physics result is not 58.5 FPS rendering.",
+    "The sequence extends settling after a saved long-tool maneuver; it does not replay the complete manual crossover.",
+    "The reduced-shaft experiment remains opt-in, unchanged.",
+    "60 Hz goal remains active."
+  ]
+}

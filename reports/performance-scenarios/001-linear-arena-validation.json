@@ -1,0 +1,253 @@
+{
+  "recordedAt": "2026-10-14T09:16:02.181926+00:00",
+  "goalAchieved": false,
+  "targetAcceptedHz": 60,
+  "dt": 0.016666666666666666,
+  "changes": [
+    "Bounded cache of 16 compact layouts and a shared numeric arena, with private result copies before generator yields. Retained/incremental LU stays isolated.",
+    "Ordinary shared-axis scheduler now resumes pending slices within the render budget, as the realtime preset already did. No change to dt, nonlinear stopping tolerances or publication barrier.",
+    "Browser crossover benchmark uses the captured 981/861 mm state, pulsatile blood flow, shared replay code and production frame-budget helper."
+  ],
+  "checks": [
+    {
+      "tests": 40,
+      "passed": 40,
+      "log": "001-linear-arena-tests.log"
+    },
+    {
+      "tests": 13,
+      "passed": 12,
+      "skipped": 1,
+      "log": "001-linear-arena-retained-tests.log"
+    },
+    {
+      "tests": 39,
+      "passed": 39,
+      "log": "001-cooperative-scheduler-tests.log"
+    }
+  ],
+  "build": {
+    "passed": true,
+    "log": "001-cooperative-build.log",
+    "warning": "Existing large-bundle warning"
+  },
+  "diffCheck": "passed",
+  "cpuBenchmark": {
+    "file": "001-linear-arena-result.json",
+    "summary": {
+      "before": {
+        "steps": 200,
+        "totalMs": 9249.67679400001,
+        "medianMs": 33.000332999999955,
+        "p95Ms": 98.92254099999991,
+        "maxMs": 813.7263750000002,
+        "cpuStepsPerSecond": 21.62237713319173,
+        "withinBudget": 0
+      },
+      "after": {
+        "steps": 200,
+        "totalMs": 8640.922127000013,
+        "medianMs": 32.76275000000169,
+        "p95Ms": 96.44083399999727,
+        "maxMs": 326.66308299999946,
+        "cpuStepsPerSecond": 23.14567786406342,
+        "withinBudget": 0
+      }
+    },
+    "maxWorldDifferenceMm": 0,
+    "steadyNumericArena": {
+      "allocations": 2,
+      "capacityBytes": 2097152,
+      "grows": 1,
+      "viewBuilds": 174,
+      "requests": 4752,
+      "compactLayouts": 16,
+      "compactNumericAllocations": 13,
+      "compactNumericBytes": 555264
+    },
+    "note": "CPU variability is substantial. Second paired repeat totals are nearly equal; do not claim a reliable 7% steady-state speedup from aggregate values."
+  },
+  "browser": {
+    "file": "001-browser-cooperative.json",
+    "screenshot": "001-browser-cooperative.jpg",
+    "passed": true,
+    "acceptedPhysicsHz": 16.077687385569735,
+    "renderFps": 57.39734396648395,
+    "stepCpuMs": {
+      "median": 37.89999985694885,
+      "p95": 130.099999666214,
+      "max": 432.30000019073486
+    },
+    "workBudgetMs": 12,
+    "scope": "Actual full physics solver and production frame-budget helper; lightweight centerline renderer; app idle catch-up and complete fluoroscopy renderer excluded.",
+    "mainApp": "Loads after scheduler edit; no JavaScript error logs. Long captured state was measured in the dedicated benchmark, not the main UI."
+  },
+  "rejectedProbes": [
+    {
+      "name": "constant-rows",
+      "enabled": false,
+      "reason": "Bookkeeping reduction did not deliver a consistent total CPU gain.",
+      "summary": {
+        "before": {
+          "steps": 200,
+          "totalMs": 11289.297378000007,
+          "medianMs": 39.33966599999985,
+          "p95Ms": 131.10345799999777,
+          "maxMs": 455.08191700000043,
+          "cpuStepsPerSecond": 17.715894382386416,
+          "withinBudget": 0
+        },
+        "after": {
+          "steps": 200,
+          "totalMs": 11254.715962000028,
+          "medianMs": 37.499792000000525,
+          "p95Ms": 143.10441699999865,
+          "maxMs": 394.9556249999987,
+          "cpuStepsPerSecond": 17.77032851608801,
+          "withinBudget": 0
+        }
+      },
+      "maxWorldDifferenceMm": 0
+    },
+    {
+      "name": "certified-contacts",
+      "enabled": false,
+      "reason": "Existing exact-sample fast path gave only a small gain.",
+      "summary": {
+        "before": {
+          "steps": 200,
+          "totalMs": 10190.988754999991,
+          "medianMs": 36.27362499999799,
+          "p95Ms": 109.47979099999975,
+          "maxMs": 445.47249999999985,
+          "cpuStepsPerSecond": 19.62518110932801,
+          "withinBudget": 0
+        },
+        "after": {
+          "steps": 200,
+          "totalMs": 9901.728418999988,
+          "medianMs": 35.882666000001336,
+          "p95Ms": 113.19558399999733,
+          "maxMs": 398.632999999998,
+          "cpuStepsPerSecond": 20.198493791874643,
+          "withinBudget": 0
+        }
+      },
+      "maxWorldDifferenceMm": 0
+    },
+    {
+      "name": "certified-sample-bounds2",
+      "enabled": false,
+      "reason": "Per-sample skipping changed the numerical path slightly and increased tail factorization work; reverted.",
+      "summary": {
+        "before": {
+          "steps": 200,
+          "totalMs": 9151.118160999988,
+          "medianMs": 32.65875000000051,
+          "p95Ms": 108.37595800000054,
+          "maxMs": 393.05424999999923,
+          "cpuStepsPerSecond": 21.855252711341343,
+          "withinBudget": 0
+        },
+        "after": {
+          "steps": 200,
+          "totalMs": 9618.799121000025,
+          "medianMs": 31.413249999997788,
+          "p95Ms": 119.63866699999926,
+          "maxMs": 554.0860420000008,
+          "cpuStepsPerSecond": 20.792616363445468,
+          "withinBudget": 0
+        }
+      },
+      "maxWorldDifferenceMm": 1.167068403672941e-07
+    },
+    {
+      "name": "newton64",
+      "enabled": false,
+      "reason": "Larger Newton active-set budget did not change factorization counts or improve throughput.",
+      "summary": {
+        "before": {
+          "steps": 200,
+          "totalMs": 11824.05604200004,
+          "medianMs": 40.05058300000019,
+          "p95Ms": 161.45770800000173,
+          "maxMs": 720.5359590000003,
+          "cpuStepsPerSecond": 16.914669491550377,
+          "withinBudget": 0
+        },
+        "after": {
+          "steps": 200,
+          "totalMs": 12045.37791799997,
+          "medianMs": 39.49095800000032,
+          "p95Ms": 188.156041000002,
+          "maxMs": 416.8958330000023,
+          "cpuStepsPerSecond": 16.603879210890568,
+          "withinBudget": 0
+        }
+      },
+      "maxWorldDifferenceMm": 0
+    },
+    {
+      "name": "friction-reuse-narrow",
+      "enabled": false,
+      "reason": "Friction assembly reuse did not consistently reduce total CPU time.",
+      "summary": {
+        "before": {
+          "steps": 200,
+          "totalMs": 9177.847536999992,
+          "medianMs": 32.29912499999955,
+          "p95Ms": 109.26583399999981,
+          "maxMs": 384.7469999999994,
+          "cpuStepsPerSecond": 21.79160191904593,
+          "withinBudget": 0
+        },
+        "after": {
+          "steps": 200,
+          "totalMs": 9309.79845099999,
+          "medianMs": 31.520709000000352,
+          "p95Ms": 103.65466600000218,
+          "maxMs": 652.8259159999998,
+          "cpuStepsPerSecond": 21.48274219389975,
+          "withinBudget": 0
+        }
+      },
+      "maxWorldDifferenceMm": 0
+    },
+    {
+      "name": "early-predictor",
+      "enabled": false,
+      "reason": "Immediate recovery from a failed predicted pose increased total CPU and p95 in both paired repeats. Reference path retained.",
+      "summary": {
+        "before": {
+          "steps": 200,
+          "totalMs": 10581.876203000013,
+          "medianMs": 36.28395900000032,
+          "p95Ms": 121.64999999999964,
+          "maxMs": 581.8416250000009,
+          "cpuStepsPerSecond": 18.900240010679678,
+          "withinBudget": 0
+        },
+        "after": {
+          "steps": 200,
+          "totalMs": 11501.677335000022,
+          "medianMs": 35.048666000000594,
+          "p95Ms": 181.38287500000297,
+          "maxMs": 722.5070410000008,
+          "cpuStepsPerSecond": 17.388768105273893,
+          "withinBudget": 0
+        }
+      },
+      "maxWorldDifferenceMm": 0.00011304847321974469
+    }
+  ],
+  "limitations": [
+    "60 accepted physics steps per second remains unachieved.",
+    "Full repository suite was not run; previous known historical failures remain documented in earlier reports.",
+    "The sampled CPU benchmark includes cold first steps and variable host load. Browser comparisons at different times are illustrative, not controlled paired performance claims."
+  ],
+  "nextBottlenecks": [
+    "Step 99 fails the full-dt initial solve after 252 factorizations, then succeeds in two half steps; investigate failed active-set work without removing numerical fallback.",
+    "Typical full-step CPU remains about 33 ms even after allocation reuse. Assembly and active-set linear work still need material reductions.",
+    "Full-application replay should be exposed as a UI scenario so the complete renderer/scheduler can be measured without programmatic page-state mutation."
+  ]
+}

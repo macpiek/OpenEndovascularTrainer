@@ -1,0 +1,15 @@
+{
+  "base": "027-projective-app-source.tar.gz",
+  "overlay": "029-schur-source-overlay.tar.gz",
+  "files": {
+    "src/physics/identityProjectionSchur.js": "73801ee9bff3039431b407ee627ae7bbf5def8c7882790a614c61536f9a5d290",
+    "src/physics/kirchhoffSharedAxisLinear.js": "d644894162ae0fba72ab79992b584a2421fe8faf7a743f335184f36b78fc28a2",
+    "src/physics/kirchhoffSharedAxisProjection.js": "a7b6682c1d5582931edadadab8d812a7469910123054f633ccdfb0cb65556d4c",
+    "src/physics/kirchhoffSharedAxisProjective.js": "b3edef0dbf33b6faa5f9e1e8268f1f75bb1dd6a736fbdf73d7762de218b38419",
+    "tests/identityProjectionSchur.test.js": "0613d461d1034b0038509ada0608ad2eb02eb9190c0a287eb8b89eb33c4cdfaa",
+    "tests/kirchhoffSharedAxisProjective.test.js": "87a09b157e11f91f0045e5e5260de522c3aacd87d733d3810769e9e9e21b8a12",
+    "tests/crossoverAlternativeSolvers.browser.html": "1ceda94e5f93caee09282cfd5bc268d94d9b08a4209c8605121931d023d9bc22"
+  },
+  "defaultEnabled": false,
+  "manualRootModified": false
+}

@@ -3,10 +3,22 @@ const NODE_WORDS = 8;
 const TRIANGLE_CACHE_SIZE = 1 << 14;
 const TRIANGLE_CACHE_MASK = TRIANGLE_CACHE_SIZE - 1;
 const TRIANGLE_CACHE_STRIDE = 9;
+const NEIGHBORHOOD_CAPACITY = 2048;
+const NEIGHBORHOOD_MAX_FACES = 256;
+const NEIGHBORHOOD_CELL_SCALE = 4;
 
-export function createScalarMeshBvhScratch(maximumDepth = 64) {
+export function createScalarMeshBvhScratch(maximumDepth = 64, { reuseNeighborhood = true } = {}) {
     const capacity = Math.max(8, Math.ceil(maximumDepth) + 2);
     const scratch = {
+        // Each entry certifies all omitted BVH nodes at an earlier query.
+        // Only exact triangle distances may win; no SDF/plane approximation.
+        neighborhoods: reuseNeighborhood ? new Map() : null,
+        neighborhoodFaces: [],
+        neighborhoodDistances: [],
+        neighborhoodBytes: 0,
+        neighborhoodWinnerHits: 0,
+        neighborhoodHits: 0,
+        neighborhoodMisses: 0,
         nodeStack: new Int32Array(capacity),
         distanceStack: new Float64Array(capacity),
         closestX: 0,
@@ -203,12 +215,13 @@ function considerTriangle(
     const dy = pointY - closestY;
     const dz = pointZ - closestZ;
     const distanceSquared = dx * dx + dy * dy + dz * dz;
-    if (distanceSquared >= scratch.closestDistanceSquared) return;
+    if (distanceSquared >= scratch.closestDistanceSquared) return distanceSquared;
     scratch.closestDistanceSquared = distanceSquared;
     scratch.closestX = closestX;
     scratch.closestY = closestY;
     scratch.closestZ = closestZ;
     scratch.closestFaceIndex = triangleIndex;
+    return distanceSquared;
 }
 
 /**
@@ -254,6 +267,8 @@ export function closestPointToPointScalarBvh(
             (indices?.length ?? positions.length / 3) / 3
         );
         scratch.triangleCacheKeys.fill(-1);
+        scratch.neighborhoods?.clear();
+        scratch.neighborhoodBytes = 0;
         scratch.rootFloat32.length = roots.length;
         scratch.rootUint32.length = roots.length;
         scratch.rootUint16.length = roots.length;
@@ -289,6 +304,65 @@ export function closestPointToPointScalarBvh(
             scratch
         );
     }
+    // Match the static Float32 vertex cache's precision contract. Other
+    // attribute types retain the original complete traversal.
+    const neighborhoods = positions instanceof Float32Array ? scratch.neighborhoods : null;
+    const key = neighborhoods ? `${Math.floor(pointX * NEIGHBORHOOD_CELL_SCALE)}/${Math.floor(pointY * NEIGHBORHOOD_CELL_SCALE)}/${Math.floor(pointZ * NEIGHBORHOOD_CELL_SCALE)}` : null;
+    const prior = neighborhoods?.get(key);
+    if (prior) {
+        const movement = Math.hypot(pointX - prior.x, pointY - prior.y, pointZ - prior.z);
+        const guard = 256 * Number.EPSILON * Math.max(1, Math.abs(pointX), Math.abs(pointY), Math.abs(pointZ),
+            Math.abs(prior.x), Math.abs(prior.y), Math.abs(prior.z), prior.distance);
+        let tied = false;
+        if (prior.face !== seededHintFaceIndex) {
+            const best = scratch.closestDistanceSquared;
+            const distance = considerTriangle(pointX, pointY, pointZ, prior.face, indices, positions, scratch);
+            tied = distance === best;
+        }
+        // A strict nearest/runner-up gap often certifies the old winning
+        // face alone, before scanning the retained neighborhood at all.
+        const winnerDistance = Math.sqrt(scratch.closestDistanceSquared);
+        if (!tied && winnerDistance + movement + guard < prior.separationDistance &&
+            scratch.closestDistanceSquared < maximumDistanceSquared) {
+            scratch.neighborhoodHits++; scratch.neighborhoodWinnerHits++;
+            target.point.set(scratch.closestX, scratch.closestY, scratch.closestZ);
+            target.distance = winnerDistance; target.faceIndex = scratch.closestFaceIndex;
+            return true;
+        }
+        for (let i = 0; i < prior.faces.length; i++) {
+            const face = prior.faces[i];
+            if (face === seededHintFaceIndex || face === prior.face) continue;
+            // Distance to each retained finite triangle is also 1-Lipschitz.
+            // Keep the original certificate pose so skipped motion accumulates.
+            const lower = prior.distances[i] - movement - guard;
+            if (lower > 0 && lower * lower > scratch.closestDistanceSquared) continue;
+            const best = scratch.closestDistanceSquared;
+            const distance = considerTriangle(pointX, pointY, pointZ, face, indices, positions, scratch);
+            if (distance < best) tied = false;
+            else if (distance === best) tied = true;
+        }
+        const distance = Math.sqrt(scratch.closestDistanceSquared);
+        // A tie must follow the original hint/traversal ordering. If an
+        // omitted node could contain an equally near triangle, traverse too.
+        if (!tied && distance + movement + guard < prior.omittedDistance &&
+            scratch.closestDistanceSquared < maximumDistanceSquared) {
+            scratch.neighborhoodHits++;
+            target.point.set(scratch.closestX, scratch.closestY, scratch.closestZ);
+            target.distance = distance; target.faceIndex = scratch.closestFaceIndex;
+            return true;
+        }
+        // Restore precisely the original hinted starting bound/order.
+        scratch.closestDistanceSquared = Infinity; scratch.closestFaceIndex = -1;
+        if (seededHintFaceIndex >= 0)
+            considerTriangle(pointX, pointY, pointZ, seededHintFaceIndex, indices, positions, scratch);
+    }
+    if (neighborhoods) scratch.neighborhoodMisses++;
+    const visited = scratch.neighborhoodFaces, visitedDistances = scratch.neighborhoodDistances;
+    visited.length = 0; visitedDistances.length = 0;
+    if (seededHintFaceIndex >= 0 && neighborhoods) {
+        visited.push(seededHintFaceIndex); visitedDistances.push(Math.sqrt(scratch.closestDistanceSquared));
+    }
+    let omittedSquared = Infinity, retainNeighborhood = !!neighborhoods;
     const nodeStack = scratch.nodeStack;
     const distanceStack = scratch.distanceStack;
     for (
@@ -309,7 +383,10 @@ export function closestPointToPointScalarBvh(
             if (
                 nodeDistanceSquared >= scratch.closestDistanceSquared ||
                 nodeDistanceSquared >= maximumDistanceSquared
-            ) continue;
+            ) {
+                omittedSquared = Math.min(omittedSquared, nodeDistanceSquared);
+                continue;
+            }
             const node16 = node * 2;
             if (uint16[node16 + 15] === LEAF_SENTINEL) {
                 const offset = uint32[node + 6];
@@ -320,7 +397,7 @@ export function closestPointToPointScalarBvh(
                     // cannot replace itself because MeshBVH uses a strict '<'
                     // comparison as well.
                     if (triangle === seededHintFaceIndex) continue;
-                    considerTriangle(
+                    const triangleDistanceSquared = considerTriangle(
                         pointX,
                         pointY,
                         pointZ,
@@ -329,6 +406,11 @@ export function closestPointToPointScalarBvh(
                         positions,
                         scratch
                     );
+                    if (retainNeighborhood) {
+                        if (visited.length < NEIGHBORHOOD_MAX_FACES) {
+                            visited.push(triangle); visitedDistances.push(Math.sqrt(triangleDistanceSquared));
+                        } else retainNeighborhood = false;
+                    }
                 }
                 continue;
             }
@@ -366,7 +448,7 @@ export function closestPointToPointScalarBvh(
                 nodeStack[stackSize] = far;
                 distanceStack[stackSize] = farDistanceSquared;
                 stackSize++;
-            }
+            } else omittedSquared = Math.min(omittedSquared, farDistanceSquared);
             if (
                 nearDistanceSquared < scratch.closestDistanceSquared &&
                 nearDistanceSquared < maximumDistanceSquared
@@ -375,10 +457,29 @@ export function closestPointToPointScalarBvh(
                 nodeStack[stackSize] = near;
                 distanceStack[stackSize] = nearDistanceSquared;
                 stackSize++;
-            }
+            } else omittedSquared = Math.min(omittedSquared, nearDistanceSquared);
         }
     }
-    if (scratch.closestFaceIndex < 0) return false;
+    if (retainNeighborhood && scratch.closestFaceIndex >= 0 && scratch.closestDistanceSquared < maximumDistanceSquared) {
+        if (neighborhoods.size >= NEIGHBORHOOD_CAPACITY && !neighborhoods.has(key)) {
+            const oldestKey = neighborhoods.keys().next().value, oldest = neighborhoods.get(oldestKey);
+            scratch.neighborhoodBytes -= oldest.faces.byteLength + oldest.distances.byteLength;
+            neighborhoods.delete(oldestKey);
+        }
+        if (prior) scratch.neighborhoodBytes -= prior.faces.byteLength + prior.distances.byteLength;
+        scratch.neighborhoodBytes += visited.length * (Int32Array.BYTES_PER_ELEMENT + Float64Array.BYTES_PER_ELEMENT);
+        let separationDistance = Math.sqrt(omittedSquared);
+        for (let i = 0; i < visited.length; i++) if (visited[i] !== scratch.closestFaceIndex)
+            separationDistance = Math.min(separationDistance, visitedDistances[i]);
+        neighborhoods.set(key, { separationDistance, x: pointX, y: pointY, z: pointZ, face: scratch.closestFaceIndex, distance: Math.sqrt(scratch.closestDistanceSquared),
+            faces: Int32Array.from(visited), distances: Float64Array.from(visitedDistances), omittedDistance: Math.sqrt(omittedSquared) });
+    }
+    // A hinted triangle (or a triangle in a partially overlapping leaf) may
+    // lie beyond the search radius. It cannot certify a bounded hit: other,
+    // closer triangles outside that radius were deliberately not traversed.
+    // Report a miss so callers can perform their exact unbounded retry.
+    if (scratch.closestFaceIndex < 0 ||
+        scratch.closestDistanceSquared >= maximumDistanceSquared) return false;
     target.point.set(
         scratch.closestX,
         scratch.closestY,

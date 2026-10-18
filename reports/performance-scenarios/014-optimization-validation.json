@@ -1,0 +1,301 @@
+{
+  "updatedAt": "2026-10-17T15:55:01.928Z",
+  "goalAchieved": false,
+  "classificationOfPreviousGoalTurn": "Progress: 013 implemented and tested global XPBD plus coupled friction; obtained independently checked rejected trajectories.",
+  "classificationOfThisTurn": "Progress: added passive force diagnostics, fixed discontinuous contact-release merit, measured slow nonlinear convergence at 32 and 128 iterations, tested and removed a failed curvature preconditioner.",
+  "productionDefaultChanged": false,
+  "shapeDifferenceLimitMm": 1,
+  "targetAcceptedPhysicsHz": 60,
+  "tests": {
+    "passed": 31,
+    "log": "014-tests.log",
+    "buildPassed": true,
+    "buildLog": "014-build.log",
+    "diffCheckPassed": true
+  },
+  "experiments": [
+    {
+      "report": "014-xpbd-residual-screen.json.gz",
+      "options": {
+        "iterations": 32,
+        "globalChain": true,
+        "chainSurfaceFriction": true,
+        "chainTrace": true
+      },
+      "screening": {
+        "stopOnShapeLimit": true
+      },
+      "stopReason": "shape-budget-failure",
+      "summary": {
+        "attemptedSteps": 276,
+        "acceptedSteps": 276,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 193,
+        "maximumShapeDifferenceMm": 1.1225049109733296,
+        "shapeWithinLimit": false,
+        "firstShapeLimitStep": 276,
+        "movingCpuCapacityHz": 11.599021783528617,
+        "movingMedianCpuMs": 36.614167000000634,
+        "movingP95CpuMs": 332.36383399999977,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "accepted": false,
+      "scope": "CPU research: original right-access targets from empty tools. Stops at geometry rejection or the first shape-budget violation. Not full-app FPS or a complete maneuver pass."
+    },
+    {
+      "report": "014-xpbd-natural-map.json.gz",
+      "options": {
+        "iterations": 32,
+        "globalChain": true,
+        "chainSurfaceFriction": true,
+        "chainTrace": true
+      },
+      "screening": {
+        "stopOnShapeLimit": true
+      },
+      "stopReason": "shape-budget-failure",
+      "summary": {
+        "attemptedSteps": 276,
+        "acceptedSteps": 276,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 193,
+        "maximumShapeDifferenceMm": 1.1225221663246765,
+        "shapeWithinLimit": false,
+        "firstShapeLimitStep": 276,
+        "movingCpuCapacityHz": 12.453702007720281,
+        "movingMedianCpuMs": 37.1620410000005,
+        "movingP95CpuMs": 299.60200000000077,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "accepted": false,
+      "scope": "CPU research: original right-access targets from empty tools. Stops at geometry rejection or the first shape-budget violation. Not full-app FPS or a complete maneuver pass."
+    },
+    {
+      "report": "014-xpbd128-convergence.json.gz",
+      "options": {
+        "iterations": 128,
+        "globalChain": true,
+        "chainSurfaceFriction": true,
+        "chainTrace": true
+      },
+      "screening": {
+        "stopOnShapeLimit": true,
+        "maxSteps": 400
+      },
+      "stopReason": "shape-budget-failure",
+      "summary": {
+        "attemptedSteps": 284,
+        "acceptedSteps": 284,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 201,
+        "maximumShapeDifferenceMm": 1.0875356597255892,
+        "shapeWithinLimit": false,
+        "firstShapeLimitStep": 284,
+        "movingCpuCapacityHz": 4.334573162516019,
+        "movingMedianCpuMs": 149.3691660000004,
+        "movingP95CpuMs": 771.197583000001,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "accepted": false,
+      "scope": "CPU research: original right-access targets from empty tools. Stops at geometry rejection or the first shape-budget violation. Not full-app FPS or a complete maneuver pass. Diagnostic maximum: 400 steps."
+    },
+    {
+      "report": "014-xpbd-curvature.json.gz",
+      "options": {
+        "iterations": 32,
+        "globalChain": true,
+        "chainSurfaceFriction": true,
+        "chainContactCurvature": true,
+        "chainTrace": true
+      },
+      "screening": {
+        "stopOnShapeLimit": true
+      },
+      "stopReason": "xpbd-error",
+      "summary": {
+        "attemptedSteps": 2,
+        "acceptedSteps": 1,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 0,
+        "maximumShapeDifferenceMm": 0.005692763706984581,
+        "shapeWithinLimit": true,
+        "firstShapeLimitStep": null,
+        "movingCpuCapacityHz": null,
+        "movingMedianCpuMs": null,
+        "movingP95CpuMs": null,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "accepted": false,
+      "scope": "CPU research: original right-access targets from empty tools. Stops at geometry rejection or the first shape-budget violation. Not full-app FPS or a complete maneuver pass."
+    }
+  ],
+  "diagnosticEvidence": {
+    "tracingMaximumPoseChangeMm": 0,
+    "comparison": "Every stored point of all 276 traced steps versus 013 pivot run; exactly unchanged.",
+    "at32Iterations": [
+      {
+        "step": 200,
+        "shapeDifferenceMm": 0.0000021939312390069853,
+        "subdivisions": 1,
+        "lastCorrectionScale": 0.03125,
+        "residuals": {
+          "maxPositionForceResidual": 0.002698194787607508,
+          "maxFrameTorqueResidual": 0.0013614647549648551,
+          "maxConstraintResidual": 1.2647229929996229e-9,
+          "maxCompliantForceResidual": 26.84454165766189,
+          "maxLoadedContactGap": 1.2475030457259617e-7,
+          "chart": "frozen-iteration-chart",
+          "equilibriumCertified": false
+        }
+      },
+      {
+        "step": 250,
+        "shapeDifferenceMm": 0.2071068390536121,
+        "subdivisions": 2,
+        "lastCorrectionScale": 0.0625,
+        "residuals": {
+          "maxPositionForceResidual": 12.798080240569194,
+          "maxFrameTorqueResidual": 2.1076126493955467,
+          "maxConstraintResidual": 0.000007808301675111294,
+          "maxCompliantForceResidual": 7808301.675111294,
+          "maxLoadedContactGap": 0.00000793369539087152,
+          "chart": "frozen-iteration-chart",
+          "equilibriumCertified": false
+        }
+      },
+      {
+        "step": 270,
+        "shapeDifferenceMm": 0.6690284176190586,
+        "subdivisions": 2,
+        "lastCorrectionScale": 0.0625,
+        "residuals": {
+          "maxPositionForceResidual": 1.073792004607391,
+          "maxFrameTorqueResidual": 0.5219976754336987,
+          "maxConstraintResidual": 0.0285278347609203,
+          "maxCompliantForceResidual": 480781.5854478547,
+          "maxLoadedContactGap": 4.818317038690623e-7,
+          "chart": "frozen-iteration-chart",
+          "equilibriumCertified": false
+        }
+      },
+      {
+        "step": 276,
+        "shapeDifferenceMm": 1.1225221663246765,
+        "subdivisions": 4,
+        "lastCorrectionScale": 0.125,
+        "residuals": {
+          "maxPositionForceResidual": 0.015472341001937073,
+          "maxFrameTorqueResidual": 0.002231493789775496,
+          "maxConstraintResidual": 0.00003346940429707623,
+          "maxCompliantForceResidual": 100.56271006291017,
+          "maxLoadedContactGap": 1.2466372137365234e-7,
+          "chart": "frozen-iteration-chart",
+          "equilibriumCertified": false
+        }
+      }
+    ],
+    "at128Iterations": [
+      {
+        "step": 200,
+        "shapeDifferenceMm": 3.910644351624659e-7,
+        "subdivisions": 1,
+        "lastCorrectionScale": 0.015625,
+        "residuals": {
+          "maxPositionForceResidual": 0.00015876784267756378,
+          "maxFrameTorqueResidual": 0.00014502624950793735,
+          "maxConstraintResidual": 7.536549162523443e-11,
+          "maxCompliantForceResidual": 1.6672637048844754,
+          "maxLoadedContactGap": 1.2475014452006938e-7,
+          "chart": "frozen-iteration-chart",
+          "equilibriumCertified": false
+        }
+      },
+      {
+        "step": 250,
+        "shapeDifferenceMm": 0.04392021545063288,
+        "subdivisions": 1,
+        "lastCorrectionScale": 0.015625,
+        "residuals": {
+          "maxPositionForceResidual": 0.30706048880796594,
+          "maxFrameTorqueResidual": 0.9500089844580323,
+          "maxConstraintResidual": 0.000005801956830531196,
+          "maxCompliantForceResidual": 1348998.061823009,
+          "maxLoadedContactGap": 0.0000014741226019576725,
+          "chart": "frozen-iteration-chart",
+          "equilibriumCertified": false
+        }
+      },
+      {
+        "step": 270,
+        "shapeDifferenceMm": 0.12099488334782196,
+        "subdivisions": 1,
+        "lastCorrectionScale": 0.015625,
+        "residuals": {
+          "maxPositionForceResidual": 0.17399149888973603,
+          "maxFrameTorqueResidual": 0.5045897347577041,
+          "maxConstraintResidual": 0.014119582433326228,
+          "maxCompliantForceResidual": 905445.8228514142,
+          "maxLoadedContactGap": 9.065127721807897e-7,
+          "chart": "frozen-iteration-chart",
+          "equilibriumCertified": false
+        }
+      },
+      {
+        "step": 276,
+        "shapeDifferenceMm": 0.2742876312541486,
+        "subdivisions": 2,
+        "lastCorrectionScale": 0.0625,
+        "residuals": {
+          "maxPositionForceResidual": 0.012680787348310404,
+          "maxFrameTorqueResidual": 0.0050986075016905275,
+          "maxConstraintResidual": 0.000457613169796256,
+          "maxCompliantForceResidual": 850.550506509904,
+          "maxLoadedContactGap": 3.011823545284731e-7,
+          "chart": "frozen-iteration-chart",
+          "equilibriumCertified": false
+        }
+      }
+    ],
+    "interpretation": "At step 250, even 128 iterations leave position-force residual ~0.307 and frame-torque residual ~0.950 in model units, with correction scale 1/64. Geometric admissibility is not force equilibrium. The frozen-chart diagnostics are not the Newton certificate."
+  },
+  "retainedChanges": [
+    "Passive per-iteration force, torque and constraint residual diagnostics, with a test that output shapes/frames are unchanged.",
+    "Continuous natural-map unilateral merit instead of treating any positive floating-point reaction as a hard active-contact equality.",
+    "Explicit diagnostic prefix/first-fidelity-failure stopping, keeping full target count and complete=false in reports.",
+    "Curved-wall calibration alongside existing finite-radius friction tests."
+  ],
+  "removedChange": {
+    "name": "Diagonal contact-curvature preconditioner",
+    "reason": "Fails the second original target despite correct simple curved-wall calibration; no passing replacement.",
+    "archive": "014-rejected-curvature-source.json"
+  },
+  "validations": [
+    "014-xpbd-residual-validation.json",
+    "014-xpbd-natural-map-validation.json",
+    "014-xpbd128-validation.json",
+    "014-xpbd-curvature-validation.json"
+  ],
+  "decision": "Do not replace production physics with these XPBD variants. More iterations and the merit correction do not meet the moving fidelity or time budget. Return to the best physically passing solver and finish the previously interrupted cache test.",
+  "currentBestPassingCandidate": "007-distal-remap-passing.patch",
+  "nextInvestigation": "Resume the unfinished 011 limited-search working-set cache experiment in /tmp/oet-fluidity-1mm-zb0gv7v4: inspect its source delta against the 009 baseline, revalidate tests and benchmark the complete original 7507-input sequence in the actual app/browser. Do not repeat previously rejected XPBD/contact-curvature variants without new evidence. Keep 1.0 mm, full geometry/force gates and actual accepted common steps/s.",
+  "sourceManifest": "014-source-manifest.json",
+  "patch": "014-xpbd-diagnostics.patch",
+  "limitations": [
+    "No complete maneuver or full-app browser measurement passed in this turn.",
+    "All timings are diagnostic CPU measurements from rejected prefixes, not simulator FPS.",
+    "The comparison harness drives only recorded right-access targets.",
+    "Force diagnostics use the frozen iteration chart and are not physical convergence certification."
+  ]
+}

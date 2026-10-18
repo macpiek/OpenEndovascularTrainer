@@ -4,7 +4,7 @@ import {createSharedAxisNative,extendSharedAxisNativeRows,captureSharedAxisNativ
 import {prepareSharedAxisDynamicStep} from '../src/physics/kirchhoffSharedAxisDynamics.js';
 import {sharedAxisFrictionPotential,sharedAxisFrictionNormalDerivative,prepareSharedAxisWallFriction,assembleSharedAxisWallFriction,refreshSharedAxisWallFriction,commitSharedAxisWallFriction,captureSharedAxisWallFriction,restoreSharedAxisWallFriction} from '../src/physics/kirchhoffSharedAxisWallFriction.js';
 
-function fixture({overlap=false,feed=.002}={}) {
+function fixture({overlap=false,feed=.002,lightweightFriction=false}={}) {
     const tools=[{id:'wire',insertion:20,wallStaticFriction:.5,wallKineticFriction:.3}];
     if(overlap)tools.push({id:'catheter',insertion:20,wallStaticFriction:.8,wallKineticFriction:.6});
     const s=createSharedAxisNative({tools}),e=2,t=.4;
@@ -12,16 +12,16 @@ function fixture({overlap=false,feed=.002}={}) {
         dofs:[s.layout.positions[e],s.layout.positions[e+1]].flatMap(i=>[i,i+1,i+2]),
         evaluate:()=>({gap:0,jacobian:[0,1-t,0,0,t,0]})}]);
     s.multipliers[s.multipliers.length-1]=100;prepareSharedAxisDynamicStep(s,1/120);
-    prepareSharedAxisWallFriction(s,{feedById:{wire:feed,catheter:0}});return s;
+    prepareSharedAxisWallFriction(s,{feedById:{wire:feed,catheter:0},lightweightFriction});return s;
 }
 function sample(s) {
     const half=s.layout.band-1;s.chain.gradient.fill(0);s.chain.tangent=new Float64Array(s.layout.dofCount*(2*half+1));
     return {energy:assembleSharedAxisWallFriction(s),gradient:s.chain.gradient.slice(),H:s.chain.tangent.slice()};
 }
 
-test('optional live normal force columns match multiplier finite differences including surface torque',()=>{
+for(const lightweightFriction of [false,true])test(`live normal force columns match multiplier finite differences including surface torque (buffered=${lightweightFriction})`,()=>{
     for(const feed of [.002,.1]) {
-        const s=fixture({feed});prepareSharedAxisWallFriction(s,{feedById:{wire:feed},liveNormalLoad:true});
+        const s=fixture({feed});prepareSharedAxisWallFriction(s,{feedById:{wire:feed},liveNormalLoad:true,lightweightFriction});
         const delta=new Float64Array(s.layout.dofCount);delta[s.layout.spins.get('wire')[2]]=.0004;
         applySharedAxisNativeIncrement(s,delta,new Float64Array(s.multipliers.length));
         sample(s);const columns=s.wallFrictionStep.normalForceColumns,index=s.multipliers.length-1;
@@ -94,9 +94,9 @@ test('feed friction belongs only to the exterior material; guidewire can slide f
     assert.equal(overlap.interToolRows,0);
 });
 
-test('wall surface friction includes spin and has the exact global gradient and tangent',()=>{
+for(const lightweightFriction of [false,true])test(`wall surface friction includes spin and has the exact global gradient and tangent (buffered=${lightweightFriction})`,()=>{
     for(const feed of [.002,.1]) {
-    const s=fixture({feed}),zero=new Float64Array(s.multipliers.length),dx=Float64Array.from({length:s.layout.dofCount},(_,i)=>.0002*Math.sin(i));
+    const s=fixture({feed,lightweightFriction}),zero=new Float64Array(s.multipliers.length),dx=Float64Array.from({length:s.layout.dofCount},(_,i)=>.0002*Math.sin(i));
     applySharedAxisNativeIncrement(s,dx,zero);
     const reference=sample(s),saved=captureSharedAxisNative(s),half=s.layout.band-1,width=2*half+1,h=1e-7;
     assert.ok(Math.abs(reference.gradient[s.layout.spins.get('wire')[2]])>0,'Surface rotation must create a friction torque');

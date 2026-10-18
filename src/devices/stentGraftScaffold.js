@@ -45,8 +45,14 @@ export function createScaffold(part,material,markerMaterial) {
     markers.count=part.markerLayout?.length??0;
     markers.material.depthTest=false;markers.renderOrder=20;
     markers.frustumCulled=false;markers.name='radiopaque-end-markers';
+    const divider=part.markerLayout?.find(m=>m.role==='flow-divider');
+    if(divider) {
+        part.flowDividerMarker=struts(1,markerMaterial,.5*(part.dimensionScale??1));
+        part.flowDividerMarker.name='flow-divider-marker';
+        part.flowDividerMarker.material.depthTest=false;part.flowDividerMarker.renderOrder=21;
+    }
     part.scaffoldSegments=segments;part.markers=markers;part.rings=metal;
-    return [metal,markers];
+    return [metal,markers,...(part.flowDividerMarker?[part.flowDividerMarker]:[])];
 }
 export function updateScaffold(part,{constrain=true}={}) {
     let index=0;
@@ -58,6 +64,11 @@ export function updateScaffold(part,{constrain=true}={}) {
     // Sew metal just inside the fabric. Adjacent branches have a shared fabric
     // septum; putting both wires on that zero-thickness plane made them overlap.
     const positions=part.mesh.geometry.attributes.position;
+    const packed=part.scaffoldRings.map(ring=>ring.packed?1:0).join('');
+    const previous=part.scaffoldPose;
+    if(previous?.positions===positions&&previous.version===positions.version&&previous.packed===packed&&
+        previous.parent===part.sewnParent&&previous.gate===part.gateMarker&&previous.orientation===part.orientationMarker)return;
+    part.scaffoldPose={positions,version:positions.version,packed,parent:part.sewnParent,gate:part.gateMarker,orientation:part.orientationMarker};
     const centers=part.path.coordinates.map((_,i)=>{
         const c=new THREE.Vector3();
         for(let j=0;j<part.sides;j++) {
@@ -72,8 +83,16 @@ export function updateScaffold(part,{constrain=true}={}) {
         const c=centers[i-1],d=centers[i],p=fabricPoint(part,s,a);
         const x=c.x+(d.x-c.x)*t-p.x,y=c.y+(d.y-c.y)*t-p.y,z=c.z+(d.z-c.z)*t-p.z;
         const length=Math.sqrt(x*x+y*y+z*z),factor=(part.sewnParent ? .2 : .15)/(length||1);
-        p.x+=x*factor;p.y+=y*factor;p.z+=z*factor;return p;
+        p.x+=x*factor;p.y+=y*factor;p.z+=z*factor;
+        // Bilinear samples between cloth rows can cut a curved overlap wall
+        // even when both row vertices are inside. Fit sewn wire anchors too.
+        part.overlapFit?.fitOverlap(p);
+        return p;
     };
+    if(part.overlapFit) {
+        sample.inward=p=>part.overlapFit.inward(p);
+        sample.fitPoint=p=>part.overlapFit.fitOverlap(p);
+    }
     for(const ring of part.scaffoldRings) {
         // Fully settled sewn bands do not need another arc-length solve when
         // a different ring or a covered section of the implant moves.
@@ -83,14 +102,22 @@ export function updateScaffold(part,{constrain=true}={}) {
         while(last>0&&row[last-1]>high)last--;
         const start=first*part.sides*3,end=(last+1)*part.sides*3;
         const band=positions.array.subarray(start,end);
-        if(ring.fabricState?.length===band.length&&band.every((v,i)=>v===ring.fabricState[i])) {index+=ring.samples;continue;}
-        ring.fabricState=band.slice();
+        if(ring.fabricPacked===ring.packed&&ring.fabricState?.length===band.length&&band.every((v,i)=>v===ring.fabricState[i])) {index+=ring.samples;continue;}
+        ring.fabricState=band.slice();ring.fabricPacked=ring.packed;
         const points=inextensibleRing(ring,sample);
         for(let i=1;i<points.length;i++)segment(part.rings,index++,points[i-1],points[i]);
     }
     updateWire(part.rings);
     for(const [i,marker] of (part.markerLayout??[]).entries()) {
-        segment(part.markers,i,fabricPoint(part,marker.start,marker.angle),fabricPoint(part,marker.end,marker.angle));
+        const a=fabricPoint(part,marker.start,marker.angle),b=fabricPoint(part,marker.end,marker.angle);
+        if(marker.role==='flow-divider'&&part.flowDividerMarker) {
+            // A distinct, sewn button at the flow divider. Rendering it with
+            // the very thin stent wires made it almost disappear in RTG.
+            segment(part.flowDividerMarker,0,a,b);updateWire(part.flowDividerMarker);
+            // Keep the shared marker layout/instance indexing without drawing
+            // a second button over this dedicated projection.
+            segment(part.markers,i,b,b);
+        } else segment(part.markers,i,a,b);
     }
     updateWire(part.markers);
     if(part.gateMarker) {

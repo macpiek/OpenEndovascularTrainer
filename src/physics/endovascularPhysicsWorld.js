@@ -1981,11 +1981,7 @@ export class EndovascularPhysicsWorld {
             this.wallRepairWorstSegments.fill(-1);
             this.wallRepairWorstBodies.fill(-1);
             this.lastWallRepairPasses = 0;
-            for (let index = 0; index < this.bodies.length; index++) {
-                const body = this.bodies[index];
-                let movingLumenOwnsInner = false;
-                wallRepairEligible[index] = movingLumenOwnsInner ? 0 : 1;
-            }
+            wallRepairEligible.fill(1, 0, this.bodies.length);
             for (
                 let correctionPass = 0;
                 correctionPass < MAX_WALL_CORRECTION_PASSES;
@@ -2043,29 +2039,6 @@ export class EndovascularPhysicsWorld {
                 bodyClosureStageEnd - bodyClosureStageStart
             );
             bodyClosureStageStart = bodyClosureStageEnd;
-            // Later wall and fold corrections can separate the two centerlines.
-            // Finish with exactly one radial projection of the body selected by
-            // the material coupling. Repeating structural projections here caused
-            // the catheter to collapse at its open distal transition.
-            let needsSecondFinalContainmentPass = false;
-            const finalContainmentPasses = needsSecondFinalContainmentPass ? 2 : 1;
-            for (let pass = 0; pass < finalContainmentPasses; pass++) {
-                for (let index = 0; index < this.containments.length; index++) {
-                    const constraint = this.containments[index];
-                    continue;
-
-                }
-            }
-            // A hard radial projection can leave the contained rod with a large
-            // length error or an almost reversed hinge. Alternate one-way lumen
-            // projection with the inner rod's structure before body-local wall
-            // polishing. This protects the distal capture transition from a single
-            // unrestricted correction.
-            for (let index = 0; index < this.containments.length; index++) {
-                const constraint = this.containments[index];
-                continue;
-
-            }
             bodyClosureStageEnd = now();
             recordTiming(
                 this.timings.constraintBodyPrePost,
@@ -2165,23 +2138,9 @@ export class EndovascularPhysicsWorld {
                     body.distalLengthTransportMaxCorrection
                 );
             }
-            // The dominant catheter can still move during its final wall solve.
-            // Advect the contained wire by that same local centerline displacement
-            // before refreshing the lumen projection. Otherwise the next frame
-            // converts the mismatch into an alternating radial kick.
-            for (let index = 0; index < this.containments.length; index++) {
-                const constraint = this.containments[index];
-                continue;
-
-            }
             for (let index = 0; index < this.bodies.length; index++) {
                 const body = this.bodies[index];
                 body.debugConstraintPhase?.('closureAfterCarry', body);
-            }
-            for (let index = 0; index < this.containments.length; index++) {
-                const constraint = this.containments[index];
-                continue;
-
             }
             for (let index = 0; index < this.bodies.length; index++) {
                 this.#limitFrameDisplacement(this.bodies[index]);
@@ -2526,17 +2485,6 @@ export class EndovascularPhysicsWorld {
             for (let index = 0; index < this.bodies.length; index++) {
                 const body = this.bodies[index];
                 body.debugConstraintPhase?.('closureAfterWall', body);
-            }
-            // A moving lumen boundary and its material-length constraint form one
-            // coupled system. Close that system per inner rod, without re-solving
-            // the outer catheter: convergence of a guidewire must not multiply the
-            // catheter's intrinsic-bend or wall passes. Each sweep first repairs
-            // inner structure, then applies unilateral containment. Convergence is
-            // measured after containment, so no unverified projection follows it.
-            for (let index = 0; index < this.containments.length; index++) {
-                const constraint = this.containments[index];
-                continue;
-
             }
             constraintSectionEnd = now();
             recordTiming(

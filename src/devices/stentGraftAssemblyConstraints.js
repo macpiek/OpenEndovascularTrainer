@@ -13,7 +13,10 @@ export function constrainSewnAssembly(device) {
     parts.forEach(p=>sewnFabricProjector(p,true)); // refresh immutable material constraints
     const offsets=[];let count=0;
     for(const p of parts){offsets.push(count);count+=p.mesh.geometry.attributes.position.count;}
-    const a=new Float64Array(count*3),mass=new Uint8Array(count);
+    let buffers=device.sewnAssemblyBuffers;
+    if(!buffers||buffers.positions.length!==count*3)
+        buffers=device.sewnAssemblyBuffers={positions:new Float64Array(count*3),mass:new Uint8Array(count)};
+    const a=buffers.positions,mass=buffers.mass;
     parts.forEach((p,k)=>{a.set(p.mesh.geometry.attributes.position.array,offsets[k]*3);for(let i=0;i<p.rows*p.sides;i++)mass[offsets[k]+i]=p.exposure[Math.floor(i/p.sides)]>0?1:0;});
     const mapping=(k,i)=>k>0&&i<parts[k].sides
         ?bindings[k-1][i].entries
@@ -42,6 +45,7 @@ export function constrainSewnAssembly(device) {
         }
         c.indices=Int32Array.from(new Set(c.anchors.flatMap(anchor=>anchor.map(([i])=>i*3))));
         c.points=new Float64Array(c.anchors.length*3);
+        if(c.closed){c.directions=new Float64Array(c.points.length);c.edgeLengths=new Float64Array(c.anchors.length);}
         c.anchors=c.anchors.map(anchor=>({indices:Int32Array.from(anchor,([i])=>i*3),weights:Float64Array.from(anchor,([,w])=>w)}));
     }
     workspace=device.sewnAssemblyWorkspace={constraints,direct,sources:parts.map(p=>p.sewnConstraints),gradient:new Float64Array(a.length)};
@@ -70,7 +74,6 @@ export function constrainSewnAssembly(device) {
                 }
                 continue;
             }
-            for(const i of c.indices){gradient[i]=0;gradient[i+1]=0;gradient[i+2]=0;}
             const points=c.points;
             for(let j=0;j<c.anchors.length;j++) {
                 const {indices,weights}=c.anchors[j];let x=0,y=0,z=0;
@@ -78,15 +81,23 @@ export function constrainSewnAssembly(device) {
                 points[j*3]=x;points[j*3+1]=y;points[j*3+2]=z;
             }
             let length=0;
-            for(let j=0;j<(c.closed?c.anchors.length:1);j++) {
+            for(let j=0;j<c.anchors.length;j++) {
                 const n=(j+1)%c.anchors.length;
-                let x=points[n*3]-points[j*3],y=points[n*3+1]-points[j*3+1],z=points[n*3+2]-points[j*3+2];
-                const d=Math.sqrt(x*x+y*y+z*z);length+=d;if(d<1e-12)continue;x/=d;y/=d;z/=d;
+                const x=points[n*3]-points[j*3],y=points[n*3+1]-points[j*3+1],z=points[n*3+2]-points[j*3+2];
+                const d=Math.sqrt(x*x+y*y+z*z);length+=d;
+                c.edgeLengths[j]=d;c.directions[j*3]=x;c.directions[j*3+1]=y;c.directions[j*3+2]=z;
+            }
+            const excess=length-c.length;if(excess<=1e-7)continue;error=Math.max(error,excess);
+            // Slack stent bands carry no tensile force. Their (larger) sewn
+            // gradient is needed only when the fixed wire length is exceeded.
+            for(const i of c.indices){gradient[i]=0;gradient[i+1]=0;gradient[i+2]=0;}
+            for(let j=0;j<c.anchors.length;j++) {
+                const d=c.edgeLengths[j];if(d<1e-12)continue;
+                const n=(j+1)%c.anchors.length,x=c.directions[j*3]/d,y=c.directions[j*3+1]/d,z=c.directions[j*3+2]/d;
                 const from=c.anchors[j],to=c.anchors[n];
                 for(let k=0;k<from.indices.length;k++){const i=from.indices[k],w=from.weights[k];gradient[i]-=w*x;gradient[i+1]-=w*y;gradient[i+2]-=w*z;}
                 for(let k=0;k<to.indices.length;k++){const i=to.indices[k],w=to.weights[k];gradient[i]+=w*x;gradient[i+1]+=w*y;gradient[i+2]+=w*z;}
             }
-            const excess=length-c.length;if(excess<=1e-7)continue;error=Math.max(error,excess);
             let denominator=0;for(const i of c.indices)if(mass[i/3])denominator+=gradient[i]**2+gradient[i+1]**2+gradient[i+2]**2;
             if(denominator<1e-12)continue;
             const scale=excess/denominator;
@@ -101,8 +112,22 @@ export function constrainSewnAssembly(device) {
     }
     parts.forEach((p,k)=>{
         const positions=p.mesh.geometry.attributes.position;
-        for(let i=0;i<positions.count;i++)for(let q=0;q<3;q++){let value=0;for(const [n,w]of mapping(k,i))value+=a[n*3+q]*w;positions.array[i*3+q]=value;}
-        positions.needsUpdate=true;if(p.contactBasePositions)p.contactBasePositions.set(positions.array);p.sewnConstraintAppliedVersion=positions.version;
+        // All vertices except the sewn mouth have an identity mapping. Avoid
+        // allocating thousands of singleton binding arrays on every commit.
+        let changed=false;
+        const start=k>0?p.sides:0,base=offsets[k]*3;
+        for(let i=start*3;i<positions.array.length;i++) {
+            const value=Math.fround(a[base+i]);
+            if(positions.array[i]!==value){positions.array[i]=value;changed=true;}
+        }
+        if(k>0)for(let i=0;i<p.sides;i++)for(let q=0;q<3;q++) {
+            let value=0;for(const [n,w]of bindings[k-1][i].entries)value+=a[n*3+q]*w;
+            value=Math.fround(value);
+            if(positions.array[i*3+q]!==value){positions.array[i*3+q]=value;changed=true;}
+        }
+        if(changed)positions.needsUpdate=true;
+        if(p.contactBasePositions)p.contactBasePositions.set(positions.array);
+        p.sewnConstraintAppliedVersion=positions.version;
     });
     device.sewnAssemblyVersion=parts.map(p=>p.mesh.geometry.attributes.position.version).join('/');
 }

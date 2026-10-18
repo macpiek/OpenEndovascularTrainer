@@ -1,0 +1,174 @@
+{
+  "recordedAt": "2026-10-14T11:26:43.564Z",
+  "goalAchieved": false,
+  "change": "Same-order f64 spatial basis elimination in WebAssembly, sharing typed vector/support buffers with JS. Math.hypot rank tests, normalization, dual pivots and force certificates remain in JS.",
+  "production": {
+    "wasmBasis": true,
+    "meshSimplification": false,
+    "forceTolerance": 0.000001,
+    "lengthTolerance": 0.00001,
+    "dt": 0.016666666666666666,
+    "maximumPrivateKernelBytes": 33554432,
+    "oversizedWorkspaceFallback": "Original JavaScript elimination"
+  },
+  "exactReplay": {
+    "report": "001-wasm-basis-long.json",
+    "passed": true,
+    "stepsPerVersion": 600,
+    "maxWorldDifferenceMm": 0,
+    "totalCpuReductionPercent": 1.2328483038314242,
+    "runs": [
+      {
+        "version": "before",
+        "repeat": 0,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10418.732746999973,
+          "medianMs": 23.756499999999505,
+          "p95Ms": 67.41412499999933,
+          "maxMs": 492.16983400000026,
+          "cpuStepsPerSecond": 28.794288833868364,
+          "withinBudget": 3
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 4031
+      },
+      {
+        "version": "after",
+        "repeat": 0,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10262.143241000018,
+          "medianMs": 23.723167000000103,
+          "p95Ms": 78.50579199999993,
+          "maxMs": 476.53016699999716,
+          "cpuStepsPerSecond": 29.233659378424914,
+          "withinBudget": 1
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 4031
+      },
+      {
+        "version": "before",
+        "repeat": 1,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10234.609291000022,
+          "medianMs": 23.383207999999286,
+          "p95Ms": 69.91533299999719,
+          "maxMs": 500.9075840000005,
+          "cpuStepsPerSecond": 29.312306065636534,
+          "withinBudget": 0
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 4031
+      },
+      {
+        "version": "after",
+        "repeat": 1,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10136.574419999994,
+          "medianMs": 23.31149999999616,
+          "p95Ms": 77.02362499999435,
+          "maxMs": 481.09808299999713,
+          "cpuStepsPerSecond": 29.59579711742502,
+          "withinBudget": 5
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 4031
+      }
+    ]
+  },
+  "isolated": {
+    "report": "001-wasm-basis-packed-isolated.json",
+    "passed": true,
+    "before": {
+      "runs": 340,
+      "totalMs": 544.2007809999996,
+      "medianMs": 1.2716669999999795
+    },
+    "after": {
+      "runs": 340,
+      "totalMs": 440.926622999998,
+      "medianMs": 1.0614169999998921
+    },
+    "totalReductionPercent": 18.977216058056634
+  },
+  "kernelOnly": {
+    "report": "001-wasm-vs-packed-js-isolated.json",
+    "passed": true,
+    "before": {
+      "runs": 340,
+      "totalMs": 371.83546299999716,
+      "medianMs": 1.0541660000003503
+    },
+    "after": {
+      "runs": 340,
+      "totalMs": 346.3604559999935,
+      "medianMs": 0.983375000000251
+    },
+    "totalReductionPercent": 6.851150450919697
+  },
+  "browser": {
+    "report": "001-browser-wasm-basis.json",
+    "screenshot": "001-browser-wasm-basis.jpg",
+    "passed": true,
+    "steps": 300,
+    "physicsHz": 22.31545121858194,
+    "renderFps": 58.76402154226577,
+    "simulationSeconds": 5,
+    "wallSeconds": 13.443599999904633,
+    "stepCpuMs": {
+      "median": 26.600000143051147,
+      "p95": 66.2999997138977,
+      "max": 476.2999994754791
+    },
+    "options": {
+      "contactCandidateMargin": 0.01,
+      "deferActiveBasis": true,
+      "lazyBasisCoefficients": true,
+      "wasmBasis": true
+    },
+    "consoleErrors": 0
+  },
+  "tests": {
+    "passed": 86,
+    "failed": 0,
+    "groups": [
+      {
+        "report": "001-wasm-basis-focused-tests.log",
+        "passed": 20
+      },
+      {
+        "report": "001-wasm-basis-regression-tests.log",
+        "passed": 65
+      },
+      {
+        "report": "001-wasm-basis-app-wiring.log",
+        "passed": 1
+      }
+    ]
+  },
+  "build": {
+    "passed": true,
+    "report": "001-wasm-basis-build.log",
+    "warning": "Existing bundle-size warning"
+  },
+  "binaryReproduction": {
+    "passed": true,
+    "sha256": "3da342d94707838b0063a11bb481e558675113d2060f5f78544bf2c506ef1a0e",
+    "compiler": "wabt@1.0.37",
+    "command": "OET_WABT_PATH=/tmp/oet-basis-wasm-build/node_modules/wabt node scripts/physics/build-shared-axis-basis-kernel.mjs"
+  },
+  "limitations": [
+    "About 1.2% full-step improvement is small and machine-load dependent; both paired p95 times worsened. No general latency win is claimed.",
+    "Browser preview excludes full fluoroscopic rendering and app idle catch-up work.",
+    "600 steps per version means two 300-step continuations from the saved final state, not the whole manually demonstrated crossover.",
+    "Goal of 60 accepted physics steps per real second is not achieved."
+  ]
+}

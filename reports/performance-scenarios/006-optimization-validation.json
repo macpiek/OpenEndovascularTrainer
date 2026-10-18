@@ -1,0 +1,172 @@
+{
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "shapeDifferenceLimitMm": 1,
+  "rejectedBrowserExperiments": [
+    {
+      "report": "006-relaxed-force-rejected.json.gz",
+      "complete": false,
+      "steps": 1591,
+      "maximumShapeDifferenceMm": 1.0749513372950963,
+      "error": "R\u00f3\u017cnica kszta\u0142tu 1.0750 mm przekracza 1 mm.",
+      "maximumCertificate": 9.955043388654161e-05,
+      "maximumPenetrationMm": 5.638722744283342e-08,
+      "prefixInputAndToolParity": true
+    },
+    {
+      "report": "006-delayed-force-rejected.json.gz",
+      "complete": false,
+      "steps": 7253,
+      "maximumShapeDifferenceMm": 1.0315574102468705,
+      "error": "R\u00f3\u017cnica kszta\u0142tu 1.0316 mm przekracza 1 mm.",
+      "maximumCertificate": 9.994763240683824e-05,
+      "maximumPenetrationMm": 8.915510346652056e-08,
+      "prefixInputAndToolParity": true,
+      "firstRelaxedStep": 6125,
+      "strictPrefixMaximumShapeDifferenceMm": 0
+    },
+    {
+      "report": "006-gentle-force-rejected.json.gz",
+      "complete": false,
+      "steps": 7176,
+      "maximumShapeDifferenceMm": 1.0649456480932198,
+      "error": "R\u00f3\u017cnica kszta\u0142tu 1.0649 mm przekracza 1 mm.",
+      "maximumCertificate": 9.952054028872226e-06,
+      "maximumPenetrationMm": 9.675868151148848e-08,
+      "prefixInputAndToolParity": true,
+      "firstRelaxedStep": 6125,
+      "strictPrefixMaximumShapeDifferenceMm": 0
+    }
+  ],
+  "retainedFactorExperiments": [
+    {
+      "report": "006-retained-screen.json",
+      "passedContinuation": true,
+      "timings": [
+        {
+          "version": "before",
+          "repeat": 0,
+          "maxWorldDifferenceMm": 0,
+          "summary": {
+            "steps": 100,
+            "totalMs": 6791.763209000003,
+            "medianMs": 52.634500000000116,
+            "p95Ms": 184.27470800000083,
+            "maxMs": 392.7979999999998,
+            "cpuStepsPerSecond": 14.72371708534928,
+            "withinBudget": 0
+          }
+        },
+        {
+          "version": "after",
+          "repeat": 0,
+          "maxWorldDifferenceMm": 0.00011363316481415431,
+          "summary": {
+            "steps": 100,
+            "totalMs": 7575.39516899999,
+            "medianMs": 53.481417000000874,
+            "p95Ms": 224.60149999999885,
+            "maxMs": 428.66400000000067,
+            "cpuStepsPerSecond": 13.200631487743333,
+            "withinBudget": 0
+          }
+        },
+        {
+          "version": "before",
+          "repeat": 1,
+          "maxWorldDifferenceMm": 0,
+          "summary": {
+            "steps": 100,
+            "totalMs": 6293.000960999983,
+            "medianMs": 49.613124999999854,
+            "p95Ms": 161.3942500000012,
+            "maxMs": 281.8662089999998,
+            "cpuStepsPerSecond": 15.890669748779061,
+            "withinBudget": 0
+          }
+        },
+        {
+          "version": "after",
+          "repeat": 1,
+          "maxWorldDifferenceMm": 0.00011363316481415431,
+          "summary": {
+            "steps": 100,
+            "totalMs": 6875.414791000021,
+            "medianMs": 50.542334000001574,
+            "p95Ms": 163.91733300000124,
+            "maxMs": 373.46308299999873,
+            "cpuStepsPerSecond": 14.5445770240511,
+            "withinBudget": 0
+          }
+        }
+      ],
+      "decision": "No repeatable CPU improvement; not deployed. This is only a final-pose diagnostic, not the whole maneuver."
+    },
+    {
+      "report": "006-retained-tail-screen.json",
+      "passedContinuation": true,
+      "timings": [
+        {
+          "version": "before",
+          "repeat": 0,
+          "maxWorldDifferenceMm": 0,
+          "summary": {
+            "steps": 100,
+            "totalMs": 8051.352423000006,
+            "medianMs": 58.78558300000077,
+            "p95Ms": 203.68900000000212,
+            "maxMs": 652.0271250000001,
+            "cpuStepsPerSecond": 12.420273606994725,
+            "withinBudget": 0
+          }
+        },
+        {
+          "version": "after",
+          "repeat": 0,
+          "maxWorldDifferenceMm": 4.6047311325381315e-05,
+          "summary": {
+            "steps": 100,
+            "totalMs": 7577.933169,
+            "medianMs": 56.99370799999997,
+            "p95Ms": 189.02033299999948,
+            "maxMs": 419.0335829999999,
+            "cpuStepsPerSecond": 13.196210334644086,
+            "withinBudget": 0
+          }
+        },
+        {
+          "version": "before",
+          "repeat": 1,
+          "maxWorldDifferenceMm": 0,
+          "summary": {
+            "steps": 100,
+            "totalMs": 6964.977412999997,
+            "medianMs": 54.83887499999764,
+            "p95Ms": 179.81974999999875,
+            "maxMs": 318.3264169999966,
+            "cpuStepsPerSecond": 14.357548355196661,
+            "withinBudget": 0
+          }
+        },
+        {
+          "version": "after",
+          "repeat": 1,
+          "maxWorldDifferenceMm": 4.6047311325381315e-05,
+          "summary": {
+            "steps": 100,
+            "totalMs": 7271.424169999995,
+            "medianMs": 55.648958000001585,
+            "p95Ms": 174.34241699999984,
+            "maxMs": 372.810166999996,
+            "cpuStepsPerSecond": 13.752464120106485,
+            "withinBudget": 0
+          }
+        }
+      ],
+      "decision": "No repeatable CPU improvement; not deployed. This is only a final-pose diagnostic, not the whole maneuver."
+    }
+  ],
+  "decision": "No candidate accepted. More permissive force convergence, including after both tools exceed 400 mm, exceeds the whole-trajectory 1 mm budget. Restore the full reference solver. Prefix timing is not full-maneuver performance.",
+  "nextInvestigation": "Spatially restrict reduction to the long distal shaft while preserving the proximal crossover route and tip mechanics. Audit adaptive contact remapping in regions whose mesh stays fine; do not repeat global coarsening or globally looser convergence.",
+  "currentPhysics": "Full reference, no experimental force relaxation or retained factor update enabled."
+}

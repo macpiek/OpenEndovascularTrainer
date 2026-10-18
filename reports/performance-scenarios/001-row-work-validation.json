@@ -1,0 +1,167 @@
+{
+  "recordedAt": "2026-10-14T12:23:46.475Z",
+  "goalAchieved": false,
+  "baseline": "/tmp/oet-contact-stage14-baseline",
+  "changes": [
+    "Reuse owned row objects without creating and copying a second temporary numerical-fields object for every changed definition.",
+    "Preserve Jacobian storage when rebinding definitions, including custom metadata that overlaps numerical property names.",
+    "Validate every derivative in a simple loop without per-element callbacks; sparse arrays with missing derivatives now fail the finite-value certificate.",
+    "Repair the old direct material-promotion replay test to resolve newly discovered contacts through the existing bounded restart helper, preserving all matrix/force assertions."
+  ],
+  "invariants": [
+    "Same physical equations, tolerances, temporal and spatial discretization.",
+    "Cached contacts are still checked for finite gaps and every finite derivative.",
+    "No removed contact rows or skipped geometric discovery.",
+    "Protected row banks, custom metadata cleanup, throwing callbacks and cancellation retain their existing ownership rules."
+  ],
+  "exactComparison": {
+    "report": "001-row-work-final-throughput.json",
+    "passed": true,
+    "stepsPerVersion": 600,
+    "summary": {
+      "before": {
+        "steps": 600,
+        "totalMs": 19719.853206999964,
+        "medianMs": 23.290874999998778,
+        "p95Ms": 66.77337500000067,
+        "maxMs": 441.74225000000297,
+        "cpuStepsPerSecond": 30.42618997726706,
+        "withinBudget": 9
+      },
+      "after": {
+        "steps": 600,
+        "totalMs": 19568.534290000058,
+        "medianMs": 23.202832999999373,
+        "p95Ms": 75.06816699999945,
+        "maxMs": 384.7000000000007,
+        "cpuStepsPerSecond": 30.66146861630883,
+        "withinBudget": 19
+      }
+    },
+    "runs": [
+      {
+        "version": "before",
+        "repeat": 0,
+        "summary": {
+          "steps": 300,
+          "totalMs": 9852.554247999991,
+          "medianMs": 23.216749999999593,
+          "p95Ms": 65.94083299999875,
+          "maxMs": 399.0846249999995,
+          "cpuStepsPerSecond": 30.44895693529403,
+          "withinBudget": 6
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584
+      },
+      {
+        "version": "after",
+        "repeat": 0,
+        "summary": {
+          "steps": 300,
+          "totalMs": 9595.659290000014,
+          "medianMs": 23.26024999999936,
+          "p95Ms": 75.06816699999945,
+          "maxMs": 384.7000000000007,
+          "cpuStepsPerSecond": 31.264136307198914,
+          "withinBudget": 8
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584
+      },
+      {
+        "version": "before",
+        "repeat": 1,
+        "summary": {
+          "steps": 300,
+          "totalMs": 9867.29895899997,
+          "medianMs": 23.441374999998516,
+          "p95Ms": 66.77337500000067,
+          "maxMs": 441.74225000000297,
+          "cpuStepsPerSecond": 30.4034570399197,
+          "withinBudget": 3
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584
+      },
+      {
+        "version": "after",
+        "repeat": 1,
+        "summary": {
+          "steps": 300,
+          "totalMs": 9972.875000000044,
+          "medianMs": 23.152249999999185,
+          "p95Ms": 73.41566700000112,
+          "maxMs": 383.49866699999984,
+          "cpuStepsPerSecond": 30.081596330045116,
+          "withinBudget": 11
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584
+      }
+    ],
+    "maxWorldDifferenceMm": 0,
+    "runtimeSourceHashesVerified": true,
+    "warmCpuReductionPercent": -1.0699588756635015,
+    "combinedCpuReductionPercent": 0.767343019298905,
+    "interpretation": "Small and variable timing effect: first paired experiment about 1% less CPU time; final combined runs about 0.8% less time but final warm repetition about 1.1% slower. Do not claim a clear whole-scenario speedup."
+  },
+  "browser": {
+    "report": "001-browser-row-work.json",
+    "screenshot": "001-browser-row-work.jpg",
+    "passed": true,
+    "steps": 300,
+    "physicsHz": 23.885920841967646,
+    "renderFps": 58.91860474352019,
+    "wallSeconds": 12.559700000047684,
+    "simulationSeconds": 5,
+    "stepCpuMs": {
+      "median": 25.5,
+      "p95": 73.89999961853027,
+      "max": 338.39999985694885
+    },
+    "consoleErrors": 0
+  },
+  "tests": {
+    "passed": 67,
+    "failed": 0,
+    "runs": [
+      {
+        "report": "001-row-work-tests.log",
+        "passed": 54,
+        "failed": 0
+      },
+      {
+        "report": "001-row-work-verified-replay-tests.log",
+        "passed": 13,
+        "failed": 0
+      }
+    ],
+    "baselineFixtureFailure": "001-row-work-baseline-promotion.log",
+    "fixtureRepair": "Baseline also threw shared-axis-wall-discovery before comparing material matrices. The test now handles the production topology restart, without moving geometry or weakening comparisons."
+  },
+  "build": {
+    "passed": true,
+    "report": "001-row-work-build.log",
+    "warning": "Existing bundle-size warning"
+  },
+  "remainingCost": {
+    "report": "001-row-work-retry-cost.json",
+    "retrySteps": 7,
+    "retryStepTimeFraction": 0.17606658481130016,
+    "failedAttemptFactorizations": 1222,
+    "totalFactorizations": 3584,
+    "interpretation": "CPU time of these steps includes successful work; it is not all avoidable overhead. Earlier negative-contact recovery changed the reference trajectory by 0.00543 mm and is not production enabled. Any new recovery ordering needs independent physical-accuracy and long-cycle validation."
+  },
+  "limitations": [
+    "Small timing gain is within run-to-run variation.",
+    "The 600-step comparison checks two prescribed 300-step continuations of the captured final crossover, not the complete manual maneuver.",
+    "Browser measurement excludes full fluoroscopy and app idle catch-up.",
+    "60 accepted physics steps per real second remains unachieved."
+  ],
+  "nextWork": "Investigate repeated failed contact solve attempts and material/constraint assembly. Earlier negative-contact recovery must be tested against independent temporal-convergence accuracy and long-cycle stability, because its different accepted subdivision path changed the reference trajectory."
+}

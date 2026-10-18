@@ -78,6 +78,7 @@ export function createSharedAxisVesselWitness(field, definition,{reuseBuffers=tr
     evaluate.sharedAxisGeometryOnly=true;
     evaluate.contactOutputOwned=reuseBuffers;
     evaluate.contactStorageSupported=reuseBuffers;
+    evaluate.contactStorageReusable=reuseBuffers;
     evaluate.retarget=next=>createSharedAxisVesselWitness(field,next,{reuseBuffers});
     return {...definition,evaluate};
 }
@@ -87,13 +88,17 @@ export function createSharedAxisVesselWitness(field, definition,{reuseBuffers=tr
  * in the normal cone of a mesh corner. Discovery is transactional: restart
  * from the incoming pose with extra geometry, never with a rejected force.
  */
-export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=true,queryReuse=true,indexedContacts=true,reuseContactBuffers=true,retainDiscoveryCertificates=false,continuousDiscoverySign=false,certifiedDiscoverySamples=false,continuousSegmentContacts=false}={}) {
+export function createSharedAxisVesselDiscovery(field,sheathLength,options={}) {
+    return createVesselDiscovery(field,sheathLength,options);
+}
+function createVesselDiscovery(field,sheathLength,{allSamples=true,queryReuse=true,indexedContacts=true,reuseContactBuffers=true,retainDiscoveryCertificates=false,continuousDiscoverySign=false,certifiedDiscoverySamples=false,continuousSegmentContacts=false,candidateMargin=.5},forkedClearance=null) {
+    if(!(Number.isFinite(candidateMargin)&&candidateMargin>=0&&candidateMargin<=.5))throw new RangeError('Invalid vessel candidate margin');
     if(![false,true,'axis'].includes(continuousSegmentContacts))throw new RangeError('Unknown continuous segment contact mode');
     const segmentContact=continuousSegmentContacts?createSharedAxisSegmentContact(field.fallbackGeometry,{cacheCapacity:queryReuse?2048:0}):null;
-    const clearance=createSharedAxisDiscoveryCache({retainOnAbort:retainDiscoveryCertificates});
+    const clearance=forkedClearance??createSharedAxisDiscoveryCache({retainOnAbort:retainDiscoveryCertificates});
     const insideProofs=continuousDiscoverySign?createSharedAxisInsideContinuation(field.fallbackGeometry):null,signPoint=[0,0,0];
     const x=new Float64Array(2),y=x.slice(),z=x.slice(),r=x.slice(),out=createContactResult();
-    const query=reuseContactBuffers?{a:[0,0,0],b:[0,0,0],sampleCount:0,geometryToken:null,gridToken:null,radius:0}:null;
+    const query=reuseContactBuffers?{a:[0,0,0],b:[0,0,0],sampleCount:0,geometryToken:null,gridToken:null,radius:0,margin:candidateMargin}:null;
     const sample=({state,a,b,edge,radius,coordinateA,coordinateB})=>{
         if(coordinateB<=sheathLength)return {gap:1,jacobian:[0,0,0,0,0,0]};
         const exposedStart=Math.max(0,(sheathLength-coordinateA)/(coordinateB-coordinateA));
@@ -116,7 +121,7 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
             r.fill(radius);
             const length=(coordinateB-coordinateA)*(end-start),count=Math.max(1,Math.ceil(length/Math.max(field.voxelSize*4,Math.max(.5,radius))));
             const key=`${coordinateA}/${coordinateB}/${start}/${end}`,descriptor=query??{a:[x[0],y[0],z[0]],b:[x[1],y[1],z[1]],sampleCount:count,
-                geometryToken:field.fallbackGeometry?.boundsTree,gridToken:key,radius};
+                geometryToken:field.fallbackGeometry?.boundsTree,gridToken:key,radius,margin:candidateMargin};
             // lookup is synchronous; begin copies both endpoints and tokens
             // into its certificate before this descriptor can be reused.
             if(query){query.sampleCount=count;query.geometryToken=field.fallbackGeometry?.boundsTree;query.gridToken=key;query.radius=radius;}
@@ -151,21 +156,24 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
             let visited=0;
             const visit=(contact,localT)=>{
                 visited++;
-                if(insideProofs){
+                const negativeMeshContact=contact.source==='sparse-sdf-bvh'&&Number.isFinite(contact.signedDistance)&&contact.signedDistance<0;
+                if(insideProofs||(certificate&&negativeMeshContact)){
                     signPoint[0]=(1-localT)*x[0]+localT*x[1];signPoint[1]=(1-localT)*y[0]+localT*y[1];signPoint[2]=(1-localT)*z[0]+localT*z[1];
                     const site=coordinateA+(coordinateB-coordinateA)*(start+(end-start)*localT);
                     // Mesh parity classifies wall material, not its lumen. A
-                    // negative cold SDF sign may be replaced only by a local
-                    // path from a known interior point that crosses no wall.
-                    if(contact.signedDistance<0&&insideProofs.contains(site,signPoint)){
+                    // changed grid can inherit a certified sample's empty ball
+                    // even when whole-grid lookup misses. This repairs only the
+                    // sign; the exact gap still discovers capsule-wall contact.
+                    // Realtime mode may additionally prove a wall-free path.
+                    if(negativeMeshContact&&((certificate&&clearance.containsInsidePoint(signPoint,descriptor.geometryToken))||insideProofs?.contains(site,signPoint))){
                         contact.signedDistance=-contact.signedDistance;
                         contact.signedGap=contact.signedDistance-radius;contact.inside=true;
                     }
                     if(contact.source==='sparse-sdf-bvh'&&contact.signedDistance>0&&contact.inside)
-                        insideProofs.remember(site,signPoint,contact.signedDistance);
+                        insideProofs?.remember(site,signPoint,contact.signedDistance);
                 }
                 certificate?.visit(contact,localT);
-                if(contact.signedGap<.5) {
+                if(contact.signedGap<candidateMargin) {
                     const t=start+(end-start)*localT,face=contact.faceIndex;
                     const owner=intervals.length>1?interval.material.spec.id:null;
                     const id=`vessel/${coordinateA}/${coordinateB}/${t}/${face}${owner?'/'+owner:''}`;
@@ -201,6 +209,7 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
         return {gap:1,jacobian:[0,0,0,0,0,0]};
     };
     sample.sharedAxisGeometryOnly=true;sample.sharedAxisDiscovery=true;
+    sample.sharedAxisCoordinateRange=Object.freeze({min:sheathLength,max:Infinity});
     sample.sharedAxisCompleteDiscovery=allSamples;
     sample.discoveryCache=clearance;
     sample.captureDiscoveryState=()=>({meshIdentity:sharedAxisGeometryIdentity(field.fallbackGeometry),
@@ -214,10 +223,19 @@ export function createSharedAxisVesselDiscovery(field,sheathLength,{allSamples=t
     sample.continuousDiscoverySign=continuousDiscoverySign;
     sample.certifiedDiscoverySamples=certifiedDiscoverySamples;
     sample.continuousSegmentContacts=continuousSegmentContacts;
+    sample.candidateMargin=candidateMargin;
     sample.segmentContact=segmentContact;
     sample.vesselField=field;
     sample.sheathLength=sheathLength;
     sample.insideProofs=insideProofs;
+    sample.forkDiscovery=(options={})=>{
+        // Candidates own their map; unchanged certificates and mesh are
+        // immutable facts that can be shared with the accepted pose.
+        const next=createVesselDiscovery(field,sheathLength,{allSamples,queryReuse,indexedContacts,reuseContactBuffers,
+            retainDiscoveryCertificates,continuousDiscoverySign,certifiedDiscoverySamples,continuousSegmentContacts,candidateMargin:options.candidateMargin??candidateMargin},clearance.fork(field.fallbackGeometry?.boundsTree));
+        if(insideProofs)next.insideProofs.restore(insideProofs.capture());
+        return next;
+    };
     return sample;
 }
 

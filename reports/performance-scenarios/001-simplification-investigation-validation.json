@@ -1,0 +1,200 @@
+{
+  "recordedAt": "2026-10-14T14:19:57.933Z",
+  "status": "Research completed; no candidate enabled in production",
+  "goalAchieved": false,
+  "modifiedNewton": [
+    {
+      "report": "001-modified-friction-screen.json",
+      "passed": true,
+      "summary": {
+        "before": {
+          "steps": 200,
+          "totalMs": 6391.558295000012,
+          "medianMs": 25.191500000000815,
+          "p95Ms": 69.234457999999,
+          "maxMs": 204.46700000000055,
+          "cpuStepsPerSecond": 31.29127370338717,
+          "withinBudget": 1
+        },
+        "after": {
+          "steps": 200,
+          "totalMs": 8454.301371000009,
+          "medianMs": 26.4581249999992,
+          "p95Ms": 123.50016700000015,
+          "maxMs": 420.72249999999985,
+          "cpuStepsPerSecond": 23.6565969467378,
+          "withinBudget": 1
+        }
+      },
+      "maxWorldDifferenceMm": 0.00011364958838823476,
+      "cpuChangePercent": 32.272929085441326
+    },
+    {
+      "report": "001-modified-retained-wasm-screen.json",
+      "passed": true,
+      "summary": {
+        "before": {
+          "steps": 200,
+          "totalMs": 6562.20746299998,
+          "medianMs": 25.110083000000486,
+          "p95Ms": 71.7345830000013,
+          "maxMs": 240.8364160000001,
+          "cpuStepsPerSecond": 30.477549075927566,
+          "withinBudget": 1
+        },
+        "after": {
+          "steps": 200,
+          "totalMs": 7698.1081690000065,
+          "medianMs": 25.70170799999869,
+          "p95Ms": 107.25658399999884,
+          "maxMs": 365.4295409999977,
+          "cpuStepsPerSecond": 25.98040916148626,
+          "withinBudget": 0
+        }
+      },
+      "maxWorldDifferenceMm": 0.00011364958838823476,
+      "cpuChangePercent": 17.309734756248286
+    },
+    {
+      "report": "001-modified-conservative-screen.json",
+      "passed": true,
+      "summary": {
+        "before": {
+          "steps": 200,
+          "totalMs": 7398.214877000013,
+          "medianMs": 26.78045800000109,
+          "p95Ms": 79.79854200000045,
+          "maxMs": 405.8962499999998,
+          "cpuStepsPerSecond": 27.033548406625936,
+          "withinBudget": 1
+        },
+        "after": {
+          "steps": 200,
+          "totalMs": 9478.562620000012,
+          "medianMs": 27.117541999999958,
+          "p95Ms": 138.2523340000007,
+          "maxMs": 502.00987499999974,
+          "cpuStepsPerSecond": 21.100245682609604,
+          "withinBudget": 4
+        }
+      },
+      "maxWorldDifferenceMm": 0.00011317482817190167,
+      "cpuChangePercent": 28.11959070650274
+    }
+  ],
+  "cullInactiveContacts": {
+    "report": "001-contact-cull-current-screen.json",
+    "passed": true,
+    "summary": {
+      "before": {
+        "steps": 200,
+        "totalMs": 6644.131162999983,
+        "medianMs": 24.639458999999988,
+        "p95Ms": 68.38524999999936,
+        "maxMs": 264.13774999999987,
+        "cpuStepsPerSecond": 30.101753727224022,
+        "withinBudget": 1
+      },
+      "after": {
+        "steps": 200,
+        "totalMs": 6787.944997000001,
+        "medianMs": 25.8348330000008,
+        "p95Ms": 78.593667000001,
+        "maxMs": 262.8504580000008,
+        "cpuStepsPerSecond": 29.4639983217884,
+        "withinBudget": 1
+      }
+    },
+    "maxWorldDifferenceMm": 0,
+    "cpuChangePercent": 2.1645243068182163
+  },
+  "reducedMesh": {
+    "report": "001-reduced-10mm-strict-screen.json",
+    "passed": false,
+    "physicalCertificatesPassed": true,
+    "completedPairedSteps": 300,
+    "shapeBudgetMm": 0.1,
+    "maxShapeDifferenceMm": 0.28041899408326026,
+    "maxTipDifferenceMm": 0.25036204673921447,
+    "summary": {
+      "reference": {
+        "steps": 300,
+        "totalMs": 8729.10471399999,
+        "medianMs": 20.411833000000115,
+        "p95Ms": 59.42987499999981,
+        "maxMs": 344.0217499999999,
+        "cpuStepsPerSecond": 34.36778568125679,
+        "withinBudget": 37,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 9.09027297879561e-11,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-7,
+        "maxSpeed": 21.613441219624374
+      },
+      "reduced": {
+        "steps": 300,
+        "totalMs": 8275.007376000005,
+        "medianMs": 20.08745799999997,
+        "p95Ms": 49.45774999999958,
+        "maxMs": 455.29249999999956,
+        "cpuStepsPerSecond": 36.253744119925464,
+        "withinBudget": 45,
+        "minNodes": 181,
+        "maxNodes": 197,
+        "maxPenetrationMm": 1.5343282200319663e-13,
+        "maxLengthError": 1.7430501486429347e-13,
+        "maxCertificateBound": 9.624421559717433e-7,
+        "maxSpeed": 21.614273080606377
+      }
+    },
+    "cpuChangePercent": -5.2021066636042335,
+    "worstStep": 58
+  },
+  "sourceRestore": {
+    "src/physics/kirchhoffSharedAxisNative.js": {
+      "identicalToStage19": true,
+      "sha256": "26a5a815a3b8e81870249543e18c446e1207afc4e2b10734c6818418a50af422"
+    },
+    "src/physics/kirchhoffSharedAxisLinear.js": {
+      "identicalToStage19": true,
+      "sha256": "d60027c0b33286172fc6866cd2b4f04cad7f919b893535626c66938627684016"
+    },
+    "src/physics/kirchhoffIncrementalContactLU.js": {
+      "identicalToStage19": true,
+      "sha256": "cf011073507c383dad63ee9971ef4601985da29b6b9b532cfbc962454bd57e2f"
+    },
+    "src/physics/kirchhoffSharedAxisModifiedNewton.js": {
+      "identicalToStage19": true,
+      "sha256": "7a421e0254fc77be7b161f4bdfb8fcf2ab2349411c9d5ee2a8c77eec0e5c43d6"
+    },
+    "tests/kirchhoffIncrementalContactLU.test.js": {
+      "identicalToStage19": true,
+      "sha256": "c8b6be068a353ddaeafd62ae6d17d212eba7533f690b4f79ed5f82de2f91e712"
+    },
+    "tests/kirchhoffSharedAxisModifiedNewton.test.js": {
+      "identicalToStage19": true,
+      "sha256": "3604e8ad9ebd65656966ad1abb95c580fad72127b52cd3a5509e9127f9427ecd"
+    }
+  },
+  "rejectedExperimentPatch": "001-modified-friction-rejected.patch",
+  "tests": {
+    "report": "001-simplification-investigation-tests.log",
+    "passed": 25,
+    "failed": 0,
+    "skipped": 1,
+    "skip": "Existing opt-in incremental-contact strict parity gate remains disabled"
+  },
+  "benchmarkChanges": [
+    "Reduced-model comparisons use separate anatomy/contact fields and BVH scratch.",
+    "Both versions use the current friction assembly optimization.",
+    "Shape budget is explicit and configurable; phase timing is reported.",
+    "Throughput reports include modified-Newton counters and source hashes."
+  ],
+  "limitations": [
+    "No new browser timing was measured in this investigation.",
+    "Reduced-model timing is one paired 300-step run; it does not establish a sustained speedup.",
+    "Tests cover the captured long-tool continuation, not the full manual crossover.",
+    "No approximation budget was adopted for production."
+  ]
+}

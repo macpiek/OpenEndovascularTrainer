@@ -1,0 +1,129 @@
+--- a/src/physics/kirchhoffSharedAxisGeometryIdentity.js
++++ b/src/physics/kirchhoffSharedAxisGeometryIdentity.js
+@@ -1,3 +1,4 @@
++import {sameBytesSimd} from './sharedAxisByteEquality.js';
+ const identities=new WeakMap();
+ 
+ // Check every byte, including edits that did not bump BufferAttribute.version.
+@@ -7,6 +8,9 @@
+     if(!array)return saved===null;
+     if(!saved||array.byteLength!==saved.byteLength)return false;
+     const bytes=new Uint8Array(array.buffer,array.byteOffset,array.byteLength);
++    if(bytes.length>=16384) {
++        const same=sameBytesSimd(bytes,saved);if(same!==null)return same;
++    }
+     let end=0;
+     if((array.byteOffset&3)===0) {
+         const count=bytes.length>>>2,words=new Uint32Array(array.buffer,array.byteOffset,count);
+--- /dev/null
++++ b/src/physics/sharedAxisByteEquality.js
+@@ -0,0 +1,23 @@
++import {byteEqualityBytes} from './sharedAxisByteEqualityBytes.js';
++
++// One bounded synchronous workspace. Inputs and saved snapshots remain owned
++// by their caller; the byte comparison never changes either array.
++const chunkBytes=256*1024;
++let kernel,buffer,unavailable=false;
++export function sameBytesSimd(a,b) {
++    if(a.byteLength!==b.byteLength)return false;
++    if(unavailable)return null;
++    if(!kernel) {
++        try {
++            const memory=new WebAssembly.Memory({initial:8,maximum:8});
++            kernel=new WebAssembly.Instance(new WebAssembly.Module(byteEqualityBytes),{env:{memory}}).exports;
++            buffer=new Uint8Array(memory.buffer);
++        } catch {unavailable=true;return null;}
++    }
++    for(let offset=0;offset<a.byteLength;offset+=chunkBytes) {
++        const end=Math.min(a.byteLength,offset+chunkBytes);
++        buffer.set(a.subarray(offset,end),0);buffer.set(b.subarray(offset,end),chunkBytes);
++        if(!kernel.same(0,chunkBytes,end-offset))return false;
++    }
++    return true;
++}
+--- /dev/null
++++ b/src/physics/sharedAxisByteEqualityBytes.js
+@@ -0,0 +1,2 @@
++// Generated from scripts/physics/sharedAxisByteEquality.wat.
++export const byteEqualityBytes=new Uint8Array([0,97,115,109,1,0,0,0,1,8,1,96,3,127,127,127,1,127,2,15,1,3,101,110,118,6,109,101,109,111,114,121,2,0,1,3,2,1,0,7,8,1,4,115,97,109,101,0,0,10,107,1,105,1,1,127,2,64,3,64,32,3,65,16,106,32,2,75,13,1,32,0,32,3,106,253,0,4,0,32,1,32,3,106,253,0,4,0,253,35,253,99,69,4,64,65,0,15,11,32,3,65,16,106,33,3,12,0,11,11,2,64,3,64,32,3,32,2,79,13,1,32,0,32,3,106,45,0,0,32,1,32,3,106,45,0,0,71,4,64,65,0,15,11,32,3,65,1,106,33,3,12,0,11,11,65,1,11]);
+--- /dev/null
++++ b/scripts/physics/sharedAxisByteEquality.wat
+@@ -0,0 +1,21 @@
++(module
++  (import "env" "memory" (memory 1))
++  (func (export "same") (param $a i32) (param $b i32) (param $n i32) (result i32)
++    (local $i i32)
++    (block $tail
++      (loop $vectors
++        (br_if $tail (i32.gt_u (i32.add (local.get $i) (i32.const 16)) (local.get $n)))
++        (if (i32.eqz (i8x16.all_true (i8x16.eq
++          (v128.load (i32.add (local.get $a) (local.get $i)))
++          (v128.load (i32.add (local.get $b) (local.get $i)))))) (then (return (i32.const 0))))
++        (local.set $i (i32.add (local.get $i) (i32.const 16)))
++        (br $vectors)))
++    (block $done
++      (loop $bytes
++        (br_if $done (i32.ge_u (local.get $i) (local.get $n)))
++        (if (i32.ne
++          (i32.load8_u (i32.add (local.get $a) (local.get $i)))
++          (i32.load8_u (i32.add (local.get $b) (local.get $i)))) (then (return (i32.const 0))))
++        (local.set $i (i32.add (local.get $i) (i32.const 1)))
++        (br $bytes)))
++    (i32.const 1)))
+--- /dev/null
++++ b/scripts/physics/build-shared-axis-byte-equality.mjs
+@@ -0,0 +1,11 @@
++// Build-only dependency: wabt (or OET_WABT_PATH); runtime embeds 158 bytes.
++import fs from 'node:fs/promises';
++import {createRequire} from 'node:module';
++const require=createRequire(import.meta.url),wabt=await require(process.env.OET_WABT_PATH||'wabt')();
++const wat=await fs.readFile(new URL('sharedAxisByteEquality.wat',import.meta.url),'utf8');
++const parsed=wabt.parseWat('sharedAxisByteEquality.wat',wat,{simd:true});
++parsed.resolveNames();parsed.validate({simd:true});
++const {buffer}=parsed.toBinary({canonicalize_lebs:true});parsed.destroy();
++await fs.writeFile(new URL('../../src/physics/sharedAxisByteEqualityBytes.js',import.meta.url),
++    '// Generated from scripts/physics/sharedAxisByteEquality.wat.\nexport const byteEqualityBytes=new Uint8Array('+JSON.stringify([...buffer])+');\n');
++console.log(buffer.length+' bytes');
+--- /dev/null
++++ b/tests/sharedAxisByteEquality.test.js
+@@ -0,0 +1,40 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {sameBytesSimd} from '../src/physics/sharedAxisByteEquality.js';
++
++test('SIMD compares all bytes, chunk boundaries, tails and unaligned views without modifying inputs',()=>{
++    for(const length of [0,1,15,16,17,16384,262143,262144,262145,800003]) {
++        const storage=new Uint8Array(length+13),a=storage.subarray(3,3+length);
++        for(let i=0;i<length;i++)a[i]=(i*37+19)&255;
++        const b=a.slice(),saved=a.slice();assert.equal(sameBytesSimd(a,b),true);
++        for(const index of new Set([0,15,16,262143,262144,length-1].filter(i=>i>=0&&i<length))) {
++            b[index]^=128;assert.equal(sameBytesSimd(a,b),false,`${length}/${index}`);
++            b[index]^=128;assert.equal(sameBytesSimd(a,b),true);
++        }
++        assert.deepEqual(a,saved);assert.deepEqual(b,saved);
++    }
++    assert.equal(sameBytesSimd(new Uint8Array(1),new Uint8Array(2)),false);
++});
++
++test('sequential large and small comparisons cannot retain a prior match or mismatch',()=>{
++    const a=new Uint8Array(900009).fill(7),b=a.slice();b[800000]=8;
++    for(let i=0;i<4;i++){
++        assert.equal(sameBytesSimd(a,b),false);
++        assert.equal(sameBytesSimd(a.subarray(5,500003),b.subarray(5,500003)),true);
++        assert.equal(sameBytesSimd(new Uint8Array([1,2]),new Uint8Array([1,3])),false);
++        assert.equal(sameBytesSimd(a,a.slice()),true);
++    }
++});
++
++
++test('an unavailable SIMD runtime requests the caller fallback and remains safe',async()=>{
++    const original=WebAssembly.Module;
++    try {
++        WebAssembly.Module=function(){throw new Error('SIMD unavailable');};
++        const fallback=await import('../src/physics/sharedAxisByteEquality.js?unsupported');
++        const bytes=new Uint8Array([1,2]);assert.equal(fallback.sameBytesSimd(bytes,bytes),null);
++        WebAssembly.Module=original;
++        assert.equal(fallback.sameBytesSimd(bytes,bytes),null);
++        assert.equal(fallback.sameBytesSimd(bytes,new Uint8Array(3)),false);
++    } finally {WebAssembly.Module=original;}
++});

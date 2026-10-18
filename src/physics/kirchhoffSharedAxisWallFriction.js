@@ -1,7 +1,10 @@
 import {Quaternion,Vector3} from 'three';
 import {sharedAxisOuterMaterialAt} from './kirchhoffSharedAxisNative.js';
+import {sharedAxisFrictionTangent} from './kirchhoffSharedAxisFrictionKernel.js';
 
-const dot=(a,b)=>a.reduce((v,x,i)=>v+x*b[i],0);
+// All mechanical vectors have three entries. Keep reduce's initial zero and
+// accumulation order (including signed zero), without per-entry callbacks.
+const dot=(a,b)=>a.length===3?((0+a[0]*b[0])+a[1]*b[1])+a[2]*b[2]:a.reduce((v,x,i)=>v+x*b[i],0);
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
 const add=(a,b)=>a.map((v,i)=>v+b[i]);
 const scale=(a,k)=>a.map(v=>v*k);
@@ -58,7 +61,7 @@ export function prepareSharedAxisWallFriction(s,{feedById={},stiffness=1e4,histo
     refreshSharedAxisWallFriction(s);
 }
 
-function makeRecord(s,def,index,old) {
+function makeRecord(s,def,index,oldRecords) {
     const step=s.wallFrictionStep,e=def.edge;
     // Only actual vessel witnesses. In particular: no sheath, fold, discovery,
     // or wire/catheter interaction rows can consume a friction budget.
@@ -87,8 +90,10 @@ function makeRecord(s,def,index,old) {
         ...(step.liveNormalLoad?{rowIndex:index}:{}),
         origin:point(reference,e,t),rho0,localRho:rotate(rho0,q0.clone().invert()),
         feed:scale(tangent,step.feedById[material.spec.id]??0),elastic:project(history?.elastic??[0,0,0],n),
-        mode:old?.mode??history?.mode??'stick'};
-    const trial=kinematics(s,record),demand=step.stiffness*Math.hypot(...trial.slip);
+        mode:oldRecords.get(id)?.mode??history?.mode??'stick'};
+    // Choosing stick/slide needs only the slip. Its seven derivative columns
+    // are evaluated later when the refreshed force is assembled.
+    const trial=step.lightweightFriction?bufferedSlip(s,record,workspace(s)):kinematics(s,record),demand=step.stiffness*Math.hypot(...trial.slip);
     if(record.mode==='stick'&&demand>muStatic*normalLoad)record.mode='slide';
     else if(record.mode==='slide'&&demand<=muKinetic*normalLoad)record.mode='stick';
     return record;
@@ -128,18 +133,25 @@ function projectInPlace(a,n) {
 // Preserve the reference expression order, including projection's initial
 // zero in dot(). Buffers contain only numbers, never references to a contact,
 // body or prior state, and every pose-dependent entry is overwritten.
-function bufferedKinematics(s,r) {
-    const scratch=workspace(s),k=scratch.k,{e,t,n,material}=r,{body}=material;
-    const {point:p,edge}=scratch,{rho,slip,tangent,de,omega,J,dofs}=k;
+function bufferedSlip(s,r,scratch) {
+    const k=scratch.k,{e,t,n,material}=r,{body}=material;
+    const {point:p}=scratch,{rho,slip}=k;
     scratch.q.set(body.orientationX[e],body.orientationY[e],body.orientationZ[e],body.orientationW[e]);
     scratch.v.set(...r.localRho).applyQuaternion(scratch.q).toArray(rho);
     for(let a=0;a<3;a++) {
         p[a]=(1-t)*s.positions[e][a]+t*s.positions[e+1][a];
         slip[a]=r.elastic[a]+(r.feed[a]+((p[a]-r.origin[a])+(rho[a]-r.rho0[a])));
+    }
+    projectInPlace(slip,n);
+    return k;
+}
+function bufferedKinematics(s,r) {
+    const scratch=workspace(s),k=bufferedSlip(s,r,scratch),{e,t,n,material}=r;
+    const {edge}=scratch,{rho,tangent,de,omega,J,dofs}=k;
+    for(let a=0;a<3;a++) {
         edge[a]=s.positions[e+1][a]-s.positions[e][a];
         dofs[a]=s.layout.positions[e]+a;dofs[3+a]=s.layout.positions[e+1]+a;
     }
-    projectInPlace(slip,n);
     const length=k.length=Math.hypot(...edge),inverse=1/length;
     for(let a=0;a<3;a++)tangent[a]=edge[a]*inverse;
     dofs[6]=s.layout.spins.get(material.spec.id)[e];
@@ -166,6 +178,11 @@ function evaluate(s,r,full=false,lightweight=s.wallFrictionStep?.lightweightFric
         law=sharedAxisFrictionPotential(k.slip,parameters,full||!lightweight,scratch?.[full?'law':'residualLaw']),gradient=scratch?.gradient??new Array(7);
     for(let i=0;i<7;i++)gradient[i]=dot(k.J[i],law.traction);
     if(!full)return {...k,...law,gradient};
+    if(lightweight) {
+        const H=sharedAxisFrictionTangent(k,law,r.n,!!s.chain.tangent);
+        const derivative=live&&rawLoad>=0?sharedAxisFrictionNormalDerivative(k.slip,parameters):null;
+        return {...k,...law,gradient,H,...(live?{normalForceDerivative:derivative?k.J.map(j=>dot(j,derivative)):new Array(7).fill(0)}:{})};
+    }
     const {HJ,dRho,dT,tCrossDe,lengthFactor,H}=scratch??workspace(s),{length,tangent,rho,de,omega,J}=k;
     const [tx,ty,tz]=tangent,[rx,ry,rz]=rho,[nx,ny,nz]=r.n,[fx,fy,fz]=law.traction,L2=length**2;
     const geometric=!!s.chain.tangent;
@@ -217,8 +234,7 @@ export function refreshSharedAxisWallFriction(s,{forceTolerance=1e-6}={}) {
     const old=new Map(step.records.map(r=>[r.id,r])),before=new Float64Array(s.layout.dofCount),after=before.slice();
     for(const r of step.records){const v=evaluate(s,r);v.dofs.forEach((d,i)=>before[d]+=v.gradient[i]);}
     const records=[];
-    s.definitions.forEach((def,i)=>{const owner=sharedAxisOuterMaterialAt(s,def.edge,def.witness?.t??1,def.witness?.owner);
-        const r=makeRecord(s,def,i,old.get(`${owner?.spec.id}/${def.id}`));if(r)records.push(r);});
+    s.definitions.forEach((def,i)=>{const r=makeRecord(s,def,i,old);if(r)records.push(r);});
     for(const r of records){const v=evaluate(s,r);v.dofs.forEach((d,i)=>after[d]+=v.gradient[i]);}
     let forceChange=0;for(let i=0;i<after.length;i++)if(!s.fixed[i])forceChange=Math.max(forceChange,Math.abs(after[i]-before[i]));
     step.records=records;step.certified=forceChange<=forceTolerance;

@@ -209,4 +209,24 @@ globalThis.window = { devicePixelRatio: 2 };
         'monitor fixed-step accumulator did not remain bounded');
 }
 
+// Render-only frames cannot advance either physiology or its sweep cursor.
+{
+    const { monitor, ecgCanvas, bpCanvas } = createMonitor();
+    let committedTime = 0;
+    for (let frame = 0; frame < 1800; frame++) {
+        const elapsed = frame % 3 === 0 ? 1 / 60 : 0;
+        if (elapsed) { monitor.advance(elapsed); committedTime += elapsed; }
+        ecgCanvas.context.paths.length = 0;
+        bpCanvas.context.paths.length = 0;
+        monitor.render(elapsed);
+    }
+    const timing = monitor.timingDiagnostics();
+    assert.ok(Math.abs(monitor.time - committedTime) < 1e-10);
+    assert.ok(Math.abs(monitor.presentationTime - committedTime) < 1e-10);
+    assert.ok(Math.abs(timing.ecgContinuousCursor - timing.ecgPresentationCursor) < 1e-8);
+    assert.ok(Math.abs(timing.bpContinuousCursor - timing.bpPresentationCursor) < 1e-8);
+    assert.ok(longestPath(ecgCanvas.context).length > 100);
+    assert.ok(longestPath(bpCanvas.context).length > 100);
+}
+
 console.log('patient monitor timing tests passed');

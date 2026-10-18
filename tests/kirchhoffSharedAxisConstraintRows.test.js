@@ -28,6 +28,16 @@ test('optimized rows retain bit-identical gaps, reactions and exact geometric He
     const s=fixture();compare(s);compare(s,false);s.cacheMechanicalAssembly=true;compare(s);compare(s);
 });
 
+test('length endpoint blocks preserve signed zeros and rounding for both reaction signs',()=>{
+    const s=createSharedAxisNative({tools:[{id:'wire',insertion:20}]});
+    for(const direction of [[1,0,-0],[-1,-0,0],[0,1,0],[.6,.8,0],[.2,-.4,.8]]){
+        s.positions=s.coordinates.map(x=>direction.map(v=>x*v));s.geometryKey=Symbol('length-stencil');
+        for(const multiplier of [1,-1,Number.MIN_VALUE,-Number.MIN_VALUE,1e200,-1e200]){
+            s.multipliers.fill(multiplier);compare(s);
+        }
+    }
+});
+
 test('pose cache handles trial rollback and multiplier-only changes without changing retained rows',()=>{
     const s=fixture(),saved=captureSharedAxisNative(s),rows=compare(s),oldRows=rows.map(r=>({...r,
         dofs:r.dofs.slice(),jacobian:r.jacobian.slice(),geometricHessian:r.geometricHessian?.slice()}));

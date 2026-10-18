@@ -1,0 +1,19 @@
+{
+  "experiment": "Defer separated retained wall witnesses during local PD iterations; materialize before exact closure and final acceptance",
+  "pairedAudit": "026-projective-deferred-paired-comparison.json",
+  "fullSequenceStepsPerVariant": 7507,
+  "allPosesAndQualityIdentical": true,
+  "longStageCostReductionPercent": -5.535091474757636,
+  "decision": "Not enabled in manual simulator: candidate increased long-stage mean CPU cost by about 5.5% in this paired run. Preserve as rejected experiment.",
+  "sourceWorkspace": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-pd-contact-x6d2t1gs",
+  "sourceHashes": {
+    "src/physics/kirchhoffSharedAxisProjective.js": "1576aebfb041dd6caddf95cf51e71cd7b92dbba9f17b734c2066d2db67b1972e",
+    "tests/kirchhoffSharedAxisProjective.test.js": "3b6f441a21ea3761b6707386df3e0877a6023ac6cd5d350ef58c4779192d27d1",
+    "tests/crossoverAlternativeSolvers.browser.html": "9cb12d4e125fe0e12d8f53f81b1ba38e4cee09e5203e5a9d09ab35f51c5af0ba"
+  },
+  "tests": "38 focused tests passed before browser replay; see copied log. No new build for this rejected candidate.",
+  "manualSimulator": "Root port 5182 remains on the independently tested 024 manual PD configuration; no user scene reload or tool movement.",
+  "nextWork": "Keep 025 combined optimization as candidate. Integrate explicit PD geometry gate into isolated full-app recorder before assessing whole-app 60 Hz; do not assign Newton equilibrium certificate to PD.",
+  "applicationFpsVerified": false,
+  "goalAchieved": false
+}

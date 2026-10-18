@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-12",
+  "scenario": "Coupled release of a fresh main body around the captured 451 mm guidewire / 297.917 mm delivery shaft in the infrarenal aneurysm. Both rod motion and accepted graft geometry are updated each step; crown remains captured.",
+  "timeStepSeconds": 0.016666666666666666,
+  "steps": 660,
+  "protocol": {
+    "initialHoldSteps": 60,
+    "sheathWithdrawalSteps": 450,
+    "finalHoldSteps": 150,
+    "bifurcationComparisonSteps": [
+      390,
+      659
+    ],
+    "lateComparisonSteps": [
+      630,
+      659
+    ]
+  },
+  "initialDevice": {
+    "side": "right",
+    "position": 297.91666666666623,
+    "scale": 0.7789879466966056,
+    "coverLead": 9.347855360359269,
+    "parts": [
+      {
+        "length": 38.94939733483028,
+        "offset": 0
+      },
+      {
+        "length": 41.2863611749201,
+        "offset": 38.94939733483028
+      },
+      {
+        "length": 26.485590187684597,
+        "offset": 38.94939733483028
+      }
+    ]
+  },
+  "before": {
+    "acceptedSteps": 660,
+    "rejectedSteps": 0,
+    "maxBifurcationSpeedMmPerSecond": 153.92227930849296,
+    "maxBifurcationDisplacementMm": 2.565371321808216,
+    "maxBifurcationFactorizations": 113,
+    "meanBifurcationFactorizations": 10.588888888888889,
+    "maxLateSpeedMmPerSecond": 49.11956414772408,
+    "maxVesselPenetrationMm": 4.31008562173929e-9
+  },
+  "after": {
+    "acceptedSteps": 660,
+    "rejectedSteps": 0,
+    "maxBifurcationSpeedMmPerSecond": 8.594596424353153,
+    "maxBifurcationDisplacementMm": 0.14324327373921922,
+    "maxBifurcationFactorizations": 7,
+    "meanBifurcationFactorizations": 4.044444444444444,
+    "maxLateSpeedMmPerSecond": 1.2660916269850613,
+    "maxVesselPenetrationMm": 1.2034817586936697e-13
+  },
+  "timingNote": "No wall-clock or browser FPS claim: runs shared the host with other tests. Factorization counts are deterministic solver work.",
+  "validation": {
+    "coupledRegression": "tests/stentGraftCoupledRelease.test.js",
+    "focusedContactRegressions": [
+      "tests/stentGraftContactStability.test.js",
+      "tests/stentGraftCoverContact.test.js",
+      "tests/stentGraftBifurcationStabilityReplay.test.js"
+    ],
+    "preexistingFailures": [
+      "Aorta_plain: body and contralateral limb deploy through separate accesses and remain implanted",
+      "Aorta_infrarenal_aneurysm: body and contralateral limb deploy through separate accesses and remain implanted",
+      "right / 23 mm: exposed bifurcation cannot inherit shaft oscillations while the crown is captured",
+      "left / 23 mm: exposed bifurcation cannot inherit shaft oscillations while the crown is captured",
+      "right / 28 mm: exposed bifurcation cannot inherit shaft oscillations while the crown is captured",
+      "left / 28 mm: exposed bifurcation cannot inherit shaft oscillations while the crown is captured",
+      "captured left-access rejection recovers with fabric CCD enabled and continues advancing",
+      "owning circular lumen cannot suppress real cloth contact during pigtail withdrawal",
+      "captured 92.5 mm contralateral insertion continues with catalogue delivery radius and full collisions",
+      "left: freed gate springs open with a stationary sheath and enables only matching contacts",
+      "right: freed gate springs open with a stationary sheath and enables only matching contacts",
+      "right: suprarenal peaks stay captured until the latch releases, then snap open",
+      "left: suprarenal peaks stay captured until the latch releases, then snap open",
+      "right: ipsilateral rim springs open at sleeve clearance without extra withdrawal",
+      "left: ipsilateral rim springs open at sleeve clearance without extra withdrawal",
+      "stent-graft-bifurcation-contact: captured rejection recovers and permits continued withdrawal",
+      "stent-graft-lost-indentation: captured rejection recovers and permits continued withdrawal",
+      "legacy exterior snapshot already crossing the vessel is rejected atomically by finite-radius discovery",
+      "higher continuous rounded stent waves retain thin wire and close each ring",
+      "right: delivery system slides both ways inside the released ipsilateral limb with an adaptive mesh",
+      "left: delivery system slides both ways inside the released ipsilateral limb with an adaptive mesh",
+      "sparse centreline fallback cannot create a phantom wall in the aneurysm or collapse a released body"
+    ],
+    "baselineNote": "All listed failures reproduced in a temporary copy with the pre-fix versions of every runtime file changed in this task. The initial broad run also exposed an unintended change to standalone-limb ownership; that was restored and its test now passes."
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "recordedAt": "2026-10-14T11:48:53.049Z",
+  "goalAchieved": false,
+  "change": "Batched Float64 rotational inertia derivative/scatter in fixed WASM memory shared with the material tangent; existing wasmMaterial option enables it. Translational inertia, energy and forces preserve their JS evaluation.",
+  "invariants": [
+    "Identical operation order and Float64 coefficients, including seeded material tangents.",
+    "No matrix copy, memory growth, cross-chain scratch ownership or accepted-state mutation.",
+    "JS remains the path for gradient-only, Gauss-Newton and incompatible/caller-owned tangent layouts.",
+    "Memory capacity is refreshed for changed material layouts.",
+    "No changes to solver tolerances, timestep, mesh or acceptance certificates."
+  ],
+  "exactComparison": {
+    "report": "001-inertia-kernel-final-throughput.json",
+    "passed": true,
+    "stepsPerVersion": 600,
+    "runs": [
+      {
+        "version": "before",
+        "repeat": 0,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10275.580795000023,
+          "medianMs": 24.338415999998688,
+          "p95Ms": 77.75362499999937,
+          "maxMs": 461.17866700000013,
+          "cpuStepsPerSecond": 29.19543001851306,
+          "withinBudget": 3
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584
+      },
+      {
+        "version": "after",
+        "repeat": 0,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10398.870746000006,
+          "medianMs": 24.337290999999823,
+          "p95Ms": 75.08599999999933,
+          "maxMs": 437.7430830000012,
+          "cpuStepsPerSecond": 28.84928636269443,
+          "withinBudget": 4
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584
+      },
+      {
+        "version": "before",
+        "repeat": 1,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10299.51562999999,
+          "medianMs": 23.99933400000009,
+          "p95Ms": 82.00766700000167,
+          "maxMs": 452.0020000000004,
+          "cpuStepsPerSecond": 29.12758335218918,
+          "withinBudget": 1
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584
+      },
+      {
+        "version": "after",
+        "repeat": 1,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10310.234753999997,
+          "medianMs": 23.98395800000071,
+          "p95Ms": 75.25716700000339,
+          "maxMs": 452.5656250000029,
+          "cpuStepsPerSecond": 29.09730061030966,
+          "withinBudget": 1
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584
+      }
+    ],
+    "maxWorldDifferenceMm": 0,
+    "warmCpuReductionPercent": -0.10407405925754176,
+    "runtimeSourceHashesVerified": true,
+    "interpretation": "No clear full-scenario throughput improvement. The first paired experiment was about 1% faster; the final paired run was about 0.1% slower after warm-up. These small differences are within measurement variation."
+  },
+  "isolatedKernel": {
+    "report": "001-inertia-kernel-microbenchmark.json",
+    "harness": "scripts/benchmark-shared-axis-inertia.mjs",
+    "passed": true,
+    "iterationsPerMethod": 10000,
+    "reductionPercent": 9.63353143479968,
+    "scope": "Rotational inertia assembly on a synthetic curved two-tool shaft. Includes gradient/matrix clearing; excludes solver, contacts and new-chain allocation."
+  },
+  "browser": {
+    "report": "001-browser-inertia-kernel.json",
+    "screenshot": "001-browser-inertia-kernel.jpg",
+    "passed": true,
+    "steps": 300,
+    "physicsHz": 22.90810794308804,
+    "renderFps": 59.17927885297743,
+    "wallSeconds": 13.095799999952316,
+    "simulationSeconds": 5,
+    "stepCpuMs": {
+      "median": 26.800000190734863,
+      "p95": 64.39999961853027,
+      "max": 361.09999990463257
+    },
+    "consoleErrors": 0
+  },
+  "tests": {
+    "passed": 45,
+    "failed": 0,
+    "report": "001-inertia-kernel-tests.log"
+  },
+  "build": {
+    "passed": true,
+    "report": "001-inertia-kernel-build.log",
+    "warning": "Existing bundle-size warning"
+  },
+  "generatedKernel": {
+    "passed": true,
+    "sha256": "02d64e88fddfe0706353e10a5392d1d8595ada0085155f1257c65ca93ed5f2c1",
+    "wabtVersion": "1.0.37",
+    "report": "001-inertia-kernel-reproducibility.json"
+  },
+  "limitations": [
+    "The kernel-only improvement is not a speedup of the whole simulation.",
+    "Two 300-step continuations of the captured long-tool crossover, not the complete manual maneuver.",
+    "Browser run uses a lightweight preview and excludes full fluoroscopy and app idle catch-up.",
+    "60 accepted physics steps per real second remains unachieved."
+  ]
+}

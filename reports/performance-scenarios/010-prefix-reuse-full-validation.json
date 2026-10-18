@@ -1,0 +1,165 @@
+{
+  "reference": "reports/performance-scenarios/003-crossover-full-user-inputs.json.gz",
+  "candidate": "reports/performance-scenarios/010-prefix-reuse-full-browser.json.gz",
+  "referenceSha256": "bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac",
+  "candidateSha256": "b928c4dc12ddbfa818ae07e299f90a0a93b444b236a59eb6c30a3afa193a13a1",
+  "steps": 7507,
+  "dt": 0.016666666666666666,
+  "verifiedInputsAndTools": true,
+  "verifiedCheckpoints": 5,
+  "shapeDifferenceLimitMm": 1,
+  "maximumShapeDifferenceMm": 0,
+  "qualityChecks": 15014,
+  "maximumCertificate": 9.950126695912331e-7,
+  "maximumPenetrationMm": 9.934624012331028e-9,
+  "maximumLengthErrorMm": 9.934624012331028e-9,
+  "summary": {
+    "all": {
+      "steps": 7507,
+      "wallMs": 148305.20000004768,
+      "physicsHz": 50.618589233537236,
+      "p50CpuMs": 0.5,
+      "p95CpuMs": 0.9000003337860107,
+      "p99CpuMs": 1.7000000476837158,
+      "maxCpuMs": 29.899999856948853,
+      "intervalsOverBudget": 2034
+    },
+    "duringMotion": {
+      "steps": 3645,
+      "wallMs": 89718.79999923706,
+      "physicsHz": 40.626936606720065,
+      "p50CpuMs": 0.5,
+      "p95CpuMs": 1.000000238418579,
+      "p99CpuMs": 3.999999523162842,
+      "maxCpuMs": 29.899999856948853,
+      "intervalsOverBudget": 1332
+    },
+    "stationary": {
+      "steps": 3862,
+      "wallMs": 58586.40000081062,
+      "physicsHz": 65.91973563739305,
+      "p50CpuMs": 0.5,
+      "p95CpuMs": 0.7999999523162842,
+      "p99CpuMs": 1.1999998092651367,
+      "maxCpuMs": 19.999999523162842,
+      "intervalsOverBudget": 702
+    },
+    "minimumMovingWindowHz": 14.735497814407054,
+    "stages": [
+      {
+        "label": "Pigtail nad rozwidleniem, prowadnik cofnięty, ogonek skierowany w drugą stronę",
+        "steps": 1249,
+        "wallMs": 20651.900000095367,
+        "physicsHz": 60.47869687506875,
+        "p50CpuMs": 0.5999999046325684,
+        "p95CpuMs": 0.8000001907348633,
+        "p99CpuMs": 1.1999998092651367,
+        "maxCpuMs": 19.999999523162842,
+        "intervalsOverBudget": 248,
+        "duringMotion": {
+          "steps": 872,
+          "wallMs": 14547.500000238419,
+          "physicsHz": 59.94157071563559,
+          "p50CpuMs": 0.5999999046325684,
+          "p95CpuMs": 0.8000001907348633,
+          "p99CpuMs": 1,
+          "maxCpuMs": 3.200000047683716,
+          "intervalsOverBudget": 196
+        }
+      },
+      {
+        "label": "Pigtail oparty o rozwidlenie, końcówka w przeciwległej biodrówce",
+        "steps": 591,
+        "wallMs": 9849.299999952316,
+        "physicsHz": 60.00426426272539,
+        "p50CpuMs": 0.5,
+        "p95CpuMs": 0.9000000953674316,
+        "p99CpuMs": 1.2999999523162842,
+        "maxCpuMs": 3.200000047683716,
+        "intervalsOverBudget": 144,
+        "duringMotion": {
+          "steps": 127,
+          "wallMs": 2221,
+          "physicsHz": 57.18144979738857,
+          "p50CpuMs": 0.5999999046325684,
+          "p95CpuMs": 0.9999997615814209,
+          "p99CpuMs": 1.8000001907348633,
+          "maxCpuMs": 3.200000047683716,
+          "intervalsOverBudget": 38
+        }
+      },
+      {
+        "label": "Prowadnik przez pigtaila w przeciwległej biodrówce",
+        "steps": 846,
+        "wallMs": 14100.399999856949,
+        "physicsHz": 59.99829792123506,
+        "p50CpuMs": 0.5,
+        "p95CpuMs": 0.8000001907348633,
+        "p99CpuMs": 1.2000000476837158,
+        "maxCpuMs": 29.899999856948853,
+        "intervalsOverBudget": 215,
+        "duringMotion": {
+          "steps": 115,
+          "wallMs": 2302.7999999523163,
+          "physicsHz": 49.93920444779455,
+          "p50CpuMs": 0.5,
+          "p95CpuMs": 0.7999999523162842,
+          "p99CpuMs": 3,
+          "maxCpuMs": 29.899999856948853,
+          "intervalsOverBudget": 48
+        }
+      },
+      {
+        "label": "Po korektach: prowadnik w biodrowej zewnętrznej i udowej",
+        "steps": 3530,
+        "wallMs": 64731.5,
+        "physicsHz": 54.53295536176359,
+        "p50CpuMs": 0.40000009536743164,
+        "p95CpuMs": 0.7000002861022949,
+        "p99CpuMs": 1.1000001430511475,
+        "maxCpuMs": 8.59999966621399,
+        "intervalsOverBudget": 810,
+        "duringMotion": {
+          "steps": 1579,
+          "wallMs": 38203.89999961853,
+          "physicsHz": 41.33085889178242,
+          "p50CpuMs": 0.40000057220458984,
+          "p95CpuMs": 0.8000001907348633,
+          "p99CpuMs": 1.8000001907348633,
+          "maxCpuMs": 8.59999966621399,
+          "intervalsOverBudget": 512
+        }
+      },
+      {
+        "label": "Oba narzędzia wsunięte na prawie maksymalną długość",
+        "steps": 1291,
+        "wallMs": 38972.10000014305,
+        "physicsHz": 33.12626212072897,
+        "p50CpuMs": 0.6999998092651367,
+        "p95CpuMs": 1.3000001907348633,
+        "p99CpuMs": 7.8999998569488525,
+        "maxCpuMs": 13.300000429153442,
+        "intervalsOverBudget": 617,
+        "duringMotion": {
+          "steps": 952,
+          "wallMs": 32443.599999427795,
+          "physicsHz": 29.34322948183279,
+          "p50CpuMs": 0.7000002861022949,
+          "p95CpuMs": 1.5,
+          "p99CpuMs": 8.099999904632568,
+          "maxCpuMs": 13.300000429153442,
+          "intervalsOverBudget": 538
+        }
+      }
+    ],
+    "maximumShapeDifferenceMm": 0
+  },
+  "performanceTargetMet": false,
+  "minimumMeasuredHz": 59.5,
+  "goalAchieved": false,
+  "scope": "Entire recorded maneuver from empty tools. Throughput uses common accepted steps per wall-clock second during movement. Rendering FPS is not a performance gate.",
+  "limitations": [
+    "Stage placement is confirmed by the original operator; this does not independently classify anatomical routing.",
+    "A completed report alone does not replace review of browser conditions, regressions and the final implementation."
+  ]
+}

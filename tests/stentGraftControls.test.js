@@ -1,4 +1,7 @@
 import test from 'node:test';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import {deliveryRemovalBlocked} from '../src/devices/stentGraftDeployment.js';
 import assert from 'node:assert/strict';
 import {StentGraftSystem} from '../src/devices/stentGraftSystem.js';
 import {initStentGraftControls} from '../src/ui/stentGraftControls.js';
@@ -244,4 +247,45 @@ test('catalogue projection preserves physical diameters, lengths, distal flare a
     assert.ok(Math.abs(width(g.silhouettes[0],124)-28)<.001);
     assert.ok(Math.abs(width(g.silhouettes[0],40)-16)<1e-5,'the flare must not expand the entire shaft');
     assert.equal(g.markers.length,5);
+});
+
+test('catheter exchange and remove button unlock for withdrawn detached hardware before fabric settles',()=>{
+    const f=controlsFixture();
+    try {
+        f.system.load('right','body');f.ui.setSelectedCatheterTool('stentgraft');
+        const d=f.system.accesses.right.device;
+        Object.assign(d,{phase:'deploying',position:0,target:0,implantPosition:200,
+            sheathWithdrawal:119.2,sheathTravel:136,coverLead:12,releaseLength:103,tipRelease:0,
+            deployment:1-1e-6});
+        f.controls.refresh();assert.equal(f.e('stentGraftRemove').disabled,true);
+        assert.equal(f.controls.selectTool('pigtail'),false);
+        d.tipRelease=1;f.controls.refresh();
+        assert.equal(f.e('stentGraftRemove').disabled,false);
+        assert.equal(f.controls.selectTool('pigtail'),true);
+        assert.equal(f.system.accesses.right.device,null);
+        assert.equal(d.deliveryRemoved,true);
+    } finally {f.system.dispose();}
+});
+
+
+test('main catheter selector uses hardware release, not the fabric deployment phase',()=>{
+    const source=fs.readFileSync(new URL('../src/ui/ui.js',import.meta.url),'utf8');
+    const start=source.indexOf('  function updateToolSelectionLocks()');
+    const end=source.indexOf("  catheterTypeSelect?.addEventListener",start);
+    const device={phase:'deploying',type:'body',position:0,implantPosition:200,
+        sheathWithdrawal:119.2,coverLead:12,releaseLength:103,tipRelease:1};
+    const context={deliveryRemovalBlocked,readCatheterDeliveryState:()=>device,
+        guidewireTypeSelect:{},guidewireTypeStatusEl:{},catheterTypeSelect:{},catheterTypeStatusEl:{},
+        insertedLengthCm:40,catheterLengthCm:0,TOOL_SELECTION_UNLOCK_EPSILON_CM:.05,
+        guidewireAutoWithdrawButton:{},guidewireAutoWithdraw:{},catheterAutoWithdrawButton:{},catheterAutoWithdraw:{},
+        updateSelectLock(select,status,locked){select.disabled=locked;},updateAutoWithdrawButton(){}};
+    vm.createContext(context);vm.runInContext(source.slice(start,end),context);
+    context.updateToolSelectionLocks();
+    assert.equal(context.catheterTypeSelect.disabled,false);
+    assert.equal(context.guidewireTypeSelect.disabled,true,'the inserted guidewire remains protected');
+    device.tipRelease=0;context.updateToolSelectionLocks();assert.equal(context.catheterTypeSelect.disabled,true);
+    device.tipRelease=1;device.implantPosition=0;device.sheathWithdrawal=0;
+    context.updateToolSelectionLocks();assert.equal(context.catheterTypeSelect.disabled,true,'still covered cloth cannot be detached by a tool change');
+    device.phase='deployed';context.catheterLengthCm=1;
+    context.updateToolSelectionLocks();assert.equal(context.catheterTypeSelect.disabled,true,'inserted hardware remains locked');
 });

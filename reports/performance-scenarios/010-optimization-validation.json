@@ -1,0 +1,94 @@
+{
+  "goalAchieved": false,
+  "shapeDifferenceLimitMm": 1,
+  "targetAcceptedPhysicsHz": 60,
+  "productionDefaultChanged": false,
+  "currentCandidate": "007-distal-remap-passing.patch",
+  "recorderPatch": "004-configurable-shape-limit.patch",
+  "currentWorkspace": "/tmp/oet-fluidity-1mm-zb0gv7v4",
+  "bestCompleteCandidate": {
+    "report": "008-distal-confirmation-full-browser.json.gz",
+    "validation": "008-distal-confirmation-validation.json",
+    "steps": 7507,
+    "maximumShapeDifferenceMm": 0.909750089299832,
+    "maximumCertificate": 9.950126695912331e-7,
+    "maximumPenetrationMm": 9.943140699686381e-9,
+    "maximumLengthErrorMm": 9.943140699686381e-9,
+    "motionHz": 42.527920250121646,
+    "lastStageMotionHz": 32.42595166049221,
+    "minimumMovingWindowHz": 14.605291983620335,
+    "performanceTargetMet": false,
+    "note": "Results from the unchanged 008 confirmation; not a new optimization result."
+  },
+  "classificationOfPreviousGoalTurn": "Progress: completed full solver profile and rejected numerical/assembly trials with reproducible evidence",
+  "completedWork": {
+    "fullPrefixProfile": {
+      "report": "010-prefix-profile-full-browser.json.gz",
+      "validation": "010-prefix-profile-full-validation.json",
+      "source": "010-prefix-profile-manifest.json",
+      "steps": 7507,
+      "shapeDifferenceMm": 0,
+      "eligibleMovingColumnFraction": 0.3258996980601335,
+      "note": "Potential reusable columns are not elapsed-time savings"
+    },
+    "exactPrefixPrototype": {
+      "source": "010-prefix-reuse-arena-manifest.json",
+      "patch": "010-prefix-reuse-arena.patch",
+      "report": "010-prefix-reuse-full-browser.json.gz",
+      "validation": "010-prefix-reuse-full-validation.json",
+      "steps": 7507,
+      "maximumShapeDifferenceMm": 0,
+      "maximumCertificate": 9.950126695912331e-7,
+      "maximumPenetrationMm": 9.934624012331028e-9,
+      "maximumLengthErrorMm": 9.934624012331028e-9,
+      "motionHz": 40.626936606720065,
+      "lastStageMotionHz": 29.34322948183279,
+      "minimumMovingWindowHz": 14.735497814407054,
+      "performanceTargetMet": false,
+      "cumulativeReuseStatistics": {
+        "calls": 149382,
+        "hits": 51967,
+        "columnsSkipped": 13601536,
+        "eligibleCalls": 148806,
+        "storageBytes": 4194304
+      },
+      "comparison": {
+        "referenceMotionHz": 40.54942524411721,
+        "referenceLastStageMotionHz": 29.03474715133605,
+        "referenceReport": "009-direction-profile-full-browser.json.gz",
+        "claim": "No material benefit; these separate full runs do not establish a repeatable speedup"
+      },
+      "pairedScreen": {
+        "report": "010-prefix-arena-screen.json",
+        "stepsPerVariant": 200,
+        "beforeMs": 5502.387870000001,
+        "afterMs": 5659.793667999999,
+        "timeReductionPercent": -2.8606816116726774,
+        "maximumShapeDifferenceMm": 0,
+        "scope": "Paired continuation screening, not full-maneuver performance"
+      },
+      "accepted": false,
+      "decision": "Archive and remove the cache. Identical finite equations and bitwise comparisons preserve the full trajectory, but cache storage/comparison and cheap upstream columns erase most expected savings."
+    }
+  },
+  "regressions": {
+    "profile": {
+      "tests": 50,
+      "log": "010-prefix-profile-tests.log"
+    },
+    "reuse": {
+      "tests": 17,
+      "log": "010-prefix-reuse-arena-tests.log"
+    },
+    "fullManeuverPhysicalChecks": 15014
+  },
+  "restoration": {
+    "baselineManifest": "009-direction-profile-manifest.json",
+    "sourceHashesMatched": true,
+    "prefixProfileRemoved": true,
+    "prefixReuseRemoved": true,
+    "extraArenaReserveRemoved": true,
+    "originalManualPosePreserved": true
+  },
+  "nextInvestigation": "Target costly failed predictor/contact retries rather than easy elimination prefixes. Audit the existing earlyPredictorFallback path and its cache interaction, then evaluate its effect against every input and shape in the full 1 mm-gated browser maneuver. Existing zero-dual warm starts, flow predictors, retained-rank LU and force relaxation are rejected evidence and must not be repeated unchanged."
+}

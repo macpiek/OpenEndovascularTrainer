@@ -1,0 +1,68 @@
+--- a/src/physics/kirchhoffSharedAxisCrossoverPreset.js
++++ b/src/physics/kirchhoffSharedAxisCrossoverPreset.js
+@@ -16,3 +16,10 @@
+ export const CROSSOVER_WIDE_CONTACT_MODEL = Object.freeze({
+     ...CROSSOVER_REDUCED_MODEL, contactMaxSpacing:20
+ });
++
++// Keep short tool systems on the full grid: they are cheap and include the
++// steering maneuvers most sensitive to remeshing. Reduce only long shafts.
++// This is an opt-in experiment, subject to the complete recorded trajectory.
++export const CROSSOVER_FLUID_CONTACT_MODEL = Object.freeze({
++    ...CROSSOVER_WIDE_CONTACT_MODEL, minCoarseningLength:400
++});
+--- a/src/physics/kirchhoffSharedAxisAdaptiveMesh.js
++++ b/src/physics/kirchhoffSharedAxisAdaptiveMesh.js
+@@ -88,6 +88,7 @@
+  */
+ export function coarsenSharedAxisMesh(coordinates, positions, {tools, boundaries, previous, spacing, options}) {
+     if (options.maxSpacing < spacing) throw new RangeError('Adaptive max spacing must cover the fine spacing');
++    if (coordinates.at(-1)-coordinates[0] <= (options.minCoarseningLength??0)) return;
+     const contacts = adaptiveContactKnots(previous, options);
+     const contactSpans = previous ? previous.coordinates.slice(0,-1).flatMap((x,i) =>
+         contacts.has(x)&&contacts.has(previous.coordinates[i+1]) ? [[x,previous.coordinates[i+1]]] : []) : [];
+--- a/src/physics/kirchhoffSharedAxisAppSystem.js
++++ b/src/physics/kirchhoffSharedAxisAppSystem.js
+@@ -193,10 +193,12 @@
+                 const sheathLength=Math.hypot(...xyz(sheath.end).map((v,k)=>v-xyz(sheath.start)[k]));
+                 const flowNetwork=tools.some(t=>t.insertion>sheathLength)?readBloodFlow():null;
+                 const frozenBloodFlow=readFrozenBloodFlow();
++                const stepAdaptiveMesh=adaptiveMesh?.minCoarseningLength &&
++                    Math.max(...tools.map(t=>t.insertion))+(sheath.proximalExtension??40)<=adaptiveMesh.minCoarseningLength?null:adaptiveMesh;
+                 const key=JSON.stringify({bloodFlow:frozenBloodFlow?.time??flowNetwork?.time??null,capture,graftRevision:graftSurface?.revision??0,tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
+                 if(key===failedKey)return failedResult;
+                 if(state&&key===lastKey&&sleepFrames>=10)return {accepted:true,dt,status:'sleeping',diagnostics:{...diagnostics}};
+-                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,adaptiveMesh,physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,
++                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,adaptiveMesh:stepAdaptiveMesh,physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,
+                     sheath,sheathLength,flowNetwork,rotations:{...rotations},
+                     requestTools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation}))};
+                 if(frozenBloodFlow!==undefined)pending.physicsOptions={...pending.physicsOptions,bloodFlow:structuredClone(frozenBloodFlow)};
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -14,7 +14,7 @@
+ import {FULL_CYCLE_BENCHMARK_MODE,fullCycleDurationMs,sampleFullCycleBenchmark,summarizeFullCycle} from './benchmark/fullCycleBenchmark.js';
+ import {WIRE60_BENCHMARK_MODE,wire60BenchmarkSteps,sampleWire60Benchmark} from './benchmark/wire60CatheterBenchmark.js';
+ import { createSharedAxisAppSystem, SHARED_AXIS_APP_PHYSICS_OPTIONS } from './physics/kirchhoffSharedAxisAppSystem.js';
+-import { CROSSOVER_WIDE_CONTACT_MODEL } from './physics/kirchhoffSharedAxisCrossoverPreset.js';
++import { CROSSOVER_WIDE_CONTACT_MODEL, CROSSOVER_FLUID_CONTACT_MODEL } from './physics/kirchhoffSharedAxisCrossoverPreset.js';
+ import {initSolverDebugControls} from './ui/solverDebugControls.js';
+ import {createRodNodesDebug} from './ui/rodNodesDebug.js';
+ import { CATHETER_PHYSICS_SPACING_MM, catheterPhysicsNodeCount, catheterNodeMass } from './physics/catheterDiscretization.js';
+@@ -127,7 +127,7 @@
+ } from './benchmark/catheterAortaSetup.js';
+ 
+ const runtime = createRuntimeLifetime();
+-const crossoverBenchmarkMode=import.meta.env.DEV&&['full','wide'].includes(new URLSearchParams(window.location.search).get('crossoverBenchmark'))?
++const crossoverBenchmarkMode=import.meta.env.DEV&&['full','wide','fluid'].includes(new URLSearchParams(window.location.search).get('crossoverBenchmark'))?
+     new URLSearchParams(window.location.search).get('crossoverBenchmark'):null;
+ let crossoverAppBenchmark=null;
+ const crossoverScenarioMode=import.meta.env.DEV&&new URLSearchParams(window.location.search).get('crossoverScenario')==='1';
+@@ -223,7 +223,7 @@
+         coupledFrictionNewton:new URLSearchParams(window.location.search).get('fastNewton')!=='0',
+         predictiveNewton:new URLSearchParams(window.location.search).get('predictiveNewton')!=='0',
+         ...(crossoverBenchmarkMode?{
+-            adaptiveMesh:crossoverBenchmarkMode==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:null,
++            adaptiveMesh:crossoverBenchmarkMode==='fluid'?CROSSOVER_FLUID_CONTACT_MODEL:crossoverBenchmarkMode==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:null,
+             contactCandidateMargin:.01,lazyBasisCoefficients:true,wasmBasis:true,deferActiveBasis:true,
+             reuseFrictionAssembly:true,coupledFrictionNewton:true,predictiveNewton:true,modifiedNewton:false,
+             pruneInactiveWitnesses:false,projectiveDynamics:false,

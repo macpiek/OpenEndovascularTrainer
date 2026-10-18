@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-07",
+  "runtime": "Node v24.6.0",
+  "command": "node scripts/benchmark-stent-graft-contact.mjs",
+  "scope": "250 accepted 1/60 s steps of the captured bifurcation replay, one access; excludes anatomy startup, rendering and the other access. First 30 steps excluded from steady metrics. Wall-clock timings are machine/load dependent.",
+  "changes": [
+    "Reuse contact potential, vector and DOF scratch storage scoped to one sampler.",
+    "Skip unused tangent algebra during residual evaluations.",
+    "Use numeric ownership cache keys and perform swept bounds rejection before detailed ownership tests."
+  ],
+  "baselineFilesSha256": {
+    "src/devices/stentGraftContacts.js": "c1b010645accd71b3ed4ec01cf0cbc74aa2000290440d9c48029bcf783ce38f7",
+    "src/devices/stentGraftBranchContact.js": "120ccb2717fe636feef6c30d5c226b14bba456b1a7f2abedc48b5a81beb450f4"
+  },
+  "before": {
+    "firstFactorizations": 62,
+    "maxLateSpeed": 0.12109507419975972,
+    "totalMs": 8866.929868000014,
+    "steadyMeanMs": 28.743987477272782,
+    "steadyMedianMs": 28.062708000000384,
+    "steadyP95Ms": 37.6732920000004,
+    "contactSetupMs": 84.29066900000362
+  },
+  "after": {
+    "firstFactorizations": 62,
+    "maxLateSpeed": 0.12109507419975972,
+    "totalMs": 7468.830207999998,
+    "steadyMeanMs": 23.24821609545453,
+    "steadyMedianMs": 22.674708999999893,
+    "steadyP95Ms": 31.060707999999977,
+    "contactSetupMs": 88.49995100000069
+  },
+  "steadyCpuReductionPercent": 19.119725076987436,
+  "validation": {
+    "coreTests": "23/23: contact stability, replay, contact lifetime, ipsilateral contact, synchronized step and frame budget.",
+    "numericalEquivalence": "2000 exact comparisons of energy, gradient and Hessian against the preceding recovery potential.",
+    "knownFailures": "Four existing cannulation/sliding failures also reproduced with the preceding contact source files via a Node loader.",
+    "build": "vite build passed"
+  },
+  "limitation": "This CPU optimization does not establish 60 Hz for the full two-access browser simulation."
+}

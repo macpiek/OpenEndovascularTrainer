@@ -1,0 +1,46 @@
+{
+  "createdAt": "2026-10-17T19:07:45.374Z",
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "acceptanceMode": "functional",
+  "shapeDifferenceLimitMm": null,
+  "referenceSha256": "bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac",
+  "scope": "Full original 7507-target right-access browser research harness, not full app physics FPS.",
+  "geometryReuse": {
+    "enabledByDefault": false,
+    "complete": true,
+    "allFiveCoarseRouteChecksPassed": true,
+    "all7507PosesAndQualityIdenticalToUncached": true,
+    "baselineMovingCpuCapacityHz": 38.67468383949512,
+    "movingCpuCapacityHz": 45.046436757553785,
+    "baselineWallThroughputHz": 38.715533402268676,
+    "wallThroughputHz": 43.088603991196834,
+    "longStageMeanCpuMsBefore": 51.42668067181812,
+    "longStageMeanCpuMsAfter": 44.527626052624036,
+    "longStageCostReductionPercent": 13.415321636682599,
+    "validation": "022-projective-reuse-validation.json",
+    "profile": "022-projective-reuse-summary.json"
+  },
+  "rotationExperiment": {
+    "enabledByDefault": false,
+    "complete": false,
+    "rejectedStep": 2835,
+    "reason": "incompatible-active-constraints",
+    "validation": "022-projective-polar-validation.json",
+    "note": "Polar projection matches nearest proper rotation in numerical tests and is much cheaper in the isolated microbenchmark. Changed rounding leads to a different evolving trajectory; the complete crossover fails at step 2835, so it is not accepted."
+  },
+  "diagnosis": {
+    "capturingFailuresPreservesAll2834AcceptedPosesAndQuality": true,
+    "isolatedProjectionMatchesBrowserExactlyForAllFourSubdivisionFailures": true,
+    "fixture": "022-projective-projection-failures.json.gz",
+    "trace": "022-projective-projection-diagnosis.json",
+    "backtracking": "022-projective-backtracking-diagnosis.json",
+    "note": "Conflict includes local segment lengths, wall facets and, in subdivided attempts, the 45 degree bend bound. Reducing failed displacement toward the fed incoming pose did not yield admissible geometry in any of 24 isolated probes. These probes do not certify a full trajectory."
+  },
+  "regressionTests": {
+    "passed": 45,
+    "command": "node --test tests/kirchhoffSharedAxisProjective.test.js tests/projectiveRotationPolar.test.js tests/kirchhoffSharedAxisProjection.test.js tests/crossoverScenarioRecording.test.js tests/crossoverFunctionalRoute.test.js tests/crossoverAppBenchmark.test.js"
+  },
+  "buildPassed": true,
+  "next": "Investigate local discretization/feasibility near the pigtail at coordinates ~213–230 mm in captured projection failures; do not drop walls or accept stretched segments. Consider local refinement or a feasible feed/trial construction rather than reducing iterations or blindly enabling fast rotations. Test complete original controls and all route checks, then integrate a sufficiently fast candidate into the full two-access app. Best full-app result remains 020-relaxed-mesh, 46.89 Hz moving / 38.44 Hz long stage."
+}

@@ -1,7 +1,7 @@
 /** Switch only between physical timesteps. Each entry retains its own solver,
  * material history and scene objects. Both solvers may run in bounded slices. */
 export function createFemoralAccessController({initial, entries, capture, restore,
-    isPending, beforeSwitch = () => {}, afterSwitch = () => {}}) {
+    isPending, readCompletedSteps = null, beforeSwitch = () => {}, afterSwitch = () => {}}) {
     let activeId = initial, executionId = initial, requested = null;
     const values = Object.values(entries);
     if (!entries[initial]) throw new Error('Unknown initial femoral access');
@@ -44,7 +44,7 @@ export function createFemoralAccessController({initial, entries, capture, restor
         getCompletedSteps() {
             const current = capture();
             return Object.fromEntries(Object.entries(entries).map(([id, saved]) =>
-                [id, (id === executionId ? current : saved).simulationExecutedSteps ?? 0]));
+                [id, readCompletedSteps ? readCompletedSteps() : (id === executionId ? current : saved).simulationExecutedSteps ?? 0]));
         },
         getReport() {
             const current = capture();
@@ -52,7 +52,7 @@ export function createFemoralAccessController({initial, entries, capture, restor
                 const state = id === executionId ? current : saved;
                 return {id, active:id === activeId, guidewireMm:state.guidewireTransport.progress,
                     catheterMm:state.pigtailCatheter.progress, sheath:state.activeSheath,
-                    steps:state.simulationExecutedSteps ?? 0, pending:state.simulationStepTransaction?.pending ?? false};
+                    steps:readCompletedSteps ? readCompletedSteps() : state.simulationExecutedSteps ?? 0, pending:state.simulationStepTransaction?.pending ?? false};
             });
         }
     };

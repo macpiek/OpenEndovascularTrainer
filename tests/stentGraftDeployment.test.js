@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {previewFixture} from './helpers/stentGraftPreviewFixture.js';
-import {rowExposure,fullyOpenDistance,graftFaceExposed} from '../src/devices/stentGraftDeployment.js';
+import {rowExposure,fullyOpenDistance,graftFaceExposed,graftCoverWithdrawal,deliveryRemovalBlocked} from '../src/devices/stentGraftDeployment.js';
 import {packedFrames,releaseSection} from '../src/devices/stentGraftReleaseShape.js';
 import {fabricPoint} from '../src/devices/stentGraftScaffold.js';
 
@@ -162,4 +162,15 @@ for(const side of ['right','left'])test(`${side}: ipsilateral rim springs open a
         assert.equal(d.phase,'deployed','no extra numerical contact margin is required beyond physical sleeve clearance');
         assert.equal(d.sheathWithdrawal,withdrawal);
     }finally{system.dispose();}
+});
+
+
+test('removing fully uncovered hardware also clears the final ring-opening restraint',()=>{
+    const d={type:'body',phase:'deploying',position:0,implantPosition:80,tipRelease:1,
+        coverLead:12,releaseLength:103,sheathTravel:136,sheathWithdrawal:35};
+    assert.equal(graftCoverWithdrawal(d),115);
+    assert.equal(deliveryRemovalBlocked(d),false);
+    d.deliveryRemoved=true;
+    assert.equal(graftCoverWithdrawal(d),136);
+    assert.equal(d.sheathWithdrawal,35,'removal does not invent a commanded sheath movement');
 });

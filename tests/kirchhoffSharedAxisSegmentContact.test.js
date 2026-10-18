@@ -4,6 +4,7 @@ import {BufferGeometry,Float32BufferAttribute,Vector3} from 'three';
 import {MeshBVH} from 'three-mesh-bvh';
 import {createSharedAxisSegmentContact} from '../src/physics/kirchhoffSharedAxisSegmentContact.js';
 import {createSharedAxisVesselDiscovery} from '../src/physics/kirchhoffSharedAxisVesselWitnesses.js';
+import {loadHistoricalSharedAxisAnatomy} from './helpers/historicalSharedAxisAnatomy.js';
 
 function fixture(){const g=new BufferGeometry();g.setAttribute('position',new Float32BufferAttribute([0,-10,-10,0,10,-10,0,0,10],3));g.boundsTree=new MeshBVH(g);return g;}
 test('continuous segment finds a face crossing between separated endpoint samples',()=>{
@@ -35,8 +36,7 @@ test('discovery adds a continuous wall witness even when ordinary samples report
 });
 
 test('captured 835.27 mm anatomical state crosses a wall between all four valid sphere samples',async()=>{
-    const {loadCoupledRuntimeAnatomy}=await import('./helpers/coupledRuntimeFixture.js');
-    const anatomy=await loadCoupledRuntimeAnatomy();
+    const anatomy=loadHistoricalSharedAxisAnatomy('closed');
     try {
         const a=[31.66480179514886,59.825494057311346,-25.344000000339214];
         const b=[32.33286047216568,63.95232112051326,-22.601191951188376];

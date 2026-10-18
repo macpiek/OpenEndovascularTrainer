@@ -1,0 +1,557 @@
+diff --git a/src/physics/sharedAxisXpbdExperimental.js b/src/physics/sharedAxisXpbdExperimental.js
+new file mode 100644
+index 0000000..16fa2bf
+--- /dev/null
++++ b/src/physics/sharedAxisXpbdExperimental.js
+@@ -0,0 +1,205 @@
++import {Quaternion} from 'three';
++import {evaluateAdaptationConstraint,evaluateBendTwistConstraint,quaternionExp} from './discreteKirchhoffRod.js';
++import {captureSharedAxisNative,restoreSharedAxisNative,applySharedAxisNativeIncrement,extendSharedAxisNativeRows,sharedAxisOuterMaterialAt} from './kirchhoffSharedAxisNative.js';
++import {prepareSharedAxisDynamicStep,completeSharedAxisDynamicStep} from './kirchhoffSharedAxisDynamics.js';
++import {assembleSharedAxisConstraintRows} from './kirchhoffSharedAxisConstraintRows.js';
++import {measureSharedAxisQuality} from './kirchhoffSharedAxisDiagnostics.js';
++import {iterateSharedAxisProjection} from './kirchhoffSharedAxisProjection.js';
++
++// Research only. No production selection or automatic fallback imports this
++// solver. XPBD multipliers belong to one timestep, not to Newton's force duals.
++// Equation 18: https://matthias-research.github.io/pages/publications/XPBD.pdf
++export const XPBD_RESEARCH_DEFAULTS=Object.freeze({iterations:32,maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5});
++const axes=['x','y','z'];
++const xyz=p=>({x:p[0],y:p[1],z:p[2]});
++const identity=Float64Array.from([1,0,0,0,1,0,0,0,1]);
++const negativeIdentity=identity.map(x=>-x);
++
++// Three-component compliant constraint. Each gradient is row-major and each
++// variable has an isotropic inverse mass (angular inertia for orientations).
++export function xpbdVectorIncrement(value,lambda,compliance,dt,gradients,weights) {
++    const a=new Float64Array(9),b=new Float64Array(3);
++    for(let i=0;i<3;i++) {
++        const alpha=compliance[i]/(dt*dt);a[i*3+i]=alpha;b[i]=-value[i]-alpha*lambda[i];
++        for(let j=0;j<3;j++)for(let v=0;v<gradients.length;v++)for(let k=0;k<3;k++)
++            a[i*3+j]+=weights[v]*gradients[v][i*3+k]*gradients[v][j*3+k];
++    }
++    // Cholesky of the local SPD block. Fully prescribed constraints need no
++    // update; their violation remains visible in the final quality measure.
++    if(!(a[0]>0))return new Float64Array(3);
++    const l00=Math.sqrt(a[0]),l10=a[3]/l00,l20=a[6]/l00;
++    const d11=a[4]-l10*l10;if(!(d11>0))return new Float64Array(3);
++    const l11=Math.sqrt(d11),l21=(a[7]-l20*l10)/l11,d22=a[8]-l20*l20-l21*l21;
++    if(!(d22>0))return new Float64Array(3);
++    const l22=Math.sqrt(d22),y0=b[0]/l00,y1=(b[1]-l10*y0)/l11,y2=(b[2]-l20*y0-l21*y1)/l22;
++    const z2=y2/l22,z1=(y1-l21*z2)/l11,z0=(y0-l10*z1-l20*z2)/l00;
++    return Float64Array.from([z0,z1,z2]);
++}
++function correction(j,delta,w) {
++    return [0,1,2].map(k=>w*(j[k]*delta[0]+j[3+k]*delta[1]+j[6+k]*delta[2]));
++}
++function rotate(q,v) {
++    const d=quaternionExp(xyz(v));q.premultiply(new Quaternion(d.x,d.y,d.z,d.w)).normalize();
++}
++
++/** Independent Cosserat orientations, exact manufactured Log bend/twist
++ * potential, hard adaptation and unilateral contacts, mass-weighted XPBD.
++ * Shares mesh/feed and collision discovery with the reference solver. A finite
++ * iteration count is not a force-equilibrium certificate. A failed candidate
++ * rolls back its pose/history; callers must fork discovery before attempting it.
++ */
++export function* iterateSharedAxisXpbd(s,dt,{xpbd={},bloodFlow=null,feedById={}}={}) {
++    const {hardClosure=false,...settings}=xpbd;
++    const o={...XPBD_RESEARCH_DEFAULTS,...settings};
++    if(!(dt>0&&Number.isFinite(dt))||!Number.isInteger(o.iterations)||o.iterations<1||
++        Object.values(o).some(x=>!Number.isFinite(x)||x<=0))throw new RangeError('Invalid XPBD research options');
++    const saved=captureSharedAxisNative(s),history={velocities:s.velocities,angularVelocities:s.angularVelocities,
++        acceptedWallGaps:s.acceptedWallGaps,wallFrictionHistory:s.wallFrictionHistory,acceptedSolves:s.acceptedSolves};
++    const started=performance.now();let committed=false,iterations=0,rows=[],frictionCorrections=0,closureIterations=0,factorizations=0;
++    try {
++        prepareSharedAxisDynamicStep(s,dt,bloodFlow);
++        const initial=s.dynamicStep,weights=initial.masses.map((m,i)=>s.fixed[s.layout.positions[i]]?0:1/m);
++        if([...weights].some(x=>!Number.isFinite(x)))throw new Error('XPBD requires finite positive free-node masses');
++        const frames=s.materials.map(({body,spec,last},m)=>Array.from({length:last},(_,e)=>({
++            q:new Quaternion(...(e===0?initial.frames[m][e].old:initial.frames[m][e].predicted)),
++            w:e===0?0:5/((spec.mass??(spec.id==='catheter'?1.4:1))*body.restLength[e]),
++            adaptation:new Float64Array(3),bend:new Float64Array(3),adaptationMeasure:{},bendMeasure:{},
++            compliance:[body.kirchhoffBendCompliance1[e],body.kirchhoffBendCompliance2[e],body.kirchhoffTwistCompliance[e]],
++            rest:{x:body.restRotation1[e],y:body.restRotation2[e],z:body.restRotation3[e]}
++        })));
++        for(let i=0;i<s.positions.length;i++)if(weights[i])for(let k=0;k<3;k++)
++            s.positions[i][k]=initial.predicted[i][k]+dt*dt*weights[i]*s.loads[s.layout.positions[i]+k];
++        const dofNode=new Int32Array(s.layout.dofCount).fill(-1);
++        s.layout.positions.forEach((p,n)=>{for(let k=0;k<3;k++)dofNode[p+k]=n;});
++        const contactLambda=[],contactSlip=[];
++        const evaluate=()=>{
++            s.geometryKey=Symbol('xpbd-pose');s.chain.gradient.fill(0);
++            for(let retries=0;;retries++) {
++                try {const r=assembleSharedAxisConstraintRows(s,{withTangent:false,outerMaterialAt:sharedAxisOuterMaterialAt});
++                    if(!s.pendingVesselRows?.size)return r;
++                } catch(error) {if(error.message!=='shared-axis-wall-discovery'||!s.pendingVesselRows?.size)throw error;}
++                if(retries>=64)throw new Error('XPBD contact discovery did not settle');
++                extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();
++            }
++        };
++        const adaptation=(m,e)=>{
++            const f=frames[m][e],a=s.positions[e],b=s.positions[e+1],length=s.coordinates[e+1]-s.coordinates[e];
++            // A fractional material tip shares the same geometric tangent.
++            const r=evaluateAdaptationConstraint(xyz(a),xyz(b),f.q,length,f.adaptationMeasure);
++            const gradients=[negativeIdentity,identity,r.orientationGradient],w=[weights[e],weights[e+1],f.w];
++            const delta=xpbdVectorIncrement(axes.map(k=>r.constraint[k]),f.adaptation,[0,0,0],dt,gradients,w);
++            for(let k=0;k<3;k++){f.adaptation[k]+=delta[k];a[k]-=w[0]*delta[k];b[k]+=w[1]*delta[k];}
++            rotate(f.q,correction(r.orientationGradient,delta,f.w));
++        };
++        const bend=(m,e)=>{
++            const a=frames[m][e-1],b=frames[m][e],r=evaluateBendTwistConstraint(a.q,b.q,b.rest,b.bendMeasure);
++            const delta=xpbdVectorIncrement(axes.map(k=>r.strain[k]),b.bend,b.compliance,dt,[r.gradient0,r.gradient1],[a.w,b.w]);
++            for(let k=0;k<3;k++)b.bend[k]+=delta[k];
++            rotate(a.q,correction(r.gradient0,delta,a.w));rotate(b.q,correction(r.gradient1,delta,b.w));
++        };
++        for(let iteration=0;iteration<o.iterations;iteration++) {
++            // Symmetric sweeps reduce dependence on insertion direction.
++            for(let m=0;m<frames.length;m++) {
++                if(iteration%2===0){for(let e=1;e<frames[m].length;e++)bend(m,e);for(let e=0;e<frames[m].length;e++)adaptation(m,e);}
++                else {for(let e=frames[m].length-1;e>0;e--)bend(m,e);for(let e=frames[m].length-1;e>=0;e--)adaptation(m,e);}
++            }
++            rows=evaluate();
++            // Linearized contact rows all refer to this same pose. Account
++            // for earlier corrections in this sweep before computing each gap.
++            const base=s.positions.map(p=>p.slice());
++            for(let i=0;i<rows.length;i++) {
++                const r=rows[i];if(r.kind!=='wall')continue;
++                let gap=r.gap,denom=0;
++                for(let j=0;j<r.dofs.length;j++) {
++                    const n=dofNode[r.dofs[j]],k=j%3;if(n<0)throw new Error('Unexpected angular wall constraint');
++                    gap+=r.jacobian[j]*(s.positions[n][k]-base[n][k]);denom+=weights[n]*r.jacobian[j]**2;
++                }
++                if(!(denom>0))continue;
++                const old=contactLambda[i]??0,next=Math.max(0,old-gap/denom),delta=next-old;contactLambda[i]=next;
++                for(let j=0;j<r.dofs.length;j++)s.positions[dofNode[r.dofs[j]]][j%3]+=weights[dofNode[r.dofs[j]]]*r.jacobian[j]*delta;
++                // Material slip includes commanded feed, not only mesh motion.
++                // Accumulated tangential impulse is projected onto the Coulomb
++                // disk; it must not be reapplied in full on every iteration.
++                if(r.witness&&(next>0||contactSlip[i])&&r.dofs.length===6) {
++                    const t=r.witness.t,ws=[1-t,t],n=[0,1,2].map(k=>r.jacobian[k]+r.jacobian[k+3]),norm=Math.hypot(...n);
++                    if(norm===0)continue;for(let k=0;k<3;k++)n[k]/=norm;
++                    const spec=sharedAxisOuterMaterialAt(s,r.edge,t,r.witness.owner).spec;
++                    const tangent=s.positions[r.edge+1].map((v,k)=>v-s.positions[r.edge][k]),length=Math.hypot(...tangent);
++                    const slip=[0,1,2].map(k=>ws.reduce((v,w,j)=>v+w*(s.positions[r.edge+j][k]-initial.positions[r.edge+j][k]),0)+(feedById[spec.id]??0)*tangent[k]/length);
++                    const normal=slip.reduce((v,x,k)=>v+x*n[k],0),oldT=contactSlip[i]??[0,0,0];
++                    const trial=oldT.map((v,k)=>v-(slip[k]-normal*n[k])/denom),magnitude=Math.hypot(...trial);
++                    const limit=magnitude<=(spec.wallStaticFriction??0)*next?magnitude:(spec.wallKineticFriction??0)*next;
++                    const newT=trial.map(v=>v*Math.min(1,limit/Math.max(magnitude,1e-30)));contactSlip[i]=newT;
++                    for(let j=0;j<2;j++)for(let k=0;k<3;k++)s.positions[r.edge+j][k]+=weights[r.edge+j]*ws[j]*(newT[k]-oldT[k]);
++                    frictionCorrections++;
++                }
++            }
++            iterations++;yield {iteration,method:'xpbd',factorizations:0};
++        }
++        let maxShear=0;
++        for(let m=0;m<frames.length;m++)for(let e=0;e<frames[m].length;e++) {
++            const f=frames[m][e],length=s.coordinates[e+1]-s.coordinates[e],body=s.materials[m].body;
++            const r=evaluateAdaptationConstraint(xyz(s.positions[e]),xyz(s.positions[e+1]),f.q,length,f.adaptationMeasure);
++            maxShear=Math.max(maxShear,r.residual/length);
++            for(const k of ['X','Y','Z','W'])body['orientation'+k][e]=f.q[k.toLowerCase()];
++        }
++        const preClosureShear=maxShear,preClosurePositions=hardClosure?s.positions.map(p=>p.slice()):null;
++        const absoluteLengthError=()=>Math.max(...s.positions.slice(1).map((p,i)=>
++            Math.abs(Math.hypot(...p.map((v,k)=>v-s.positions[i][k]))-(s.coordinates[i+1]-s.coordinates[i]))));
++        if(hardClosure) {
++            // Research hybrid: impose the Kirchhoff tangent and globally close
++            // position constraints after local XPBD. This is an operator split,
++            // not a converged XPBD or Newton equilibrium. Record its correction
++            // and test its complete trajectory independently.
++            applySharedAxisNativeIncrement(s,new Float64Array(s.layout.dofCount),new Float64Array(s.multipliers.length));
++            for(let i=0;i<32;i++) {
++                rows=evaluate();
++                const q=measureSharedAxisQuality(s,rows);
++                const bendViolation=rows.some(r=>r.subtype==='bend-limit'&&r.gap< -1e-9);
++                if(q.maxPenetration<=o.maxPenetration*.5&&absoluteLengthError()<=o.maxLengthError*.5&&
++                    q.bodies.every(b=>b.maxLengthError<=o.maxLengthError*.5)&&!bendViolation)break;
++                const direction=yield* iterateSharedAxisProjection(s,{rows});
++                factorizations+=direction.factorizations??0;closureIterations++;
++                if(!direction.converged)throw new Error('XPBD hard closure could not solve the contact projection');
++                const pose=captureSharedAxisNative(s);let valid=false;
++                for(let trial=0;trial<14;trial++) {
++                    restoreSharedAxisNative(s,pose);
++                    try {
++                        applySharedAxisNativeIncrement(s,direction.increment,direction.zeroReactions,2**(-trial));
++                        evaluate();valid=true;break;
++                    } catch(error) {if(error.code!=='trial-outside-vessel')throw error;}
++                }
++                if(!valid)throw new Error('XPBD hard closure crossed the vessel surface');
++            }
++            // Measure the published frames, including any remaining stretch.
++            // The mismatch before correction is retained separately.
++            maxShear=0;
++            for(const {body,last} of s.materials)for(let e=0;e<last;e++) {
++                const q=new Quaternion(body.orientationX[e],body.orientationY[e],body.orientationZ[e],body.orientationW[e]);
++                const length=s.coordinates[e+1]-s.coordinates[e];
++                maxShear=Math.max(maxShear,evaluateAdaptationConstraint(xyz(s.positions[e]),xyz(s.positions[e+1]),q,length).residual/length);
++            }
++        }
++        rows=evaluate();s.multipliers.fill(0);
++        rows.forEach((r,i)=>{r.multiplier=r.kind==='wall'?(contactLambda[i]??0)/(dt*dt):0;s.multipliers[i]=r.multiplier;});
++        const quality=measureSharedAxisQuality(s,rows),maxLengthError=Math.max(...quality.bodies.map(b=>b.maxLengthError));
++        const maxLengthErrorMm=absoluteLengthError();
++        const closureCorrectionMm=preClosurePositions?Math.max(...s.positions.map((p,i)=>Math.hypot(...p.map((v,k)=>v-preClosurePositions[i][k])))):0;
++        const finiteFrames=frames.every(a=>a.every(f=>f.q.toArray().every(Number.isFinite)));
++        const admissible=quality.finite&&finiteFrames&&maxShear<=o.maxShear&&maxLengthError<=o.maxLengthError&&quality.maxPenetration<=o.maxPenetration&&
++            maxLengthErrorMm<=o.maxLengthError&&
++            quality.bodies.every(b=>b.maxBendLimitDegrees===null||b.maxBendAngleDegrees<=b.maxBendLimitDegrees+1e-5);
++        if(admissible) {
++            // Native publication requires frames aligned to the common axis.
++            // Raw mismatch is gated above, never hidden by this conversion.
++            applySharedAxisNativeIncrement(s,new Float64Array(s.layout.dofCount),new Float64Array(s.multipliers.length));
++            completeSharedAxisDynamicStep(s);s.acceptedSolves++;
++            s.acceptedWallGaps=new Map(rows.filter(r=>r.id).map(r=>[r.id,r.gap]));s.wallFrictionHistory=[];committed=true;
++        }
++        return {converged:admissible,status:admissible?'xpbd-geometry-admissible':'xpbd-quality-limit',quality,
++            xpbd:{parameters:{...o,hardClosure},maxShear,preClosureShear,maxLengthError,maxLengthErrorMm,closureCorrectionMm,frictionCorrections,closureIterations,
++                model:hardClosure?'xpbd-with-hard-kirchhoff-closure':'cosserat-xpbd',equilibriumCertified:false},iterations,factorizations,
++            timings:{},ms:performance.now()-started};
++    } catch(error) {return {converged:false,status:'xpbd-error',error:error.message,iterations,factorizations:0,timings:{},ms:performance.now()-started};}
++    finally {if(!committed){restoreSharedAxisNative(s,saved);Object.assign(s,history);s.dynamicStep=null;}}
++}
+diff --git a/src/benchmark/crossoverAlternativeSolvers.js b/src/benchmark/crossoverAlternativeSolvers.js
+new file mode 100644
+index 0000000..3d3df2c
+--- /dev/null
++++ b/src/benchmark/crossoverAlternativeSolvers.js
+@@ -0,0 +1,81 @@
++import {createSharedAxisContacts} from '../physics/kirchhoffSharedAxisContacts.js';
++import {createSharedAxisNative,feedSharedAxisNative,rotateSharedAxisNative} from '../physics/kirchhoffSharedAxisNative.js';
++import {iterateSharedAxisXpbd} from '../physics/sharedAxisXpbdExperimental.js';
++import {iterateSharedAxisProjective} from '../physics/kirchhoffSharedAxisProjective.js';
++import {captureBloodFlow} from '../physics/bloodFlowCoupling.js';
++import {sharedAxisGeometryIdentity} from '../physics/kirchhoffSharedAxisGeometryIdentity.js';
++import {validateCrossoverRecording,crossoverShapeDifference} from './crossoverScenarioRecording.js';
++import {GUIDEWIRE_RADIUS_MM,PIGTAIL_CATHETER_RADIUS_MM,INTRODUCER_SHEATH_INNER_RADIUS_MM} from '../toolDimensions.js';
++import {DEFAULT_TOOL_PROFILES} from '../physics/endovascularPhysicsWorld.js';
++import {catheterNodeMass} from '../physics/catheterDiscretization.js';
++
++const angleDifference=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
++
++/** Screening harness: original input targets from EMPTY tools; never restores
++ * reference shapes into the evolving candidate. CPU capacity is not app FPS.
++ * Geometry gates are unchanged; XPBD/PD cannot claim Newton force certificates.
++ * Yielded rows include failures and are not necessarily accepted steps.
++ */
++export function* compareCrossoverAlternative({record,field,flow,solver='xpbd',options={},onPose=()=>{}}) {
++    validateCrossoverRecording(record);
++    if(!record.fullManeuverRecorded)throw new Error('Require the complete recorded maneuver');
++    if(!['xpbd','projective'].includes(solver))throw new Error('Unknown alternative solver');
++    if(sharedAxisGeometryIdentity(field.fallbackGeometry)!==record.configuration.geometry)throw new Error('Recording mesh mismatch');
++    if(JSON.stringify(flow.hemodynamics)!==JSON.stringify(record.configuration.flow.parameters))throw new Error('Flow settings mismatch');
++    const access=record.configuration.accesses.find(a=>a.id==='right');
++    const sheath={start:access.sheath.start,end:access.sheath.end,innerRadius:INTRODUCER_SHEATH_INNER_RADIUS_MM,proximalExtension:40};
++    const tools=[{id:'wire',type:'glidewire',mass:DEFAULT_TOOL_PROFILES.guidewire.mass,radius:GUIDEWIRE_RADIUS_MM,wallStaticFriction:access.friction[0],wallKineticFriction:access.friction[1]},
++        {id:'catheter',type:'pigtail',mass:catheterNodeMass(DEFAULT_TOOL_PROFILES.catheter.mass),radius:PIGTAIL_CATHETER_RADIUS_MM,wallStaticFriction:.002,wallKineticFriction:.002}]
++        .map((t,i)=>({...t,insertion:0,rotation:0,shaftStiffness:access.stiffness[2*i],tipStiffness:access.stiffness[2*i+1]}));
++    const contacts=createSharedAxisContacts({sheath,contactField:field,localCoordinates:true,retainDiscoveryCertificates:true,contactCandidateMargin:.01});
++    let state=createSharedAxisNative({...contacts,maxBendAngle:Math.PI/4,tools}),rotations={wire:0,catheter:0};
++    const solve=solver==='xpbd'?iterateSharedAxisXpbd:iterateSharedAxisProjective;
++    for(let index=0;index<record.steps.length;index++) {
++        const reference=record.steps[index],started=performance.now(),attempts=[];
++        const bloodFlow=record.configuration.flow.enabled?captureBloodFlow(state,flow,contacts.length,
++            Math.max(reference.tools.wire,reference.tools.catheter)):null;
++        let accepted=null,last;
++        // Same feed/rotation subdivisions as the application. Every retry
++        // starts from the accepted pose and private collision discovery.
++        for(const subdivisions of [1,2,4,8]) {
++            let current={...state,wallSamples:state.wallSamples.map(s=>s.forkDiscovery?.({candidateMargin:.01})??s)},currentRotations=rotations;
++            let failed=false;
++            for(let part=1;part<=subdivisions;part++) {
++                const feeds=Object.fromEntries(current.materials.map(m=>[m.spec.id,state.materials.find(x=>x.spec.id===m.spec.id).spec.insertion+
++                    part/subdivisions*(reference.tools[m.spec.id]-state.materials.find(x=>x.spec.id===m.spec.id).spec.insertion)]));
++                const nextRotations=Object.fromEntries(tools.map(t=>[t.id,rotations[t.id]+part/subdivisions*angleDifference(reference.tools[t.id+'Rotation'],rotations[t.id])]));
++                const candidate=feedSharedAxisNative(current,feeds,{contactCandidateMargin:.01,omitInactiveSampleRows:true});
++                for(const t of tools)rotateSharedAxisNative(candidate,t.id,angleDifference(nextRotations[t.id],currentRotations[t.id]));
++                const feedById=Object.fromEntries(current.materials.map(m=>[m.spec.id,feeds[m.spec.id]-m.spec.insertion]));
++                const iterator=solve(candidate,record.dt/subdivisions,{[solver==='xpbd'?'xpbd':'projective']:options,bloodFlow,feedById});
++                let n;do{n=iterator.next();}while(!n.done);last=n.value;
++                attempts.push({subdivisions,part,status:last.status,error:last.error,iterations:last.iterations,ms:last.ms,
++                    maxLengthError:last.xpbd?.maxLengthError??last.pd?.maxLengthError,maxShear:last.xpbd?.maxShear??last.pd?.maxShear,
++                    penetrationMm:last.quality?.maxPenetration});
++                if(!last.converged){failed=true;break;}
++                current=candidate;currentRotations=nextRotations;
++            }
++            if(!failed){accepted={state:current,rotations:currentRotations,subdivisions};break;}
++        }
++        const cpuMs=performance.now()-started;
++        const shape=accepted?{coordinates:accepted.state.coordinates,positions:accepted.state.positions.flatMap(p=>p.map((v,k)=>v+accepted.state.origin[k]))}:null;
++        const shapeDifferenceMm=shape?crossoverShapeDifference(reference.shape,shape):null;
++        const row={step:index+1,stage:reference.stage,moving:reference.moving,tools:reference.tools,cpuMs,
++            accepted:!!accepted,shapeDifferenceMm,shapeWithinLimit:shape!==null&&shapeDifferenceMm<=1,
++            status:last.status,quality:last.quality,xpbd:last.xpbd,pd:last.pd,attempts};
++        if(accepted){state=accepted.state;rotations=accepted.rotations;flow.update(record.dt);onPose(state,reference);}
++        yield row;
++        if(!accepted)return;
++    }
++}
++
++export function summarizeAlternative(rows,targetSteps) {
++    const accepted=rows.filter(r=>r.accepted),moving=accepted.filter(r=>r.moving),cost=moving.map(r=>r.cpuMs).sort((a,b)=>a-b);
++    const sum=moving.reduce((v,r)=>v+r.cpuMs,0),maxShape=Math.max(0,...accepted.map(r=>r.shapeDifferenceMm));
++    return {attemptedSteps:rows.length,acceptedSteps:accepted.length,targetSteps,complete:accepted.length===targetSteps,
++        movingSteps:moving.length,maximumShapeDifferenceMm:accepted.length?maxShape:null,shapeWithinLimit:accepted.length?accepted.every(r=>r.shapeWithinLimit):null,
++        firstShapeLimitStep:accepted.find(r=>!r.shapeWithinLimit)?.step??null,
++        movingCpuCapacityHz:sum>0?1000*moving.length/sum:null,movingMedianCpuMs:cost[Math.floor(cost.length/2)]??null,
++        movingP95CpuMs:cost[Math.max(0,Math.ceil(cost.length*.95)-1)]??null,
++        goalAchieved:false,applicationFpsVerified:false,equilibriumCertified:false};
++}
+diff --git a/scripts/benchmark-crossover-alternative-solvers.mjs b/scripts/benchmark-crossover-alternative-solvers.mjs
+new file mode 100644
+index 0000000..6c7d02c
+--- /dev/null
++++ b/scripts/benchmark-crossover-alternative-solvers.mjs
+@@ -0,0 +1,28 @@
++import fs from 'node:fs';
++import {gunzipSync} from 'node:zlib';
++import {createHash} from 'node:crypto';
++import {loadCoupledRuntimeAnatomy} from '../tests/helpers/coupledRuntimeFixture.js';
++import {createCrossoverFlow} from '../tests/helpers/crossoverFlow.js';
++import {compareCrossoverAlternative,summarizeAlternative} from '../src/benchmark/crossoverAlternativeSolvers.js';
++
++const input='reports/performance-scenarios/003-crossover-full-user-inputs.json.gz';
++const solver=process.argv[2]??'xpbd',options=JSON.parse(process.argv[3]??'{}');
++const output=process.argv[4]??`reports/performance-scenarios/012-${solver}-screen.json`;
++const bytes=fs.readFileSync(input),record=JSON.parse(gunzipSync(bytes));
++const anatomy=await loadCoupledRuntimeAnatomy(undefined,record.configuration.anatomy),rows=[];
++const report={solver,options,input,sourceSha256:createHash('sha256').update(bytes).digest('hex'),startedAt:new Date().toISOString(),
++    sourceHashes:Object.fromEntries(['src/physics/sharedAxisXpbdExperimental.js','src/physics/kirchhoffSharedAxisProjective.js',
++        'src/benchmark/crossoverAlternativeSolvers.js'].map(p=>[p,createHash('sha256').update(fs.readFileSync(p)).digest('hex')])),
++    scope:'CPU screening of full recorded targets from empty tools, right access only; not full-app FPS. Stops on geometry rejection, continues through shape-budget failures for diagnosis.',
++    defaultSolverChanged:false,rows};
++try {
++    for(const row of compareCrossoverAlternative({record,field:anatomy.field,flow:createCrossoverFlow(),solver,options})) {
++        rows.push(row);
++        if(row.step%300===0||!row.accepted)console.log(JSON.stringify({step:row.step,status:row.status,cpuMs:row.cpuMs,
++            differenceMm:row.shapeDifferenceMm,attempts:!row.accepted?row.attempts:undefined}));
++    }
++}catch(error){report.error=error.stack;process.exitCode=1;}
++finally {
++    report.summary=summarizeAlternative(rows,record.steps.length);report.finishedAt=new Date().toISOString();
++    fs.writeFileSync(output,JSON.stringify(report,null,2)+'\n');anatomy.dispose();console.log(JSON.stringify(report.summary));
++}
+diff --git a/scripts/validate-crossover-alternative.mjs b/scripts/validate-crossover-alternative.mjs
+new file mode 100644
+index 0000000..72cf6ce
+--- /dev/null
++++ b/scripts/validate-crossover-alternative.mjs
+@@ -0,0 +1,39 @@
++// Independent coverage/metric audit of REJECTED research runs. These reports
++// do not carry full candidate poses and cannot certify whole-trajectory shape.
++import fs from 'node:fs';
++import assert from 'node:assert/strict';
++import {gunzipSync} from 'node:zlib';
++import {createHash} from 'node:crypto';
++import {summarizeAlternative} from '../src/benchmark/crossoverAlternativeSolvers.js';
++const [candidatePath,outputPath]=process.argv.slice(2);
++assert.ok(candidatePath&&outputPath,'Provide candidate and output paths');
++const referencePath='reports/performance-scenarios/003-crossover-full-user-inputs.json.gz';
++const bytes=fs.readFileSync(referencePath),decoded=gunzipSync(bytes),reference=JSON.parse(decoded);
++const candidateBytes=fs.readFileSync(candidatePath),candidate=JSON.parse(candidateBytes);
++const hash=b=>createHash('sha256').update(b).digest('hex');
++assert.equal(hash(bytes),'bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac');
++assert.ok([hash(bytes),hash(decoded)].includes(candidate.sourceSha256));
++assert.ok(candidate.rows.length<=reference.steps.length);
++for(const [i,row] of candidate.rows.entries()) {
++    assert.equal(row.step,i+1);assert.deepEqual(row.tools,reference.steps[i].tools);
++    for(const key of ['stage','moving'])assert.deepEqual(row[key],reference.steps[i][key]);
++    assert.ok(Number.isFinite(row.cpuMs)&&row.cpuMs>=0);
++    if(row.accepted) {
++        assert.equal(row.quality.finite,true);assert.ok(row.quality.maxPenetration<=1e-5);
++        assert.ok(row.quality.bodies.every(b=>b.maxLengthError<=1e-5));
++        assert.ok(Number.isFinite(row.shapeDifferenceMm)&&row.shapeDifferenceMm>=0);
++        assert.equal(row.shapeWithinLimit,row.shapeDifferenceMm<=1);
++        if(row.xpbd?.maxLengthErrorMm!==undefined)assert.ok(row.xpbd.maxLengthErrorMm<=1e-5);
++    } else assert.equal(i,candidate.rows.length-1,'No inputs consumed after rejection');
++}
++const summary=summarizeAlternative(candidate.rows,reference.steps.length);
++const report={reference:referencePath,candidate:candidatePath,referenceSha256:hash(bytes),referenceDecodedSha256:hash(decoded),
++    candidateSha256:hash(candidateBytes),rightAccessTargetPrefixVerified:true,stepsChecked:candidate.rows.length,
++    expectedSteps:reference.steps.length,summary,
++    observedWallThroughputHz:candidate.wallMs?summary.acceptedSteps*1000/candidate.wallMs:null,
++    physicalForceCertificate:false,completeCommonStepReplay:false,goalAchieved:false,
++    limitations:['Research harness directly applies recorded right-access targets, not the app input handler or both accesses.',
++        'Shape errors were measured by the running harness; candidate polylines are not included for independent recomputation.',
++        'CPU capacity and the simple browser test are not full-application physics FPS.',
++        'Incomplete/rejected trajectories cannot pass optimization acceptance.']};
++fs.writeFileSync(outputPath,JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(summary));
+diff --git a/tests/sharedAxisXpbdExperimental.test.js b/tests/sharedAxisXpbdExperimental.test.js
+new file mode 100644
+index 0000000..bfd336e
+--- /dev/null
++++ b/tests/sharedAxisXpbdExperimental.test.js
+@@ -0,0 +1,85 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {Quaternion,Vector3} from 'three';
++import {createSharedAxisNative,captureSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
++import {iterateSharedAxisXpbd,xpbdVectorIncrement} from '../src/physics/sharedAxisXpbdExperimental.js';
++
++const finish=it=>{let n;do{n=it.next();}while(!n.done);return n.value;};
++const create=extra=>createSharedAxisNative({tools:[{id:'catheter',type:'straight',insertion:60}],...extra});
++const close=(a,b,e=1e-9)=>assert.ok(Math.abs(a-b)<=e,`${a} vs ${b}`);
++const I=Float64Array.from([1,0,0,0,1,0,0,0,1]);
++
++test('XPBD local block matches analytical compliant spring and accumulates lambda only once',()=>{
++    for(const dt of [1/30,1/60,1/120]) {
++        const x=[1,2,3],alpha=[.01,.02,.03],lambda=[0,0,0];
++        const delta=xpbdVectorIncrement(x,lambda,alpha,dt,[I],[.5]);
++        delta.forEach((v,k)=>close(v,-x[k]/(.5+alpha[k]/dt**2)));
++        const next=x.map((v,k)=>v+.5*delta[k]);
++        const repeat=xpbdVectorIncrement(next,delta,alpha,dt,[I],[.5]);
++        repeat.forEach(x=>close(x,0));
++    }
++});
++
++test('XPBD unloaded straight rod remains at rest and does not claim Newton certification',()=>{
++    const s=create(),before=captureSharedAxisNative(s),result=finish(iterateSharedAxisXpbd(s,1/60));
++    assert.equal(result.converged,true,JSON.stringify(result));
++    assert.equal(result.certificateBound,undefined);assert.equal(result.xpbd.equilibriumCertified,false);
++    s.positions.forEach((p,i)=>p.forEach((v,k)=>close(v,before.positions[i][k])));
++    assert.equal(result.factorizations,0);
++});
++
++test('XPBD cancellation and rejected geometry restore the complete incoming pose and dynamics',()=>{
++    const s=create({tools:[{id:'catheter',type:'berenstein',insertion:60}]}),before=captureSharedAxisNative(s);
++    s.velocities=s.positions.map(()=>[0,.1,0]);const velocities=s.velocities;
++    s.wallFrictionHistory=[{id:'original'}];const history=s.wallFrictionHistory;
++    const it=iterateSharedAxisXpbd(s,1/60);assert.equal(it.next().done,false);it.return();
++    assert.deepEqual(captureSharedAxisNative(s),before);assert.equal(s.velocities,velocities);assert.equal(s.wallFrictionHistory,history);
++    const result=finish(iterateSharedAxisXpbd(s,1/60,{xpbd:{iterations:1,maxShear:1e-14,maxLengthError:1e-14}}));
++    assert.equal(result.converged,false);assert.deepEqual(captureSharedAxisNative(s),before);assert.equal(s.dynamicStep,null);
++});
++
++test('intrinsic bend responds to rotating the manufactured material frame',()=>{
++    const poses=[];
++    for(const angle of [0,Math.PI/2]) {
++        const s=create({tools:[{id:'catheter',type:'berenstein',insertion:60,shaftStiffness:2,tipStiffness:2}]});
++        const rotation=new Quaternion().setFromAxisAngle(new Vector3(1,0,0),angle);
++        for(const {body,last} of s.materials)for(let e=0;e<last;e++) {
++            const q=new Quaternion(body.orientationX[e],body.orientationY[e],body.orientationZ[e],body.orientationW[e]).premultiply(rotation);
++            for(const k of ['X','Y','Z','W'])body['orientation'+k][e]=q[k.toLowerCase()];
++        }
++        // Loose gates measure covariance of the method, not clinical accuracy.
++        for(let step=0;step<10;step++)assert.equal(finish(iterateSharedAxisXpbd(s,1/60,
++            {xpbd:{iterations:64,maxShear:.01,maxLengthError:.01}})).converged,true);
++        poses.push(s.positions.at(-1));
++    }
++    assert.ok(Math.hypot(poses[0][1],poses[0][2])>.01);
++    const rotated=new Vector3(...poses[0]).applyAxisAngle(new Vector3(1,0,0),Math.PI/2).toArray();
++    rotated.forEach((v,k)=>close(v,poses[1][k],1e-7));
++});
++
++test('hard wall remains unilateral and fixed inlet positions cannot move',()=>{
++    const s=create({wallSample:({b})=>({gap:.5-b[1],jacobian:[0,0,0,0,-1,0]})});
++    const before=s.positions.slice(0,2).map(p=>p.slice());
++    s.velocities=s.positions.map((_,i)=>[0,i>1?60:0,0]);
++    const r=finish(iterateSharedAxisXpbd(s,1/60,{xpbd:{iterations:128,maxShear:.1,maxLengthError:.1}}));
++    assert.equal(r.converged,true,JSON.stringify(r));assert.ok(r.quality.maxPenetration<=1e-5);
++    assert.deepEqual(s.positions.slice(0,2),before);assert.ok(s.multipliers.every(x=>x>=0));
++    assert.ok(Math.max(...s.multipliers)>0);
++});
++
++test('invalid timestep and iteration budget are rejected before changing state',()=>{
++    const s=create(),before=captureSharedAxisNative(s);
++    for(const [dt,xpbd] of [[0,{}],[NaN,{}],[1/60,{iterations:1.5}]])
++        assert.throws(()=>finish(iterateSharedAxisXpbd(s,dt,{xpbd})),/Invalid XPBD/);
++    assert.deepEqual(captureSharedAxisNative(s),before);
++});
++
++test('hybrid global closure measures its correction without disguising it as force convergence',()=>{
++    const s=create({tools:[{id:'catheter',type:'berenstein',insertion:60}]});
++    const before=s.positions.slice(0,2).map(p=>p.slice());
++    const r=finish(iterateSharedAxisXpbd(s,1/60,{xpbd:{iterations:8,hardClosure:true}}));
++    assert.equal(r.converged,true,JSON.stringify(r));assert.ok(r.xpbd.closureCorrectionMm>0);
++    assert.ok(r.xpbd.preClosureShear>r.xpbd.maxShear);assert.ok(r.xpbd.maxShear<=1e-5);
++    assert.ok(r.xpbd.maxLengthErrorMm<=1e-5);assert.equal(r.xpbd.equilibriumCertified,false);
++    assert.deepEqual(s.positions.slice(0,2),before);
++});
+diff --git a/tests/crossoverAlternativeSolvers.browser.html b/tests/crossoverAlternativeSolvers.browser.html
+new file mode 100644
+index 0000000..f3fe8ab
+--- /dev/null
++++ b/tests/crossoverAlternativeSolvers.browser.html
+@@ -0,0 +1,83 @@
++<!doctype html><html lang="pl"><meta charset="utf-8">
++<title>Crossover — porównanie solverów</title>
++<style>
++body{background:#101922;color:#e3edf4;margin:24px;font:15px system-ui}h1{font-size:24px}p{max-width:1000px;line-height:1.5;color:#bbcbd6}
++button,select,a{padding:8px;background:#23485a;color:white;border:1px solid #537582;border-radius:6px}nav{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
++main{display:flex;gap:24px;margin-top:24px}canvas{width:450px;max-width:55vw;background:#080e15;border:1px solid #354959}
++#metrics{white-space:pre-line;line-height:1.8;font-variant-numeric:tabular-nums}#status{font-weight:700}
++</style>
++<h1>Crossover — eksperymentalne solvery</h1>
++<p>Odtworzenie 7507 zapisanych kroków od pustych narzędzi. Zielony: nagranie referencyjne; pomarańczowy: obliczona trajektoria.
++    Sprawdzamy limit różnicy kształtu 1,0 mm. To test badawczy prawego dostępu, z uproszczonym podglądem, bez pełnego RTG.
++    Wynik nie oznacza 60 FPS całej aplikacji ani potwierdzenia realizmu.</p>
++<nav><label>Metoda <select id="solver"><option value="xpbd">XPBD</option><option value="hybrid" selected>XPBD + wspólna korekta długości i kontaktów</option><option value="projective">Projective Dynamics</option></select></label>
++<label>Iteracje <select id="iterations"><option>16</option><option>32</option><option selected>64</option><option>128</option></select></label>
++<button id="run" disabled>Odtwórz cały manewr</button><button id="stop" disabled>Zatrzymaj</button><a id="download" hidden>Pobierz raport</a></nav>
++<p id="status" role="status">Ładowanie anatomii…</p>
++<main><canvas id="scene" width="600" height="900"></canvas><div id="metrics"></div></main>
++<script type="module">
++import {STLLoader} from 'three/examples/jsm/loaders/STLLoader.js';
++import {MeshBVH} from 'three-mesh-bvh';
++import {generateVessel} from '../src/vesselGeometry.js';
++import {transformAortaGeometry} from '../src/aortaTransform.js';
++import {decodeCollisionAsset} from '../src/physics/collision/collisionAssetFormat.js';
++import {VesselContactField} from '../src/physics/collision/vesselContactField.js';
++import {createCrossoverFlowFromAsset} from './helpers/crossoverFlowFromAsset.js';
++import {compareCrossoverAlternative,summarizeAlternative} from '../src/benchmark/crossoverAlternativeSolvers.js';
++const el=id=>document.getElementById(id),canvas=el('scene'),ctx=canvas.getContext('2d');
++const project=p=>[canvas.width/2+(p[0]-20)*canvas.height/850,canvas.height/2-(p[1]+640)*canvas.height/850];
++let active=false,iterator,report,started,lastPose,lastReference,downloadUrl;
++const read=async path=>{try{const r=await fetch(path);if(!r.ok)throw Error(`HTTP ${r.status}`);return r;}catch(e){throw Error(`${path}: ${e.message}`);}};
++const source='/reports/performance-scenarios/003-crossover-full-user-inputs.json.gz';
++const hash=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(x=>x.toString(16).padStart(2,'0')).join('');
++try {
++    const [sourceBytes,assetBytes,meshBytes]=await Promise.all([source,'/res/Aorta_infrarenal_aneurysm.collision.bin','/res/Aorta_infrarenal_aneurysm.stl'].map(p=>read(p).then(async r=>{try{return await r.arrayBuffer();}catch(e){throw Error(`${p} (body): ${e.message}`);}})));
++    el('status').textContent='Dekodowanie nagrania…';
++    const record=new Uint8Array(sourceBytes)[0]===31?await new Response(new Blob([sourceBytes]).stream().pipeThrough(new DecompressionStream('gzip'))).json():JSON.parse(new TextDecoder().decode(sourceBytes));
++    const sourceSha256=await hash(sourceBytes),asset=decodeCollisionAsset(assetBytes),geometry=new STLLoader().parse(meshBytes);
++    transformAortaGeometry(geometry,generateVessel(140,0).vessel);geometry.computeBoundingBox();geometry.boundsTree=new MeshBVH(geometry);
++    const field=new VesselContactField(asset,{fallbackGeometry:geometry,bvhValidationDistance:.02,capsuleBvhValidation:-.1});
++    const sourceHashes=Object.fromEntries(await Promise.all(['src/physics/sharedAxisXpbdExperimental.js','src/physics/kirchhoffSharedAxisProjective.js','src/benchmark/crossoverAlternativeSolvers.js']
++        .map(async p=>[p,await hash(await read('/'+p).then(r=>r.arrayBuffer()))])));
++    const draw=()=>{
++        ctx.fillStyle='#080e15';ctx.fillRect(0,0,600,900);ctx.strokeStyle='#263a48';ctx.lineWidth=1;ctx.beginPath();
++        const a=asset.arrays.centerlineSegments;
++        for(let i=0;i<a.length;i+=9){ctx.moveTo(...project(a.subarray(i,i+3)));ctx.lineTo(...project(a.subarray(i+3,i+6)));}ctx.stroke();
++        const line=(positions,coordinates,color)=>{ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();let first=true;
++            for(let i=0;i<coordinates.length;i++){if(coordinates[i]<0)continue;const p=project(positions.slice(i*3,i*3+3));if(first)ctx.moveTo(...p);else ctx.lineTo(...p);first=false;}ctx.stroke();};
++        if(lastReference)line(lastReference.shape.positions,lastReference.shape.coordinates,'#6ad8a5');
++        if(lastPose)line(lastPose.positions.flatMap(p=>p.map((v,k)=>v+lastPose.origin[k])),lastPose.coordinates,'#ffb769');
++    };
++    const show=()=>{
++        const summary=summarizeAlternative(report.rows,record.steps.length),wallMs=performance.now()-started,last=report.rows.at(-1);
++        el('metrics').textContent=`Próba: ${report.rows.length}/${record.steps.length}\nKroki dopuszczone geometrycznie: ${summary.acceptedSteps}\nCzas testu: ${(wallMs/1000).toFixed(1)} s\nRzeczywista przepustowość testu: ${(summary.acceptedSteps*1000/wallMs).toFixed(1)} kroków/s\nRóżnica kształtu teraz: ${last?.shapeDifferenceMm?.toFixed(3)??'—'} mm\nMaksymalna różnica: ${summary.maximumShapeDifferenceMm?.toFixed(3)??'—'} mm\nLimit 1,0 mm: ${summary.firstShapeLimitStep?'PRZEKROCZONY od kroku '+summary.firstShapeLimitStep:'dotychczas dotrzymany'}\nBrak certyfikatu równowagi sił Newtona.\nCel 60 FPS pełnej aplikacji: niepotwierdzony.`;
++    };
++    const finish=(reason)=>{
++        active=false;iterator?.return();report.summary=summarizeAlternative(report.rows,record.steps.length);
++        report.wallMs=performance.now()-started;report.finishedAt=new Date().toISOString();report.reason=reason;
++        el('status').textContent=reason;show();el('run').disabled=false;el('stop').disabled=true;el('solver').disabled=el('iterations').disabled=false;
++        if(downloadUrl)URL.revokeObjectURL(downloadUrl);downloadUrl=URL.createObjectURL(new Blob([JSON.stringify(report)],{type:'application/json'}));
++        el('download').href=downloadUrl;el('download').download=`crossover-alternative-${report.solver}-${report.options.iterations}.json`;el('download').hidden=false;
++    };
++    const tick=()=>{
++        if(!active)return;
++        try {
++            const n=iterator.next();if(n.done){finish(report.rows.length===record.steps.length?'Zakończono pełną sekwencję — sprawdź zgodność kształtu.':'Próba zatrzymana po odrzuceniu geometrii.');return;}
++            report.rows.push(n.value);draw();show();
++            if(!n.value.accepted){finish(`Odrzucono krok ${n.value.step}: ${n.value.status}.`);return;}
++            requestAnimationFrame(tick);
++        }catch(error){report.error=error.message;finish('Błąd testu: '+error.message);}
++    };
++    el('run').onclick=()=>{
++        const mode=el('solver').value,solver=mode==='projective'?'projective':'xpbd';
++        const options={iterations:Number(el('iterations').value),maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5,...(mode==='hybrid'?{hardClosure:true}:{})};
++        report={source,sourceSha256,sourceHashes,solver,options,dt:record.dt,startedAt:new Date().toISOString(),rows:[],
++            scope:'Browser research test: recorded targets from empty tools, right access only, simple axis drawing. One complete candidate per animation frame; includes rendering/scheduling. Not app FPS.',
++            productionDefaultChanged:false};
++        iterator=compareCrossoverAlternative({record,field,flow:createCrossoverFlowFromAsset(asset),solver,options,onPose:(s,r)=>{lastPose=s;lastReference=r;}});
++        started=performance.now();active=true;el('run').disabled=true;el('stop').disabled=false;el('solver').disabled=el('iterations').disabled=true;el('download').hidden=true;
++        el('status').textContent='Odtwarzanie wszystkich wejść od początku…';requestAnimationFrame(tick);
++    };
++    el('stop').onclick=()=>finish('Przerwano test — wynik częściowy.');draw();el('status').textContent='Gotowy · 7507 kroków od pustych narzędzi';el('run').disabled=false;
++}catch(error){el('status').textContent='Błąd ładowania: '+error.message;}
++</script></html>

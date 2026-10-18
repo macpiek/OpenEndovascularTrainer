@@ -1,0 +1,48 @@
+--- a/src/physics/kirchhoffSharedAxisDynamics.js
++++ b/src/physics/kirchhoffSharedAxisDynamics.js
+@@ -132,6 +132,9 @@
+ 
+ export function completeSharedAxisDynamicStep(s) {
+     const {positions,frames,dt}=s.dynamicStep;
++    s.predictorPreviousVelocities=s.velocities;
++    s.predictorPreviousAngularVelocities=s.angularVelocities;
++    s.predictorPreviousDt=dt;
+     s.velocities=s.positions.map((p,i)=>p.map((v,k)=>(v-positions[i][k])/dt));
+     s.angularVelocities=Object.fromEntries(s.materials.map(({body,spec,last},tool)=>[spec.id,Array.from({length:last},(_,e)=>{
+         const relative=q(body,e).multiply(new Quaternion(...frames[tool][e].old).invert()).normalize();
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -308,6 +308,12 @@
+     candidate.definitions.forEach((row, i) => { candidate.multipliers[i] = remappedReactions.get(row.id) ?? oldRows.get(key(candidate,row)) ?? 0; });
+     candidate.wallFrictionHistory=s.wallFrictionHistory;
+     if(s.velocities)candidate.velocities=candidate.coordinates.map(x=>interpolate(s.coordinates,s.velocities,x));
++    if(s.predictorPreviousVelocities)candidate.predictorPreviousVelocities=candidate.coordinates.map(x=>interpolate(s.coordinates,s.predictorPreviousVelocities,x));
++    candidate.predictorPreviousDt=s.predictorPreviousDt;
++    if(s.predictorPreviousAngularVelocities)candidate.predictorPreviousAngularVelocities=Object.fromEntries(candidate.materials.map(({spec,body,last})=>{
++        const old=s.materials.find(t=>t.spec.id===spec.id),centers=Array.from({length:old.last},(_,i)=>(old.body.materialCoordinate[i]+old.body.materialCoordinate[i+1])/2);
++        return [spec.id,Array.from({length:last},(_,i)=>interpolate(centers,s.predictorPreviousAngularVelocities[spec.id],(body.materialCoordinate[i]+body.materialCoordinate[i+1])/2))];
++    }));
+     if(s.angularVelocities)candidate.angularVelocities=Object.fromEntries(candidate.materials.map(({spec,body,last})=>{
+         const old=s.materials.find(t=>t.spec.id===spec.id),centers=Array.from({length:old.last},(_,i)=>(old.body.materialCoordinate[i]+old.body.materialCoordinate[i+1])/2);
+         return [spec.id,Array.from({length:last},(_,i)=>interpolate(centers,s.angularVelocities[spec.id],(body.materialCoordinate[i]+body.materialCoordinate[i+1])/2))];
+--- a/src/physics/kirchhoffSharedAxisTimeStep.js
++++ b/src/physics/kirchhoffSharedAxisTimeStep.js
+@@ -41,6 +41,18 @@
+             const dof=s.layout.spins.get(spec.id)[e],p=s.positions[e],q=s.positions[e+1],v=q.map((x,a)=>x-p[a]),length=Math.hypot(...v);
+             if(!s.fixed[dof])increment[dof]=options.velocityPredictor*dt*decay*v.reduce((sum,x,a)=>sum+x*(s.angularVelocities?.[spec.id]?.[e]?.[a]??0),0)/length;
+         }
++        if(options.accelerationPredictor&&s.predictorPreviousDt>0&&s.predictorPreviousVelocities) {
++            const factor=options.accelerationPredictor*dt*decay*dt/s.predictorPreviousDt;
++            for(let n=0;n<s.positions.length;n++)for(let a=0;a<3;a++) {
++                const dof=s.layout.positions[n]+a;
++                if(!s.fixed[dof])increment[dof]+=factor*((s.velocities?.[n]?.[a]??0)-s.predictorPreviousVelocities[n][a]);
++            }
++            for(const {spec,last} of s.materials)for(let e=0;e<last;e++) {
++                const previous=s.predictorPreviousAngularVelocities?.[spec.id]?.[e];if(!previous)continue;
++                const dof=s.layout.spins.get(spec.id)[e],p=s.positions[e],v=s.positions[e+1].map((x,a)=>x-p[a]);
++                if(!s.fixed[dof])increment[dof]+=factor*v.reduce((sum,x,a)=>sum+x*((s.angularVelocities?.[spec.id]?.[e]?.[a]??0)-previous[a]),0)/Math.hypot(...v);
++            }
++        }
+         if(increment.some(v=>v!==0)) {
+             applySharedAxisNativeIncrement(s,increment,new Float64Array(s.multipliers.length));predictedInitialPose=true;
+         }

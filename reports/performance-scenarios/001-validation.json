@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-14",
+  "scope": "long crossover optimization",
+  "build": "passed",
+  "tests": {
+    "total": 84,
+    "passed": 81,
+    "newRegressionTests": 4,
+    "newRegressionTestsPassed": 4,
+    "preExistingFailuresConfirmedOnHead": [
+      "kirchhoffSharedAxisEarlyFallback: missing historical wallNormalFallback",
+      "kirchhoffSharedAxisAnatomyRegression: new replay metadata differs from old snapshot",
+      "kirchhoffSharedAxisAnatomyRegression: historical contact audit discovers new wall rows"
+    ]
+  },
+  "cpuBenchmark": "001-checkpoint-result.json",
+  "continuousMotionBenchmark": "001-continuation-result.json",
+  "fullScenarioReconstructionVerified": false
+}

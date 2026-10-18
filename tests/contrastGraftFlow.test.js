@@ -19,6 +19,20 @@ function graft({offset=0,radius=5,revision=1,sealed=true}={}) {
 }
 const mass=n=>n.getIodineMassMg()+n.outletIodineMassMg+(n.stentGraftRemodeling?.trappedIodineMassMg??0);
 
+test('occluding a side branch cannot leave a perfused blind stump that holds a bolus forever',()=>{
+ const segments=tree();
+ segments.push({id:segments.length,nodeStartId:2,nodeEndId:8,start:new THREE.Vector3(50,0,0),end:new THREE.Vector3(55,0,0),radiusStart:2,radiusEnd:2});
+ segments.push({id:segments.length,nodeStartId:8,nodeEndId:9,start:new THREE.Vector3(55,0,0),end:new THREE.Vector3(55,30,0),radiusStart:2,radiusEnd:2});
+ const n=new ContrastFlowNetwork(segments,{rootPoint:new THREE.Vector3(-20,0,0)}),g=graft();
+ try {
+  applyStentGraftFlow(n,g.surface);
+  const stump=n.edges.find(e=>e.end.equals(new THREE.Vector3(55,0,0)));
+  assert.equal(stump.transportExcluded,true);assert.equal(n.getSignedFlowMm3PerS(stump.index),0);
+  n.depositIodine(0,0,100);for(let i=0;i<600;i++)n.update(1/30);
+  assert.ok(n.getIodineMassMg()<1e-5);assert.ok(Math.abs(mass(n)-100)<1e-7);
+ }finally{g.dispose();}
+});
+
 test('offset graft uses its actual lumen, covers a lateral ostium but preserves proximal and distal branches',()=>{
  const n=new ContrastFlowNetwork(tree(),{rootPoint:new THREE.Vector3()}),g=graft({offset:4});
  try {
@@ -98,6 +112,20 @@ test('local contrast parcels cannot cross either side of fabric, while open port
   assert.equal(field.querySphereFrom(new THREE.Vector3(85,0,0),.05,{},new THREE.Vector3(79,0,0)).violation,false);
   assert.equal(field.querySphereFrom(new THREE.Vector3(21,0,0),.05,{},new THREE.Vector3(19,0,0)).violation,false,'a proximal pigtail bolus can enter through the open inlet');
  }finally{g.dispose();}
+});
+
+test('a bolus enters the actual oval proximal neck rather than sticking outside an equivalent-radius circle',()=>{
+ const material=new THREE.MeshBasicMaterial();
+ const part=buildGraftPart({points:[20,40,60].map(x=>new THREE.Vector3(x,0,0)),radius:5,wallFit:{fit:p=>p},fabricMaterial:material});
+ for(let i=0;i<part.target.length;i+=3){part.target[i+1]*=2;part.target[i+2]*=.5;}
+ const surface=new StentGraftSurface([{type:'limb',parts:[part]}],1);
+ const anatomy={querySphere(p,r,out){return Object.assign(out,{signedDistance:100,signedGap:100-r,inside:true,violation:false,penetration:0,inward:{x:0,y:0,z:0},normal:{x:0,y:0,z:0},closestPoint:{x:0,y:0,z:0},target:{...p}});}};
+ try {
+  const field=graftFluidContactField(anatomy,surface),next=new THREE.Vector3(21,7,0),previous=new THREE.Vector3(19,7,0);
+  assert.ok(surface.contains(next));assert.ok(7>surface.portals[0].radius);
+  assert.equal(field.querySphereFrom(next,.05,{},previous).violation,false,'actual inlet must transmit the bolus');
+  assert.equal(field.querySphereFrom(new THREE.Vector3(40,7,0),.05,{},new THREE.Vector3(40,12,0)).violation,true,'lateral cloth remains impermeable');
+ }finally{surface.dispose();part.mesh.geometry.dispose();material.dispose();}
 });
 
 test('plume-to-column display deposition is continuous and preserves parcel mass between cells',()=>{

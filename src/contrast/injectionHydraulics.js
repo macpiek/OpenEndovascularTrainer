@@ -56,9 +56,6 @@ function positiveFinite(name, value) {
     return value;
 }
 
-function clamp(value, minimum, maximum) {
-    return Math.max(minimum, Math.min(maximum, value));
-}
 
 function portAreaMm2(port) {
     if (Number.isFinite(port?.areaMm2) && port.areaMm2 > 0) {

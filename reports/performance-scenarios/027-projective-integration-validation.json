@@ -1,0 +1,92 @@
+{
+  "createdAt": "2026-10-17T21:23:44.568002+00:00",
+  "goalTurnClassification": "progress",
+  "goalAchieved": false,
+  "reference": "003-crossover-full-user-inputs.json.gz",
+  "referenceSha256": "bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac",
+  "acceptanceMode": "functional",
+  "shapeDifferenceLimitMm": null,
+  "productionDefaultChanged": false,
+  "manualSimulatorUnchanged": true,
+  "experimentWorkspace": "/var/folders/mr/zt5btlpd0snc4yk0z99bgs300000gn/T/oet-pd-contact-x6d2t1gs",
+  "sourceArchive": "027-projective-app-source.tar.gz",
+  "sourceManifest": "027-projective-app-source-manifest.json",
+  "patch": "027-projective-app.patch",
+  "changes": [
+    "Explicit opt-in projective-geometry recording gate; unchanged Newton reference gate. Captures both access results without invented residuals or equilibrium certificates.",
+    "Full PD recording/replay now runs through the application input handler and shared-clock barrier, with the right access in a worker and full RTG.",
+    "Enabled passing 025 contact-row/vector/triangle/projection workspaces in the isolated preset only; rejected 026 deferred witnesses remain disabled.",
+    "Local anatomy asset copies replace a symlink that Vite rejected. Added an explicit button loading the original 7507-command recording."
+  ],
+  "tests": {
+    "passed": 45,
+    "logs": [
+      "027-projective-tests.log",
+      "027-projective-pd-worker.log"
+    ],
+    "buildPassed": true,
+    "buildLog": "027-projective-build-final.log",
+    "workerScope": "125 moving steps across the sheath exit: bit-identical body arrays, PD results, geometry and frozen flow samples; publication only in step()."
+  },
+  "fullApplication": {
+    "record": "027-projective-full-app.json.gz",
+    "audit": "027-projective-full-app-validation.json",
+    "profile": "027-projective-full-app-profile.json",
+    "complete": true,
+    "acceptedCommonSteps": 7507,
+    "allFiveRouteChecksPassed": true,
+    "motionHz": 26.52452335872313,
+    "longMotionHz": 14.254249697941061,
+    "minimumMovingWindowHz": 9.796398191236879,
+    "geometryChecks": 15014,
+    "allPosesIdenticalTo025Research": true,
+    "longStepCost": {
+      "steps": 952,
+      "intervalMs": 70.15451680662251,
+      "mainThreadCpuMs": 3.960924368445613,
+      "rightProviderMs": 63.22405461929426,
+      "leftProviderMs": 2.0026260454113745,
+      "solver": {
+        "iterations": 16,
+        "factorizations": 24.551470588235293,
+        "substepAttempts": 1,
+        "subdivisions": 1,
+        "workerWallMs": 64.53382353071405,
+        "workerDispatchDelayMs": 0.0021008398352550858,
+        "workerResponseMs": 64.34957983213313,
+        "workerPublicationDelayMs": 0.18245798474600336,
+        "replayCaptureMs": 0
+      },
+      "timings": {
+        "assemblyMs": 13.830777328555323,
+        "linearMs": 6.825420136962618,
+        "frictionMs": 0,
+        "tangentAssemblyMs": 0,
+        "residualAssemblyMs": 0,
+        "projectionMs": 16.95357142751958
+      },
+      "multiSubstepCount": 0
+    },
+    "timingScope": "Full application with RTG, shared clock and right worker; independent user-facing PD simulator remained running on port 5182. Timing is observed performance under that concurrent workload, not an isolated-machine comparison.",
+    "newtonEquilibriumCertified": false
+  },
+  "iterations12Screen": {
+    "record": "027-projective-12-screen.json.gz",
+    "audit": "027-projective-12-screen-validation.json",
+    "harnessOverride": "027-projective-12-harness.html.txt",
+    "acceptedSteps": 7507,
+    "allFiveRouteChecksPassed": true,
+    "longMovingCpuMs": 50.364810920813504,
+    "longProjectionMs": 20.30892857508499,
+    "longConstraintMs": 14.369537835862456,
+    "decision": "Functionally passes coarse checkpoints, but no controlled speed improvement established. Lower local-iteration cost is partly replaced by a higher global-closure cost. Not promoted to manual preset.",
+    "applicationFpsVerified": false
+  },
+  "limitations": [
+    "60 common physics Hz was not achieved.",
+    "The manual simulator remained active; timings are observations under that concurrent workload, not controlled comparisons with older runs.",
+    "Five coarse route checks and sampled geometry gates do not independently certify full visual realism, femoral entry or wall containment between samples.",
+    "PD remains an approximate positional-friction/chordal-rod model and has no Newton equilibrium certificate."
+  ],
+  "next": "Optimize global geometric closure and retained contact handling. Re-test the previously functional fine-prefix-250 adaptive PD mesh with the 025 kernels, comparing complete trajectories with alternating paired timing before full-app acceptance. PD12 alone does not demonstrate the required improvement. Preserve the user-facing root simulation."
+}

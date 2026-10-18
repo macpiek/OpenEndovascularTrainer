@@ -10,7 +10,7 @@ export function graftMarkerLayout(device,index,length) {
     if(device.type==='limb')return [proximal(0),proximal(Math.PI),distal(0),distal(Math.PI),
         button(inset+25*scale,Math.PI/2,'overlap')];
     if(index===0)return [proximal(0),proximal(Math.PI),proximal(3*Math.PI/2),
-        button(length-span,Math.PI/2,'flow-divider')];
+        {...button(length-1.25*scale,Math.PI/2,'flow-divider'),end:length}];
     if(index===1)return device.modelId==='iis-103'?[distal(0),distal(Math.PI)]:[distal(0)];
     // The short gate has its own asymmetric radiopaque gate marker.
     return [];

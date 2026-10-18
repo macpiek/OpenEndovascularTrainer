@@ -1,0 +1,96 @@
+{
+  "updatedAt": "2026-10-18",
+  "source": "Explicit user instruction: replace the 1 mm shape bound with the ability to perform the complete crossover maneuver.",
+  "shapeDifferenceLimitMm": null,
+  "comparison": "Whole-polyline difference remains diagnostic only. Acceptance requires an achievable complete crossover, stable wall/tool contacts and 60 accepted common steps/s during motion.",
+  "targetPhysicsHz": 60,
+  "dt": 0.016666666666666666,
+  "reference": "003-crossover-full-user-inputs.json.gz",
+  "referenceSha256": "bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac",
+  "stabilityGates": {
+    "certificateBound": 1e-06,
+    "maxPenetrationMm": 1e-05,
+    "lengthErrorMm": 1e-05
+  },
+  "goalAchieved": false,
+  "testWorkspace": "/tmp/oet-fluidity-1mm-zb0gv7v4",
+  "testUrl": "http://127.0.0.1:5181/?anatomy=infrarenal-aneurysm&panel=anatomy&crossoverScenario=1&crossoverBenchmark=full&crossoverWorker=1&crossoverFunctionalMesh=relaxed&crossoverForceTolerance=0.0001",
+  "productionDefaultChanged": false,
+  "note": "Experiments isolated to preserve the live manually positioned tools; the reference recording is unchanged.",
+  "currentExperimentalPatch": "007-distal-remap-passing.patch",
+  "currentPhysics": "Research only: first 250 mm and tips fine, distal/contact spacing up to 20 mm, local remap shape .15 mm, arc loss .002 and turn pi/15; force tolerance 1e-4 with geometry gates unchanged.",
+  "latestValidation": "029-schur-validation.json",
+  "completePassingBrowserRuns": 2,
+  "nextInvestigation": "Defer active-basis rank preparation until a numerical solve actually needs rank repair; test original KKT without the new Schur branch.",
+  "alternativeSolverResearch": {
+    "productionEnabled": false,
+    "forceCertificate": "Newton certificate applies to the reference; alternate methods must report their own convergence and cannot inherit that certificate.",
+    "report": "027-projective-integration-validation.json",
+    "bestFunctionalScreen": {
+      "solver": "projective-with-hard-kirchhoff-closure",
+      "iterations": 16,
+      "reuseGeometry": true,
+      "fastRotations": false,
+      "recording": "025-projective-paired-candidate.json.gz",
+      "allFiveCoarseRouteChecksPassed": true,
+      "fullAppFpsVerified": false,
+      "scratchRotations": true,
+      "reuseContactRows": true,
+      "vectorSolve": true,
+      "triangleKernel": true,
+      "reuseProjectionWork": true,
+      "pairedLongStageCostReductionPercent": 13.364448517663064,
+      "implementationScope": "isolated experiment; production and manual preset unchanged"
+    },
+    "latestFullApplicationReplay": {
+      "record": "027-projective-full-app.json.gz",
+      "audit": "027-projective-full-app-validation.json",
+      "profile": "027-projective-full-app-profile.json",
+      "complete": true,
+      "acceptedCommonSteps": 7507,
+      "allFiveRouteChecksPassed": true,
+      "motionHz": 26.52452335872313,
+      "longMotionHz": 14.254249697941061,
+      "minimumMovingWindowHz": 9.796398191236879,
+      "geometryChecks": 15014,
+      "allPosesIdenticalTo025Research": true,
+      "timingScope": "Full application with RTG, shared clock and right worker; independent user-facing PD simulator remained running on port 5182. Timing is observed performance under that concurrent workload, not an isolated-machine comparison.",
+      "newtonEquilibriumCertified": false
+    },
+    "target60HzVerified": false,
+    "latestRejectedExperiment": "028-projective-mesh-validation.json",
+    "latestResearchExperiment": "029-schur-validation.json"
+  },
+  "latestCompleteBrowserValidationRuns": [
+    "015-cache-full-validation.json",
+    "015-baseline-full-validation.json"
+  ],
+  "completePassingBrowserRunsScope": "The older completePassingBrowserRuns count refers to the original 007/008 confirmation pair; later runs are linked in latestValidation.",
+  "runtimeCalibration": {
+    "report": "017-runtime-audit-validation.json",
+    "crossRuntimeBitwiseParity": false,
+    "fullBrowserReferenceStillAuthoritative": true,
+    "fullNodeControl": {
+      "report": "018-node-control-validation.json",
+      "complete": false,
+      "rejectedStep": 4125,
+      "qualifiedReference": false
+    }
+  },
+  "acceptanceMode": "functional",
+  "historicalShapeDifferenceLimitMm": 1,
+  "functionalRequirements": [
+    "Seat and direct pigtail across the aortic bifurcation",
+    "Advance wire into the contralateral iliac",
+    "Steer out of internal iliac into external iliac and femoral",
+    "Advance catheter over wire to long insertion",
+    "No wall crossing, jitter, nonfinite state or permanent movement block"
+  ],
+  "functionalChecks": {
+    "automated": "Coarse anatomical branch checks at five recorded milestones, physical gates at every accepted step",
+    "visualReview": "Pigtail seating, femoral entry and stable response during the complete maneuver",
+    "shapeDifference": "Diagnostic only, no stopping threshold"
+  },
+  "researchForceCertificateLimit": 0.0001,
+  "currentExperimentalSources": "020-relaxed-mesh-source-manifest.json"
+}

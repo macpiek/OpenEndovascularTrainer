@@ -1,4 +1,4 @@
-import {graftBranchContactAt,branchRecoveryPotential} from './stentGraftBranchContact.js';
+import {graftBranchContactAt,graftBranchRecoveryPlanes,branchRecoveryPotential,createBranchRecoveryWorkspace} from './stentGraftBranchContact.js';
 import {compliantGraftSurface} from './stentGraftCompliance.js';
 import {graftLumenAt} from './stentGraftLumenContact.js';
 import * as THREE from 'three';
@@ -21,6 +21,8 @@ export function graftContactResponse(distance,radius) {
 }
 
 const inactive=()=>({gap:1,jacobian:[0,0,0,0,0,0]});
+const RECOVERY_CLEARANCE_MM=.05;
+const isDeliveryCover=material=>material?.spec.type==='stentgraft-delivery'&&material.body.radius>.8;
 function referencePoint(state,coordinate) {
     let e=0;while(e<state.coordinates.length-2&&state.coordinates[e+1]<coordinate)e++;
     const t=THREE.MathUtils.clamp((coordinate-state.coordinates[e])/(state.coordinates[e+1]-state.coordinates[e]),0,1);
@@ -32,7 +34,10 @@ function referencePoint(state,coordinate) {
  * KKT wall around an already present rod makes the initial pose infeasible.
  * Sweeps separately reject new crossings, including jumps beyond the spring.
  */
-export function createStentGraftContacts(surface,previous) {
+export function createStentGraftContacts(surface,previous,{deliveryCoverOnly=false}={}) {
+    const separateCover=Object.hasOwn(surface,'coveredDeliverySurface');
+    const coverContact=surface.coveredDeliverySurface?
+        createStentGraftContacts(surface.coveredDeliverySurface,previous,{deliveryCoverOnly:true}):null;
     const compliant=compliantGraftSurface(surface,previous);surface=compliant.surface;
     // Never capture the previous native state: its wall sampler captures its
     // predecessor, retaining every band matrix and WASM arena indefinitely.
@@ -40,20 +45,24 @@ export function createStentGraftContacts(surface,previous) {
     const branchCache=new Map();
     const branchReference=(coordinate,radius)=>{
         if(!surface.ownedBranches?.length)return null;
-        const key=`${coordinate}/${radius}`;
-        if(!branchCache.has(key)) {
-            const old=referencePoint(reference,coordinate).toArray();
-            const contact=graftBranchContactAt(surface.ownedBranches,old,radius);
-            if(contact) {
-                const planeGap=old.reduce((sum,v,k)=>sum+(v-contact.point[k])*contact.planeNormal[k],0)-radius-.05;
+        let coordinates=branchCache.get(radius);
+        if(!coordinates){coordinates=new Map();branchCache.set(radius,coordinates);}
+        const cached=coordinates.get(coordinate);
+        if(cached!==undefined)return cached;
+        const old=referencePoint(reference,coordinate).toArray();
+        const contact=graftBranchContactAt(surface.ownedBranches,old,radius);
+        if(contact&&(contact.outside||contact.gap<RECOVERY_CLEARANCE_MM)) {
+            contact.supportPlanes=graftBranchRecoveryPlanes(contact,old,radius).map(plane=>({...plane}));
+            for(const plane of contact.supportPlanes) {
+                const planeGap=old.reduce((sum,v,k)=>sum+(v-plane.point[k])*plane.planeNormal[k],0)-radius-RECOVERY_CLEARANCE_MM;
                 // Opening is kinematic. Recover a newly displaced septum in
                 // bounded increments rather than asking one Newton solve to
                 // move the wire across the full distance between both limbs.
-                contact.recoveryOffset=Math.max(0,-planeGap-.5);
+                plane.recoveryOffset=Math.max(0,-planeGap-.5);
             }
-            branchCache.set(key,contact);
         }
-        return branchCache.get(key);
+        coordinates.set(coordinate,contact);
+        return contact;
     };
     const bounds=surface.bounds.clone().expandByScalar(3),point=new THREE.Vector3(),ray=new THREE.Ray();
     for(const branch of surface.ownedBranches??[])for(let i=0;i<branch.positions.length;i+=3)
@@ -83,8 +92,13 @@ export function createStentGraftContacts(surface,previous) {
         return geometry.boundsTree.raycastFirst(ray,THREE.DoubleSide,1e-7,length);
     }
     const sample=({state,a,b,radius,coordinateA,coordinateB})=>{
+        if(separateCover&&radius>.8&&state.materials?.some(m=>m.spec.type==='stentgraft-delivery'))
+            return coverContact?coverContact({state,a,b,radius,coordinateA,coordinateB}):inactive();
         const wa=new THREE.Vector3(...a).add(new THREE.Vector3(...state.origin)),wb=new THREE.Vector3(...b).add(new THREE.Vector3(...state.origin));
         const oldA=referencePoint(reference,coordinateA),oldB=referencePoint(reference,coordinateB);
+        // Reject remote segments before ownership/lumen queries. Both current
+        // and accepted endpoints are included, so a swept crossing stays tested.
+        if(!bounds.intersectsBox(new THREE.Box3().setFromPoints([wa,wb,oldA,oldB])))return inactive();
         // The owning wire may initially lie outside a newly opened target ring.
         // Let the one-sided lumen potential pull it inward through that incoming
         // surface. Within a transitioning branch, use its actual triangles
@@ -94,7 +108,6 @@ export function createStentGraftContacts(surface,previous) {
         if(branches.some(contact=>contact?.outside))return inactive();
         const cloth=branches.find(contact=>contact)?.geometry??surface.geometry;
         if([coordinateA,mid,coordinateB].some(s=>graftLumenAt(surface.lumenSections,s,referencePoint(reference,s).toArray(),radius)?.penetration>0))return inactive();
-        if(!bounds.intersectsBox(new THREE.Box3().setFromPoints([wa,wb,oldA,oldB])))return inactive();
         // A kinematic release can initially overlap an existing tool. Let the
         // elastic potential resolve that incoming overlap; CCD must not freeze
         // its withdrawal. As soon as clear, subsequent crossings are forbidden.
@@ -129,6 +142,10 @@ export function createStentGraftContacts(surface,previous) {
     sample.meshChordCrosses=(a,b)=>!!crossing(
         new THREE.Vector3(...a).add(new THREE.Vector3(...reference.origin)),
         new THREE.Vector3(...b).add(new THREE.Vector3(...reference.origin)));
+    const recoveryWorkspace=createBranchRecoveryWorkspace();
+    const recoveryPoint=[0,0,0];
+    const potentialA=new THREE.Vector3(),potentialB=new THREE.Vector3(),potentialBounds=new THREE.Box3();
+    const potentialDofs=new Array(6);
     const knotCache=new Map();
     sample.adaptiveContactKnots=options=>{
         const margin=Math.max(options.contactMargin,options.shapeTolerance),key=margin;
@@ -142,17 +159,21 @@ export function createStentGraftContacts(surface,previous) {
         }
         knotCache.set(key,knots);return knots;
     };
-    sample.addPotential=(state,withTangent)=>{
+    sample.addPotential=(state,withTangent,tangentMode)=>{
         const {chain,layout}=state,half=layout.band-1,width=2*half+1,H=chain.tangent??chain.hessian;
         const add=(i,j,value)=>{if(!withTangent)return;if(chain.tangent)H[i*width+j-i+half]+=value;else if(i>=j)H[i*layout.band+i-j]+=value;};
         let energy=0,contacts=0,maxPenetration=0;
         for(let e=0;e<state.positions.length-1;e++) {
-            const a=new THREE.Vector3(...state.positions[e]).add(new THREE.Vector3(...state.origin));
-            const b=new THREE.Vector3(...state.positions[e+1]).add(new THREE.Vector3(...state.origin));
-            if(!bounds.intersectsBox(new THREE.Box3().setFromPoints([a,b]))&&!surface.lumenSections?.some(s=>s.start<=state.coordinates[e+1]&&s.end>=state.coordinates[e]))continue;
+            const a=potentialA.set(state.positions[e][0]+state.origin[0],state.positions[e][1]+state.origin[1],state.positions[e][2]+state.origin[2]);
+            const b=potentialB.set(state.positions[e+1][0]+state.origin[0],state.positions[e+1][1]+state.origin[1],state.positions[e+1][2]+state.origin[2]);
+            potentialBounds.makeEmpty().expandByPoint(a).expandByPoint(b);
+            if(!bounds.intersectsBox(potentialBounds)&&!surface.lumenSections?.some(s=>s.start<=state.coordinates[e+1]&&s.end>=state.coordinates[e]))continue;
             const intervals=sharedAxisOuterIntervals(state,e);
-            const dofs=[layout.positions[e],layout.positions[e+1]].flatMap(i=>[i,i+1,i+2]);
+            const dofs=potentialDofs;
+            for(let j=0;j<3;j++){dofs[j]=layout.positions[e]+j;dofs[j+3]=layout.positions[e+1]+j;}
             for(const interval of intervals) {
+                const covered=isDeliveryCover(interval.material);
+                if(deliveryCoverOnly?!covered:separateCover&&covered)continue;
                 const radius=interval.material.body.radius,length=(state.coordinates[e+1]-state.coordinates[e])*(interval.end-interval.start);
                 const count=Math.max(1,Math.ceil(length/(surface.lumenSections?.length ? .8 : .15)));
                 // A segment straddling an open portal must use the same cloth
@@ -165,17 +186,23 @@ export function createStentGraftContacts(surface,previous) {
                     const t=interval.start+(interval.end-interval.start)*i/count;point.copy(a).lerp(b,t);
                     const coordinate=state.coordinates[e]+t*(state.coordinates[e+1]-state.coordinates[e]);
                     const oldBranch=branchReference(coordinate,radius);
-                    if(oldBranch?.outside) {
-                        const response=branchRecoveryPotential(oldBranch,point.toArray(),radius+.05);
-                        // Match the normal cloth stiffness: the old weak
-                        // recovery spring let the stiff delivery shaft remain
-                        // embedded in the divider even after full deployment.
-                        const k=1e5*length/count*((i===0||i===count)?.5:1);
-                        energy+=k*response.energy;if(response.energy>0)contacts++;
-                        for(let j=0;j<6;j++) {
-                            const wj=j<3?1-t:t;
-                            chain.gradient[dofs[j]]+=k*wj*response.gradient[j%3];
-                            for(let l=0;l<6;l++)add(dofs[j],dofs[l],k*wj*(l<3?1-t:t)*response.hessian[j%3][l%3]);
+                    // Crossing the centreline into the lumen does not clear
+                    // a finite-radius tool. Keep the same signed recovery law
+                    // until its surface clears the cloth; switching to the
+                    // two-sided barrier at zero distance jumps the potential.
+                    if(oldBranch&&(oldBranch.outside||oldBranch.gap<RECOVERY_CLEARANCE_MM)) {
+                        for(const plane of oldBranch.supportPlanes??[oldBranch]) {
+                            const response=branchRecoveryPotential(plane,point.toArray(recoveryPoint),radius+RECOVERY_CLEARANCE_MM,tangentMode,recoveryWorkspace,withTangent);
+                            // Match the normal cloth stiffness: the old weak
+                            // recovery spring let the stiff delivery shaft remain
+                            // embedded in the divider even after full deployment.
+                            const k=(plane.weight??1)*1e5*length/count*((i===0||i===count)?.5:1);
+                            energy+=k*response.energy;if(response.energy>0)contacts++;
+                            for(let j=0;j<6;j++) {
+                                const wj=j<3?1-t:t;
+                                chain.gradient[dofs[j]]+=k*wj*response.gradient[j%3];
+                                if(withTangent)for(let l=0;l<6;l++)add(dofs[j],dofs[l],k*wj*(l<3?1-t:t)*response.hessian[j%3][l%3]);
+                            }
                         }
                         // This branch uses its actual exposed triangles. Do
                         // not also apply the mapped Boolean junction here: its
@@ -190,7 +217,7 @@ export function createStentGraftContacts(surface,previous) {
                         if(penetration>0) {
                             const k=1000*length/count*((i===0||i===count)?.5:1),n=lumen.normal;
                             energy+=.5*k*penetration*penetration;contacts++;maxPenetration=Math.max(maxPenetration,penetration);
-                            for(let j=0;j<6;j++)for(let l=0;l<6;l++) {
+                            if(withTangent)for(let j=0;j<6;j++)for(let l=0;l<6;l++) {
                                 const wj=j<3?1-t:t,wl=l<3?1-t:t,jj=j%3,ll=l%3;
                                 const curvature=((jj===ll?1:0)-lumen.axis[jj]*lumen.axis[ll]-n[jj]*n[ll])/Math.max(1e-12,lumen.distance);
                                 add(dofs[j],dofs[l],k*wj*wl*(n[jj]*n[ll]+penetration*curvature));
@@ -229,15 +256,15 @@ export function createStentGraftContacts(surface,previous) {
                         energy+=weight*response.energy;contacts++;maxPenetration=Math.max(maxPenetration,-gap);
                         const J=[...n.map(v=>v*(1-t)),...n.map(v=>v*t)];
                         const edge=[0,0,0];
-                        if(g.feature==='edge') {
+                        if(withTangent&&g.feature==='edge') {
                             const first=g.featureMask&1?0:1,second=g.featureMask&4?2:1;
                             for(let j=0;j<3;j++)edge[j]=g.triangleVertices[second*3+j]-g.triangleVertices[first*3+j];
                             const length=Math.hypot(...edge);for(let j=0;j<3;j++)edge[j]/=length;
                         }
                         for(let j=0;j<6;j++) {
                             chain.gradient[dofs[j]]+=weight*response.slope*J[j];
-                            for(let l=0;l<6;l++) {
-                                const curvature=g.feature==='face'||g.distance<1e-8?0:
+                            if(withTangent)for(let l=0;l<6;l++) {
+                                const curvature=tangentMode==='gauss-newton'||g.feature==='face'||g.distance<1e-8?0:
                                     (j<3?1-t:t)*(l<3?1-t:t)*((j%3===l%3?1:0)-edge[j%3]*edge[l%3]-n[j%3]*n[l%3])/g.distance;
                                 add(dofs[j],dofs[l],weight*(response.curvature*J[j]*J[l]+response.slope*curvature));
                             }
@@ -249,7 +276,7 @@ export function createStentGraftContacts(surface,previous) {
         // Restoring force of the lifted cloth; the indented surface above still
         // supplies finite-radius contact and CCD. This reduced spring prevents
         // the local opening from being a force-free hole in the graft.
-        for(const patch of compliant.patches) {
+        if(!deliveryCoverOnly)for(const patch of compliant.patches) {
             const s=patch.coordinate;if(!Number.isFinite(s)||s>state.coordinates.at(-1))continue;
             let e=0;while(e<state.coordinates.length-2&&state.coordinates[e+1]<s)e++;
             const t=(s-state.coordinates[e])/(state.coordinates[e+1]-state.coordinates[e]);
@@ -257,9 +284,15 @@ export function createStentGraftContacts(surface,previous) {
             const gap=p.reduce((sum,v,k)=>sum+(v-patch.point[k])*n[k],0)-patch.radius;
             if(gap>=0)continue;
             const k=180,J=[...n.map(v=>v*(1-t)),...n.map(v=>v*t)];
-            const dofs=[layout.positions[e],layout.positions[e+1]].flatMap(i=>[i,i+1,i+2]);
+            const dofs=potentialDofs;
+            for(let j=0;j<3;j++){dofs[j]=layout.positions[e]+j;dofs[j+3]=layout.positions[e+1]+j;}
             energy+=.5*k*gap*gap;
-            for(let j=0;j<6;j++){chain.gradient[dofs[j]]+=k*gap*J[j];for(let l=0;l<6;l++)add(dofs[j],dofs[l],k*J[j]*J[l]);}
+            for(let j=0;j<6;j++){chain.gradient[dofs[j]]+=k*gap*J[j];if(withTangent)for(let l=0;l<6;l++)add(dofs[j],dofs[l],k*J[j]*J[l]);}
+        }
+        if(coverContact) {
+            energy+=coverContact.addPotential(state,withTangent,tangentMode);
+            contacts+=state.graftContactStats.contacts;
+            maxPenetration=Math.max(maxPenetration,state.graftContactStats.maxPenetration);
         }
         state.graftContactStats={contacts,maxPenetration};return energy;
     };

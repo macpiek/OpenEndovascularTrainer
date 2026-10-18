@@ -1,0 +1,10 @@
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -229,6 +229,7 @@
+             pruneInactiveWitnesses:false,projectiveDynamics:false,
+             physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,forceTolerance:1e-6,lengthTolerance:1e-5,
+                 ...(new URLSearchParams(window.location.search).get('crossoverProfileDirections')==='1'?{profileDirections:true}:{}),
++                ...(new URLSearchParams(window.location.search).get('crossoverNewtonLimit')==='32'?{newtonActiveSetLimit:32}:{}),
+                 ...(crossoverBenchmarkMode==='wide'?{recoverNegativeContact:true}:{})}
+         }:{}),
+         onReady:()=>runIdlePhysicsCatchup(synchronizedStep.epoch,false),

@@ -86,11 +86,11 @@ export function updateFoldedGraftPreview(parts,wire,position,rotation=0) {
     }
 }
 export function disposeFoldedGraftPreview(device) {
-    for(const part of device.foldedPreview??[])for(const object of [part.mesh,part.rings,part.markers,part.gateMarker,part.orientationMarker].filter(Boolean)){
+    for(const part of device.foldedPreview??[])for(const object of [part.mesh,part.rings,part.markers,part.flowDividerMarker,part.gateMarker,part.orientationMarker].filter(Boolean)){
         object.removeFromParent();object.geometry.dispose();disposeWire(object);if(object.isInstancedMesh)object.dispose();
     }
     device.foldedPreview=null;
 }
 export function setFoldedPreviewVisible(parts,visible) {
-    for(const part of parts??[]){part.mesh.visible=visible&&!part.crown;part.rings.visible=visible;part.markers.visible=visible&&!part.crown;if(part.gateMarker)part.gateMarker.visible=visible;if(part.orientationMarker)part.orientationMarker.visible=visible;}
+    for(const part of parts??[]){part.mesh.visible=visible&&!part.crown;part.rings.visible=visible;part.markers.visible=visible&&!part.crown;if(part.flowDividerMarker)part.flowDividerMarker.visible=visible;if(part.gateMarker)part.gateMarker.visible=visible;if(part.orientationMarker)part.orientationMarker.visible=visible;}
 }

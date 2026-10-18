@@ -1,0 +1,516 @@
+{
+  "recordedAt": "2026-10-15T14:00:27.560916+00:00",
+  "authorization": {
+    "maxFullShapeDifferenceMm": 0.1,
+    "scope": "Explicit user authorization to test measured shaft approximation with controlled tips, contacts and stability."
+  },
+  "decision": "Keep the separate 20 mm contact-region research preset and the 600-step browser option. Production default remains the full model pending full-app and broader-maneuver verification.",
+  "goalAchieved": false,
+  "physics": {
+    "dt": 0.016666666666666666,
+    "forceTolerance": 1e-06,
+    "lengthTolerance": 1e-05,
+    "penetrationToleranceMm": 1e-05,
+    "collisionCoverage": "Complete capsules; exact discovery and acceptance checks retained."
+  },
+  "selected": {
+    "steps": 600,
+    "mesh": {
+      "maxSpacing": 20,
+      "shapeTolerance": 0.02,
+      "maxArcLoss": 0.0001,
+      "maxTurn": 0.06,
+      "contactMargin": 0.01,
+      "tipLength": 80,
+      "tipRefinementAhead": 80,
+      "contactMaxSpacing": 20
+    },
+    "contactOptions": {
+      "recoverNegativeContact": true
+    },
+    "passed": true,
+    "physicalCertificatesPassed": true,
+    "maxShapeDifferenceMm": 0.08149082037279416,
+    "maxTipDifferenceMm": 0.01385579740468673,
+    "summary": {
+      "reference": {
+        "steps": 600,
+        "totalMs": 12033.486742999994,
+        "medianMs": 14.93841600000087,
+        "p95Ms": 44.3664579999986,
+        "maxMs": 276.935958,
+        "cpuStepsPerSecond": 49.86086018244266,
+        "withinBudget": 424,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 7.719741068612507e-09,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-07,
+        "maxSpeed": 21.613441219624374
+      },
+      "reduced": {
+        "steps": 600,
+        "totalMs": 8945.747948000033,
+        "medianMs": 12.858167000000321,
+        "p95Ms": 22.612542000002577,
+        "maxMs": 252.92091599999912,
+        "cpuStepsPerSecond": 67.07097086657127,
+        "withinBudget": 516,
+        "minNodes": 170,
+        "maxNodes": 176,
+        "maxPenetrationMm": 2.2010171463193728e-13,
+        "maxLengthError": 3.703704010150917e-13,
+        "maxCertificateBound": 9.807522474147845e-07,
+        "maxSpeed": 21.611304441951287
+      }
+    },
+    "report": "001-authorized-contact-spacing-20-confirmation.json",
+    "cpuSavedPercent": 25.659552056232837,
+    "work": {
+      "reference": {
+        "iterations": 2497,
+        "factorizations": 4388,
+        "maxSubdivisions": 4
+      },
+      "reduced": {
+        "iterations": 2344,
+        "factorizations": 3252,
+        "maxSubdivisions": 1
+      }
+    }
+  },
+  "screen": {
+    "steps": 300,
+    "mesh": {
+      "maxSpacing": 20,
+      "shapeTolerance": 0.02,
+      "maxArcLoss": 0.0001,
+      "maxTurn": 0.06,
+      "contactMargin": 0.01,
+      "tipLength": 80,
+      "tipRefinementAhead": 80,
+      "contactMaxSpacing": 20
+    },
+    "contactOptions": {
+      "recoverNegativeContact": true
+    },
+    "passed": true,
+    "physicalCertificatesPassed": true,
+    "maxShapeDifferenceMm": 0.08149082037279416,
+    "maxTipDifferenceMm": 0.01385579740468673,
+    "summary": {
+      "reference": {
+        "steps": 300,
+        "totalMs": 7145.898538999998,
+        "medianMs": 16.474333000000115,
+        "p95Ms": 58.28570799999943,
+        "maxMs": 277.31895799999984,
+        "cpuStepsPerSecond": 41.982124202113596,
+        "withinBudget": 159,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 9.09027297879561e-11,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-07,
+        "maxSpeed": 21.613441219624374
+      },
+      "reduced": {
+        "steps": 300,
+        "totalMs": 5161.938089999989,
+        "medianMs": 13.945165999999517,
+        "p95Ms": 29.175624999999854,
+        "maxMs": 226.04991700000028,
+        "cpuStepsPerSecond": 58.11770594094836,
+        "withinBudget": 225,
+        "minNodes": 170,
+        "maxNodes": 176,
+        "maxPenetrationMm": 2.2010171463193728e-13,
+        "maxLengthError": 3.703704010150917e-13,
+        "maxCertificateBound": 9.807522474147845e-07,
+        "maxSpeed": 21.611304441951287
+      }
+    },
+    "report": "001-authorized-contact-spacing-20.json",
+    "cpuSavedPercent": 27.763624660666487,
+    "work": {
+      "reference": {
+        "iterations": 1294,
+        "factorizations": 2848,
+        "maxSubdivisions": 4
+      },
+      "reduced": {
+        "iterations": 1220,
+        "factorizations": 2098,
+        "maxSubdivisions": 1
+      }
+    }
+  },
+  "notSelected": [
+    {
+      "reason": "Zero margin passed accuracy but increased rediscovery and solver work.",
+      "steps": 600,
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.02,
+        "maxArcLoss": 0.0001,
+        "maxTurn": 0.06,
+        "contactMargin": 0.01,
+        "tipLength": 80,
+        "tipRefinementAhead": 80,
+        "contactMaxSpacing": 10
+      },
+      "contactOptions": {
+        "recoverNegativeContact": true,
+        "contactCandidateMargin": 0
+      },
+      "passed": true,
+      "physicalCertificatesPassed": true,
+      "maxShapeDifferenceMm": 0.05546851513447435,
+      "maxTipDifferenceMm": 0.00913817832327746,
+      "summary": {
+        "reference": {
+          "steps": 600,
+          "totalMs": 11898.63241999997,
+          "medianMs": 14.942583000000013,
+          "p95Ms": 44.70983399999932,
+          "maxMs": 279.78520799999933,
+          "cpuStepsPerSecond": 50.42596315451196,
+          "withinBudget": 420,
+          "minNodes": 204,
+          "maxNodes": 207,
+          "maxPenetrationMm": 7.719741068612507e-09,
+          "maxLengthError": 1.7639223415244487e-13,
+          "maxCertificateBound": 9.993825074161578e-07,
+          "maxSpeed": 21.613441219624374
+        },
+        "reduced": {
+          "steps": 600,
+          "totalMs": 13833.762831999977,
+          "medianMs": 20.2242499999993,
+          "p95Ms": 42.30400000000009,
+          "maxMs": 188.2262499999997,
+          "cpuStepsPerSecond": 43.37214735329221,
+          "withinBudget": 83,
+          "minNodes": 173,
+          "maxNodes": 183,
+          "maxPenetrationMm": 1.6409096303959814e-13,
+          "maxLengthError": 2.95134287376378e-13,
+          "maxCertificateBound": 9.955971904673788e-07,
+          "maxSpeed": 21.60881542597114
+        }
+      },
+      "report": "001-authorized-contact-margin-zero.json",
+      "cpuSavedPercent": -16.263469142447985,
+      "work": {
+        "reference": {
+          "iterations": 2497,
+          "factorizations": 4388,
+          "maxSubdivisions": 4
+        },
+        "reduced": {
+          "iterations": 3941,
+          "factorizations": 5932,
+          "maxSubdivisions": 1
+        }
+      }
+    },
+    {
+      "reason": "Limit eight increased iterations and factorizations relative to the selected contact recovery strategy.",
+      "steps": 600,
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.02,
+        "maxArcLoss": 0.0001,
+        "maxTurn": 0.06,
+        "contactMargin": 0.01,
+        "tipLength": 80,
+        "tipRefinementAhead": 80,
+        "contactMaxSpacing": 10
+      },
+      "contactOptions": {
+        "recoverNegativeContact": true,
+        "newtonActiveSetLimit": 8
+      },
+      "passed": true,
+      "physicalCertificatesPassed": true,
+      "maxShapeDifferenceMm": 0.04935269260350567,
+      "maxTipDifferenceMm": 0.006566302333985313,
+      "summary": {
+        "reference": {
+          "steps": 600,
+          "totalMs": 14472.053675999965,
+          "medianMs": 16.476417000001675,
+          "p95Ms": 63.52145799999926,
+          "maxMs": 293.69316700000127,
+          "cpuStepsPerSecond": 41.459216047202936,
+          "withinBudget": 312,
+          "minNodes": 204,
+          "maxNodes": 207,
+          "maxPenetrationMm": 7.719741068612507e-09,
+          "maxLengthError": 1.7639223415244487e-13,
+          "maxCertificateBound": 9.993825074161578e-07,
+          "maxSpeed": 21.613441219624374
+        },
+        "reduced": {
+          "steps": 600,
+          "totalMs": 11955.525246000016,
+          "medianMs": 14.698792000002868,
+          "p95Ms": 46.37233300000025,
+          "maxMs": 317.20108400000026,
+          "cpuStepsPerSecond": 50.18600083678827,
+          "withinBudget": 408,
+          "minNodes": 173,
+          "maxNodes": 183,
+          "maxPenetrationMm": 9.515294441264643e-09,
+          "maxLengthError": 2.4350891673185795e-13,
+          "maxCertificateBound": 9.925723816195386e-07,
+          "maxSpeed": 21.609853211210567
+        }
+      },
+      "report": "001-authorized-active-set-eight.json",
+      "cpuSavedPercent": 17.388882644716052,
+      "work": {
+        "reference": {
+          "iterations": 2497,
+          "factorizations": 4388,
+          "maxSubdivisions": 4
+        },
+        "reduced": {
+          "iterations": 2399,
+          "factorizations": 3560,
+          "maxSubdivisions": 1
+        }
+      }
+    },
+    {
+      "reason": "Shorter guards passed screening but did not show a compelling gain; retain the 80 mm tip guards.",
+      "steps": 300,
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.02,
+        "maxArcLoss": 0.0001,
+        "maxTurn": 0.06,
+        "contactMargin": 0.01,
+        "tipLength": 40,
+        "tipRefinementAhead": 40,
+        "contactMaxSpacing": 10
+      },
+      "contactOptions": {
+        "recoverNegativeContact": true
+      },
+      "passed": true,
+      "physicalCertificatesPassed": true,
+      "maxShapeDifferenceMm": 0.05710692491229055,
+      "maxTipDifferenceMm": 0.012066297020354525,
+      "summary": {
+        "reference": {
+          "steps": 300,
+          "totalMs": 6894.0785019999985,
+          "medianMs": 15.989666999999827,
+          "p95Ms": 47.13000000000011,
+          "maxMs": 278.2162079999998,
+          "cpuStepsPerSecond": 43.51560544501616,
+          "withinBudget": 163,
+          "minNodes": 204,
+          "maxNodes": 207,
+          "maxPenetrationMm": 9.09027297879561e-11,
+          "maxLengthError": 1.7639223415244487e-13,
+          "maxCertificateBound": 9.993825074161578e-07,
+          "maxSpeed": 21.613441219624374
+        },
+        "reduced": {
+          "steps": 300,
+          "totalMs": 5255.145135000015,
+          "medianMs": 14.41833299999962,
+          "p95Ms": 37.7036250000001,
+          "maxMs": 74.2484170000007,
+          "cpuStepsPerSecond": 57.08691050261529,
+          "withinBudget": 211,
+          "minNodes": 172,
+          "maxNodes": 183,
+          "maxPenetrationMm": 1.7141843500212417e-13,
+          "maxLengthError": 3.1974423108864023e-13,
+          "maxCertificateBound": 9.986835607378453e-07,
+          "maxSpeed": 21.60985315384498
+        }
+      },
+      "report": "001-authorized-tip-guard-40.json",
+      "cpuSavedPercent": 23.77305924968105,
+      "work": {
+        "reference": {
+          "iterations": 1294,
+          "factorizations": 2848,
+          "maxSubdivisions": 4
+        },
+        "reduced": {
+          "iterations": 1257,
+          "factorizations": 2229,
+          "maxSubdivisions": 1
+        }
+      }
+    }
+  ],
+  "browser": {
+    "reference": {
+      "report": "001-browser-full-idle-600.json",
+      "recordedAt": "2026-10-15T13:57:11.822Z",
+      "mechanicalModel": "full",
+      "adaptiveMesh": null,
+      "targetSteps": 600,
+      "options": {
+        "contactCandidateMargin": 0.01,
+        "deferActiveBasis": true,
+        "lazyBasisCoefficients": true,
+        "wasmBasis": true,
+        "reuseFrictionAssembly": true,
+        "reuseRejectedWorkingSet": true
+      },
+      "workSliceMs": 12,
+      "scheduler": "runPhysicsFrameBudget + runPhysicsIdleBudget",
+      "idleCatchup": true,
+      "idleSteps": 97,
+      "idleSlices": 657,
+      "passed": true,
+      "acceptedPhysicsHz": 50.980958612371545,
+      "renderFps": 60.15753116259842,
+      "wallSeconds": 11.769099999904633,
+      "simulationSeconds": 10,
+      "stepCpuMs": {
+        "median": 13.999999761581421,
+        "p95": 37.89999985694885,
+        "max": 235.00000071525574
+      },
+      "browserBudgetMet": false,
+      "goalAchieved": false,
+      "acceptedSteps": 600,
+      "totalCpuMs": 10886.30000114441
+    },
+    "candidate": [
+      {
+        "report": "001-browser-wide-contact-idle.json",
+        "recordedAt": "2026-10-15T13:53:10.030Z",
+        "mechanicalModel": "reduced-wide-contact",
+        "adaptiveMesh": {
+          "maxSpacing": 20,
+          "shapeTolerance": 0.02,
+          "maxArcLoss": 0.0001,
+          "maxTurn": 0.06,
+          "contactMargin": 0.01,
+          "tipLength": 80,
+          "tipRefinementAhead": 80,
+          "contactMaxSpacing": 20
+        },
+        "targetSteps": 600,
+        "options": {
+          "contactCandidateMargin": 0.01,
+          "deferActiveBasis": true,
+          "lazyBasisCoefficients": true,
+          "wasmBasis": true,
+          "reuseFrictionAssembly": true,
+          "reuseRejectedWorkingSet": true,
+          "recoverNegativeContact": true
+        },
+        "workSliceMs": 12,
+        "scheduler": "runPhysicsFrameBudget + runPhysicsIdleBudget",
+        "idleCatchup": true,
+        "idleSteps": 104,
+        "idleSlices": 374,
+        "passed": true,
+        "acceptedPhysicsHz": 59.95203836930456,
+        "renderFps": 59.852118305355724,
+        "wallSeconds": 10.008,
+        "simulationSeconds": 10,
+        "stepCpuMs": {
+          "median": 11.600000143051147,
+          "p95": 22.299999952316284,
+          "max": 111.19999980926514
+        },
+        "browserBudgetMet": true,
+        "goalAchieved": false,
+        "acceptedSteps": 600,
+        "totalCpuMs": 8222.099997282028
+      },
+      {
+        "report": "001-browser-wide-contact-idle-confirmation.json",
+        "recordedAt": "2026-10-15T13:57:41.832Z",
+        "mechanicalModel": "reduced-wide-contact",
+        "adaptiveMesh": {
+          "maxSpacing": 20,
+          "shapeTolerance": 0.02,
+          "maxArcLoss": 0.0001,
+          "maxTurn": 0.06,
+          "contactMargin": 0.01,
+          "tipLength": 80,
+          "tipRefinementAhead": 80,
+          "contactMaxSpacing": 20
+        },
+        "targetSteps": 600,
+        "options": {
+          "contactCandidateMargin": 0.01,
+          "deferActiveBasis": true,
+          "lazyBasisCoefficients": true,
+          "wasmBasis": true,
+          "reuseFrictionAssembly": true,
+          "reuseRejectedWorkingSet": true,
+          "recoverNegativeContact": true
+        },
+        "workSliceMs": 12,
+        "scheduler": "runPhysicsFrameBudget + runPhysicsIdleBudget",
+        "idleCatchup": true,
+        "idleSteps": 105,
+        "idleSlices": 303,
+        "passed": true,
+        "acceptedPhysicsHz": 59.98980173341926,
+        "renderFps": 60.18976773919733,
+        "wallSeconds": 10.001700000047684,
+        "simulationSeconds": 10,
+        "stepCpuMs": {
+          "median": 11.5,
+          "p95": 18.59999990463257,
+          "max": 81.89999961853027
+        },
+        "browserBudgetMet": true,
+        "goalAchieved": false,
+        "acceptedSteps": 600,
+        "totalCpuMs": 7706.1000010967255
+      }
+    ],
+    "consoleErrors": [],
+    "proof": [
+      "001-browser-wide-contact-idle.jpg",
+      "001-browser-wide-contact-idle-confirmation.jpg"
+    ]
+  },
+  "scheduler": {
+    "implementation": "Existing inter-frame policy extracted into runPhysicsIdleBudget and shared by main simulator and benchmark.",
+    "qualification": "Not an additional production speedup: main app already used idle time. Old frame-only measurements are not directly comparable."
+  },
+  "validation": {
+    "regressionsLog": "001-wide-contact-regressions.log",
+    "sharedClockTestsLog": "001-shared-idle-budget-tests.log",
+    "buildLog": "001-shared-idle-budget-build.log",
+    "diffCheckPassed": true,
+    "regressionCounts": {
+      "tests": 60,
+      "pass": 60,
+      "fail": 0
+    }
+  },
+  "limitations": [
+    "Starts from saved final crossover with 30 hold, 20 withdrawal, 20 advance and 530 settling steps, not the entire manual maneuver.",
+    "Browser preview renders axes, not full fluoroscopy. Reference and candidate use identical frame and idle budgets.",
+    "The measured 0.1 mm global trajectory gate is not guaranteed by a local 0.02 mm mesh threshold for every maneuver.",
+    "Contact-region 20 mm denotes mechanical element length, not collision sample spacing.",
+    "CPU throughput and accepted browser step rate are distinct measurements."
+  ],
+  "sourceHashes": {
+    "tests/helpers/crossoverReducedModel.js": "cb33b94c18f5042d033cdf0ac79600e7b2aa2703b04f35cc7123cd1b0674e5d5",
+    "tests/crossoverPhysics.browser.html": "c91db492983418f271bbce44057443339735c1a3d534c02ad2f07328a372d817",
+    "scripts/benchmark-crossover-reduced-model.mjs": "9f5948c19a520e9c76b51cebc38d9d2a64b640bc2e02e462b75a77888ad1c074",
+    "src/physics/physicsFrameBudget.js": "e0b510b722c3190358ee3e1ae9e0f7fa42a84d8494e63b2a4e0fec4b1ec166f8",
+    "src/physics/kirchhoffSharedAxisAdaptiveMesh.js": "9f5592f31bd3c01726d80f3785f15fdc8111ce86921bcbeaf1217836e7617865",
+    "src/physics/kirchhoffSharedAxisNative.js": "87ab104cee65e1d0a545debb619083b5e1f138b864e05e9c3b5c24810702b0db",
+    "src/physics/kirchhoffSharedAxisLinear.js": "71adf60c58c065a2760d4341bc8a769c86acbf9b341147b5a097df9d87616c70",
+    "src/simulator.js": "eaa1ac65258ebb08ce9bb264f83ccc1ffdb84d9b493836aac9d8537b5a04900c"
+  }
+}

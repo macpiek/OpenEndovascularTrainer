@@ -1,0 +1,346 @@
+--- a/src/physics/kirchhoffIncrementalContactLU.js
++++ b/src/physics/kirchhoffIncrementalContactLU.js
+@@ -15,13 +15,17 @@
+ // General row updates A = B + U V^T; retain a pivoted band LU of B.
+ // This workspace belongs to exactly one immutable linearization.
+ export function createIncrementalContactLU(layout,count,{maxRank=8}={}) {
+-    if(!Number.isInteger(maxRank)||maxRank<0||maxRank>16)throw new RangeError('Invalid contact update rank');
++    if(!Number.isInteger(maxRank)||maxRank<0||maxRank>64)throw new RangeError('Invalid contact update rank');
+     const {starts,ends,offsets,kl,ku}=layout,stride=2*kl+ku+1;
+-    const lease=acquire(8*count*(stride+kl+4)+128),{kernel,buffer}=lease;
++    const lease=acquire(8*count*(stride+kl+8)+8*layout.entries+256),{kernel,buffer}=lease;
+     let cursor=0,disposed=false;
+     const alloc=(Type,length)=>{cursor=Math.ceil(cursor/8)*8;const v=new Type(buffer,cursor,length);cursor+=v.byteLength;return v;};
+     const factor=alloc(Float64Array,count*stride),rhs=alloc(Float64Array,count),
+-        right=alloc(Int32Array,count),pivots=alloc(Int32Array,count),lower=alloc(Float64Array,count*kl);
++        right=alloc(Int32Array,count),pivots=alloc(Int32Array,count),lower=alloc(Float64Array,count*kl),
++        original=alloc(Float64Array,layout.entries),input=alloc(Float64Array,count),
++        scaling=alloc(Float64Array,count),first=alloc(Int32Array,count),last=alloc(Int32Array,count),offset=alloc(Int32Array,count),
++        physical=alloc(Float64Array,count),error=alloc(Float64Array,count),norms=alloc(Float64Array,5);
++    first.set(starts);last.set(ends);offset.set(offsets);
+     const base=new Float64Array(layout.entries),scale=new Float64Array(count),x=new Float64Array(count);
+     let valid=false;const columns=new Map();
+     const diagnostics={factorizations:0,updates:0,reuses:0,backsolves:0,updateFailures:0,rankResets:0,
+@@ -32,22 +36,21 @@
+         diagnostics.backsolves++;
+     }
+     function certify(J,F) {
+-        let err=0,normA=0,normF=0,normX=0;
+-        for(let i=0;i<count;i++) {
+-            let v=F[i],row=0;
+-            for(let j=starts[i];j<=ends[i];j++){const a=J[offsets[i]+j];v+=a*x[j];row+=Math.abs(a);}
+-            err=Math.max(err,Math.abs(v));normA=Math.max(normA,row);normF=Math.max(normF,Math.abs(F[i]));normX=Math.max(normX,Math.abs(x[i]));
+-        }
+-        const error=err/Math.max(Number.MIN_VALUE,normA*normX+normF);
+-        if(Number.isFinite(error))diagnostics.maximumBackwardError=Math.max(diagnostics.maximumBackwardError,error);
+-        return Number.isFinite(error)&&error<=64*Math.max(1,count)*Number.EPSILON&&x.every(Number.isFinite);
++        original.set(J);input.set(F);
++        for(let i=0;i<count;i++)rhs[i]=x[i]/scale[i];
++        kernel.measureGeneralBandLU(original.byteOffset,input.byteOffset,scaling.byteOffset,
++            first.byteOffset,last.byteOffset,offset.byteOffset,factor.byteOffset,rhs.byteOffset,
++            right.byteOffset,count,stride,kl,norms.byteOffset,0);
++        const backward=norms[0]/Math.max(Number.MIN_VALUE,norms[1]*norms[3]+norms[2]);
++        if(Number.isFinite(backward))diagnostics.maximumBackwardError=Math.max(diagnostics.maximumBackwardError,backward);
++        return Number.isFinite(backward)&&backward<=64*Math.max(1,count)*Number.EPSILON&&x.every(Number.isFinite);
+     }
+     function fresh(J,F,scales) {
+         valid=false;columns.clear();base.set(J);scale.set(scales);factor.fill(0);right.set(ends);
+-        for(let i=0;i<count;i++) {
+-            rhs[i]=-F[i]*scale[i];const target=i*stride+kl-i;
+-            for(let j=starts[i];j<=ends[i];j++)factor[target+j]=J[offsets[i]+j]*scale[i]*scale[j];
+-        }
++        original.set(J);input.set(F);scaling.set(scale);
++        kernel.prepareGeneralBandLU(original.byteOffset,input.byteOffset,scaling.byteOffset,
++            first.byteOffset,last.byteOffset,offset.byteOffset,factor.byteOffset,rhs.byteOffset,
++            right.byteOffset,count,stride,kl,0);
+         diagnostics.factorizations++;
+         if(kernel.factorRetainedGeneralBandLU(factor.byteOffset,rhs.byteOffset,right.byteOffset,count,kl,ku,pivots.byteOffset,lower.byteOffset)<0)return false;
+         for(let i=0;i<count;i++)x[i]=rhs[i]*scale[i];
+@@ -59,7 +62,7 @@
+         const n=changed.length,z=changed.map(row=>{
+             let col=columns.get(row);if(col)return col;
+             rhs.fill(0);rhs[row]=scale[row];col=new Float64Array(count);backsolve(col);
+-            if(columns.size<32)columns.set(row,col);return col;
++            if(columns.size<Math.max(32,2*maxRank))columns.set(row,col);return col;
+         });
+         const small=new Float64Array(n*n),c=new Float64Array(n);
+         for(let i=0;i<n;i++) {
+@@ -82,7 +85,13 @@
+         if(!certify(J,F))return false;
+         diagnostics.updates++;return true;
+     }
+-    return {diagnostics,dispose() {if(!disposed){disposed=true;valid=false;if(idle.length<2&&lease.buffer.byteLength<=4*1024*1024)idle.push(lease);}},inverse(input,out) {
++    return {diagnostics,measureOriginalResidual(solution,out,F) {
++        if(disposed)throw new Error('Released incremental LU lease');
++        physical.set(solution);input.set(F);
++        const residual=kernel.measureOriginalBandResidual(original.byteOffset,input.byteOffset,physical.byteOffset,
++            first.byteOffset,last.byteOffset,offset.byteOffset,error.byteOffset,count);
++        out.set(error);return residual;
++    },dispose() {if(!disposed){disposed=true;valid=false;if(idle.length<2&&lease.buffer.byteLength<=4*1024*1024)idle.push(lease);}},inverse(input,out) {
+         if(!valid)return false;
+         for(let i=0;i<count;i++)rhs[i]=input[i]*scale[i];
+         backsolve(out);return out.every(Number.isFinite);
+--- a/src/physics/kirchhoffBorderedContactUpdates.js
++++ b/src/physics/kirchhoffBorderedContactUpdates.js
+@@ -6,10 +6,11 @@
+     const indexSet=new Set(indices),baseF=w.residual.slice(),matrix=w.matrix.slice(),{primal,dual,count,band}=w;
+     const {starts,ends,offsets}=band,invCache=new Map(),fixed=w.fixed.slice();
+     const diagnostics={updates:0,rejections:0,rankResets:0,ranks:{}};
+-    const dot=(a,b)=>{let v=0;for(let i=0;i<count;i++)v+=a[i]*b[i];return v;};
++    const sparse=a=>{const index=[],value=[];for(let i=0;i<a.length;i++)if(a[i]!==0){index.push(i);value.push(a[i]);}return {index,value};};
++    const dot=(a,b)=>{let v=0;for(let k=0;k<a.index.length;k++)v+=a.value[k]*b[a.index[k]];return v;};
+     function inverseColumn(key,column) {
+         let result=invCache.get(key);
+-        if(!result){result=new Float64Array(count);if(!lu.inverse(column,result))return null;if(invCache.size<32)invCache.set(key,result);}
++        if(!result){result=new Float64Array(count);if(!lu.inverse(column,result))return null;if(invCache.size<64)invCache.set(key,result);}
+         return result;
+     }
+     function smallSolve(A,b,n) {
+@@ -34,15 +35,15 @@
+             const d=dual[i],column=new Float64Array(count),equation=new Float64Array(count);column[d]=1;
+             for(let j=starts[d];j<=ends[d];j++)equation[j]=-matrix[offsets[d]+j];equation[d]+=1;
+             F[d]=rows[indices[i]].multiplier;
+-            columns.push(column);equations.push(equation);responses.push(inverseColumn(`remove/${i}`,column));
++            columns.push(sparse(column));equations.push(sparse(equation));responses.push(inverseColumn(`remove/${i}`,column));
+         }
+         for(const index of added) {
+             const r=rows[index],column=new Float64Array(count),equation=new Float64Array(count),sign=r.kind==='wall'?-1:1;
+             for(let k=0;k<r.dofs.length;k++){const p=primal[r.dofs[k]];if(!fixed[p]){column[p]+=sign*r.jacobian[k];equation[p]+=r.jacobian[k];}}
+             for(let k=0;k<(r.extraForceDofs?.length??0);k++){const p=primal[r.extraForceDofs[k]];if(!fixed[p])column[p]+=r.extraForceJacobian[k];}
+             // This reaction was eliminated from the base's primal RHS.
+-            for(let i=0;i<count;i++)F[i]+=r.multiplier*column[i];
+-            columns.push(column);equations.push(equation);responses.push(inverseColumn(`add/${index}`,column));
++            for(let i=0;i<count;i++)if(column[i]!==0)F[i]+=r.multiplier*column[i];
++            columns.push(sparse(column));equations.push(sparse(equation));responses.push(inverseColumn(`add/${index}`,column));
+         }
+         if(responses.some(v=>v===null))return reject();
+         const small=new Float64Array(rank*rank);
+@@ -62,15 +63,32 @@
+         let residual=Infinity;
+         for(let attempt=0;attempt<3;attempt++) {
+             const error=new Float64Array(count),bottom=new Float64Array(added.length);residual=0;
+-            for(let i=0;i<count;i++) {
+-                let sum=F[i],correction=0;
+-                const add=v=>{const next=sum+v;correction+=Math.abs(sum)>=Math.abs(v)?(sum-next)+v:(v-next)+sum;sum=next;};
+-                for(let j=starts[i];j<=ends[i];j++)add(matrix[offsets[i]+j]*x[j]);
+-                for(let j=0;j<removed.length;j++)if(i===dual[removed[j]])add(dot(equations[j],x));
+-                for(let j=removed.length;j<rank;j++)add(columns[j][i]*c[j]);
+-                error[i]=sum+correction;residual=Math.max(residual,Math.abs(error[i]));
++            lu.measureOriginalResidual(x,error,F);
++            for(let j=0;j<removed.length;j++) {
++                const d=dual[removed[j]];error[d]=F[d]+x[d];
+             }
++            for(let j=removed.length;j<rank;j++) {
++                const col=columns[j];
++                for(let k=0;k<col.index.length;k++)error[col.index[k]]+=col.value[k]*c[j];
++            }
++            for(let i=0;i<count;i++)residual=Math.max(residual,Math.abs(error[i]));
+             for(let j=0;j<added.length;j++){bottom[j]=dot(equations[j+removed.length],x)+rows[added[j]].gap;residual=Math.max(residual,Math.abs(bottom[j]));}
++            if(residual>tolerance) {
++                // Recover cancellation accuracy before refining or rejecting;
++                // preserve the complete original physical equation certificate.
++                residual=0;
++                for(let i=0;i<count;i++) {
++                    let sum=F[i],correction=0;
++                    const add=v=>{const next=sum+v;correction+=Math.abs(sum)>=Math.abs(v)?(sum-next)+v:(v-next)+sum;sum=next;};
++                    for(let j=starts[i];j<=ends[i];j++)add(matrix[offsets[i]+j]*x[j]);
++                    for(let j=0;j<removed.length;j++)if(i===dual[removed[j]])add(dot(equations[j],x));
++                    for(let j=removed.length;j<rank;j++) {
++                        const col=columns[j],k=col.index.indexOf(i);if(k>=0)add(col.value[k]*c[j]);
++                    }
++                    error[i]=sum+correction;residual=Math.max(residual,Math.abs(error[i]));
++                }
++                for(let j=0;j<bottom.length;j++)residual=Math.max(residual,Math.abs(bottom[j]));
++            }
+             if(!Number.isFinite(residual))return reject();
+             if(residual<=tolerance)break;
+             if(attempt===2)return reject();
+--- a/src/physics/kirchhoffSharedAxisLinear.js
++++ b/src/physics/kirchhoffSharedAxisLinear.js
+@@ -259,7 +259,7 @@
+     // Certify the original unscaled equations, refining the solution when
+     // material stiffness / a short edge makes forward error significant.
+     try { for (let attempt = 0; attempt < 3; attempt++) {
+-        residual = wasmLinear?lu.measureOriginalResidual(w.solution,w.error,F):null;
++        residual = lu.measureOriginalResidual?.(w.solution,w.error,F)??null;
+         if(residual===null) {
+         residual = 0;
+         for (let i = 0; i < w.count; i++) {
+@@ -460,6 +460,10 @@
+             w.increment.set(saved.increment);w.multiplierIncrement.set(saved.multiplierIncrement);
+             result={...saved,increment:w.increment,multiplierIncrement:w.multiplierIncrement,factorizations:0};workingSetReuses++;
+         } else {
++            if(options.incrementalContacts==='tail'&&attempt>=8&&!options.incrementalContext) {
++                materializeSharedAxisContacts(options.rows);
++                options.incrementalContext=options.incrementalLease;
++            }
+             result=options.compactWorkingSet===false?solveSharedAxisLinearOnce(w,chain,{...options,activeSet}):
+                 solveCompactWorkingSet(w,chain,options,activeSet);
+             // Numerical rejection is deterministic for these immutable
+@@ -562,7 +566,7 @@
+     // Numerical Jacobian prefixes may survive another solve only after exact
+     // support/Jacobian/fixed-mask validation. Matrix and solution caches below
+     // remain local to this immutable linearization.
+-    options={...options,matrixAssembly:options.reuseMatrixAssembly?{rows:options.rows}:null,supportKeyCache:options.reuseConstraintWork?new Map():null,...(options.incrementalContacts?{...(options.incrementalContacts==='full'?{compactWorkingSet:false}:{}),incrementalContext:{maxRank:options.incrementalMaxRank??8,workspaces:new Map(),borderDiagnostics:[],allDiagnostics:[]}}:{}),basisCache:undefined};
++    options={...options,matrixAssembly:options.reuseMatrixAssembly?{rows:options.rows}:null,supportKeyCache:options.reuseConstraintWork?new Map():null,...(options.incrementalContacts?{...(options.incrementalContacts==='full'?{compactWorkingSet:false}:{}),[options.incrementalContacts==='tail'?'incrementalLease':'incrementalContext']:{maxRank:options.incrementalMaxRank??(options.incrementalContacts==='tail'?32:8),workspaces:new Map(),borderDiagnostics:[],allDiagnostics:[]}}:{}),basisCache:undefined};
+     try {
+         const first=yield* iterateActiveSet(w,chain,options,batchSize,solutionCache);
+         const incrementalStats=()=>options.incrementalContext?{incrementalStats:structuredClone(options.incrementalContext.allDiagnostics),borderedStats:structuredClone(options.incrementalContext.borderDiagnostics)}:{};
+@@ -580,7 +584,7 @@
+             batchAttempts:failedAttempts,referenceAttempts:reference.activeSetAttempts};
+         failedCache?.remember(chain,incomingOptions,result,solutionCache);
+         return result;
+-    } finally {for(const lu of options.incrementalContext?.workspaces.values()??[])lu.dispose();}
++    } finally {for(const lu of (options.incrementalContext??options.incrementalLease)?.workspaces.values()??[])lu.dispose();}
+ }
+ 
+ /** Yield between active-set/LU attempts while preserving the synchronous API.
+@@ -588,7 +592,7 @@
+ export function* iterateSharedAxisLinear(w,chain,options) {
+     const condensationStats=options.condenseCompliantContacts?{attempts:0,eliminatedRows:0,fallbacks:0}:null;
+     if(condensationStats)options={...options,condensationStats};
+-    if(options.compactWorkingSet===false||options.incrementalContacts||options.modifiedNewtonContext||options.observeLinearSystem)materializeSharedAxisContacts(options.rows);
++    if(options.compactWorkingSet===false||options.incrementalContacts&&options.incrementalContacts!=='tail'||options.modifiedNewtonContext||options.observeLinearSystem)materializeSharedAxisContacts(options.rows);
+     options.observeLinearSystem?.({chain,options});
+     options.rows.forEach(r=>{
+         validateExtraForce(r,chain.layout.dofCount);
+@@ -628,7 +632,7 @@
+     // this linearization. Omit only equations that are exactly constant and
+     // feasible, never a merely small coefficient or a deferred wall witness.
+     if(options.eliminateConstantRows===false||!options.reuseConstraintWork||options.compactWorkingSet===false||
+-        options.incrementalContacts||options.modifiedNewtonContext||options.observeLinearSystem||options.trace)return null;
++        options.incrementalContacts&&options.incrementalContacts!=='tail'||options.modifiedNewtonContext||options.observeLinearSystem||options.trace)return null;
+     const rows=options.rows,indices=[];
+     for(let i=0;i<rows.length;i++) {
+         const r=rows[i];
+--- a/src/physics/kirchhoffSharedAxisAppSystem.js
++++ b/src/physics/kirchhoffSharedAxisAppSystem.js
+@@ -30,6 +30,9 @@
+  */
+ export function createSharedAxisAppSystem({readTools,readSheath,readBloodFlow=()=>null,readFrozenBloodFlow=()=>undefined,workSliceMs=4,adaptiveMesh=null,reuseFrictionAssembly=null,wasmLinearAssembly=true,lazyBasisCoefficients=false,wasmBasis=false,deferActiveBasis=false,earlyPredictorFallback=false,modifiedNewton=false,coupledFrictionNewton=false,predictiveNewton=true,onRejectedStep=null,retainDiscoveryCertificates=true,continuousDiscoverySign=false,certifiedDiscoverySamples=false,continuousSegmentContacts=false,projectiveDynamics=false,pruneInactiveWitnesses=false,contactCandidateMargin,physicsOptions=SHARED_AXIS_APP_PHYSICS_OPTIONS}) {
+     adaptiveMesh=adaptiveMeshOptions(adaptiveMesh);
++    if(physicsOptions.incrementalContactsMinInsertion!==undefined&&
++        !(Number.isFinite(physicsOptions.incrementalContactsMinInsertion)&&physicsOptions.incrementalContactsMinInsertion>=0))
++        throw new RangeError('Invalid incremental contact insertion threshold');
+     modifiedNewton=modifiedNewton&&!projectiveDynamics;
+     coupledFrictionNewton=coupledFrictionNewton&&!projectiveDynamics;
+     // A friction chart refresh changes the wall law, not the accepted pose.
+@@ -196,9 +199,19 @@
+                 const key=JSON.stringify({bloodFlow:frozenBloodFlow?.time??flowNetwork?.time??null,capture,graftRevision:graftSurface?.revision??0,tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
+                 if(key===failedKey)return failedResult;
+                 if(state&&key===lastKey&&sleepFrames>=10)return {accepted:true,dt,status:'sleeping',diagnostics:{...diagnostics}};
+-                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,adaptiveMesh,physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,
++                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,
++                    // Keep the complete reference path until a distal shaft
++                    // interval exists beyond the fine prefix and tip guard.
++                    adaptiveMesh:adaptiveMesh?.finePrefixLength!==undefined&&
++                        Math.max(...tools.map(t=>t.insertion))<=adaptiveMesh.finePrefixLength+adaptiveMesh.tipLength+5?null:adaptiveMesh,
++                    physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,
+                     sheath,sheathLength,flowNetwork,rotations:{...rotations},
+                     requestTools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation}))};
++                // Retention is optional on long systems; snapshot the decision
++                // with the other inputs before the cooperative solve can yield.
++                if(physicsOptions.incrementalContactsMinInsertion!==undefined&&
++                    tools.some(tool=>tool.insertion<physicsOptions.incrementalContactsMinInsertion))
++                    pending.physicsOptions={...pending.physicsOptions,incrementalContacts:false};
+                 if(frozenBloodFlow!==undefined)pending.physicsOptions={...pending.physicsOptions,bloodFlow:structuredClone(frozenBloodFlow)};
+             }
+             const start=performance.now();
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -223,11 +223,13 @@
+         coupledFrictionNewton:new URLSearchParams(window.location.search).get('fastNewton')!=='0',
+         predictiveNewton:new URLSearchParams(window.location.search).get('predictiveNewton')!=='0',
+         ...(crossoverBenchmarkMode?{
+-            adaptiveMesh:crossoverBenchmarkMode==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:null,
++            adaptiveMesh:new URLSearchParams(window.location.search).get('crossoverDistalMesh')==='1'?{...CROSSOVER_WIDE_CONTACT_MODEL,finePrefixLength:450}:crossoverBenchmarkMode==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:null,
+             contactCandidateMargin:.01,lazyBasisCoefficients:true,wasmBasis:true,deferActiveBasis:true,
+             reuseFrictionAssembly:true,coupledFrictionNewton:true,predictiveNewton:true,modifiedNewton:false,
+             pruneInactiveWitnesses:false,projectiveDynamics:false,
+             physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,forceTolerance:1e-6,lengthTolerance:1e-5,
++                ...(new URLSearchParams(window.location.search).get('crossoverContactUpdates')==='tail32'?{incrementalContacts:'tail'}:{}),
++                ...(new URLSearchParams(window.location.search).get('crossoverContactUpdates')==='tail32Long'?{incrementalContacts:'tail',incrementalContactsMinInsertion:400}:{}),
+                 ...(crossoverBenchmarkMode==='wide'?{recoverNegativeContact:true}:{})}
+         }:{}),
+         onReady:()=>runIdlePhysicsCatchup(synchronizedStep.epoch,false),
+--- a/tests/kirchhoffIncrementalContactLU.test.js
++++ b/tests/kirchhoffIncrementalContactLU.test.js
+@@ -104,3 +104,58 @@
+         }
+     }finally{anatomy.dispose();}
+ });
++
++
++test('tail retention leaves short searches unchanged and reuses only after repeated contact pivots',()=>{
++    for(const n of [4,32]) {
++        const layout={dofCount:n,band:1},chain={layout,hessian:new Float64Array(n).fill(2)};
++        const rows=Array.from({length:n},(_,i)=>({id:i,kind:'wall',dofs:[i],jacobian:[1],gap:-1-i/10,multiplier:0}));
++        const options={rows,gradient:new Float64Array(n),fixed:new Uint8Array(n),batchActivation:false,wasmLinearAssembly:true};
++        const reference=solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,options);
++        const actual=solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,{...options,incrementalContacts:'tail'});
++        assert.ok(actual.converged);assert.equal(actual.activeSetAttempts,reference.activeSetAttempts);
++        if(n<8)assert.equal(actual.factorizations,reference.factorizations);
++        else assert.ok(actual.factorizations<reference.factorizations);
++        for(const key of ['increment','multiplierIncrement'])for(let i=0;i<actual[key].length;i++)
++            assert.ok(Math.abs(actual[key][i]-reference[key][i])<1e-10);
++    }
++});
++
++test('retained residual uses the current original matrix and independent leases',()=>{
++    const f=fixture(),solver=createIncrementalContactLU(f.layout,f.n),direction=new Float64Array(f.n);
++    for(let step=0;step<3;step++) {
++        f.J[f.layout.offsets[2]+2]+=.1;
++        assert.ok(solver.solve(f.J,f.F,f.scales,0,direction));
++        const physical=Float64Array.from(direction,(v,i)=>v*f.scales[i]);physical[3]+=.1;
++        const error=new Float64Array(f.n),maximum=solver.measureOriginalResidual(physical,error,f.F);
++        let expectedMaximum=0;
++        for(let i=0;i<f.n;i++) {
++            let expected=f.F[i];for(let j=f.layout.starts[i];j<=f.layout.ends[i];j++)expected+=f.J[f.layout.offsets[i]+j]*physical[j];
++            assert.equal(error[i],expected);expectedMaximum=Math.max(expectedMaximum,Math.abs(expected));
++        }
++        assert.equal(maximum,expectedMaximum);
++    }
++    solver.dispose();assert.throws(()=>solver.measureOriginalResidual(direction,direction,f.F),/Released/);
++});
++
++test('larger retained contact rank avoids rebasing long searches with unchanged physical solution',()=>{
++ const n=80,layout={dofCount:n,band:1},chain={layout,hessian:new Float64Array(n).fill(2)};
++ const rows=Array.from({length:n},(_,i)=>({id:i,kind:'wall',dofs:[i],jacobian:[1],gap:-1-i/10,multiplier:0}));
++ const options={rows,gradient:new Float64Array(n),fixed:new Uint8Array(n),batchActivation:false,wasmLinearAssembly:true,incrementalContacts:'tail'};
++ const runs=[8,32].map(incrementalMaxRank=>solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,{...options,incrementalMaxRank}));
++ assert.ok(runs.every(r=>r.converged&&r.residual<=1e-8));assert.ok(runs[1].factorizations<runs[0].factorizations);
++ assert.equal(runs[1].activeSetAttempts,runs[0].activeSetAttempts);
++ for(const key of ['increment','multiplierIncrement'])for(let i=0;i<runs[0][key].length;i++)assert.ok(Math.abs(runs[0][key][i]-runs[1][key][i])<1e-10);
++ const f=fixture();assert.throws(()=>createIncrementalContactLU(f.layout,f.n,{maxRank:65}),/rank/);
++ const owner=createIncrementalContactLU(f.layout,f.n,{maxRank:32});compare(f,owner);owner.dispose();
++});
++
++test('cold tail mode preserves reference constant-row elimination before retained factors are needed',()=>{
++ const layout={dofCount:3,band:1},chain={layout,hessian:new Float64Array(3).fill(2)};
++ const rows=[{kind:'wall',dofs:[0],jacobian:[0],gap:1,multiplier:0},{kind:'wall',dofs:[1],jacobian:[1],gap:-1,multiplier:0}];
++ const options={rows,gradient:new Float64Array(3),fixed:new Uint8Array(3),reuseConstraintWork:true,wasmLinearAssembly:true};
++ const a=solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,options);
++ const b=solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,{...options,incrementalContacts:'tail'});
++ assert.ok(a.converged&&b.converged);assert.equal(b.constantRowsEliminated,a.constantRowsEliminated);assert.equal(b.constantRowsEliminated,1);
++ for(const key of ['increment','multiplierIncrement','residual','factorizations','activeSetAttempts'])assert.deepEqual(b[key],a[key]);
++});
+--- a/tests/kirchhoffSharedAxisAppSystem.test.js
++++ b/tests/kirchhoffSharedAxisAppSystem.test.js
+@@ -676,3 +676,17 @@
+     assert.equal(restored.wallSamples[1].candidateMargin,.01);
+     assert.equal(captureSharedAxisReplay(restored,events[0].sheath).contactCandidateMargin,.01);
+ });
++
++
++test('optional retained contact solve starts only when both tools reach its insertion threshold',()=>{
++    const events=[];
++    const f=fixture({workSliceMs:Infinity,onRejectedStep:e=>events.push(e),
++        physicsOptions:{liveWallNormalLoad:false,incrementalContacts:'tail',incrementalContactsMinInsertion:12}});
++    for(const insertions of [[11,13],[13,11],[12,12],[11,13]]) {
++        f.tools.forEach((tool,i)=>tool.insertion=insertions[i]);
++        f.controls.failQueries=1;finish(f);
++        assert.equal(events.at(-1).stepRequest.options.incrementalContacts,insertions.every(x=>x>=12)?'tail':false);
++    }
++    for(const threshold of [-1,NaN,Infinity])
++        assert.throws(()=>fixture({physicsOptions:{incrementalContactsMinInsertion:threshold}}),/insertion threshold/);
++});

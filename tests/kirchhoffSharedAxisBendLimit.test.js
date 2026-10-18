@@ -24,3 +24,27 @@ test('common bend limit blocks intrinsic curvature beyond 45 degrees and survive
         assert.ok(rows.some(r=>r.multiplier>0));assert.ok(rows.every(r=>r.gap>=-1e-5));
     }
 });
+
+test('owned bend scratch preserves derivatives across poses and alternating Hessian requests',()=>{
+    const storage={contact:{gap:NaN,jacobian:new Array(9)},hessian:null};
+    const other={contact:{gap:NaN,jacobian:new Array(9)},hessian:null};
+    const jacobian=storage.contact.jacobian,retained=[];
+    let hessian;
+    for(let i=0;i<80;i++){
+        const state={positions:[[0,-0,0],[4,.1*Math.sin(i),.2],[7,3*Math.cos(i*.17),.7]],coordinates:[0,5,10]};
+        for(const needHessian of [false,true,false,true]){
+            const expected=evaluateSharedAxisBendLimit({state,edge:0,needHessian},Math.PI/4);
+            const saved=structuredClone(expected);retained.push([expected,saved]);
+            const actual=evaluateSharedAxisBendLimit({state,edge:0,needHessian,contactStorage:storage},Math.PI/4);
+            assert.deepEqual(actual,expected);assert.equal(actual,storage.contact);assert.equal(actual.jacobian,jacobian);
+            if(needHessian){
+                if(hessian)assert.equal(actual.hessian,hessian);
+                hessian=actual.hessian;
+            }else assert.equal(actual.hessian,undefined,'A light measure cannot reuse an old tangent');
+            const owned=structuredClone(actual);
+            evaluateSharedAxisBendLimit({state:{positions:[[1,2,3],[2,4,5],[7,-2,1]],coordinates:[0,2,9]},edge:0,contactStorage:other},.2);
+            assert.deepEqual(actual,owned,'Independent contact records cannot alias scratch');
+        }
+    }
+    for(const [actual,saved]of retained)assert.deepEqual(actual,saved,'Standalone results own their derivatives');
+});

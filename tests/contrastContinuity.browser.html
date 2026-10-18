@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="pl">
+    <meta charset="utf-8" />
+    <title>Płynność kontrastu — porównanie</title>
+    <style>
+        body {
+            margin: 24px;
+            background: #10171e;
+            color: #e8eef3;
+            font: 15px system-ui;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        p {
+            color: #b3c0cb;
+        }
+        main {
+            display: flex;
+            gap: 16px;
+        }
+        section {
+            flex: 1;
+            min-width: 0;
+        }
+        canvas {
+            width: 100%;
+            height: auto;
+            border: 1px solid #334452;
+            border-radius: 8px;
+        }
+        h2 {
+            font-size: 16px;
+        }
+        button,
+        input {
+            accent-color: #52d2cd;
+        }
+        button {
+            padding: 8px 16px;
+            background: #213b49;
+            color: white;
+            border: 1px solid #4a687b;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        nav {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin: 16px 0;
+        }
+        input {
+            flex: 1;
+        }
+        output {
+            min-width: 55px;
+        }
+        #status {
+            min-height: 1.5em;
+        }
+        small {
+            display: block;
+            color: #a9bac7;
+            margin: 8px 0;
+        }
+    </style>
+    <h1>Płynność kontrastu w naczyniach</h1>
+    <p>
+        Ta sama dawka i geometria aorty. Podanie 600 mg jodu przez 0,5 s; potem obserwacja frontu i
+        wypłukiwania.
+    </p>
+    <nav>
+        <button id="play" disabled>Odtwórz</button
+        ><input
+            id="time"
+            aria-label="Czas symulacji"
+            type="range"
+            min="0"
+            max="6"
+            step="0.01"
+            value="1.5"
+            disabled
+        /><output>1,50 s</output>
+    </nav>
+    <main></main>
+    <p id="status">Ładowanie geometrii…</p>
+    <script type="module">
+        import * as THREE from 'three';
+        import { ContrastDebugPass } from '../src/contrast/contrastDebugPass.js';
+        import { decodeCollisionAsset } from '../src/physics/collision/collisionAssetFormat.js';
+        import { VesselContactField } from '../src/physics/collision/vesselContactField.js';
+        const query = new URLSearchParams(location.search),
+            baseline = query.get('baseline');
+        const asset = decodeCollisionAsset(
+            await (await fetch('/res/Aorta_infrarenal_aneurysm.collision.bin')).arrayBuffer()
+        );
+        // Match the simulator: anatomical coverage suppresses synthetic
+        // ostium sleeves that would protrude outside the actual lumen.
+        const contactField = new VesselContactField(asset);
+        const data = asset.arrays.centerlineSegments,
+            links = asset.arrays.centerlineEdges,
+            segments = [];
+        for (let i = 0; i < data.length; i += 9)
+            segments.push({
+                id: i / 9,
+                nodeStartId: links[(i / 9) * 2],
+                nodeEndId: links[(i / 9) * 2 + 1],
+                start: new THREE.Vector3(...data.slice(i, i + 3)),
+                end: new THREE.Vector3(...data.slice(i + 3, i + 6)),
+                radiusStart: data[i + 6],
+                radiusEnd: data[i + 7],
+                safeRadius: data[i + 8]
+            });
+        const versions = baseline
+            ? [
+                  [baseline, 'Przed zmianami'],
+                  ['', 'Po zmianach']
+              ]
+            : [['', 'Aktualny transport']];
+        const views = [];
+        for (const [base, title] of versions) {
+            const [{ HybridContrastSystem }, { ContrastVolumeRenderer }] = await Promise.all([
+                import(base + '/src/contrast/hybridContrastSystem.js'),
+                import(base + '/src/contrast/contrastVolumeRenderer.js')
+            ]);
+            const system = new HybridContrastSystem({
+                    centerlineSegments: segments,
+                    contactField,
+                    localOptions: { capacity: 16 }
+                }),
+                display = new ContrastVolumeRenderer(system);
+            display.setDebugMode(true);
+            for (const material of display.flowMesh.material)
+                material.uniforms.signalGain.value = 3;
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color('#070c11');
+            scene.add(display.group);
+            const line = new THREE.BufferGeometry().setFromPoints(
+                segments.flatMap((s) => [s.start, s.end])
+            );
+            scene.add(
+                new THREE.LineSegments(
+                    line,
+                    new THREE.LineBasicMaterial({
+                        color: '#658294',
+                        transparent: true,
+                        opacity: 0.15
+                    })
+                )
+            );
+            const camera = new THREE.OrthographicCamera(-70, 70, 100, -100, 0.1, 2000);
+            camera.position.set(0, -255, 600);
+            camera.lookAt(0, -255, 0);
+            const renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                preserveDrawingBuffer: true
+            });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+            renderer.setSize(490, 700);
+            const section = document.createElement('section'),
+                heading = document.createElement('h2'),
+                metrics = document.createElement('small');
+            heading.textContent = title;
+            section.append(heading, renderer.domElement, metrics);
+            document.querySelector('main').append(section);
+            const source = system.flowNetwork.findNearestLocation(
+                new THREE.Vector3(3, -212, 0),
+                {}
+            );
+            views.push({
+                system,
+                display,
+                debugPass: new ContrastDebugPass(display.group),
+                renderer,
+                scene,
+                camera,
+                metrics,
+                source,
+                frame: 0
+            });
+        }
+        function reset(v) {
+            const n = v.system.flowNetwork;
+            n.time = 0;
+            n.totalIodineMassMg = 0;
+            n.outletIodineMassMg = 0;
+            n._activeEdgeIndices.clear();
+            for (const e of n.edges) {
+                e.massMg.fill(0);
+                e.nextMassMg.fill(0);
+                e.meanConcentrationMgPerMm3 = 0;
+                e.active = false;
+            }
+            v.system.simulationTimeSeconds = 0;
+            v.system._solverAccumulator = 0;
+            v.display._flowSampleData.fill(0);
+            v.display._previousFlowConcentration.fill(0);
+            v.display._lastDisplayTime = undefined;
+            v.display._flowVolume?.current.fill(0);
+            v.display._flowVolume?.previous.fill(0);
+            v.display._flowVolume?.ownerCurrent?.fill(0);
+            v.display._flowVolume?.ownerPrevious?.fill(0);
+            v.display._flowVolume?.resetHistory?.();
+            v.frame = 0;
+        }
+        function draw(time) {
+            const end = Math.round(time * 60);
+            for (const v of views) {
+                if (v.frame > end) reset(v);
+                while (v.frame < end) {
+                    if (v.frame < 30)
+                        v.system.flowNetwork.depositIodine(
+                            v.source.edgeIndex,
+                            v.source.cellIndex,
+                            20
+                        );
+                    v.system.update(1 / 60);
+                    v.display.update({ reuseUnchanged: true });
+                    v.frame++;
+                }
+                v.display.update({ reuseUnchanged: true });
+                v.debugPass.render(v.renderer, v.scene, v.camera);
+                const n = v.system.flowNetwork;
+                v.metrics.textContent = `W naczyniach: ${n.getIodineMassMg().toFixed(2)} mg · odpływ: ${n.outletIodineMassMg.toFixed(2)} mg · bilans: ${(n.getIodineMassMg() + n.outletIodineMassMg).toFixed(2)} mg`;
+            }
+            document.querySelector('output').textContent = time.toFixed(2) + ' s';
+            document.querySelector('#status').textContent =
+                'Gotowe — render GPU, ta sama skala sygnału i ustawienie kamery.';
+        }
+        const slider = document.querySelector('#time'),
+            button = document.querySelector('#play');
+        slider.disabled = false;
+        button.disabled = false;
+        slider.value = query.get('time') ?? 1.5;
+        let playing = false,
+            last = 0,
+            playTime = Number(slider.value);
+        slider.addEventListener('input', () => {
+            playing = false;
+            button.textContent = 'Odtwórz';
+            draw(Number(slider.value));
+        });
+        button.onclick = () => {
+            playing = !playing;
+            button.textContent = playing ? 'Pauza' : 'Odtwórz';
+            last = performance.now();
+            if (playing && Number(slider.value) >= 6) slider.value = 0;
+            playTime = Number(slider.value);
+        };
+        function tick(now) {
+            if (playing && now - last >= 1000 / 30) {
+                playTime = Math.min(6, playTime + (now - last) / 1000);
+                slider.value = playTime;
+                draw(playTime);
+                last = now;
+                if (Number(slider.value) >= 6) {
+                    playing = false;
+                    button.textContent = 'Odtwórz';
+                }
+            }
+            requestAnimationFrame(tick);
+        }
+        draw(Number(slider.value));
+        requestAnimationFrame(tick);
+    </script>
+</html>

@@ -62,8 +62,6 @@ const SOLO_XPBD_SHAFT_MAX_BEND_ANGLE = 34.5;
 const PIGTAIL_XPBD_SOFT_TIP_MAX_BEND_ANGLE = 33.7;
 const BERENSTEIN_XPBD_SOFT_TIP_MAX_BEND_ANGLE = 24;
 
-const XPBD_SHAPE_ACTIVATION_LENGTH = 10;
-const XPBD_MIN_SHAPE_WEIGHT = 0.025;
 const XPBD_SOFT_TIP_LENGTH = PIGTAIL_ARC_LENGTH;
 const XPBD_SOFT_TIP_TRANSITION_LENGTH = 8;
 const BERENSTEIN_XPBD_SOFT_TIP_LENGTH = 24;
@@ -482,7 +480,6 @@ export class PigtailCatheter {
         const points = this.#buildCenterline();
         const count = Math.min(this._centerlinePointCount, body.count);
         const initializeKirchhoffFrames = this.physicsBody !== body || this.physicsActiveCount < 2;
-        let progressDelta = this.progress - this._xpbdProgress;
         if (this.physicsBody !== body || !this._xpbdLayoutX || this._xpbdLayoutX.length !== body.count) {
             if (this.physicsBody && this.physicsBody !== body) {
                 this.#releaseXpbdProximalFeed(this.physicsBody);
@@ -498,7 +495,6 @@ export class PigtailCatheter {
             this._xpbdLayoutCount = 0;
             this.physicsActiveCount = 0;
             this._xpbdProgress = this.progress;
-            progressDelta = 0;
             this._xpbdYieldsToWall = false;
 
         }
@@ -694,41 +690,10 @@ export class PigtailCatheter {
         }
 
         if (bodyTouchesWall) this._xpbdYieldsToWall = true;
-        const releasedPigtail =
-            this.type === CATHETER_TYPE_PIGTAIL &&
-            this.progress > this.guidewireInserted + 0.5;
-        const pigtailIdle =
-            Math.abs(this.motionCommand) <= 1e-6 &&
-            Math.abs(this.guidewireDelta) <= 1e-5;
-
-        const localPigtailContactOwner =
-            this.type === CATHETER_TYPE_PIGTAIL &&
-            (
-                releasedPigtail ||
-                (soloXpbd && pigtailIdle)
-            );
-        const localPigtailShapeStart = localPigtailContactOwner
-            ? Math.max(
-                this.#sheathSupportEnd(),
-                releasedPigtail ? this.guidewireInserted : 0,
-                this.progress - PIGTAIL_ARC_LENGTH
-            )
-            : Infinity;
         for (let index = 0; index < count; index++) {
             const point = points[index];
             const insertedDistance = this._centerlineDistances[index] ?? Infinity;
-            const shapeWeight = this.#xpbdShapeMemoryWeight(insertedDistance);
             const softTipWeight = this.#xpbdSoftTipWeight(insertedDistance);
-            let idealShapePoint = point;
-            if (shapeWeight > XPBD_MIN_SHAPE_WEIGHT) {
-                for (let freeIndex = 1; freeIndex < this.freeNodes.length; freeIndex++) {
-                    const freeNode = this.freeNodes[freeIndex];
-                    if (freeNode._xpbdIndex !== index) continue;
-                    idealShapePoint = freeNode.shapeTarget;
-                    break;
-                }
-            }
-
             const newlyActivated = index === insertedIndex || (
                 insertedIndex < 0 && index >= previousCount
             );
@@ -2114,25 +2079,6 @@ export class PigtailCatheter {
         return out.copy(frame.supportTip)
             .addScaledVector(frame.tangent, straightLength + Math.sin(theta) * radius)
             .addScaledVector(frame.normal, (Math.cos(theta) - 1) * radius);
-    }
-
-    #xpbdShapeMemoryWeight(insertedDistance) {
-        if (!Number.isFinite(insertedDistance) || insertedDistance <= 0) return 0;
-        const curvedTipLength =
-            catheterMaterialProfile(this.type).naturalArcLength;
-        const distalStart = Math.max(this.#sheathSupportEnd(), this.progress - curvedTipLength);
-        const distalWeight = smoothstep(
-            distalStart - 2,
-            distalStart + XPBD_SHAPE_ACTIVATION_LENGTH,
-            insertedDistance
-        );
-        if (this.guidewireInserted <= MIN_GUIDE_SUPPORT) return distalWeight;
-        const releaseWeight = smoothstep(
-            this.guidewireInserted + 0.5,
-            this.guidewireInserted + XPBD_SHAPE_ACTIVATION_LENGTH,
-            insertedDistance
-        );
-        return distalWeight * releaseWeight;
     }
 
     #xpbdSoftTipWeight(insertedDistance) {

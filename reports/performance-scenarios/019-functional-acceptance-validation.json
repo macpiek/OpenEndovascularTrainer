@@ -1,0 +1,67 @@
+{
+  "acceptanceMode": "functional",
+  "shapeDifferenceLimitMm": null,
+  "referenceUnchanged": true,
+  "changes": [
+    "Default replay records shape deviation but does not stop on a millimetre threshold",
+    "Physical checks and recorded input verification retained",
+    "Coarse branch checks at five milestones; no automatic claim of full maneuver verification",
+    "Browser timeline permits reviewing every accepted pose, not only the terminal state"
+  ],
+  "tests": {
+    "focusedRoot": {
+      "command": "node --test tests/crossoverScenarioRecording.test.js tests/crossoverFunctionalRoute.test.js",
+      "passed": 18
+    },
+    "researchRecorder": {
+      "passed": 16
+    },
+    "productionBuild": "passed"
+  },
+  "previousCompleteReplay": {
+    "report": "019-baseline-functional-validation.json",
+    "steps": 7507,
+    "routeChecksPassed": true,
+    "motionHz": 41.870130228693846,
+    "performanceTargetMet": false
+  },
+  "newBrowserXpbdTrial": {
+    "report": "019-xpbd-functional-validation.json",
+    "attemptedSteps": 7089,
+    "acceptedSteps": 7088,
+    "complete": false,
+    "routeChecks": [
+      {
+        "stage": 1,
+        "passed": true,
+        "wire": "ipsilateral",
+        "catheter": "aorta"
+      },
+      {
+        "stage": 2,
+        "passed": true,
+        "wire": "ipsilateral",
+        "catheter": "contralateral-common"
+      },
+      {
+        "stage": 3,
+        "passed": true,
+        "wire": "contralateral-internal",
+        "catheter": "contralateral-common"
+      },
+      {
+        "stage": 4,
+        "passed": false,
+        "wire": "ipsilateral",
+        "catheter": "ipsilateral"
+      }
+    ],
+    "wallThroughputHz": 31.392001417246114,
+    "maximumShapeDifferenceMm": 281.83915010350285,
+    "rejection": "xpbd-quality-limit at step 7089",
+    "applicationFpsVerified": false
+  },
+  "goalAchieved": false,
+  "productionPhysicsChangedThisTurn": false,
+  "next": "Prioritize a solver that preserves controllability of crossover. The current XPBD + closure loses contralateral routing at stage 4 with the original commands; large shape errors alone are no longer rejection criteria. Test adapted controls as a separately labeled maneuver if needed. Target 60 accepted common steps/s across moving stages in the full app."
+}

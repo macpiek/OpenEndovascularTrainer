@@ -32,3 +32,27 @@ test('deferred basis still rejects incompatible walls, and cancellation cannot c
     const r=solveSharedAxisLinear(w,f.chain,options);
     assert.equal(r.converged,false);assert.equal(r.failure,'incompatible-active-constraints');assert.deepEqual(f.rows,before);
 });
+
+test('deferred rank repair keeps current Jacobians across interleaved solves and in-place geometry updates',()=>{
+    const a=fixture([-1,-2],[1,1]),b=fixture([-3,-1],[1,1]);
+    // Reusing a fixed-mask identity must not make different Jacobians share
+    // numerical rank data, including when a generator resumes after a yield.
+    b.fixed=a.fixed;
+    const options=f=>({...f,tolerance:1e-9,deferActiveBasis:true,reuseConstraintWork:true,
+        reuseMatrixAssembly:true,lazyBasisCoefficients:true,wasmBasis:true});
+    const drain=it=>{let next;do{next=it.next();}while(!next.done);return next.value;};
+    for(let pass=0;pass<4;pass++) {
+        b.rows[1].jacobian[0]=pass%2?2:1;b.rows[1].gap=-4;
+        b.gradient[b.p]=-b.rows.reduce((sum,r)=>sum+r.jacobian[0],0);
+        const reference=solveSharedAxisLinear(createSharedAxisLinear(b.layout,b.rows),b.chain,
+            {...options(b),deferActiveBasis:false,reuseConstraintWork:false});
+        const it=iterateSharedAxisLinear(createSharedAxisLinear(b.layout,b.rows),b.chain,options(b));
+        assert.equal(it.next().done,false);
+        const other=solveSharedAxisLinear(createSharedAxisLinear(a.layout,a.rows),a.chain,options(a));
+        assert.equal(other.converged,true);
+        const actual=drain(it);
+        assert.equal(actual.converged,true);assert.ok(actual.residual<=1e-9);
+        assert.deepEqual(actual.increment,reference.increment);
+        assert.deepEqual(actual.multiplierIncrement,reference.multiplierIncrement);
+    }
+});

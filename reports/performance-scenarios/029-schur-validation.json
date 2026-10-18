@@ -1,0 +1,23 @@
+{
+  "experiment": "PD16 identity projection via certified banded Schur elimination",
+  "sourceManifest": "029-schur-source-manifest.json",
+  "sourceOverlay": "029-schur-source-overlay.tar.gz",
+  "servedSourceAudit": "029-schur-served-sources.json",
+  "pairedRecord": "029-schur-paired.json.gz",
+  "comparison": "029-schur-comparison.json",
+  "unitAndRegressionTests": 56,
+  "buildPassed": true,
+  "bothFullTrajectoriesAndCoarseRoutesPassed": true,
+  "acceptedStepsEach": 7507,
+  "matchedLong": {
+    "steps": 952,
+    "candidateMs": 33.57489496093838,
+    "controlMs": 33.28508403221098
+  },
+  "longStageCostReductionPercent": -0.8706930961836834,
+  "manualDefaultChanged": false,
+  "decision": "Do not promote for performance: no long-insertion whole-step gain demonstrated. Retain experimental opt-in and certified KKT fallback.",
+  "goalAchieved": false,
+  "nextInvestigation": "Defer active-basis rank preparation until a numerical solve actually needs rank repair; test original KKT without the new Schur branch.",
+  "interruptedEarlierAttempt": "The test page returned to initial state after step 1715 was observed; no completed report survived. A fresh complete paired run is archived."
+}

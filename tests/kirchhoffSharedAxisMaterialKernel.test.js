@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {createSharedAxisNative,assembleSharedAxisNative,applySharedAxisNativeIncrement} from '../src/physics/kirchhoffSharedAxisNative.js';
 import {sharedAxisMaterialKernelWorkspace} from '../src/physics/kirchhoffSharedAxisMaterialKernel.js';
 import {loadCoupledRuntimeAnatomy} from './helpers/coupledRuntimeFixture.js';
-import {restoreSharedAxisReplay,captureSharedAxisReplay} from './helpers/sharedAxisReplay.js';
+import {restoreSharedAxisReplay,captureSharedAxisReplay,assembleDiscoveredSharedAxis} from './helpers/sharedAxisReplay.js';
 import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
 
 test('batched Float64 material derivatives match every matrix entry for all tool types and scales',()=>{
@@ -62,7 +62,10 @@ test('WASM augments promoted geometry and refreshes changed material/reaction/po
         if(change==='reaction')s.multipliers[0]+=.1;
         if(change==='pose'){s.positions[3][0]+=.0001;s.geometryKey=Symbol('moved');}
         if(change==='material'){s.materials[0].body.kirchhoffBendCompliance1[2]*=2;s.geometryKey=Symbol('new-material');}
-        assembleSharedAxisNative(s,{withTangent:false,promotion,wasmMaterial:true});
+        // Replays retain their old wall witnesses. Resolve newly discovered
+        // contacts just as the production solver does, before comparing the
+        // two material kernels at the same pose and with the same row set.
+        assembleDiscoveredSharedAxis(s,{withTangent:false,promotion,wasmMaterial:true});
         const a=assembleSharedAxisNative(s,{wasmMaterial:false}),expected={g:s.chain.gradient.slice(),H:s.chain.tangent.slice()};
         const b=assembleSharedAxisNative(s,{promotion,wasmMaterial:true});
         assert.equal(a.energy,b.energy);assert.deepEqual(s.chain.gradient,expected.g);assert.deepEqual(s.chain.tangent,expected.H);

@@ -1,0 +1,278 @@
+--- a/src/physics/kirchhoffSharedAxisAdaptiveMesh.js
++++ b/src/physics/kirchhoffSharedAxisAdaptiveMesh.js
+@@ -53,8 +53,9 @@
+     return knots;
+ }
+ 
+-export function retainAdaptiveShapeSamples(coordinates, positions, previous, options) {
++export function retainAdaptiveShapeSamples(coordinates, positions, previous, options, {tools=[]}={}) {
+     if (!previous) return;
++    const fineTips=tools.map(tool=>({start:tool.insertion-tipLength(tool,options),end:tool.insertion+(options.tipRefinementAhead??0)}));
+     // Penalty cloth contacts have no active KKT rows. Preserve their actual
+     // bends before resampling, but discard collinear moving-tip knots.
+     const contacts = new Set((previous.wallSamples ?? []).flatMap(sample =>
+@@ -70,7 +71,11 @@
+         const clothBend = contacts.has(x) && error > 1e-8 &&
+             (error > .01 || (previous.wallSamples ?? []).some(sample =>
+                 sample.meshChordCrosses?.(positions[edge], positions[edge+1])));
+-        if ((error > options.shapeTolerance || clothBend) && t > 1e-9 && t < 1-1e-9) {
++        // Tips already use the reference fine grid. Retaining discarded moving
++        // endpoints here creates extra short elements and changes tip stiffness.
++        // Physical cloth bends still retain their required geometry.
++        const inFineTip=fineTips.some(tip=>x>=tip.start&&x<=tip.end);
++        if ((error > options.shapeTolerance && !inFineTip || clothBend) && t > 1e-9 && t < 1-1e-9) {
+             coordinates.splice(edge+1,0,x); positions.splice(edge+1,0,p.slice()); edge++;
+         }
+     }
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -133,7 +133,7 @@
+         return p.slice();
+     });
+     preserveSharedAxisBends(coordinates,positions,previous,maxBendAngle);
+-    if(adaptiveMesh&&!spatialKnots.length)retainAdaptiveShapeSamples(coordinates,positions,previous,adaptiveMesh);
++    if(adaptiveMesh&&!spatialKnots.length)retainAdaptiveShapeSamples(coordinates,positions,previous,adaptiveMesh,{tools});
+     if(adaptiveMesh&&!spatialKnots.length)coarsenSharedAxisMesh(coordinates,positions,
+         {tools,boundaries,previous,spacing,options:adaptiveMesh});
+     const edgeTools = coordinates.slice(0,-1).map(x => tools.filter(t => x < t.insertion-1e-12).map(t => t.id));
+--- a/tests/kirchhoffSharedAxisAdaptiveMesh.test.js
++++ b/tests/kirchhoffSharedAxisAdaptiveMesh.test.js
+@@ -6,7 +6,7 @@
+ import {createSharedAxisVesselWitness} from '../src/physics/kirchhoffSharedAxisVesselWitnesses.js';
+ import {prepareSharedAxisDynamicStep} from '../src/physics/kirchhoffSharedAxisDynamics.js';
+ import {stepSharedAxis} from '../src/physics/kirchhoffSharedAxisTimeStep.js';
+-import {adaptiveMeshOptions,coarsenSharedAxisMesh,ADAPTIVE_SOLVE_OPTIONS,CONTACT_PROTECTED_MESH} from '../src/physics/kirchhoffSharedAxisAdaptiveMesh.js';
++import {adaptiveMeshOptions,coarsenSharedAxisMesh,retainAdaptiveShapeSamples,ADAPTIVE_SOLVE_OPTIONS,CONTACT_PROTECTED_MESH} from '../src/physics/kirchhoffSharedAxisAdaptiveMesh.js';
+ import {createSharedAxisAppSystem} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
+ import {captureSharedAxisReplay,restoreSharedAxisReplay} from './helpers/sharedAxisReplay.js';
+ import {createCoupledSolverSelection,resolveAppCoupledSolver} from '../src/physics/coupledSolverSelection.js';
+@@ -208,3 +208,37 @@
+         } finally {geometry.dispose();}
+     }
+ });
++
++test('adaptive shaft keeps the reference grid around curved moving tips instead of accumulating short cells',()=>{
++    const tools=[{id:'wire',insertion:300.2,type:'glidewire'},{id:'catheter',insertion:240.6666666667,type:'pigtail'}];
++    const options=adaptiveMeshOptions({...CONTACT_PROTECTED_MESH,shapeTolerance:.005,tipLength:80,tipRefinementAhead:80});
++    const fine=createSharedAxisNative({tools,startCoordinate:-40,samplePosition:x=>[x,10*Math.sin(x/20),0]});
++    let reference=fine,reduced={...fine,adaptiveMesh:options};
++    for(let step=1;step<=20;step++) {
++        const offset=step<=10?-step*.5:-(20-step)*.5;
++        const targets={wire:300.2+offset,catheter:240.6666666667+offset};
++        reference=feedSharedAxisNative(reference,targets);reduced=feedSharedAxisNative(reduced,targets);
++        const first=targets.catheter-options.tipLength;
++        assert.deepEqual(reduced.coordinates.filter(x=>x>=first),reference.coordinates.filter(x=>x>=first),`Tip topology at feed ${step}`);
++        for(const m of reduced.materials) {
++            const r=reference.materials.find(t=>t.spec.id===m.spec.id);
++            for(let i=0;i<m.coordinates.length-1;i++)if(m.coordinates[i]>=first) {
++                const j=r.coordinates.indexOf(m.coordinates[i]);assert.ok(j>=0);
++                assert.equal(m.body.restLength[i],r.body.restLength[j]);
++            }
++        }
++    }
++});
++
++
++test('fine tip grid still retains physical cloth bends and distant adaptive shaft samples',()=>{
++    const tools=[{id:'catheter',insertion:240,type:'pigtail'}];
++    const options=adaptiveMeshOptions({...CONTACT_PROTECTED_MESH,tipLength:80});
++    const previous={coordinates:[0,2,5,235,237,240],positions:[[0,0,0],[2,.1,0],[5,0,0],[235,0,0],[237,.1,0],[240,0,0]],
++        wallSamples:[{adaptiveContactKnots:()=>[237]}]};
++    const saved=structuredClone(previous.positions),coordinates=[0,5,235,240],positions=coordinates.map(x=>[x,0,0]);
++    retainAdaptiveShapeSamples(coordinates,positions,previous,options,{tools});
++    assert.ok(coordinates.includes(2),'Distant shaft bend keeps its shape sample');
++    assert.ok(coordinates.includes(237),'A physical cloth bend is not dropped by the tip-grid rule');
++    assert.deepEqual(previous.positions,saved);
++});
+--- a/tests/helpers/crossoverReducedModel.js
++++ b/tests/helpers/crossoverReducedModel.js
+@@ -0,0 +1,11 @@
++import {CONTACT_PROTECTED_MESH} from '../../src/physics/kirchhoffSharedAxisAdaptiveMesh.js';
++
++// Research preset for the recorded long-tool crossover. Local mesh budgets
++// are not a global trajectory guarantee: compare every accepted step against
++// the full model using benchmark-crossover-reduced-model.mjs (0.1 mm gate).
++// Full vessel collision discovery and solver tolerances remain unchanged.
++export const CROSSOVER_REDUCED_MODEL = Object.freeze({
++    ...CONTACT_PROTECTED_MESH,
++    maxSpacing:20, contactMaxSpacing:10, shapeTolerance:.02,
++    maxArcLoss:.0001, maxTurn:.06, tipLength:80, tipRefinementAhead:80
++});
+--- a/tests/crossoverPhysics.browser.html
++++ b/tests/crossoverPhysics.browser.html
+@@ -15,7 +15,7 @@
+ Używa tego samego planisty porcji obliczeń co symulator. Podgląd osi jest uproszczony; pomiar nie obejmuje pełnego obrazu RTG ani dodatkowej pracy pomiędzy klatkami.</p>
+ <nav><button id="run" disabled>Uruchom 100 kroków</button><button id="stop" disabled>Zatrzymaj</button>
+ <label>Budżet fizyki na klatkę <select id="budget"><option value="4">4 ms · jedna porcja</option><option value="12">12 ms · kilka porcji</option></select></label>
+-<label>Model mechaniki <select id="mechanics"><option value="full">Pełny model</option><option value="protected">Rzadszy trzon · eksperyment</option></select></label>
++<label>Model mechaniki <select id="mechanics"><option value="full">Pełny model</option><option value="reduced">Rzadszy trzon · próba 0,1 mm</option><option value="reduced-recovery">Rzadszy trzon + naprawa kontaktów</option></select></label>
+ <label>Liczba kroków <select id="step-count"><option value="100">100 · 1,67 s symulacji</option><option value="300">300 · 5 s symulacji</option></select></label>
+ <a id="download" hidden download="crossover-browser-result.json">Zapisz raport</a></nav>
+ <p id="model-note">Pełna siatka mechaniczna. Oba warianty zachowują krok czasu i tolerancje rozwiązania.</p>
+@@ -30,7 +30,7 @@
+ import {decodeCollisionAsset} from '../src/physics/collision/collisionAssetFormat.js';
+ import {VesselContactField} from '../src/physics/collision/vesselContactField.js';
+ import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
+-import {CONTACT_PROTECTED_MESH} from '../src/physics/kirchhoffSharedAxisAdaptiveMesh.js';
++import {CROSSOVER_REDUCED_MODEL} from './helpers/crossoverReducedModel.js';
+ import {runPhysicsFrameBudget} from '../src/physics/physicsFrameBudget.js';
+ import {captureBloodFlow} from '../src/physics/bloodFlowCoupling.js';
+ import {restoreSharedAxisReplay} from './helpers/sharedAxisReplay.js';
+@@ -56,7 +56,9 @@
+     const options={...request.options,contactCandidateMargin:.01,deferActiveBasis:true,lazyBasisCoefficients:true,wasmBasis:true,reuseFrictionAssembly:true,reuseRejectedWorkingSet:true};
+     const segments=asset.arrays.centerlineSegments;bg.strokeStyle='#273a48';bg.lineWidth=1;bg.beginPath();
+     for(let i=0;i<segments.length;i+=9){bg.moveTo(...project(segments.subarray(i,i+3)));bg.lineTo(...project(segments.subarray(i+3,i+6)));}bg.stroke();
+-    function restore(){state=restoreSharedAxisReplay(fixture,field);if(mechanics.value==='protected')state.adaptiveMesh=CONTACT_PROTECTED_MESH;
++    const reducedModel=()=>mechanics.value.startsWith('reduced');
++    const recoveryOptions=()=>mechanics.value==='reduced-recovery'?{recoverNegativeContact:true}:{};
++    function restore(){state=restoreSharedAxisReplay(fixture,field);if(reducedModel())state.adaptiveMesh=CROSSOVER_REDUCED_MODEL;
+         rotations=request.rotations;flow=createCrossoverFlowFromAsset(asset);flow.time=request.options.bloodFlow.time;}
+     function draw(){
+         ctx.fillStyle='#080e15';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(background,0,0);
+@@ -95,7 +97,7 @@
+                     const i=report.steps.length,offset=i<30?0:i<50?-(i-29)*.5:i<70?-(69-i)*.5:0;
+                     const tools=request.tools.map(t=>({...t,insertion:t.insertion+offset}));
+                     const bloodFlow=captureBloodFlow(state,flow,request.options.bloodFlow.sheathLength,Math.max(...tools.map(t=>t.insertion)));
+-                    pending=advanceSharedAxis(state,rotations,dt,tools,{...options,bloodFlow});cpuMs=0;
++                    pending=advanceSharedAxis(state,rotations,dt,tools,{...options,...recoveryOptions(),bloodFlow});cpuMs=0;
+                 }
+                 const next=pending.next();cpuMs+=performance.now()-start;
+                 if(next.done){
+@@ -125,17 +127,18 @@
+     run.onclick=()=>{
+         restore();field.resetStats();report={recordedAt:new Date().toISOString(),dt,targetSteps:Number(stepCount.value),workSliceMs:Number(budget.value),scheduler:'runPhysicsFrameBudget',frames:0,steps:[],
+             mechanicalModel:mechanics.value,adaptiveMesh:state.adaptiveMesh??null,
+-            options:{contactCandidateMargin:.01,deferActiveBasis:true,lazyBasisCoefficients:true,wasmBasis:true,reuseFrictionAssembly:true,reuseRejectedWorkingSet:true},
++            options:{contactCandidateMargin:.01,deferActiveBasis:true,lazyBasisCoefficients:true,wasmBasis:true,reuseFrictionAssembly:true,reuseRejectedWorkingSet:true,...recoveryOptions()},
+             limitations:['Lightweight geometry preview; excludes the full fluoroscopic renderer and the app idle catch-up scheduler.',`Exact saved final crossover state, followed by ${stepCount.value} prescribed continuation steps.`,
+-                ...(mechanics.value==='protected'?['Experimental coarser shaft mechanics; this browser run does not compare trajectory error against the full model.']:[])]};
++                ...(reducedModel()?['Experimental coarser shaft mechanics; the separate paired CPU benchmark enforces the user-approved 0.1 mm shape budget. This browser run does not compare trajectory error against the full model.']:[]),
++                ...(mechanics.value==='reduced-recovery'?['Early contact recovery can change temporal subdivision and trajectory; every accepted outer step retains dt=1/60 and the original force/contact/length tolerances.']:[])]};
+         started=last=performance.now();accumulator=dt;active=true;pending=null;run.disabled=true;stop.disabled=false;budget.disabled=true;mechanics.disabled=true;stepCount.disabled=true;
+         download.hidden=true;status.textContent='Pomiar zaakceptowanych kroków fizyki…';requestAnimationFrame(tick);
+     };
+     stop.onclick=()=>finish(null,true);
+     stepCount.onchange=()=>{run.textContent=`Uruchom ${stepCount.value} kroków`;};
+     mechanics.onchange=()=>{
+-        document.querySelector('#model-note').textContent=mechanics.value==='protected'?
+-            'Eksperyment: rzadsza siatka na trzonie, dokładne końcówki i kontakty ze ścianą. Zmienia przybliżenie kształtu; kontrola sił i kolizji pozostaje taka sama.':
++        document.querySelector('#model-note').textContent=reducedModel()?
++            'Eksperyment: rzadsza siatka trzonu i oryginalna siatka przy końcówkach. Limit różnicy kształtu 0,1 mm sprawdza osobny test porównawczy. Tutaj mierzymy szybkość; kontrola sił i kolizji pozostaje taka sama.':
+             'Pełna siatka mechaniczna. Oba warianty zachowują krok czasu i tolerancje rozwiązania.';
+         restore();draw();metrics.textContent='';download.hidden=true;reportNode.textContent='';status.textContent='Gotowy · zmieniono model mechaniki';
+     };
+--- a/scripts/benchmark-crossover-reduced-model.mjs
++++ b/scripts/benchmark-crossover-reduced-model.mjs
+@@ -1,6 +1,6 @@
+ // Research gate for a coarser mechanical model. This intentionally allows a
+ // different spatial discretization; the exact optimization benchmark does not.
+-// Usage: node scripts/benchmark-crossover-reduced-model.mjs output.json '{mesh overrides}' [steps] [shape budget mm]
++// Usage: node scripts/benchmark-crossover-reduced-model.mjs output.json '{mesh overrides}' [steps] [shape budget mm] '{contact options}'
+ import fs from 'node:fs';
+ import {gunzipSync,gzipSync} from 'node:zlib';
+ import {createHash} from 'node:crypto';
+@@ -8,30 +8,39 @@
+ import {loadCoupledRuntimeAnatomy} from '../tests/helpers/coupledRuntimeFixture.js';
+ import {restoreSharedAxisReplay,captureSharedAxisReplay} from '../tests/helpers/sharedAxisReplay.js';
+ import {advanceSharedAxis,sampleSharedAxisPosition} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
+-import {adaptiveMeshOptions,CONTACT_PROTECTED_MESH} from '../src/physics/kirchhoffSharedAxisAdaptiveMesh.js';
++import {adaptiveMeshOptions} from '../src/physics/kirchhoffSharedAxisAdaptiveMesh.js';
++import {CROSSOVER_REDUCED_MODEL} from '../tests/helpers/crossoverReducedModel.js';
+ import {captureBloodFlow} from '../src/physics/bloodFlowCoupling.js';
+ import {createCrossoverFlow} from '../tests/helpers/crossoverFlow.js';
+ 
+ const output=process.argv[2]??'reports/performance-scenarios/001-reduced-model.json';
+-const mesh=adaptiveMeshOptions({...CONTACT_PROTECTED_MESH,
+-    ...JSON.parse(process.argv[3]??'{}')});
++const meshOverrides=JSON.parse(process.argv[3]??'{}');
++// null keeps the full grid when isolating a contact-strategy experiment.
++const mesh=meshOverrides===null?null:adaptiveMeshOptions({...CROSSOVER_REDUCED_MODEL,...meshOverrides});
+ const steps=Number(process.argv[4]??180);
+ assert.ok(Number.isInteger(steps)&&steps>=100&&steps<=1200);
+-const shapeBudgetMm=Number(process.argv[5]??.5);
+-assert.ok(Number.isFinite(shapeBudgetMm)&&shapeBudgetMm>0&&shapeBudgetMm<=.5,'Shape screening budget must be in (0, 0.5] mm');
++const shapeBudgetMm=Number(process.argv[5]??.1);
++assert.ok(Number.isFinite(shapeBudgetMm)&&shapeBudgetMm>0&&shapeBudgetMm<=.1,'User-authorized shape screening budget must be in (0, 0.1] mm');
+ const source=fs.readFileSync(new URL('../reports/performance-scenarios/001-stage-05-replay.json.gz',import.meta.url));
+ const fixture=JSON.parse(gunzipSync(source)),request=fixture.stepRequest;
+ const options={...request.options,contactCandidateMargin:.01,lazyBasisCoefficients:true,deferActiveBasis:true,wasmBasis:true,reuseFrictionAssembly:true,
+     forceTolerance:1e-6,lengthTolerance:1e-5};
++const contactOptions=JSON.parse(process.argv[6]??'{}');
++assert.ok(Object.keys(contactOptions).every(key=>['pruneInactiveWitnesses','recoverNegativeContact'].includes(key)&&typeof contactOptions[key]==='boolean'),
++    'Only explicit witness pruning and contact recovery experiments are supported; solver tolerances remain fixed');
+ const report={recordedAt:new Date().toISOString(),node:process.version,fixtureSha256:createHash('sha256').update(source).digest('hex'),
+-    mesh,dt:request.dt,steps,wasmBasis:options.wasmBasis,reuseFrictionAssembly:options.reuseFrictionAssembly,forceTolerance:options.forceTolerance,lengthTolerance:options.lengthTolerance,
++    mesh,contactOptions,dt:request.dt,steps,wasmBasis:options.wasmBasis,reuseFrictionAssembly:options.reuseFrictionAssembly,forceTolerance:options.forceTolerance,lengthTolerance:options.lengthTolerance,
+     sampleSpacingMm:2.5,exploratoryShapeBudgetMm:shapeBudgetMm,passed:false,goalAchieved:false,rows:[],
++    shapeComparison:'All breakpoints of both polygonal axes and both tips at the same spatial coordinate, plus samples every 2.5 mm; maximum norm on each affine interval occurs at an endpoint.',
+     contactFields:'Independent anatomy fields, BVH scratch and discovery history for each model',
+     limitations:['Experimental approximation, not an exact algebraic optimization or a clinical accuracy guarantee.',
+         `The ${shapeBudgetMm} mm trajectory budget is an exploratory screening threshold; passing is not validation for all maneuvers.`,
+         'CPU only; rendering, browser scheduling and the full manual crossover are not measured.',
+         'Identical hold/withdraw/advance/settle controls and physical tolerances. No relaxed adaptive solver tolerances.'],
+-    sourceHashes:Object.fromEntries(['kirchhoffSharedAxisAdaptiveMesh.js','kirchhoffSharedAxisNative.js','kirchhoffSharedAxisLinear.js',
++    sourceHashes:Object.fromEntries(['kirchhoffBandRefinement.js','kirchhoffCoulombBandLU.js','kirchhoffLinearKernel.js','kirchhoffLinearKernelBytes.js','kirchhoffBandSimdKernelBytes.js',
++        'kirchhoffSharedAxisMaterialKernel.js','kirchhoffSharedAxisMaterialKernelBytes.js','kirchhoffSharedAxisMaterialTangent.js',
++        'kirchhoffSharedAxisConstraintRows.js','kirchhoffSharedAxisMatrixAssembly.js','kirchhoffSharedAxisWallFriction.js','kirchhoffSharedAxisWitnessPruning.js',
++        'kirchhoffSharedAxisAdaptiveMesh.js','kirchhoffSharedAxisNative.js','kirchhoffSharedAxisLinear.js',
+         'kirchhoffSharedAxisAppSystem.js','kirchhoffSharedAxisVesselWitnesses.js','kirchhoffSharedAxisTimeStep.js',
+         'kirchhoffSharedAxisActiveBasis.js','kirchhoffSharedAxisBasisKernel.js','kirchhoffSharedAxisBasisKernelBytes.js'].map(name=>
+         [name,createHash('sha256').update(fs.readFileSync(new URL('../src/physics/'+name,import.meta.url))).digest('hex')]))};
+@@ -41,7 +50,7 @@
+     const state=restoreSharedAxisReplay(fixture,anatomy.field),flow=createCrossoverFlow();
+     if(name==='reduced')state.adaptiveMesh=mesh;
+     flow.time=request.options.bloodFlow.time;
+-    contexts.push({name,anatomy,state,rotations:request.rotations,flow,rows:[]});
++    contexts.push({name,anatomy,state,rotations:request.rotations,flow,rows:[],options:name==='reduced'?{...options,...contactOptions}:options});
+ }
+ const distance=(a,b)=>Math.hypot(...a.map((v,k)=>v-b[k]));
+ function summary(rows) {
+@@ -64,7 +73,7 @@
+         for(const context of step%2?[...contexts].reverse():contexts) {
+             const {state,rotations,flow}=context,start=performance.now();
+             const bloodFlow=captureBloodFlow(state,flow,request.options.bloodFlow.sheathLength,Math.max(...targets.map(t=>t.insertion)));
+-            const iterator=advanceSharedAxis(state,rotations,request.dt,targets,{...options,bloodFlow});
++            const iterator=advanceSharedAxis(state,rotations,request.dt,targets,{...context.options,bloodFlow});
+             let next;do{next=iterator.next();}while(!next.done);
+             const {result:r,state:accepted}=next.value;
+             // Include rejected attempts, subdivision, recentering and flow;
+@@ -75,7 +84,7 @@
+                 row[context.name]={cpuMs,failure:r};
+                 const checkpoint=output.replace(/\.json$/,'')+`.failed-${context.name}.json.gz`;
+                 fs.writeFileSync(checkpoint,gzipSync(JSON.stringify({...captureSharedAxisReplay(state,fixture.sheath),
+-                    anatomy:fixture.anatomy,stepRequest:{dt:request.dt,rotations,tools:targets,options:{...options,bloodFlow}}})));
++                    anatomy:fixture.anatomy,stepRequest:{dt:request.dt,rotations,tools:targets,options:{...context.options,bloodFlow}}})));
+                 report.failureCheckpoint=checkpoint;
+                 throw new Error(`${context.name} failed at step ${step}: ${r.status}`);
+             }
+@@ -83,7 +92,7 @@
+                 r.quality.maxPenetration<=options.lengthTolerance&&r.quality.bodies.every(b=>b.maxLengthError<options.lengthTolerance),
+                 `${context.name} physical certificate, step ${step}`);
+             const result={cpuMs,nodes:accepted.positions.length,rows:accepted.definitions.length,iterations:r.iterations,
+-                factorizations:r.factorizations,subdivisions:r.subdivisions,certificateBound:r.certificateBound,
++                factorizations:r.factorizations,subdivisions:r.subdivisions,attempts:r.attempts,certificateBound:r.certificateBound,
+                 maxPenetrationMm:r.quality.maxPenetration,maxLengthError:Math.max(...r.quality.bodies.map(b=>b.maxLengthError)),
+                 maxSpeed:Math.max(...r.quality.bodies.map(b=>b.maxSpeed)),timings:r.timings};
+             row[context.name]=result;context.rows.push(result);
+@@ -98,6 +107,10 @@
+             if(error>shapeError){shapeError=error;worstCoordinate=x;}
+         }
+         row.maxShapeDifferenceMm=shapeError;row.worstCoordinateMm=worstCoordinate;
++        // Retain the local topology around a discrepancy, so remeshing errors
++        // can be distinguished from gradual changes in the shaft trajectory.
++        row.worstNeighborhood=Object.fromEntries(contexts.map(c=>[c.name,
++            c.state.coordinates.filter(x=>Math.abs(x-worstCoordinate)<=15).map(x=>({x,p:sampleSharedAxisPosition(c.state,x)}))]));
+         row.tipDifferencesMm=Object.fromEntries(targets.map(t=>[t.id,
+             distance(sampleSharedAxisPosition(reference,t.insertion),sampleSharedAxisPosition(reduced,t.insertion))]));
+         if(step%30===29)console.log(JSON.stringify({step,nodes:reduced.positions.length,maxShapeDifferenceMm:shapeError,
+@@ -116,7 +129,9 @@
+     report.pairedSummary=Object.fromEntries(contexts.map(c=>[c.name,summary(pairs.map(r=>r[c.name]))]));
+     report.maxShapeDifferenceMm=pairs.length?Math.max(...pairs.map(r=>r.maxShapeDifferenceMm)):null;
+     report.maxTipDifferenceMm=pairs.length?Math.max(...pairs.flatMap(r=>Object.values(r.tipDifferencesMm))):null;
+-    report.goalAchieved=report.passed&&report.summary.reduced.withinBudget===steps;
++    report.cpuBudgetMet=report.passed&&report.summary.reduced.withinBudget===steps;
++    // Browser throughput and the complete maneuver require separate evidence.
++    report.goalAchieved=false;
+     report.phaseSummary=Object.fromEntries(['hold','withdraw','advance','settle'].map(phase=>[phase,
+         Object.fromEntries(contexts.map(c=>[c.name,summary(pairs.filter(r=>r.phase===phase).map(r=>r[c.name]))]))]));
+     for(const context of contexts)context.anatomy.dispose();

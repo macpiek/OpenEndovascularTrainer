@@ -2,7 +2,8 @@ import test, {after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
-import {loadCoupledRuntimeAnatomy} from './helpers/coupledRuntimeFixture.js';
+import {loadHistoricalSharedAxisAnatomy} from './helpers/historicalSharedAxisAnatomy.js';
+import {sharedAxisGeometryIdentity} from '../src/physics/kirchhoffSharedAxisGeometryIdentity.js';
 import {restoreSharedAxisReplay,captureSharedAxisReplay} from './helpers/sharedAxisReplay.js';
 import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
 // Discovery certificates are intentionally retained across private attempts;
@@ -11,12 +12,15 @@ const physicalReplay=(s,sheath)=>{
     const {discoveryState,insideContinuation,...physical}=captureSharedAxisReplay(s,sheath);
     return physical;
 };
-const anatomy=await loadCoupledRuntimeAnatomy();after(()=>anatomy.dispose());
+// These captures include discovery certificates for the original open mesh.
+// Replaying them on the current closed anatomy changes their physical contacts.
+const anatomy=loadHistoricalSharedAxisAnatomy('open');after(()=>anatomy.dispose());
 const load=name=>JSON.parse(gunzipSync(readFileSync(new URL(`./fixtures/shared-axis/${name}.json.gz`,import.meta.url))));
 
 for(const name of ['anatomy-wire-569.80-poor-prediction','anatomy-catheter-withdraw-180.80-sign-proof'])
 test(`Reusing assembly after friction refresh preserve every direction and complete physical output: ${name}`,()=>{
     const fixture=load(name),req=fixture.stepRequest,outputs=[];
+    assert.equal(sharedAxisGeometryIdentity(anatomy.geometry),fixture.discoveryState.meshIdentity);
     for(const reuseFrictionAssembly of [false,true]) {
         const input=restoreSharedAxisReplay(fixture,anatomy.field),before=physicalReplay(input,fixture.sheath),trace=[];
         const iterator=advanceSharedAxis(input,req.rotations,req.dt,req.tools,{...req.options,promoteTrialAssembly:true,projectionMode:'reduced',wasmMaterial:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true,wasmLinearAssembly:true,earlyPredictorFallback:true,reuseFrictionAssembly,

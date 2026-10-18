@@ -153,10 +153,11 @@
                                     value="40.65"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
-                                    aria-describedby="catheterShaftStiffnessRange"
+                                    aria-describedby="catheterShaftStiffnessRange catheterShaftRigidity"
                                 >
                                 <output id="catheterShaftStiffnessValue" for="catheterShaftStiffness">40,65×</output>
                             </span>
+                            <output id="catheterShaftRigidity" for="catheterShaftStiffness" class="tool-rigidity-value" title="Wynikowa sztywność zginania EI. Wspólna skala modelu dla cewnika i prowadnika, bez kalibracji do jednostek fizycznych."></output>
                             <span id="catheterShaftStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękki</span>
                                 <span>standard</span>
@@ -172,13 +173,14 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="66.8"
+                                    value="100"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
-                                    aria-describedby="catheterTipStiffnessRange"
+                                    aria-describedby="catheterTipStiffnessRange catheterTipRigidity"
                                 >
-                                <output id="catheterTipStiffnessValue" for="catheterTipStiffness">66,80×</output>
+                                <output id="catheterTipStiffnessValue" for="catheterTipStiffness">100,00×</output>
                             </span>
+                            <output id="catheterTipRigidity" for="catheterTipStiffness" class="tool-rigidity-value" title="Wynikowa sztywność zginania EI. Wspólna skala modelu dla cewnika i prowadnika, bez kalibracji do jednostek fizycznych."></output>
                             <span id="catheterTipStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękka</span>
                                 <span>standard</span>
@@ -227,13 +229,14 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="9.6"
+                                    value="13.15"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
-                                    aria-describedby="guidewireStiffnessRange"
+                                    aria-describedby="guidewireStiffnessRange guidewireShaftRigidity"
                                 >
-                                <output id="guidewireStiffnessValue" for="stiffness">9,60×</output>
+                                <output id="guidewireStiffnessValue" for="stiffness">13,15×</output>
                             </span>
+                            <output id="guidewireShaftRigidity" for="stiffness" class="tool-rigidity-value" title="Wynikowa sztywność zginania EI. Wspólna skala modelu dla cewnika i prowadnika, bez kalibracji do jednostek fizycznych."></output>
                             <span id="guidewireStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękki</span>
                                 <span>standard</span>
@@ -249,13 +252,14 @@
                                     min="0.25"
                                     max="100"
                                     step="0.05"
-                                    value="6.8"
+                                    value="19.4"
                                     data-value-decimals="2"
                                     data-value-suffix="×"
-                                    aria-describedby="guidewireTipStiffnessRange"
+                                    aria-describedby="guidewireTipStiffnessRange guidewireTipRigidity"
                                 >
-                                <output id="guidewireTipStiffnessValue" for="tipStiffness">6,80×</output>
+                                <output id="guidewireTipStiffnessValue" for="tipStiffness">19,40×</output>
                             </span>
+                            <output id="guidewireTipRigidity" for="tipStiffness" class="tool-rigidity-value" title="Wynikowa sztywność zginania EI. Wspólna skala modelu dla cewnika i prowadnika, bez kalibracji do jednostek fizycznych."></output>
                             <span id="guidewireTipStiffnessRange" class="guidewire-stiffness-range">
                                 <span>bardziej miękka</span>
                                 <span>standard</span>
@@ -578,7 +582,9 @@
             <div id="compositeSolverStatus" class="browser-benchmark-status" aria-label="Status wspólnego solvera" hidden>Nowy wspólny solver — inicjalizacja</div>
             <div id="guidewireDiagnostics" class="guidewire-diagnostics">GW STL: debug off</div>
             <div id="contrastDiagnostics" class="contrast-diagnostics">Contrast: model loading</div>
-            <div class="debug-hemodynamics compact-grid" aria-label="Parametry hemodynamiczne kontrastu">
+            <label><input id="bloodFlowCoupling" type="checkbox" checked> Oddziaływanie przepływu krwi na narzędzia</label>
+            <output id="bloodFlowMechanicsStatus" class="browser-benchmark-status" role="status">Przepływ: inicjalizacja</output>
+            <div class="debug-hemodynamics compact-grid" aria-label="Parametry przepływu krwi">
                 <label class="parameter-label">Rzut serca
                     <input id="cardiacOutput" type="range" min="1500" max="9000" step="100" value="5000">
                     <span>5.0 l/min</span>

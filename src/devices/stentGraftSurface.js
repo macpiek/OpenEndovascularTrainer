@@ -3,11 +3,12 @@ import * as THREE from 'three';
 import {Brush, Evaluator, ADDITION} from 'three-bvh-csg';
 import {MeshBVH} from 'three-mesh-bvh';
 import {DevicePath} from './stentGraftPaths.js';
+import {acceptedPartPositions,connectedGraftLimb,openGraftBranches} from './stentGraftConnections.js';
 
-function closedPart(part) {
-    const {rows,sides,target}=part, positions=Array.from(target), indices=Array.from(part.mesh.geometry.index.array);
+function closedPart(part,source=part.target,points=part.points) {
+    const {rows,sides}=part, positions=Array.from(source), indices=Array.from(part.mesh.geometry.index.array);
     for(const [row,reverse] of [[0,false],[rows-1,true]]) {
-        const center=part.points[row], index=positions.length/3;positions.push(center.x,center.y,center.z);
+        const center=points[row], index=positions.length/3;positions.push(center.x,center.y,center.z);
         for(let j=0;j<sides;j++) {
             const a=row*sides+j,b=row*sides+(j+1)%sides;
             indices.push(index,...(reverse?[b,a]:[a,b]));
@@ -25,8 +26,9 @@ function closedPart(part) {
 export class StentGraftSurface {
     constructor(implants,revision,flowTopology=null) {
         this.revision=revision;
-        const body=implants.find(d=>d.type==='body'),limb=implants.find(d=>d.type==='limb'&&d.id===body?.connectedLimbId);
-        this.sealed=flowTopology?.sealed??!!(body&&limb&&body.connectedLimbId===limb.id);
+        const body=implants.find(d=>d.type==='body'),openBranches=openGraftBranches(implants,body);
+        const connections=body?[1,2].map(i=>connectedGraftLimb(implants,body,i)).filter(Boolean):[];
+        this.sealed=flowTopology?.sealed??!!(body&&!openBranches.length);
         this.parts=implants.flatMap(d=>d.parts);
         // Distal transport territories remain attached to the access that
         // delivered each component, even when the implant axis is off-centre.
@@ -34,17 +36,24 @@ export class StentGraftSurface {
         // Section areas are immutable for a deployed surface. Compute once,
         // not for every contrast cell or particle query.
         this.paths=this.parts.map(part=>{
-            const radii=part.points.map((center,row)=>{
+            const deployed=implants.some(d=>d.phase==='deployed'&&d.parts.includes(part));
+            const positions=deployed?acceptedPartPositions(part):part.target;
+            const points=part.points.map((_,row)=>{
+                const center=new THREE.Vector3();
+                for(let j=0;j<part.sides;j++)center.add(new THREE.Vector3().fromArray(positions,(row*part.sides+j)*3));
+                return center.divideScalar(part.sides);
+            });
+            const radii=points.map((center,row)=>{
                 let area=0;
                 const a=new THREE.Vector3(),b=new THREE.Vector3();
                 for(let j=0;j<part.sides;j++) {
-                    a.fromArray(part.target,(row*part.sides+j)*3).sub(center);
-                    b.fromArray(part.target,(row*part.sides+(j+1)%part.sides)*3).sub(center);
+                    a.fromArray(positions,(row*part.sides+j)*3).sub(center);
+                    b.fromArray(positions,(row*part.sides+(j+1)%part.sides)*3).sub(center);
                     area+=a.cross(b).length()/2;
                 }
                 return Math.sqrt(area/Math.PI);
             });
-            return {path:new DevicePath(part.points),part,radii};
+            return {path:new DevicePath(points),part,radii,positions:positions.slice()};
         });
         const evaluator=new Evaluator();evaluator.attributes=['position','normal'];evaluator.useGroups=false;
         let brush=null;
@@ -57,7 +66,7 @@ export class StentGraftSurface {
                 if(volume<0)for(let i=0;i<ix.count;i+=3){const a=ix.getX(i+1);ix.setX(i+1,ix.getX(i+2));ix.setX(i+2,a);}
                 geometry.computeVertexNormals();return [geometry];
             }
-            return device.parts.map(closedPart);
+            return device.parts.map(part=>{const snapshot=this.paths.find(p=>p.part===part);return closedPart(part,snapshot.positions,snapshot.path.points);});
         });
         for(const geometry of solids) {
             const next=new Brush(geometry);next.updateMatrixWorld();
@@ -68,16 +77,18 @@ export class StentGraftSurface {
         this.solid.computeBoundingBox();this.bounds=this.solid.boundingBox.clone();
         const ports=flowTopology?.ports??[];
         if(!flowTopology) {
-            if(body)ports.push([body.parts[0],0],[body.parts[1],-1]);
-            if(body&&!limb)ports.push([body.parts[2],-1]);
+            if(body) {
+                ports.push([body.parts[0],0]);
+                for(const i of [1,2])if(!connectedGraftLimb(implants,body,i))ports.push([body.parts[i],-1]);
+            }
             for(const device of implants.filter(d=>d.type==='limb')) {
                 ports.push([device.parts[0],-1]);
-                if(device!==limb)ports.push([device.parts[0],0]);
+                if(!connections.includes(device))ports.push([device.parts[0],0]);
             }
         }
-        const gateParts=flowTopology?.gateParts??(body&&!limb?[body.parts[2]]:[]);
-        this.openGates=gateParts.map(part=>({part,center:part.points.at(-1).clone(),
-            normal:part.points.at(-1).clone().sub(part.points.at(-2)).normalize()}));
+        const gateParts=flowTopology?.gateParts??openBranches.map(i=>body.parts[i]);
+        this.openGates=gateParts.map(part=>{const points=this.paths.find(p=>p.part===part).path.points;return {part,center:points.at(-1).clone(),
+            normal:points.at(-1).clone().sub(points.at(-2)).normalize()};});
         this.openGate=this.openGates[0]??null;
         const sewnPorts=new Map();
         for(const device of implants)if(device.type==='body'&&device.sewnTopology?.parts===device.parts){
@@ -89,10 +100,14 @@ export class StentGraftSurface {
             }
         }
         this.portals=ports.map(([part,end])=>{
-            const index=end===0?0:part.rows-1,center=part.points[index];
-            const normal=center.clone().sub(part.points[end===0?1:index-1]).normalize();
-            const radii=this.paths.find(entry=>entry.part===part).radii;
-            return {center,normal,radius:radii[index],triangles:sewnPorts.get(part)};
+            const snapshot=this.paths.find(entry=>entry.part===part),points=snapshot.path.points;
+            const index=end===0?0:part.rows-1,center=points[index];
+            const normal=center.clone().sub(points[end===0?1:index-1]).normalize();
+            const radii=snapshot.radii;
+            const boundary=Array.from({length:part.sides},(_,j)=>new THREE.Vector3().fromArray(snapshot.positions,(index*part.sides+j)*3));
+            const triangles=sewnPorts.get(part)??boundary.map((p,j)=>new THREE.Triangle(center,p,boundary[(j+1)%boundary.length]));
+            const bounds=new THREE.Box3().setFromPoints(triangles.flatMap(t=>[t.a,t.b,t.c])).expandByScalar(.002);
+            return {center,normal,radius:radii[index],triangles,bounds};
         });
         const p=this.solid.attributes.position,ix=this.solid.index,wall=[];
         const vertices=[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()];
@@ -101,9 +116,9 @@ export class StentGraftSurface {
             // Shared cloth can have a slightly nonplanar port after wire
             // projection. Remove its actual cap triangles, not a nominal plane.
             const scratch=new THREE.Vector3();
-            const isCap=this.portals.some(port=>port.triangles
+            const isCap=this.portals.some(port=>vertices.every(v=>port.bounds.containsPoint(v))&&(port.triangles
                 ?port.triangles.some(triangle=>vertices.every(v=>triangle.closestPointToPoint(v,scratch).distanceToSquared(v)<1e-8))
-                :vertices.every(v=>Math.abs(v.clone().sub(port.center).dot(port.normal))<.002));
+                :vertices.every(v=>Math.abs(v.clone().sub(port.center).dot(port.normal))<.002)));
             if(!isCap)vertices.forEach(v=>wall.push(v.x,v.y,v.z));
         }
         this.geometry=new THREE.BufferGeometry();this.geometry.setAttribute('position',new THREE.Float32BufferAttribute(wall,3));

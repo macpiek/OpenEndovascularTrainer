@@ -1,0 +1,76 @@
+--- before/src/physics/kirchhoffSharedAxisActiveBasis.js
++++ experiment/src/physics/kirchhoffSharedAxisActiveBasis.js
+@@ -77,16 +77,17 @@
+     }
+     return result;
+ }
+-function prepareOrder(w,rows,activeSet) {
++function prepareOrder(w,rows,activeSet,fixed,localLengthBasis) {
+     let changed=false;
+     for(let i=0;i<rows.length;i++) {
+-        const kind=rows[i].kind==='length'?1:rows[i].kind==='wall'&&!rows[i].compliance?2:0,active=activeSet[i]?1:0;
++        const kind=rows[i].kind==='length'?(localLengthBasis&&rows[i].dofs.some(p=>fixed[p])?2:1):
++            rows[i].kind==='wall'&&!rows[i].compliance?(localLengthBasis?3:2):0,active=activeSet[i]?1:0;
+         if(w.orderKinds[i]!==kind||w.orderActive[i]!==active)changed=true;
+         w.orderKinds[i]=kind;w.orderActive[i]=active;
+     }
+     if(changed) {
+         w.order.length=0;
+-        for(const kind of [1,2])for(let i=0;i<rows.length;i++)if(w.orderKinds[i]===kind&&w.orderActive[i])w.order.push(i);
++        for(const kind of [1,2,3])for(let i=0;i<rows.length;i++)if(w.orderKinds[i]===kind&&w.orderActive[i])w.order.push(i);
+     }
+ }
+ function nextRow(w,index) {
+@@ -155,7 +156,7 @@
+  * remain inequalities in the active-set search. Length reactions are signed,
+  * wall reactions nonnegative. Fixed degrees of freedom cannot restrict motion.
+  */
+-export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace,reuseStructure=true,basisCache=null,basisWorkspaceKey=fixed,lazyBasisCoefficients=false}) {
++export function prepareSharedAxisActiveBasis({rows,fixed,activeSet,dual,trace,reuseStructure=true,basisCache=null,basisWorkspaceKey=fixed,lazyBasisCoefficients=false,localLengthBasis=false}) {
+     let pivots=0;
+     // A reduced identity projection can borrow the owning state's larger
+     // basis buffers. Only storage is shared: each linearization token resets
+@@ -167,10 +168,11 @@
+         // has local support. Orthogonalizing every row against the entire
+         // growing chain destroys that locality and costs cubic work.
+ 
+-        if(reuseStructure)prepareOrder(w,rows,activeSet);
++        if(reuseStructure)prepareOrder(w,rows,activeSet,fixed,localLengthBasis);
+         else {
+             order.length=0;
+             for(let i=0;i<rows.length;i++)if(rows[i].kind==='length'&&activeSet[i])order.push(i);
++            if(localLengthBasis)order.sort((a,b)=>Number(rows[a].dofs.some(p=>fixed[p]))-Number(rows[b].dofs.some(p=>fixed[p])));
+             for(let i=0;i<rows.length;i++)if(rows[i].kind==='wall'&&!rows[i].compliance&&activeSet[i])order.push(i);
+             w.orderKinds.fill(0);w.orderActive.fill(0);
+         }
+--- before/src/physics/kirchhoffSharedAxisLinear.js
++++ experiment/src/physics/kirchhoffSharedAxisLinear.js
+@@ -391,7 +391,7 @@
+     for(let attempt=0;attempt<(options.maxActiveSetAttempts??Math.max(8,rows.length*2));attempt++) {
+         yield {kind:'linear-active-set',attempt,batchSize};
+         activeSetAttempts++;
+-        const prepared=basisRequired?prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache,basisWorkspaceKey:options.basisWorkspaceKey,lazyBasisCoefficients:options.lazyBasisCoefficients}):{converged:true};
++        const prepared=basisRequired?prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache,basisWorkspaceKey:options.basisWorkspaceKey,lazyBasisCoefficients:options.lazyBasisCoefficients,localLengthBasis:options.localLengthBasis}):{converged:true};
+         if(!prepared.converged)return finish({converged:false,failure:prepared.failure});
+         const setKey=activeSet.join('');
+         if(options.reuseConstraintWork) {
+--- before/src/physics/kirchhoffSharedAxisNative.js
++++ experiment/src/physics/kirchhoffSharedAxisNative.js
+@@ -509,7 +509,7 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, condenseCompliantContacts=false, primalCompliantContacts=false, stagnationResidualSearch=false, localContactRestarts = true, reuseWorkingSet = true,recoverNegativeContact=false,eliminateConstantRows=true,reuseRejectedNewton=true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false,roundoffStagnation=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, condenseCompliantContacts=false, primalCompliantContacts=false, stagnationResidualSearch=false, localContactRestarts = true, reuseWorkingSet = true,recoverNegativeContact=false,eliminateConstantRows=true,reuseRejectedNewton=true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,localLengthBasis=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false,roundoffStagnation=false } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+@@ -598,7 +598,7 @@
+                 if(!isModified)modified?.invalidate();
+                 if (method !== methods[0] || isGaussNewton) { restoreSharedAxisNative(s, snapshot); base = assemble(isGaussNewton ? 'gauss-newton' : undefined); }
+                 const linearStart = performance.now();
+-                const linearOptions = { recoverNegativeContact, eliminateConstantRows, batchActivationSize, simultaneousContactRelease, primalCompliantContacts, condenseCompliantContacts:condenseCompliantContacts||primalCompliantContacts, wasmLinearAssembly, lazyBasisCoefficients, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
++                const linearOptions = { recoverNegativeContact, eliminateConstantRows, batchActivationSize, simultaneousContactRelease, primalCompliantContacts, condenseCompliantContacts:condenseCompliantContacts||primalCompliantContacts, wasmLinearAssembly, lazyBasisCoefficients, localLengthBasis, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
+                     observeLinearSystem,modifiedNewtonContext:method===0?modified:null,incrementalContacts:modified?false:incrementalContacts==='frozen'?!s.wallFrictionStep?.liveNormalLoad:incrementalContacts,trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet:modified?false:reuseWorkingSet,reuseStructure,reuseConstraintWork,reuseMatrixAssembly, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(linearToleranceCap,Math.min(forceTolerance, lengthTolerance) * .01), 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
+                 if(method===2&&matchesRejectedSharedAxisLinearization(rejectedNewton,s.chain,linearOptions)) {
+                     // The first search already exhausted these exact equations

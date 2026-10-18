@@ -1,0 +1,82 @@
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -223,6 +223,7 @@
+         coupledFrictionNewton:new URLSearchParams(window.location.search).get('fastNewton')!=='0',
+         predictiveNewton:new URLSearchParams(window.location.search).get('predictiveNewton')!=='0',
+         ...(crossoverBenchmarkMode?{
++            ...(new URLSearchParams(window.location.search).get('crossoverRequestAudit')==='1'?{requestAuditSteps:600}:new URLSearchParams(window.location.search).get('crossoverRequestAudit')==='math'?{requestAuditSteps:2,requestAuditMath:true}:{}),
+             adaptiveMesh:new URLSearchParams(window.location.search).get('crossoverDistalMesh')==='1'?{...CROSSOVER_WIDE_CONTACT_MODEL,finePrefixLength:450}:crossoverBenchmarkMode==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:null,
+             contactCandidateMargin:.01,lazyBasisCoefficients:true,wasmBasis:true,deferActiveBasis:true,
+             reuseFrictionAssembly:true,coupledFrictionNewton:true,predictiveNewton:true,modifiedNewton:false,
+--- a/src/physics/kirchhoffSharedAxisWorkerEngine.js
++++ b/src/physics/kirchhoffSharedAxisWorkerEngine.js
+@@ -4,13 +4,15 @@
+ // Transport-independent host: Node worker tests and the browser worker execute
+ // the same provider as the ordinary simulator, including its recovery policy.
+ export function createSharedAxisWorkerEngine() {
++    let requestAudit=null,auditOptions=null,auditStep=0,auditLimit=0;
+     let system,world,tools=[],sheath,flow=null,failures=[],bodies=new Map();
+-    const read=()=>({diagnostics:system.diagnostics,flowState:system.captureFlowSamplingState(),
++    const read=()=>({diagnostics:{...system.diagnostics,...(requestAudit?{requestAudit}:{})},flowState:system.captureFlowSamplingState(),
+         bodies:captureSharedAxisWorkerBodies(tools),contactCount:world.contactCount,
+         maxPenetration:world.maxPenetration,settledMaxPenetration:world.settledMaxPenetration,failures:failures.splice(0)});
+     return {
+         dispatch(operation,data) {
+             if(operation==='initialize') {
++                auditLimit=data.options.requestAuditSteps??0;auditStep=0;requestAudit=null;auditOptions=structuredClone(data.options);
+                 system?.reset();world?.contactField.fallbackGeometry.dispose();bodies=new Map();
+                 world={contactField:restoreSharedAxisFieldMessage(data.field)};
+                 system=createSharedAxisAppSystem({...data.options,workSliceMs:Infinity,
+@@ -19,14 +21,30 @@
+                 return {ready:true};
+             }
+             if(!system)throw new Error('Physics worker is not initialized');
+-            if(operation==='reset'){system.reset();flow=null;failures=[];return {reset:true};}
++            if(operation==='reset'){auditStep=0;requestAudit=null;system.reset();flow=null;failures=[];return {reset:true};}
+             if(operation==='retry')return {retried:system.retryFromLastAccepted()};
+             if(operation==='setting')return {changed:system[data.method](data.value)};
+             if(operation==='restore'||operation==='step') {
+                 tools=updateSharedAxisWorkerTools(data.tools,bodies);sheath=data.sheath;flow=data.flow??null;
+                 if(operation==='restore') {system.restoreReplay(data.fixture,world);return read();}
+-                let result=system.step(world,data.dt);
+-                while(result.pending)result=system.step(world,data.dt);
++                requestAudit=auditStep<auditLimit?{step:++auditStep,limit:auditLimit,request:structuredClone(data),...(auditStep===1?{options:auditOptions}:{})}:null;
++                let result;
++                const originals={};
++                if(requestAudit&&auditOptions.requestAuditMath) {
++                    requestAudit.math=[];
++                    for(const name of ['sqrt','hypot','sin','cos','atan2','acos','asin','tan','atan','exp','log','pow']) {
++                        const original=originals[name]=Math[name];
++                        Math[name]=(...args)=>{
++                            const observed=original(...args),expected=data.auditMathOracle?.[requestAudit.math.length];
++                            if(data.auditMathOracle&&(!expected||expected.name!==name||expected.args.length!==args.length||args.some((v,i)=>v!==expected.args[i])))
++                                throw new Error(`Math replay input differs at call ${requestAudit.math.length}: ${name}`);
++                            const value=expected?expected.value:observed;
++                            requestAudit.math.push({name,args,value});return value;
++                        };
++                    }
++                }
++                try {result=system.step(world,data.dt);while(result.pending)result=system.step(world,data.dt);}
++                finally {Object.assign(Math,originals);}
+                 return {...read(),result};
+             }
+             throw new Error('Unknown physics worker operation');
+--- a/src/benchmark/crossoverScenarioRecording.js
++++ b/src/benchmark/crossoverScenarioRecording.js
+@@ -15,7 +15,7 @@
+ const validQuality=(quality,dt)=>Array.isArray(quality)&&quality.length===2&&quality.every(q=>crossoverPhysicalGate(dt,q));
+ const captureQuality=d=>({converged:d.last.converged,certificateBound:d.last.certificateBound,residual:{length:d.last.residual.length},
+     quality:{finite:d.last.quality.finite,maxPenetration:d.last.quality.maxPenetration,bodies:d.last.quality.bodies.map(b=>({maxLengthError:b.maxLengthError}))}});
+-const captureWork=d=>({mesh:{...d.mesh},...(d.last?.directionProfile?{directionProfile:structuredClone(d.last.directionProfile)}:{}),...Object.fromEntries([
++const captureWork=d=>({... (d.requestAudit?{requestAudit:structuredClone(d.requestAudit)}:{}),mesh:{...d.mesh},...(d.last?.directionProfile?{directionProfile:structuredClone(d.last.directionProfile)}:{}),...Object.fromEntries([
+     'iterations','factorizations','backtracks','geometryRestarts','frictionIterations','substepAttempts','subdivisions',
+     'predictorFallbacks','coupledFrictionFallbacks','wallNormalFallbacks','replayCaptureMs',
+     'workerWallMs','workerDispatchDelayMs','workerResponseMs','workerPublicationDelayMs'
+@@ -167,6 +167,7 @@
+                 providerMs:diagnostics.map(d=>d.last?.cpuMs??0),solverWork:diagnostics.map(captureWork),shapeDifferenceMm:difference});
+             lastWall=wall;pending=null;cpuMs=0;
+             if(difference>record.validation.shapeDifferenceLimitMm){fail(`Różnica kształtu ${difference.toFixed(4)} mm przekracza ${record.validation.shapeDifferenceLimitMm.toLocaleString('pl-PL')} mm.`);return;}
++            if(diagnostics[0].requestAudit?.step===diagnostics[0].requestAudit?.limit&&diagnostics[0].requestAudit){fail('Zakończono diagnostykę wejść solvera — fragment nie jest pomiarem wydajności całego manewru.');return;}
+             if(record.steps.length%120===0){onChunk(record,false);onChange();}
+             if(mode==='replaying'&&record.steps.length===source.steps.length)finish(true);
+             else if(record.steps.length>=maxSteps)fail('Osiągnięto limit długości nagrania; zapisz dotychczasowy przebieg.');

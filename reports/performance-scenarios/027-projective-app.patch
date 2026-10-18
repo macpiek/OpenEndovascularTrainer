@@ -1,0 +1,806 @@
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -132,7 +132,7 @@
+ const crossoverBenchmarkMode=!projectiveCrossover&&import.meta.env.DEV&&['full','wide'].includes(new URLSearchParams(window.location.search).get('crossoverBenchmark'))?
+     new URLSearchParams(window.location.search).get('crossoverBenchmark'):null;
+ let crossoverAppBenchmark=null;
+-const crossoverScenarioMode=!projectiveCrossover&&import.meta.env.DEV&&new URLSearchParams(window.location.search).get('crossoverScenario')==='1';
++const crossoverScenarioMode=import.meta.env.DEV&&new URLSearchParams(window.location.search).get('crossoverScenario')==='1';
+ let crossoverScenario=null,scenarioGeometryIdentity=null;
+ let simulationStepTransaction = null;
+ let synchronizedStep = null;
+@@ -212,7 +212,7 @@
+         worldWall: {source: 'original-field', contactMode: 'material-points', rateMode: 'backward-euler-grid', seamUpdates: 'automatic'}
+     }) : null;
+     sharedAxisAppSystem = ['shared-axis','shared-axis-adaptive','shared-axis-projective','shared-axis-projective-crossover','shared-axis-realtime'].includes(selectedCoupledSolver) ? (selectedCoupledSolver==='shared-axis-realtime'?createSharedAxisRealtimeSystem:
+-        crossoverBenchmarkMode&&accessId==='right'&&new URLSearchParams(window.location.search).get('crossoverWorker')==='1'?createSharedAxisWorkerSystem:createSharedAxisAppSystem)({
++        (crossoverBenchmarkMode||crossoverScenarioMode)&&accessId==='right'&&new URLSearchParams(window.location.search).get('crossoverWorker')==='1'?createSharedAxisWorkerSystem:createSharedAxisAppSystem)({
+         ...(selectedCoupledSolver==='shared-axis'?{contactCandidateMargin:.01,lazyBasisCoefficients:true,wasmBasis:true,deferActiveBasis:true}:{}),
+         adaptiveMesh:['shared-axis-adaptive','shared-axis-projective','shared-axis-realtime'].includes(selectedCoupledSolver),
+         earlyPredictorFallback:selectedCoupledSolver==='shared-axis-realtime'&&new URLSearchParams(window.location.search).get('earlyPredictorFallback')==='1',
+@@ -4962,6 +4962,7 @@
+ 
+ if(crossoverScenarioMode)import('./benchmark/crossoverScenarioPanel.js').then(async({createCrossoverScenarioPanel})=>{
+     crossoverScenario=await createCrossoverScenarioPanel({configuration:readCrossoverScenarioConfiguration,
++        qualityModel:projectiveCrossover?'projective-geometry':'newton-equilibrium',
+         dispose:callback=>runtime.onDispose(callback),boundary:callback=>changePhysicsSetting('crossover-scenario-checkpoint',callback),
+         reset:(configuration,start)=>new Promise((resolve,reject)=>changePhysicsSetting('crossover-scenario-start',()=>{
+             try {
+--- a/src/benchmark/crossoverScenarioRecording.js
++++ b/src/benchmark/crossoverScenarioRecording.js
+@@ -1,4 +1,5 @@
+ import {crossoverPhysicalGate} from './crossoverAppBenchmark.js';
++import {crossoverProjectiveGate,CROSSOVER_PD_QUALITY_MODEL,CROSSOVER_NEWTON_QUALITY_MODEL} from './crossoverProjectiveGate.js';
+ 
+ export const CROSSOVER_STAGES=[
+     'Pigtail nad rozwidleniem, prowadnik cofnięty, ogonek skierowany w drugą stronę',
+@@ -12,9 +13,12 @@
+ const validShape=s=>s&&s.coordinates?.length>=2&&s.positions?.length===s.coordinates.length*3&&
+     [...s.coordinates,...s.positions].every(Number.isFinite)&&s.coordinates.every((x,i)=>!i||x>s.coordinates[i-1]);
+ const validTools=t=>t&&['wire','catheter','wireRotation','catheterRotation'].every(key=>Number.isFinite(t[key]))&&t.wire>=0&&t.catheter>=0;
+-const validQuality=(quality,dt,forceTolerance=1e-6)=>Array.isArray(quality)&&quality.length===2&&quality.every(q=>crossoverPhysicalGate(dt,q,{forceTolerance}));
+-const captureQuality=d=>({converged:d.last.converged,certificateBound:d.last.certificateBound,residual:{length:d.last.residual.length},
+-    quality:{finite:d.last.quality.finite,maxPenetration:d.last.quality.maxPenetration,bodies:d.last.quality.bodies.map(b=>({maxLengthError:b.maxLengthError}))}});
++const validQuality=(quality,dt,forceTolerance=1e-6,model=CROSSOVER_NEWTON_QUALITY_MODEL)=>
++    Array.isArray(quality)&&quality.length===2&&quality.every(q=>model===CROSSOVER_PD_QUALITY_MODEL?
++        crossoverProjectiveGate(dt,q):model===CROSSOVER_NEWTON_QUALITY_MODEL&&!q?.pd&&crossoverPhysicalGate(dt,q,{forceTolerance}));
++const captureQuality=d=>d.last.pd?{converged:d.last.converged,pd:structuredClone(d.last.pd),quality:structuredClone(d.last.quality)}:
++    {converged:d.last.converged,certificateBound:d.last.certificateBound,residual:{length:d.last.residual.length},
++        quality:{finite:d.last.quality.finite,maxPenetration:d.last.quality.maxPenetration,bodies:d.last.quality.bodies.map(b=>({maxLengthError:b.maxLengthError}))}};
+ const captureWork=d=>({mesh:{...d.mesh},...Object.fromEntries([
+     'iterations','factorizations','backtracks','geometryRestarts','frictionIterations','substepAttempts','subdivisions',
+     'predictorFallbacks','coupledFrictionFallbacks','wallNormalFallbacks','replayCaptureMs',
+@@ -53,11 +57,14 @@
+ 
+ /** Validate before resetting any live tools. Checkpoints describe operator
+  * confirmations; they cannot manufacture missing inputs or stability proof. */
+-export function validateCrossoverRecording(record,{maxSteps=36000,forceCertificateLimit=1e-6}={}) {
++export function validateCrossoverRecording(record,{maxSteps=36000,forceCertificateLimit=1e-6,qualityModel=CROSSOVER_NEWTON_QUALITY_MODEL}={}) {
+     if(record?.schemaVersion!==CROSSOVER_RECORDING_VERSION||record.kind!=='crossover-input-sequence'||record.dt!==1/60||
+         record.complete!==true||!Array.isArray(record.steps)||!record.steps.length||record.steps.length>maxSteps||
+         !record.configuration||!Array.isArray(record.checkpoints)||record.checkpoints.length>CROSSOVER_STAGES.length)
+         throw new Error('Nagranie jest niekompletne lub ma nieobsługiwany format; wymagany zapis v2 z kontrolą obu solverów.');
++    if(![CROSSOVER_NEWTON_QUALITY_MODEL,CROSSOVER_PD_QUALITY_MODEL].includes(qualityModel)||
++        (record.validation?.qualityModel??CROSSOVER_NEWTON_QUALITY_MODEL)!==qualityModel)
++        throw new Error('Explicit matching solver quality model required.');
+     let previous=0;
+     for(const [stage,checkpoint] of record.checkpoints.entries()) {
+         if(checkpoint.stage!==stage||!Number.isInteger(checkpoint.afterStep)||checkpoint.afterStep<=previous||checkpoint.afterStep>record.steps.length)
+@@ -69,7 +76,7 @@
+     for(const [index,step] of record.steps.entries()) {
+         while(record.checkpoints[stage]?.afterStep<=index)stage++;
+         validateCrossoverInputs(step.inputs);
+-        if(!validShape(step.shape)||!validTools(step.tools)||!validQuality(step.quality,record.dt,forceCertificateLimit)||step.stage!==stage||step.moving!==moving(step.inputs)||
++        if(!validShape(step.shape)||!validTools(step.tools)||!validQuality(step.quality,record.dt,forceCertificateLimit,qualityModel)||step.stage!==stage||step.moving!==moving(step.inputs)||
+             !Number.isFinite(step.intervalMs)||step.intervalMs<0||!Number.isFinite(step.cpuMs)||step.cpuMs<0)
+             throw new Error(`Niekompletny lub nieprawidłowy krok ${index+1}: kształt, sprzęt, stabilność albo czas.`);
+     }
+@@ -98,7 +105,8 @@
+ 
+ /** Commands are sampled once at the common-step boundary and consumed only
+  * after both accesses commit. Cooperative retries never consume another input. */
+-export function createCrossoverScenarioRecording({now=()=>performance.now(),onChange=()=>{},onChunk=()=>{},maxSteps=36000}={}) {
++export function createCrossoverScenarioRecording({now=()=>performance.now(),onChange=()=>{},onChunk=()=>{},maxSteps=36000,qualityModel=CROSSOVER_NEWTON_QUALITY_MODEL}={}) {
++    if(![CROSSOVER_NEWTON_QUALITY_MODEL,CROSSOVER_PD_QUALITY_MODEL].includes(qualityModel))throw new Error('Unknown solver quality model');
+     let mode='idle',record=null,source=null,pending=null,lastWall=0,cpuMs=0,frames=0,movingSteps=0,movingWallMs=0;
+     const fail=message=>finish(false,message);
+     function finish(complete,error=null) {
+@@ -125,7 +133,7 @@
+         source=replay;mode=replay?'replaying':'recording';lastWall=now();cpuMs=frames=movingSteps=movingWallMs=0;pending=null;
+         record={schemaVersion:CROSSOVER_RECORDING_VERSION,kind:'crossover-input-sequence',recordedAt:new Date().toISOString(),dt:1/60,
+             replayOf:replay?.recordedAt??null,
+-            validation:{mode:shapeDifferenceLimitMm===null?'functional':'shape-limit',shapeDifferenceLimitMm,forceCertificateLimit,
++            validation:{mode:shapeDifferenceLimitMm===null?'functional':'shape-limit',shapeDifferenceLimitMm,forceCertificateLimit,qualityModel,
+                 shapeComparisonRole:shapeDifferenceLimitMm===null?'diagnostic':'acceptance',
+                 functionalReviewRequired:true},
+             startedAt:lastWall,configuration:structuredClone(configuration),steps:[],checkpoints:replay?structuredClone(replay.checkpoints):[],
+@@ -154,7 +162,7 @@
+         frame(){if(this.active)frames++;},
+         commit({dt,diagnostics,shape,tools}) {
+             if(!this.active)return;
+-            if(!pending||dt!==record.dt||!validQuality(diagnostics?.map(d=>d.last),dt,record.validation.forceCertificateLimit)||!validShape(shape)||!validTools(tools)){
++            if(!pending||dt!==record.dt||!validQuality(diagnostics?.map(d=>d.last),dt,record.validation.forceCertificateLimit,qualityModel)||!validShape(shape)||!validTools(tools)){
+                 fail('Krok nie przeszedł kontroli obu solverów, kształtu lub pozycji sprzętu.');return;
+             }
+             const index=record.steps.length,reference=source?.steps[index];let difference=0;
+--- a/src/benchmark/crossoverProjectiveGate.js
++++ b/src/benchmark/crossoverProjectiveGate.js
+@@ -0,0 +1,17 @@
++// Explicit research gate for PD with exact geometric closure. This does not
++// certify Newton equilibrium or replace the unchanged reference force gate.
++export const CROSSOVER_PD_QUALITY_MODEL='projective-geometry';
++export const CROSSOVER_NEWTON_QUALITY_MODEL='newton-equilibrium';
++const bounded=(value,limit)=>Number.isFinite(value)&&value>=0&&value<=limit;
++export function crossoverProjectiveGate(dt,result) {
++    const pd=result?.pd,q=result?.quality,parameters=pd?.parameters;
++    return dt===1/60&&result?.converged===true&&q?.finite===true&&
++        pd?.model==='projective-with-hard-kirchhoff-closure'&&pd.equilibriumCertified===false&&
++        parameters?.hardClosure===true&&['maxLengthError','maxPenetration','maxShear'].every(k=>
++            Number.isFinite(parameters[k])&&parameters[k]>0&&parameters[k]<=1e-5)&&
++        bounded(pd.maxLengthError,parameters.maxLengthError)&&bounded(pd.maxLengthErrorMm,parameters.maxLengthError)&&
++        bounded(pd.maxShear,parameters.maxShear)&&bounded(q.maxPenetration,parameters.maxPenetration)&&
++        bounded(pd.change,Number.MAX_VALUE)&&Array.isArray(q.bodies)&&q.bodies.length>0&&q.bodies.every(b=>
++            bounded(b.maxLengthError,parameters.maxLengthError)&&bounded(b.maxBendAngleDegrees,180)&&
++            (b.maxBendLimitDegrees===null||(bounded(b.maxBendLimitDegrees,180)&&b.maxBendAngleDegrees<=b.maxBendLimitDegrees+1e-5)));
++}
+--- a/src/benchmark/crossoverScenarioPanel.js
++++ b/src/benchmark/crossoverScenarioPanel.js
+@@ -10,12 +10,12 @@
+ const transactionDone=tx=>new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error??new Error('Local recording storage aborted'));});
+ const requestValue=request=>new Promise((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});
+ 
+-export async function createCrossoverScenarioPanel({configuration,reset,boundary,dispose}) {
++export async function createCrossoverScenarioPanel({configuration,reset,boundary,dispose,qualityModel}) {
+     const panel=document.createElement('section');panel.id='crossoverScenarioRecorder';
+     panel.style.cssText='position:fixed;top:74px;left:16px;z-index:10000;background:#10202ff5;color:#fff;padding:12px;border:1px solid #69c8c0;border-radius:8px;max-width:460px;font:14px system-ui';
+-    panel.innerHTML='<strong>Crossover · cały manewr</strong><p data-status>Gotowy do nagrania od pustych narzędzi.</p><p data-stage>Rozpocznij nagrywanie, następnie wykonaj manewr.</p><button data-record>Nagraj od początku</button> <button data-mark disabled>Zapisz etap 1/5</button> <button data-stop disabled>Przerwij</button><p><button data-replay disabled>Odtwórz całe nagranie</button> <button data-save disabled>Pobierz nagranie / raport</button></p><label>Wczytaj nagranie <input data-file type="file" accept=".json,.gz"></label><small data-storage style="display:block;margin-top:8px">Zapis lokalny co 120 kroków. Nie przeładowuj strony w trakcie manewru.</small>';
++    panel.innerHTML='<strong>Crossover · cały manewr</strong><p data-status>Gotowy do nagrania od pustych narzędzi.</p><p data-stage>Rozpocznij nagrywanie, następnie wykonaj manewr.</p><button data-record>Nagraj od początku</button> <button data-mark disabled>Zapisz etap 1/5</button> <button data-stop disabled>Przerwij</button><p><button data-replay disabled>Odtwórz całe nagranie</button> <button data-save disabled>Pobierz nagranie / raport</button></p><button data-reference>Wczytaj zapis crossover</button><label>Wczytaj nagranie <input data-file type="file" accept=".json,.gz"></label><small data-storage style="display:block;margin-top:8px">Zapis lokalny co 120 kroków. Nie przeładowuj strony w trakcie manewru.</small>';
+     document.body.append(panel);
+-    const element=name=>panel.querySelector(`[data-${name}]`),status=element('status'),stage=element('stage'),recordButton=element('record'),mark=element('mark'),stop=element('stop'),replay=element('replay'),save=element('save'),file=element('file'),storage=element('storage');
++    const element=name=>panel.querySelector(`[data-${name}]`),status=element('status'),stage=element('stage'),recordButton=element('record'),mark=element('mark'),stop=element('stop'),replay=element('replay'),save=element('save'),file=element('file'),storage=element('storage'),reference=element('reference');
+     let db=null,saveQueue=Promise.resolve(),saved=0,lastRecording=null,lastReplayable=false,lastCompleted=null,
+         busy=true,disposed=false,downloadUrl=null,feedback=null;
+     let recording;
+@@ -24,7 +24,7 @@
+         const r=recording.record,active=recording.active;
+         recordButton.disabled=busy||active;mark.disabled=busy||recording.mode!=='recording';stop.disabled=busy||!active;
+         const replayable=()=>lastReplayable&&lastRecording?.complete;
+-        replay.disabled=busy||active||!replayable();file.disabled=busy||active;save.disabled=busy||active||!r&&!lastRecording;
++        replay.disabled=busy||active||!replayable();file.disabled=busy||active;reference.disabled=busy||active;save.disabled=busy||active||!r&&!lastRecording;
+         replay.textContent=lastRecording?.fullManeuverRecorded?'Odtwórz cały manewr':'Odtwórz zapisany fragment';
+         mark.textContent=`Zapisz etap ${Math.min(5,(r?.checkpoints.length??0)+1)}/5`;
+         if(!r){if(feedback)status.textContent=feedback;return;}
+@@ -32,6 +32,7 @@
+         status.textContent=`${recording.mode==='recording'?'Nagrywanie':recording.mode==='replaying'?'Odtwarzanie':r.complete?'Zakończono':'Przerwano'} · ${r.steps.length} kroków · podczas ruchu: ${hz===null?'—':hz.toFixed(1)} Hz`;
+         if(r.error)status.textContent+=` · ${r.error}`;
+         else if(recording.mode==='finished'&&r.replayOf)status.textContent+=` · różnica kształtu (informacyjnie): ${r.summary.maximumShapeDifferenceMm.toFixed(3)} mm`;
++        if(r.validation?.qualityModel==='projective-geometry')status.textContent+=' · PD: kontrola geometrii';
+         if(r.replayOf&&r.validation?.mode==='functional')status.textContent+=' · bez limitu różnicy kształtu';
+         stage.textContent=active?`${Math.min(5,recording.progress.stage+1)}. ${CROSSOVER_STAGES[recording.progress.stage]??'Odtwarzanie zapisanych komend'}`:
+             r.replayOf&&r.complete?'Odtworzono komendy. Sprawdź przejście do przeciwległej biodrowej, zewnętrznej i udowej oraz stabilność manewru.':
+@@ -54,7 +55,7 @@
+             recording.fail('Nie udało się zachować nagrania lokalnie.');
+         });
+     }
+-    recording=createCrossoverScenarioRecording({onChange:update,onChunk:persist});
++    recording=createCrossoverScenarioRecording({onChange:update,onChunk:persist,qualityModel});
+     // The simulator receives the controller only after this async initializer
+     // resolves. Never enable capture while IndexedDB is still being opened.
+     update();
+@@ -79,6 +80,19 @@
+         const zipped=await new Response(json.stream().pipeThrough(new CompressionStream('gzip'))).blob();
+         if(downloadUrl)URL.revokeObjectURL(downloadUrl);downloadUrl=URL.createObjectURL(zipped);
+         const link=document.createElement('a');link.href=downloadUrl;link.download=`crossover-${r.replayOf?'replay':'recording'}-${r.recordedAt.replaceAll(':','-')}.json.gz`;link.click();
++    };
++    reference.onclick=async()=>{
++        busy=true;feedback=null;update();
++        try {
++            const response=await fetch('/reports/performance-scenarios/003-crossover-full-user-inputs.json.gz');
++            if(!response.ok)throw new Error(`Nagranie: HTTP ${response.status}`);
++            const candidate=await (response.headers.get('Content-Encoding')==='gzip'?response:
++                new Response(response.body.pipeThrough(new DecompressionStream('gzip')))).json();
++            validateCrossoverRecording(candidate);
++            if(disposed)return;
++            lastRecording=candidate;lastReplayable=true;feedback=`Wczytano ${candidate.steps.length} kroków.`;
++        }catch(error){feedback=error.message;}
++        finally{busy=false;update();}
+     };
+     file.onchange=async()=>{
+         try {
+--- a/src/physics/projectiveRodMath.js
++++ b/src/physics/projectiveRodMath.js
+@@ -1,5 +1,6 @@
++import {solveProjectiveBandVector} from './projectiveBandVector.js';
+ /** Small SPD band factor, owned by one PD step and reused for all three axes. */
+-export function factorProjectiveBand(terms, count, fixed) {
++export function factorProjectiveBand(terms, count, fixed, {vectorSolve=false}={}) {
+     const band=1+Math.max(0,...terms.map(t=>Math.max(...t.ids)-Math.min(...t.ids)));
+     const a=new Float64Array(count*band),offset=Array.from({length:count},()=>[0,0,0]);
+     for(const {ids,coefficients:c,weight:w} of terms)for(let i=0;i<ids.length;i++) {
+@@ -18,6 +19,7 @@
+         else a[i*band+i-j]=v/a[j*band];
+     }
+     return {band,solve(rhs) {
++        if(vectorSolve)return solveProjectiveBandVector(a,band,count,fixed,offset,rhs);
+         const x=rhs.map((p,i)=>fixed.has(i)?fixed.get(i).slice():p.map((v,k)=>v+offset[i][k]));
+         for(let i=0;i<count;i++)for(let k=0;k<3;k++) {
+             for(let j=Math.max(0,i-band+1);j<i;j++)x[i][k]-=a[i*band+i-j]*x[j][k];
+--- a/src/physics/kirchhoffSharedAxisProjective.js
++++ b/src/physics/kirchhoffSharedAxisProjective.js
+@@ -2,12 +2,13 @@
+ import {quaternionExp,evaluateAdaptationConstraint} from './discreteKirchhoffRod.js';
+ import {captureSharedAxisNative,restoreSharedAxisNative,applySharedAxisNativeIncrement,extendSharedAxisNativeRows,sharedAxisOuterMaterialAt} from './kirchhoffSharedAxisNative.js';
+ import {prepareSharedAxisDynamicStep,completeSharedAxisDynamicStep} from './kirchhoffSharedAxisDynamics.js';
+-import {assembleSharedAxisConstraintRows} from './kirchhoffSharedAxisConstraintRows.js';
++import {assembleSharedAxisConstraintRows,leaseSharedAxisConstraintRowPool} from './kirchhoffSharedAxisConstraintRows.js';
+ import {measureSharedAxisQuality} from './kirchhoffSharedAxisDiagnostics.js';
+ import {iterateSharedAxisProjection} from './kirchhoffSharedAxisProjection.js';
+ import {factorProjectiveBand,projectRotation,quaternionColumns} from './projectiveRodMath.js';
+ import {projectRotationPolar} from './projectiveRotationPolar.js';
+ import {createProjectRotationScratch} from './projectiveRotationScratch.js';
++import {isDeferredSharedAxisContact,materializeSharedAxisContact} from './kirchhoffSharedAxisInactiveContacts.js';
+ 
+ export const PROJECTIVE_ROD_DEFAULTS=Object.freeze({iterations:16,tolerance:.002,axialRigidity:2e6,
+     rotationPenalty:8,contactWeight:2e6,maxLengthError:.03,maxPenetration:.1,maxShear:.1});
+@@ -22,17 +23,23 @@
+  * Coulomb slip uses a bounded positional return, not the Newton certificate.
+  */
+ export function* iterateSharedAxisProjective(s,dt,{projective={},feedById={},bloodFlow=null,observeProjectionFailure=null}={}) {
+-    const {hardClosure=false,profile=false,reuseGeometry=false,fastRotations=false,scratchRotations=false,...settings}=projective;
+-    if([hardClosure,profile,reuseGeometry,fastRotations,scratchRotations].some(v=>typeof v!=='boolean')||fastRotations&&scratchRotations)throw new RangeError('Invalid PD boolean option');
++    const {hardClosure=false,profile=false,reuseGeometry=false,fastRotations=false,scratchRotations=false,reuseContactRows=false,vectorSolve=false,triangleKernel=false,reuseProjectionWork=false,deferSeparatedContacts=false,...settings}=projective;
++    if([hardClosure,profile,reuseGeometry,fastRotations,scratchRotations,reuseContactRows,vectorSolve,triangleKernel,reuseProjectionWork,deferSeparatedContacts].some(v=>typeof v!=='boolean')||fastRotations&&scratchRotations||deferSeparatedContacts&&!reuseContactRows)throw new RangeError('Invalid PD boolean option');
+     const rotationProjection=fastRotations?projectRotationPolar:scratchRotations?createProjectRotationScratch():projectRotation;
+     const o={...PROJECTIVE_ROD_DEFAULTS,...settings};
+     if(!Number.isInteger(o.iterations)||o.iterations<1||Object.values(o).some(v=>!Number.isFinite(v)||v<=0))throw new RangeError('Invalid PD options');
+     const incoming=captureSharedAxisNative(s),previous={velocities:s.velocities,angularVelocities:s.angularVelocities,
+-        acceptedWallGaps:s.acceptedWallGaps,wallFrictionHistory:s.wallFrictionHistory,acceptedSolves:s.acceptedSolves};
++        reuseTriangleKernel:s.reuseTriangleKernel,acceptedWallGaps:s.acceptedWallGaps,wallFrictionHistory:s.wallFrictionHistory,acceptedSolves:s.acceptedSolves};
+     const started=performance.now(),timings={assemblyMs:0,linearMs:0,frictionMs:0,projectionMs:0};
+     if(profile)Object.assign(timings,{setupMs:0,constraintMs:0,rotationMs:0,closureSolveMs:0,constraintCalls:0,constraintReuse:0});
++    if(profile&&deferSeparatedContacts)Object.assign(timings,{deferredContactRows:0,resolvedDeferredRows:0});
+     let committed=false,iterations=0,factorizations=0,backtracks=0,closureIterations=0,rows=[],change=Infinity,maxShear=0;
++    // A yielded projection still owns these rows. Lease the entire arena for
++    // this step; another access/solver must never overwrite its live geometry.
++    const rowLease=reuseContactRows?leaseSharedAxisConstraintRowPool():null;
++    const rowStorage=rowLease?.pool.acquire();
+     try {
++        if(triangleKernel)s.reuseTriangleKernel=true;
+         prepareSharedAxisDynamicStep(s,dt,bloodFlow);
+         const initial=s.dynamicStep,variables=[],nodes=[],frames=[],stretches=[],terms=[],fixed=new Map(),contacts=new Map();
+         const term=(ids,coefficients,weight,target=[0,0,0])=>{const t={ids,coefficients,weight,target};terms.push(t);return t;};
+@@ -82,6 +89,13 @@
+             s.geometryKey=Symbol('pd-pose');
+         };
+         let evaluated=null;
++        const resolveContact=row=>{
++            if(!deferSeparatedContacts||!isDeferredSharedAxisContact(row))return;
++            const time=profile?performance.now():0;
++            materializeSharedAxisContact(row);
++            if(profile){timings.constraintMs+=performance.now()-time;timings.resolvedDeferredRows++;}
++        };
++        const resolveAll=rows=>{if(deferSeparatedContacts)for(const row of rows)resolveContact(row);return rows;};
+         const evaluate=()=>{
+             // PD keeps reactions fixed until final publication. Between a
+             // successful trial and the next iteration only director targets
+@@ -95,13 +109,16 @@
+             evaluated=null;
+             const time=profile?performance.now():0;
+             s.chain.gradient.fill(0);
+-            let r=assembleSharedAxisConstraintRows(s,{withTangent:false,outerMaterialAt:sharedAxisOuterMaterialAt});
++            const assemblyOptions={withTangent:false,outerMaterialAt:sharedAxisOuterMaterialAt,
++                storage:rowStorage,cacheWallGeometry:reuseContactRows,reuseConstraintWork:triangleKernel,cullInactiveContacts:deferSeparatedContacts};
++            let r=assembleSharedAxisConstraintRows(s,assemblyOptions);
+             for(let discovery=0;s.pendingVesselRows?.size;discovery++) {
+                 if(discovery>=64)throw new Error('PD contact discovery did not settle');
+                 extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();
+-                r=assembleSharedAxisConstraintRows(s,{withTangent:false,outerMaterialAt:sharedAxisOuterMaterialAt});
++                r=assembleSharedAxisConstraintRows(s,assemblyOptions);
+             }
+             if(profile){timings.constraintMs+=performance.now()-time;timings.constraintCalls++;}
++            if(profile&&deferSeparatedContacts)for(const row of r)if(isDeferredSharedAxisContact(row))timings.deferredContactRows++;
+             if(reuseGeometry)evaluated={key:s.geometryKey,definitions:s.definitions,count:s.definitions.length,rows:r};
+             return r;
+         };
+@@ -110,6 +127,10 @@
+             rows=evaluate();
+             for(let i=0;i<rows.length;i++) {
+                 const r=rows[i];
++                // A positive lower bound can exclude only a NEW penalty
++                // farther than the activation band. Existing penalties keep
++                // their exact derivatives even after the contact separates.
++                if(r.kind==='wall'&&(r.gap<=.1||contacts.has(i)))resolveContact(r);
+                 if(r.kind!=='wall'||r.gap>.1||!r.jacobian.some(v=>Math.abs(v)>1e-12)||contacts.has(i))continue;
+                 const ids=Array.from({length:r.dofs.length/3},(_,j)=>nodes[r.edge+j]);
+                 const projections=ids.map(id=>term([id],[1],o.contactWeight,x[id].slice()));
+@@ -150,7 +171,7 @@
+             for(let i=0;i<nodes.length;i++)for(let k=0;k<3;k++)rhs[nodes[i]][k]+=s.loads[s.layout.positions[i]+k];
+             timings.assemblyMs+=performance.now()-assemblyStart;
+             const solveStart=performance.now();
+-            if(!factor){factor=factorProjectiveBand(terms,x.length,fixed);factorizations++;}
++            if(!factor){factor=factorProjectiveBand(terms,x.length,fixed,{vectorSolve});factorizations++;}
+             const proposed=factor.solve(rhs),old=x;
+             timings.linearMs+=performance.now()-solveStart;
+             // Limit trial movement to retain the signed vessel side. A failed
+@@ -190,12 +211,13 @@
+             // This does not certify PD energy or Newton force equilibrium.
+             const closureStart=performance.now();
+             for(let i=0;i<32;i++) {
+-                rows=evaluate();const q=measureSharedAxisQuality(s,rows);
++                // The global correction never receives surrogate Jacobians.
++                rows=resolveAll(evaluate());const q=measureSharedAxisQuality(s,rows);
+                 if(q.maxPenetration<=o.maxPenetration*.5&&absoluteLengthError()<=o.maxLengthError*.5&&
+                     q.bodies.every(b=>b.maxLengthError<=o.maxLengthError*.5)&&
+                     !rows.some(r=>r.subtype==='bend-limit'&&r.gap< -1e-9))break;
+                 const closureSolveStart=profile?performance.now():0;
+-                const direction=yield* iterateSharedAxisProjection(s,{rows});
++                const direction=yield* iterateSharedAxisProjection(s,{rows},{reuseConstraintWork:reuseProjectionWork,reuseMatrixAssembly:reuseProjectionWork});
+                 if(profile)timings.closureSolveMs+=performance.now()-closureSolveStart;
+                 factorizations+=direction.factorizations??0;closureIterations++;
+                 if(!direction.converged){
+@@ -221,7 +243,7 @@
+             }
+             timings.projectionMs+=performance.now()-closureStart;
+         }
+-        rows=evaluate();s.multipliers.fill(0);
++        rows=resolveAll(evaluate());s.multipliers.fill(0);
+         for(const row of rows)row.multiplier=0;
+         for(const [index,c] of contacts) {
+             const r=rows[index],norm=r.jacobian.reduce((sum,j)=>sum+j*j,0);
+@@ -233,7 +255,7 @@
+         const admissible=quality.finite&&Number.isFinite(change)&&maxLengthError<=o.maxLengthError&&quality.maxPenetration<=o.maxPenetration&&maxShear<=o.maxShear&&
+             (!hardClosure||maxLengthErrorMm<=o.maxLengthError)&&
+             quality.bodies.every(b=>b.maxBendLimitDegrees===null||b.maxBendAngleDegrees<=b.maxBendLimitDegrees+(hardClosure?1e-5:2));
+-        const pd={model:hardClosure?'projective-with-hard-kirchhoff-closure':'projective-cosserat-penalty',parameters:{...o,hardClosure,profile,reuseGeometry,fastRotations,scratchRotations},iterations,factorizations,
++        const pd={model:hardClosure?'projective-with-hard-kirchhoff-closure':'projective-cosserat-penalty',parameters:{...o,hardClosure,profile,reuseGeometry,fastRotations,scratchRotations,reuseContactRows,vectorSolve,triangleKernel,reuseProjectionWork,deferSeparatedContacts},iterations,factorizations,
+             change,maxShear,preClosureShear,maxLengthError,maxLengthErrorMm,closureCorrectionMm,closureIterations,dofs:3*x.length,
+             localGlobalConverged:!hardClosure&&change<o.tolerance,energyStepConverged:change<o.tolerance,equilibriumCertified:false,
+             limits:{lengthError:o.maxLengthError,penetration:o.maxPenetration,shear:o.maxShear},friction:'approximate-positional-coulomb'};
+@@ -248,5 +270,7 @@
+         return {converged:false,status:'pd-error',error:error.message,iterations,factorizations,backtracks,geometryRestarts:0,frictionIterations:0,timings,ms:performance.now()-started};
+     } finally {
+         if(!committed){restoreSharedAxisNative(s,incoming);Object.assign(s,previous);s.dynamicStep=null;}
++        s.reuseTriangleKernel=previous.reuseTriangleKernel;
++        rowLease?.release();
+     }
+ }
+--- a/src/physics/kirchhoffSharedAxisConstraintRows.js
++++ b/src/physics/kirchhoffSharedAxisConstraintRows.js
+@@ -106,7 +106,7 @@
+  * contact deferral. Its prepared results are consumed in the same synchronous
+  * assembly, before any pose/reaction changes or cooperative yield.
+  */
+-export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMaterialAt,retainWallHessians=false,reuseConstraintWork=false,storage=null,cullInactiveContacts=false,prepareOnly=null,prepared=null}={}) {
++export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMaterialAt,retainWallHessians=false,cacheWallGeometry=false,reuseConstraintWork=false,storage=null,cullInactiveContacts=false,prepareOnly=null,prepared=null}={}) {
+     if(prepared?.error&&prepared.index===undefined)throw prepared.error;
+     const g=s.chain.gradient,geometry=sharedAxisConstraintEdgeGeometry(s,storage),rows=prepareOnly?null:(storage?.rows??new Array(s.definitions.length));
+     if(rows)rows.length=s.definitions.length;
+@@ -148,7 +148,7 @@
+             gap=contact.gap;J=contact.jacobian;gapHessian=contact.hessian??null;
+         } else {
+             const owner=outerMaterialAt(s,e,def.witness?.t??1,def.witness?.owner),needHessian=(withTangent||retainWallHessians)&&(s.multipliers[index]!==0||(s.primalCompliantContacts&&def.witness));
+-            const cache=(s.cacheMechanicalAssembly||retainWallHessians)?(storage?.contacts??(s.wallGeometryCache??=new Map())):null,cached=cache?.get(def);
++            const cache=(s.cacheMechanicalAssembly||retainWallHessians||cacheWallGeometry)?(storage?.contacts??(s.wallGeometryCache??=new Map())):null,cached=cache?.get(def);
+             // A GN assembly without geometry caching must not overwrite the
+             // retained Newton contact/Hessian needed if that method is retried.
+             let record=storage&&cache?cache.get(def):null;
+--- a/src/physics/kirchhoffSharedAxisCrossoverPreset.js
++++ b/src/physics/kirchhoffSharedAxisCrossoverPreset.js
+@@ -28,6 +28,8 @@
+         omitInactiveSampleRows:true,
+         projective:Object.freeze({iterations:16,hardClosure:true,
+             maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5,
+-            reuseGeometry:true,scratchRotations:true,fastRotations:false})
++            reuseGeometry:true,scratchRotations:true,fastRotations:false,
++            reuseContactRows:true,vectorSolve:true,triangleKernel:true,reuseProjectionWork:true,
++            deferSeparatedContacts:false})
+     })
+ });
+--- a/src/physics/projectiveBandVector.js
++++ b/src/physics/projectiveBandVector.js
+@@ -0,0 +1,26 @@
++// Solve the same scalar Cholesky factor for three RHS components together.
++// Each component retains its original subtraction/division order. Interleave
++// only independent axes so band indices and coefficients are loaded once.
++// Returned arrays are owned by the caller, including prescribed vectors.
++export function solveProjectiveBandVector(a,band,count,fixed,offset,rhs) {
++    const x=rhs.map((p,i)=>fixed.has(i)?fixed.get(i).slice():p.map((v,k)=>v+offset[i][k]));
++    for(let i=0;i<count;i++) {
++        const p=x[i],at=i*band,diagonal=a[at];
++        let x0=p[0],x1=p[1],x2=p[2];
++        for(let j=Math.max(0,i-band+1);j<i;j++) {
++            const coefficient=a[at+i-j],q=x[j];
++            x0-=coefficient*q[0];x1-=coefficient*q[1];x2-=coefficient*q[2];
++        }
++        p[0]=x0/diagonal;p[1]=x1/diagonal;p[2]=x2/diagonal;
++    }
++    for(let i=count-1;i>=0;i--) {
++        const p=x[i],diagonal=a[i*band];
++        let x0=p[0],x1=p[1],x2=p[2];
++        for(let j=i+1;j<Math.min(count,i+band);j++) {
++            const coefficient=a[j*band+j-i],q=x[j];
++            x0-=coefficient*q[0];x1-=coefficient*q[1];x2-=coefficient*q[2];
++        }
++        p[0]=x0/diagonal;p[1]=x1/diagonal;p[2]=x2/diagonal;
++    }
++    return x;
++}
+--- a/tests/crossoverProjectiveGate.test.js
++++ b/tests/crossoverProjectiveGate.test.js
+@@ -0,0 +1,23 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {crossoverProjectiveGate} from '../src/benchmark/crossoverProjectiveGate.js';
++export const pdResult=()=>({converged:true,pd:{model:'projective-with-hard-kirchhoff-closure',equilibriumCertified:false,
++    parameters:{hardClosure:true,maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5},
++    maxLengthError:1e-8,maxLengthErrorMm:1e-7,maxShear:1e-9,change:.1},
++    quality:{finite:true,maxPenetration:0,bodies:[{maxLengthError:1e-8,maxBendAngleDegrees:30,maxBendLimitDegrees:45}]}});
++test('PD geometry gate cannot inherit a Newton certificate or omit exact closure evidence',()=>{
++    assert.equal(crossoverProjectiveGate(1/60,pdResult()),true);
++    assert.equal(crossoverProjectiveGate(1/30,pdResult()),false);
++    assert.equal(crossoverProjectiveGate(1/60,null),false);
++    for(const damage of [r=>delete r.pd,r=>r.converged=false,r=>r.quality.finite=false,r=>r.quality.bodies=[],
++        r=>r.pd.model='projective-cosserat-penalty',r=>r.pd.equilibriumCertified=true,r=>r.pd.parameters.hardClosure=false,
++        r=>delete r.quality.bodies[0].maxBendLimitDegrees,r=>r.quality.bodies[0].maxBendAngleDegrees=45.001]) {
++        const r=pdResult();damage(r);assert.equal(crossoverProjectiveGate(1/60,r),false);
++    }
++    for(const path of [['pd','maxLengthError'],['pd','maxLengthErrorMm'],['pd','maxShear'],['quality','maxPenetration'],
++        ['pd','parameters','maxLengthError'],['pd','parameters','maxPenetration'],['pd','parameters','maxShear'],
++        ['quality','bodies',0,'maxLengthError']])for(const value of [undefined,NaN,Infinity,-1,1.001e-5]) {
++        const r=pdResult();path.slice(0,-1).reduce((o,k)=>o[k],r)[path.at(-1)]=value;
++        assert.equal(crossoverProjectiveGate(1/60,r),false,`${path.join('.')}: ${value}`);
++    }
++});
+--- a/tests/crossoverScenarioRecording.test.js
++++ b/tests/crossoverScenarioRecording.test.js
+@@ -172,3 +172,36 @@
+     assert.equal(saved.solverWork[0].replayCaptureTimes.snapshot,2);
+     assert.equal(session.record.summary.duringMotion.physicsHz,40);
+ });
++
++// Independent geometry-qualified results: no force certificate or residual.
++const pdSample=()=>({...structuredClone(sample),diagnostics:[0,1].map(()=>({last:{converged:true,
++    pd:{model:'projective-with-hard-kirchhoff-closure',equilibriumCertified:false,
++        parameters:{hardClosure:true,maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5},
++        maxLengthError:1e-8,maxLengthErrorMm:1e-7,maxShear:1e-9,change:.1},
++    quality:{finite:true,maxPenetration:0,bodies:[{maxLengthError:1e-8,maxBendAngleDegrees:30,maxBendLimitDegrees:45}]}}}))});
++test('PD replay is explicit, captures both accesses without Newton fields and preserves the reference gate',()=>{
++    const source=oneStepRecord(),candidate=pdSample(),session=createCrossoverScenarioRecording({qualityModel:'projective-geometry'});
++    session.startReplay({},source);session.boundary(input(0),{});session.commit(candidate);
++    assert.equal(session.record.complete,true);assert.equal(session.record.validation.qualityModel,'projective-geometry');
++    candidate.diagnostics[0].last.pd.parameters.hardClosure=false;
++    candidate.diagnostics[1].last.quality.bodies[0].maxBendAngleDegrees=90;
++    for(const q of session.record.steps[0].quality){assert.equal(q.pd.parameters.hardClosure,true);assert.equal(q.quality.bodies[0].maxBendAngleDegrees,30);
++        assert.equal('certificateBound' in q,false);assert.equal('residual' in q,false);assert.equal(q.pd.equilibriumCertified,false);}
++    assert.throws(()=>validateCrossoverRecording(session.record),/Explicit/);
++    assert.equal(validateCrossoverRecording(session.record,{qualityModel:'projective-geometry'}),session.record);
++    const strict=createCrossoverScenarioRecording();strict.startReplay({},source);strict.boundary(input(0),{});strict.commit(pdSample());
++    assert.equal(strict.record.complete,false);assert.equal(strict.record.steps.length,0);
++    assert.throws(()=>createCrossoverScenarioRecording({qualityModel:'unvalidated'}),/Unknown/);
++    assert.equal(validateCrossoverRecording(source),source);
++});
++test('PD recorder rejects invalid geometry on either access and mixed methods',()=>{
++    for(const index of [0,1])for(const damage of [q=>q.pd.maxShear=1e-4,q=>q.pd.maxLengthErrorMm=1e-4,
++        q=>q.quality.maxPenetration=1e-4,q=>q.quality.bodies[0].maxBendAngleDegrees=46,q=>q.pd.equilibriumCertified=true]) {
++        const session=createCrossoverScenarioRecording({qualityModel:'projective-geometry'}),candidate=pdSample();
++        damage(candidate.diagnostics[index].last);session.startReplay({},oneStepRecord());session.boundary(input(0),{});session.commit(candidate);
++        assert.equal(session.record.complete,false);assert.equal(session.record.steps.length,0);
++    }
++    const session=createCrossoverScenarioRecording({qualityModel:'projective-geometry'}),candidate=pdSample();
++    candidate.diagnostics[1]=sample.diagnostics[1];session.startReplay({},oneStepRecord());session.boundary(input(0),{});session.commit(candidate);
++    assert.equal(session.record.complete,false);
++});
+--- a/tests/projectiveBandVector.test.js
++++ b/tests/projectiveBandVector.test.js
+@@ -0,0 +1,19 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {factorProjectiveBand} from '../src/physics/projectiveRodMath.js';
++
++test('three-component band solves are bit-identical and own their outputs across sizes and fixed supports',()=>{
++    for(const count of [1,5,33,199,1400])for(const reach of [1,4,9]) {
++        const terms=Array.from({length:count},(_,i)=>({ids:[i],coefficients:[1],weight:2+Math.abs(Math.sin(i))}));
++        for(let i=0;i<count;i++)for(let j=i+1;j<Math.min(count,i+reach);j++)
++            terms.push({ids:[i,j],coefficients:[-1,1+.1*Math.cos(j)],weight:.3+Math.abs(Math.sin(i+j))});
++        const fixed=new Map([[0,[1,-2,3]],...(count>5?[[3,[-2,0,0]]]:[])]);
++        const rhs=Array.from({length:count},(_,i)=>[Math.sin(i*.12),-0,Math.cos(i*.03)]);
++        const slow=factorProjectiveBand(terms,count,fixed),fast=factorProjectiveBand(terms,count,fixed,{vectorSolve:true});
++        const expected=slow.solve(rhs),actual=fast.solve(rhs);
++        assert.deepEqual(actual,expected);
++        const saved=structuredClone(actual);fast.solve(rhs.map(p=>p.map(v=>v*2)));
++        assert.deepEqual(actual,saved);assert.notEqual(actual[0],fixed.get(0));
++        assert.deepEqual(rhs[0],[0,-0,1]);
++    }
++});
+--- a/tests/crossoverAlternativeSolvers.browser.html
++++ b/tests/crossoverAlternativeSolvers.browser.html
+@@ -14,7 +14,8 @@
+ <nav><label>Metoda <select id="solver"><option value="xpbd">XPBD</option><option value="hybrid" selected>XPBD + wspólna korekta długości i kontaktów</option><option value="projective">Projective Dynamics</option><option value="projective-hybrid">Projective Dynamics + korekta długości i kontaktów</option></select></label>
+ <label>Iteracje <select id="iterations"><option>4</option><option>8</option><option>16</option><option>32</option><option selected>64</option><option>128</option></select></label>
+ <label><input id="profile" type="checkbox"> Profil kosztów PD</label>
+-<label>Optymalizacja PD <select id="optimization"><option value="none">Bez</option><option value="geometry">Buforowanie geometrii</option><option value="geometry-jacobi">Buforowanie geometrii i obrotów Jacobiego</option><option value="geometry-polar">Buforowanie i szybsze obroty polarne</option></select></label>
++<label>Optymalizacja PD <select id="optimization"><option value="none">Bez</option><option value="geometry">Buforowanie geometrii</option><option value="geometry-jacobi">Buforowanie geometrii i obrotów Jacobiego</option><option value="geometry-jacobi-rows">Geometria, obroty i bufory kontaktów</option><option value="geometry-jacobi-kernels">Geometria, obroty i wspólne obliczenia</option><option value="geometry-jacobi-all">Geometria, obroty, bufory i wspólne obliczenia</option><option value="geometry-jacobi-deferred">Geometria i bezpieczne odraczanie dalekich kontaktów</option><option value="geometry-polar">Buforowanie i szybsze obroty polarne</option></select></label>
++<label><input id="paired" type="checkbox"> Porównanie parami (obie pełne trajektorie)</label>
+ <label>Siatka <select id="mesh"><option value="fine">Dokładna 5 mm</option><option value="adaptive250">Adaptacyjna 5–20 mm, początek 250 mm dokładny</option><option value="adaptive80">Adaptacyjna 5–20 mm, początek 80 mm dokładny</option></select></label>
+ <button id="run" disabled>Odtwórz cały manewr</button><button id="stop" disabled>Zatrzymaj</button><a id="download" hidden>Pobierz raport</a></nav>
+ <p><label>Przegląd przebiegu <input id="review" type="range" min="1" max="7507" value="1" disabled></label> <span id="reviewLabel"></span></p>
+@@ -33,7 +34,7 @@
+ import {CROSSOVER_ROUTE_LABELS} from '../src/benchmark/crossoverFunctionalRoute.js';
+ const el=id=>document.getElementById(id),canvas=el('scene'),ctx=canvas.getContext('2d');
+ const project=p=>[canvas.width/2+(p[0]-20)*canvas.height/850,canvas.height/2-(p[1]+640)*canvas.height/850];
+-let active=false,iterator,report,started,lastShape,lastReference,downloadUrl;
++let active=false,iterator,controlIterator,report,started,lastShape,lastReference,downloadUrl;
+ const read=async path=>{try{const r=await fetch(path);if(!r.ok)throw Error(`HTTP ${r.status}`);return r;}catch(e){throw Error(`${path}: ${e.message}`);}};
+ const source='/reports/performance-scenarios/003-crossover-full-user-inputs.json.gz';
+ const hash=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(x=>x.toString(16).padStart(2,'0')).join('');
+@@ -44,7 +45,7 @@
+     const sourceSha256=await hash(sourceBytes),asset=decodeCollisionAsset(assetBytes),geometry=new STLLoader().parse(meshBytes);
+     transformAortaGeometry(geometry,generateVessel(140,0).vessel);geometry.computeBoundingBox();geometry.boundsTree=new MeshBVH(geometry);
+     const field=new VesselContactField(asset,{fallbackGeometry:geometry,bvhValidationDistance:.02,capsuleBvhValidation:-.1});
+-    const sourceHashes=Object.fromEntries(await Promise.all(['src/physics/sharedAxisXpbdExperimental.js','src/physics/kirchhoffSharedAxisProjective.js','src/physics/projectiveRotationPolar.js','src/physics/projectiveRotationScratch.js','src/physics/kirchhoffSharedAxisAdaptiveMesh.js','src/physics/kirchhoffSharedAxisNative.js','src/benchmark/crossoverAlternativeSolvers.js','src/benchmark/crossoverFunctionalRoute.js']
++    const sourceHashes=Object.fromEntries(await Promise.all(['src/physics/projectiveRodMath.js','src/physics/projectiveBandVector.js','src/physics/kirchhoffSharedAxisConstraintRows.js','src/physics/sharedAxisXpbdExperimental.js','src/physics/kirchhoffSharedAxisProjective.js','src/physics/projectiveRotationPolar.js','src/physics/projectiveRotationScratch.js','src/physics/kirchhoffSharedAxisAdaptiveMesh.js','src/physics/kirchhoffSharedAxisNative.js','src/benchmark/crossoverAlternativeSolvers.js','src/benchmark/crossoverFunctionalRoute.js']
+         .map(async p=>[p,await hash(await read('/'+p).then(r=>r.arrayBuffer()))])));
+     const draw=()=>{
+         ctx.fillStyle='#080e15';ctx.fillRect(0,0,600,900);ctx.strokeStyle='#263a48';ctx.lineWidth=1;ctx.beginPath();
+@@ -70,17 +71,23 @@
+         el('stageChecks').textContent=checks.map(c=>`Etap ${c.stage+1}: ${c.passed?'gałąź zgodna':'sprawdź trasę'} — prowadnik: ${CROSSOVER_ROUTE_LABELS[c.wire.region]}, cewnik: ${CROSSOVER_ROUTE_LABELS[c.catheter.region]}`).join(' | ')||'Ocena gałęzi: oczekuje na pierwszy punkt kontrolny.';
+     };
+     const finish=(reason)=>{
+-        active=false;iterator?.return();report.summary=summarizeAlternative(report.rows,record.steps.length);
+-        report.wallMs=performance.now()-started;report.finishedAt=new Date().toISOString();report.reason=reason;
++        active=false;iterator?.return();controlIterator?.return();report.summary=summarizeAlternative(report.rows,record.steps.length);
++        report.wallMs=performance.now()-started;report.finishedAt=new Date().toISOString();report.reason=reason;if(report.controlRows)report.controlSummary=summarizeAlternative(report.controlRows,record.steps.length);
+         el('status').textContent=reason;show();showRoute();
+-        el('review').max=report.rows.filter(r=>r.accepted).length;el('review').disabled=Number(el('review').max)===0;el('run').disabled=false;el('stop').disabled=true;el('solver').disabled=el('iterations').disabled=el('profile').disabled=el('optimization').disabled=el('mesh').disabled=false;
++        el('review').max=report.rows.filter(r=>r.accepted).length;el('review').disabled=Number(el('review').max)===0;el('run').disabled=false;el('stop').disabled=true;el('solver').disabled=el('iterations').disabled=el('profile').disabled=el('optimization').disabled=el('paired').disabled=el('mesh').disabled=false;
+         if(downloadUrl)URL.revokeObjectURL(downloadUrl);downloadUrl=URL.createObjectURL(new Blob([JSON.stringify(report)],{type:'application/json'}));
+         el('download').href=downloadUrl;el('download').download=`crossover-alternative-${report.solver}-${report.options.iterations}.json`;el('download').hidden=false;
+     };
+     const tick=()=>{
+         if(!active)return;
+         try {
+-            const n=iterator.next();if(n.done){finish(report.rows.length===record.steps.length?'Zakończono pełną sekwencję — oceń cały manewr suwakiem przebiegu.':'Próba zatrzymana po odrzuceniu geometrii.');return;}
++            let control,n;
++            if(controlIterator&&report.rows.length%2===0)control=controlIterator.next();
++            n=iterator.next();
++            if(controlIterator&&report.rows.length%2!==0)control=controlIterator.next();
++            if(control&&!control.done)report.controlRows.push(control.value);
++            if(control&&!control.done&&!control.value.accepted){finish(`Kontrola odrzuciła krok ${control.value.step}.`);return;}
++            if(n.done){finish(report.rows.length===record.steps.length?'Zakończono pełną sekwencję — oceń cały manewr suwakiem przebiegu.':'Próba zatrzymana po odrzuceniu geometrii.');return;}
+             report.rows.push(n.value);if(n.value.accepted)reviewStep(n.value.step);show();if(n.value.routeCheckpoint)showRoute();
+             if(!n.value.accepted){finish(`Odrzucono krok ${n.value.step}: ${n.value.status}.`);return;}
+             requestAnimationFrame(tick);
+@@ -91,16 +98,22 @@
+         const options={iterations:Number(el('iterations').value),maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5,...(mode.endsWith('hybrid')?{hardClosure:true}:{})};
+         if(solver==='projective')Object.assign(options,{profile:el('profile').checked,
+             reuseGeometry:el('optimization').value!=='none',fastRotations:el('optimization').value==='geometry-polar',
+-            scratchRotations:el('optimization').value==='geometry-jacobi'});
++            scratchRotations:el('optimization').value.startsWith('geometry-jacobi'),deferSeparatedContacts:el('optimization').value==='geometry-jacobi-deferred',reuseContactRows:['geometry-jacobi-rows','geometry-jacobi-all','geometry-jacobi-deferred'].includes(el('optimization').value),vectorSolve:['geometry-jacobi-kernels','geometry-jacobi-all','geometry-jacobi-deferred'].includes(el('optimization').value),triangleKernel:['geometry-jacobi-kernels','geometry-jacobi-all','geometry-jacobi-deferred'].includes(el('optimization').value),reuseProjectionWork:['geometry-jacobi-kernels','geometry-jacobi-all','geometry-jacobi-deferred'].includes(el('optimization').value)});
+         const mesh=el('mesh').value==='fine'?null:{maxSpacing:20,contactMaxSpacing:20,shapeTolerance:.15,maxArcLoss:.002,
+             maxTurn:Math.PI/15,contactMargin:.01,tipLength:80,tipRefinementAhead:80,finePrefixLength:el('mesh').value==='adaptive250'?250:80};
+         report={source,sourceSha256,sourceHashes,solver,options,mesh,dt:record.dt,startedAt:new Date().toISOString(),rows:[],
+             scope:'Browser research test: recorded targets from empty tools, right access only, simple axis drawing. One complete candidate per animation frame; includes rendering/scheduling. Not app FPS.',
+             acceptanceMode:'functional',shapeDifferenceLimitMm:null,productionDefaultChanged:false};
+         iterator=compareCrossoverAlternative({record,field,flow:createCrossoverFlowFromAsset(asset),solver,options,mesh});
++        controlIterator=null;
++        if(el('paired').checked){
++            report.controlOptions=options.deferSeparatedContacts?{...options,deferSeparatedContacts:false}:{...options,reuseContactRows:false,vectorSolve:false,triangleKernel:false,reuseProjectionWork:false};report.controlRows=[];
++            report.pairedScope='Two independent complete trajectories; solver order alternates per input step; both run on the same browser thread.';
++            controlIterator=compareCrossoverAlternative({record,field,flow:createCrossoverFlowFromAsset(asset),solver,options:report.controlOptions,mesh});
++        }
+         lastShape=lastReference=null;draw();el('review').max=record.steps.length;el('review').value=1;
+         el('review').disabled=true;el('reviewLabel').textContent='';showRoute();
+-        started=performance.now();active=true;el('run').disabled=true;el('stop').disabled=false;el('solver').disabled=el('iterations').disabled=el('profile').disabled=el('optimization').disabled=el('mesh').disabled=true;el('download').hidden=true;
++        started=performance.now();active=true;el('run').disabled=true;el('stop').disabled=false;el('solver').disabled=el('iterations').disabled=el('profile').disabled=el('optimization').disabled=el('paired').disabled=el('mesh').disabled=true;el('download').hidden=true;
+         el('status').textContent='Odtwarzanie wszystkich wejść od początku…';requestAnimationFrame(tick);
+     };
+     el('stop').onclick=()=>finish('Przerwano test — wynik częściowy.');draw();el('status').textContent='Gotowy · 7507 kroków od pustych narzędzi';el('run').disabled=false;
+--- a/tests/crossoverProjectiveWorker.test.js
++++ b/tests/crossoverProjectiveWorker.test.js
+@@ -0,0 +1,46 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {Worker} from 'node:worker_threads';
++import {readFileSync} from 'node:fs';
++import {gunzipSync} from 'node:zlib';
++import {createSharedAxisAppSystem} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
++import {createSharedAxisWorkerSystem} from '../src/physics/kirchhoffSharedAxisWorkerSystem.js';
++import {SHARED_AXIS_BODY_FIELDS} from '../src/physics/kirchhoffSharedAxisWorkerData.js';
++import {CROSSOVER_PROJECTIVE_MODEL} from '../src/physics/kirchhoffSharedAxisCrossoverPreset.js';
++import {crossoverProjectiveGate} from '../src/benchmark/crossoverProjectiveGate.js';
++import {loadCoupledRuntimeAnatomy} from './helpers/coupledRuntimeFixture.js';
++import {createCrossoverFlow} from './helpers/crossoverFlow.js';
++
++test('PD worker preserves moving-tool positions, exact geometry and flow; messages cannot publish outside common step',async()=>{
++    const fixture=JSON.parse(gunzipSync(readFileSync(new URL('../reports/performance-scenarios/001-stage-05-replay.json.gz',import.meta.url))));
++    const anatomy=await loadCoupledRuntimeAnatomy(undefined,fixture.anatomy),world={contactField:anatomy.field};
++    const makeTools=()=>fixture.tools.map(t=>{
++        const count=208,body={count,segmentCount:count-1,mass:t.mass,radius:t.radius,wallStaticFriction:t.wallStaticFriction,wallKineticFriction:t.wallKineticFriction};
++        for(const key of SHARED_AXIS_BODY_FIELDS)body[key]=new Float64Array(key.startsWith('orientation')?count-1:count);
++        return {...t,insertion:0,rotation:0,body,nodeCoordinates:Array.from({length:count},(_,i)=>-40+5*i)};
++    });
++    const localTools=makeTools(),remoteTools=makeTools(),flow=createCrossoverFlow();
++    const options={...CROSSOVER_PROJECTIVE_MODEL,readSheath:()=>fixture.sheath,readBloodFlow:()=>flow,workSliceMs:Infinity};
++    const local=createSharedAxisAppSystem({...options,readTools:()=>localTools});let wake;
++    const remote=createSharedAxisWorkerSystem({...options,readTools:()=>remoteTools,onReady:()=>wake?.(),createWorker:()=>{
++        const worker=new Worker(new URL('./helpers/sharedAxisPhysicsNodeWorker.mjs',import.meta.url));
++        const port={postMessage:m=>worker.postMessage(m),terminate:()=>worker.terminate()};
++        worker.on('message',data=>port.onmessage?.({data}));worker.on('error',error=>port.onerror?.(error));return port;
++    }});
++    const visible=tools=>tools.map(({body})=>Object.fromEntries(SHARED_AXIS_BODY_FIELDS.map(key=>[key,Array.from(body[key])])));
++    try {
++        for(let step=0;step<125;step++) {
++            for(const tools of [localTools,remoteTools]){
++                tools[0].insertion=step*44/60;tools[1].insertion=Math.max(0,step-80)*52/60;
++            }
++            const expected=local.step(world,1/60);assert.ok(expected.accepted,JSON.stringify(expected));
++            let ready=new Promise(resolve=>wake=resolve),actual=remote.step(world,1/60),before=visible(remoteTools);
++            while(actual.pending){await ready;assert.deepEqual(visible(remoteTools),before);ready=new Promise(resolve=>wake=resolve);actual=remote.step(world,1/60);}
++            assert.ok(actual.accepted,JSON.stringify(actual));assert.ok(crossoverProjectiveGate(1/60,actual.diagnostics.last));
++            assert.deepEqual(visible(remoteTools),visible(localTools));
++            assert.deepEqual(actual.diagnostics.last.pd,expected.diagnostics.last.pd);
++            assert.deepEqual(actual.diagnostics.last.quality,expected.diagnostics.last.quality);
++            assert.deepEqual(remote.captureFlowSamplingState(),local.captureFlowSamplingState());flow.update(1/60);
++        }
++    }finally{remote.dispose();local.reset();anatomy.dispose();}
++});
+--- a/tests/kirchhoffSharedAxisProjective.test.js
++++ b/tests/kirchhoffSharedAxisProjective.test.js
+@@ -1,8 +1,9 @@
+ import test from 'node:test';
+ import assert from 'node:assert/strict';
+-import {Quaternion,Vector3} from 'three';
++import {Quaternion,Vector3,BufferGeometry,Float32BufferAttribute} from 'three';
+ import {factorProjectiveBand,projectRotation,quaternionColumns} from '../src/physics/projectiveRodMath.js';
+-import {createSharedAxisNative,captureSharedAxisNative,rotateSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
++import {createSharedAxisNative,captureSharedAxisNative,rotateSharedAxisNative,extendSharedAxisNativeRows} from '../src/physics/kirchhoffSharedAxisNative.js';
++import {createSharedAxisVesselWitness} from '../src/physics/kirchhoffSharedAxisVesselWitnesses.js';
+ import {iterateSharedAxisProjective} from '../src/physics/kirchhoffSharedAxisProjective.js';
+ import {createSharedAxisContacts} from '../src/physics/kirchhoffSharedAxisContacts.js';
+ import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
+@@ -141,6 +142,83 @@
+ });
+ 
+ const strictClosure={hardClosure:true,maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5};
++test('PD separated-witness deferral preserves approach, contact, release and exact accepted gap history',()=>{
++    const geometry=new BufferGeometry().setAttribute('position',new Float32BufferAttribute([-1000,2,-1000,2000,2,-1000,-1000,2,2000],3));
++    const states=[create(),create()],calls=[0,0],options={...strictClosure,reuseGeometry:true,scratchRotations:true,reuseContactRows:true,
++        vectorSolve:true,triangleKernel:true,reuseProjectionWork:true,profile:true};
++    for(const [index,s] of states.entries())for(let edge=2;edge<s.positions.length-1;edge++) {
++        const row=createSharedAxisVesselWitness({fallbackGeometry:geometry},{kind:'wall',edge,id:`finite/${edge}`,
++            dofs:[s.layout.positions[edge],s.layout.positions[edge+1]].flatMap(p=>[p,p+1,p+2]),witness:{face:0,t:.5}});
++        const evaluate=input=>{calls[index]++;return row.evaluate(input);};Object.assign(evaluate,row.evaluate);
++        extendSharedAxisNativeRows(s,[{...row,evaluate}]);
++    }
++    let deferred=0,resolved=0,contactSeen=false;
++    try {
++        for(let step=0;step<30;step++) {
++            for(const s of states)s.loads[s.layout.positions.at(-1)+1]=step<16?1000:-1000;
++            const results=states.map((s,i)=>finish(iterateSharedAxisProjective(s,1/60,{projective:{...options,deferSeparatedContacts:i===1}})));
++            assert.ok(results.every(r=>r.converged),JSON.stringify(results));
++            deferred+=results[1].timings.deferredContactRows;resolved+=results[1].timings.resolvedDeferredRows;
++            contactSeen ||= states[1].positions.at(-1)[1]>1;
++            const snapshots=states.map(captureSharedAxisNative);
++            for(const key of ['positions','frames','multipliers'])assert.deepEqual(snapshots[0][key],snapshots[1][key]);
++            assert.deepEqual(results[0].quality,results[1].quality);assert.deepEqual(states[0].velocities,states[1].velocities);
++            assert.deepEqual(states[0].acceptedWallGaps,states[1].acceptedWallGaps);
++        }
++        assert.ok(contactSeen);assert.ok(deferred>resolved,'Some separated evaluations should actually be skipped');
++        assert.ok(calls[1]<calls[0],`${calls[1]} vs ${calls[0]}`);
++    } finally {geometry.dispose();}
++});
++
++test('vector and projection kernels retain the loaded PD trajectory and restore scoped kernel selection',()=>{
++    const states=[false,true].map(()=>create({tools:[{id:'wire',type:'glidewire',insertion:80},{id:'catheter',type:'pigtail',insertion:65}],
++        wallSample:({b})=>({gap:.5-b[1],jacobian:[0,0,0,0,-1,0]})}));
++    for(const s of states){s.loads[s.layout.positions.at(-1)+1]=1000;rotateSharedAxisNative(s,'catheter',.3);s.reuseTriangleKernel=false;}
++    for(let step=0;step<10;step++) {
++        const results=states.map((s,i)=>finish(iterateSharedAxisProjective(s,1/60,{projective:{...strictClosure,reuseGeometry:true,scratchRotations:true,
++            vectorSolve:i===1,triangleKernel:i===1,reuseProjectionWork:i===1}})));
++        assert.ok(results.every(r=>r.converged),JSON.stringify(results));
++        const snapshots=states.map(captureSharedAxisNative);
++        for(const key of ['positions','frames','multipliers'])assert.deepEqual(snapshots[0][key],snapshots[1][key]);
++        assert.deepEqual(results[0].quality,results[1].quality);assert.deepEqual(states[0].velocities,states[1].velocities);
++        assert.ok(states.every(s=>s.reuseTriangleKernel===false));
++    }
++    const iterator=iterateSharedAxisProjective(states[1],1/60,{projective:{...strictClosure,triangleKernel:true}});
++    assert.equal(iterator.next().done,false);assert.equal(states[1].reuseTriangleKernel,true);
++    iterator.return();assert.equal(states[1].reuseTriangleKernel,false);
++});
++
++test('PD row arenas preserve loaded contacts, history and pose exactly across steps',()=>{
++    const states=[false,true].map(()=>create({tools:[{id:'wire',type:'glidewire',insertion:80},{id:'catheter',type:'pigtail',insertion:65}],
++        wallSample:({b})=>({gap:.5-b[1],jacobian:[0,0,0,0,-1,0]})}));
++    for(const s of states){s.loads[s.layout.positions.at(-1)+1]=1000;rotateSharedAxisNative(s,'catheter',.3);}
++    for(let step=0;step<10;step++) {
++        const results=states.map((s,i)=>finish(iterateSharedAxisProjective(s,1/60,{projective:{...strictClosure,reuseGeometry:true,scratchRotations:true,reuseContactRows:i===1}})));
++        assert.ok(results.every(r=>r.converged),JSON.stringify(results));
++        const snapshots=states.map(captureSharedAxisNative);
++        for(const key of ['positions','frames','multipliers'])assert.deepEqual(snapshots[0][key],snapshots[1][key]);
++        for(const key of ['velocities','angularVelocities','acceptedWallGaps','wallFrictionHistory'])assert.deepEqual(states[0][key],states[1][key]);
++        assert.deepEqual(results[0].quality,results[1].quality);
++    }
++});
++
++test('PD arenas remain private across cooperative yields, cancellation and later topology changes',()=>{
++    const make=()=>{const s=create();s.loads[s.layout.positions.at(-1)+1]=1000;return s;};
++    const a=make(),b=make(),reference=make(),saved=captureSharedAxisNative(a);
++    const options={projective:{...strictClosure,reuseGeometry:true,scratchRotations:true,reuseContactRows:true}};
++    const first=iterateSharedAxisProjective(a,1/60,options),second=iterateSharedAxisProjective(b,1/60,options);
++    assert.equal(first.next().done,false);assert.equal(second.next().done,false);
++    first.return();assert.deepEqual(captureSharedAxisNative(a),saved);
++    // Reuse the released arena while second still owns live rows.
++    const third=create({tools:[{id:'wire',insertion:20}]});
++    assert.equal(finish(iterateSharedAxisProjective(third,1/60,options)).converged,true);
++    const expected=finish(iterateSharedAxisProjective(reference,1/60,{projective:{...options.projective,reuseContactRows:false}}));
++    const actual=finish(second);assert.equal(actual.converged,true);assert.deepEqual(actual.quality,expected.quality);
++    const left=captureSharedAxisNative(b),right=captureSharedAxisNative(reference);
++    for(const key of ['positions','frames','multipliers'])assert.deepEqual(left[key],right[key]);
++    assert.deepEqual(b.velocities,reference.velocities);
++});
++
+ test('PD hard closure corrects penalty stretch and wall penetration without moving prescribed nodes',()=>{
+     const s=create({wallSample:({b})=>({gap:.5-b[1],jacobian:[0,0,0,0,-1,0]})});
+     s.loads[s.layout.positions.at(-1)+1]=1000;
+--- a/scripts/validate-crossover-projective-app.mjs
++++ b/scripts/validate-crossover-projective-app.mjs
+@@ -0,0 +1,71 @@
++// Audit a complete or explicitly interrupted full-app replay. A valid prefix
++// is never promoted to a completed maneuver or a performance result.
++import fs from 'node:fs';
++import assert from 'node:assert/strict';
++import {gunzipSync} from 'node:zlib';
++import {createHash} from 'node:crypto';
++import {validateCrossoverRecording,crossoverShapeDifference,summarizeCrossoverRecording} from '../src/benchmark/crossoverScenarioRecording.js';
++import {createCrossoverRouteCheck,summarizeCrossoverRoute} from '../src/benchmark/crossoverFunctionalRoute.js';
++import {createCrossoverFlow} from '../tests/helpers/crossoverFlow.js';
++
++const [candidatePath,outputPath]=process.argv.slice(2);
++assert.ok(candidatePath&&outputPath,'Usage: candidate.json.gz output.json');
++const qualityModel='projective-geometry';
++const referencePath='reports/performance-scenarios/003-crossover-full-user-inputs.json.gz';
++const referenceBytes=fs.readFileSync(referencePath),candidateBytes=fs.readFileSync(candidatePath);
++const hash=b=>createHash('sha256').update(b).digest('hex');
++assert.equal(hash(referenceBytes),'bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac');
++const reference=validateCrossoverRecording(JSON.parse(gunzipSync(referenceBytes)));
++const candidate=JSON.parse(gunzipSync(candidateBytes));
++assert.equal(candidate.replayOf,reference.recordedAt);
++assert.equal(candidate.validation.shapeDifferenceLimitMm,null);
++assert.equal(candidate.validation.qualityModel,qualityModel);
++assert.equal(candidate.configuration.fluoroscopy,true);
++assert.equal(candidate.configuration.accesses.length,2);
++assert.deepEqual(candidate.configuration,reference.configuration);
++assert.deepEqual(candidate.checkpoints,reference.checkpoints);
++assert.ok(candidate.steps.length>0&&candidate.steps.length<=reference.steps.length);
++const complete=candidate.steps.length===reference.steps.length&&candidate.complete===true&&!candidate.error;
++assert.equal(candidate.complete,complete);
++if(!complete)assert.ok(candidate.error,'Interrupted replay must state the failure');
++// Reuse the per-step format/physics validator on an isolated prefix view. The
++// original report and its completeness flag remain unchanged in the audit.
++validateCrossoverRecording({...candidate,complete:true,
++    checkpoints:candidate.checkpoints.filter(c=>c.afterStep<=candidate.steps.length)},{qualityModel});
++let maxDifference=0,maxPenetration=0,maxLength=0,maxAbsoluteLength=0,maxShear=0,workerSteps=0;
++for(const [i,s] of candidate.steps.entries()) {
++    const expected=reference.steps[i];
++    for(const key of ['inputs','tools','stage','moving'])assert.deepEqual(s[key],expected[key],`Step ${i+1}: ${key}`);
++    const difference=crossoverShapeDifference(expected.shape,s.shape);
++    assert.ok(Math.abs(difference-s.shapeDifferenceMm)<1e-10);
++    maxDifference=Math.max(maxDifference,difference);
++    assert.equal(s.quality.length,2);
++    assert.ok(s.solverWork[0].workerWallMs>0,'Right access must use the real worker');workerSteps++;
++    for(const q of s.quality){
++        assert.equal('certificateBound' in q,false);assert.equal('residual' in q,false);
++        assert.equal(q.pd.equilibriumCertified,false);assert.equal(q.pd.parameters.iterations,16);
++        for(const k of ['reuseGeometry','scratchRotations','reuseContactRows','vectorSolve','triangleKernel','reuseProjectionWork'])assert.equal(q.pd.parameters[k],true);
++        for(const k of ['fastRotations','deferSeparatedContacts'])assert.equal(q.pd.parameters[k],false);
++        maxPenetration=Math.max(maxPenetration,q.quality.maxPenetration);
++        maxLength=Math.max(maxLength,q.pd.maxLengthError,...q.quality.bodies.map(b=>b.maxLengthError));
++        maxAbsoluteLength=Math.max(maxAbsoluteLength,q.pd.maxLengthErrorMm);maxShear=Math.max(maxShear,q.pd.maxShear);
++    }
++}
++const check=createCrossoverRouteCheck(createCrossoverFlow());
++const functionalRoute=summarizeCrossoverRoute(candidate.checkpoints.filter(c=>c.afterStep<=candidate.steps.length).map(c=>{
++    const s=candidate.steps[c.afterStep-1];return check.checkpoint(c.stage,s.shape,s.tools);
++}),{complete});
++const summary=summarizeCrossoverRecording(candidate.steps);
++const performanceTargetMet=complete&&summary.duringMotion.physicsHz>=59.5&&summary.minimumMovingWindowHz>=59.5&&
++    summary.stages.every(s=>s.duringMotion.steps>0&&s.duringMotion.physicsHz>=59.5);
++const report={candidate:candidatePath,candidateSha256:hash(candidateBytes),referenceSha256:hash(referenceBytes),
++    acceptanceMode:'functional',shapeDifferenceLimitMm:null,qualityModel,newtonEquilibriumCertified:false,workerSteps,
++    complete,acceptedSteps:candidate.steps.length,targetSteps:reference.steps.length,error:candidate.error??null,
++    verifiedInputPrefix:true,physicalChecks:2*candidate.steps.length,maxPenetration,maxLength,maxAbsoluteLength,maxShear,
++    maximumShapeDifferenceMm:maxDifference,functionalRoute,summary,performanceTargetMet,goalAchieved:false,
++    limitations:['Incomplete replay timing describes only its observed prefix.',
++        'Coarse branch checks do not replace review of pigtail seating, femoral entry, jitter and operator control.',
++        'PD geometric admissibility does not certify Newton equilibrium; friction remains an approximate positional model.']};
++fs.writeFileSync(outputPath,JSON.stringify(report,null,2)+'\n');
++console.log(JSON.stringify({complete,steps:report.acceptedSteps,error:report.error,routeChecksPassed:functionalRoute.routeChecksPassed,
++    motionHz:summary.duringMotion.physicsHz,lastStageMotionHz:summary.stages[4].duringMotion.physicsHz,performanceTargetMet,maxDifference,maxPenetration,maxAbsoluteLength,maxShear}));
+--- a/vite.config.js
++++ b/vite.config.js
+@@ -62,3 +62,5 @@
+         ]
+     }
+ });
++
++// Isolated experiment uses local copies of anatomy assets.

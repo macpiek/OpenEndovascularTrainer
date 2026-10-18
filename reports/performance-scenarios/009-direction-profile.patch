@@ -1,0 +1,240 @@
+--- /dev/null
++++ b/src/physics/kirchhoffSharedAxisDirectionProfile.js
+@@ -0,0 +1,13 @@
++// Private to a single whole-step attempt, including all recovery paths.
++// No observation callbacks or retained solver arrays: profiling must not
++// disable caches, materialize deferred rows or change the physical search.
++export const directionProfileLease=Symbol('shared-axis-direction-profile');
++export function recordSharedAxisDirection(profile,method,direction) {
++    if(!profile)return;
++    const status=direction?direction.converged?'solved':direction.failure??'residual':'reused-rejection';
++    const key=`${method}/${status}`;
++    const item=profile[key]??={calls:0,attempts:0,factorizations:0,maximumAttempts:0};
++    item.calls++;item.attempts+=direction?.activeSetAttempts??0;
++    item.factorizations+=direction?.factorizations??0;
++    item.maximumAttempts=Math.max(item.maximumAttempts,direction?.activeSetAttempts??0);
++}
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -1,3 +1,4 @@
++import {directionProfileLease,recordSharedAxisDirection} from './kirchhoffSharedAxisDirectionProfile.js';
+ import {deliveryMaterialProfile} from '../devices/stentGraftDeliveryMechanics.js';
+ import {sharedAxisEffectiveGap,sharedAxisContactElasticEnergy} from './kirchhoffSharedAxisCompliance.js';
+ import {prunableSharedAxisWitnesses} from './kirchhoffSharedAxisWitnessPruning.js';
+@@ -111,8 +112,12 @@
+     const boundaries=knots.slice();
+     // An adaptive replay supplies the exact mechanical grid. Ordinary feed
+     // rebuilds fine candidates before applying its spatial error budget.
+-    for (let x = Math.ceil(startCoordinate / spacing) * spacing; !(adaptiveMesh&&spatialKnots.length)&&x < end; x += spacing)
+-        if (x > startCoordinate&&!boundaries.some(b=>Math.abs(b-x)<minimumEdgeLength)) knots.push(x);
++    const referenceKnots=adaptiveMesh?.finePrefixLength!==undefined?knots.slice():null;
++    for (let x = Math.ceil(startCoordinate / spacing) * spacing; x < end; x += spacing)
++        if (x > startCoordinate&&!boundaries.some(b=>Math.abs(b-x)<minimumEdgeLength)) {
++            if(!(adaptiveMesh&&spatialKnots.length))knots.push(x);
++            referenceKnots?.push(x);
++        }
+     // Serialization may supply retained geometry knots. They are not fixed
+     // boundaries and feed reconsiders them using the accepted bend geometry.
+     knots.push(...spatialKnots);
+@@ -136,6 +141,18 @@
+     if(adaptiveMesh&&!spatialKnots.length)retainAdaptiveShapeSamples(coordinates,positions,previous,adaptiveMesh,{tools});
+     if(adaptiveMesh&&!spatialKnots.length)coarsenSharedAxisMesh(coordinates,positions,
+         {tools,boundaries,previous,spacing,options:adaptiveMesh});
++    // An edge is reduced only when it spans a removed reference knot.
++    // A long fractional tip edge can also exist in the full model; length
++    // alone cannot distinguish remeshing from ordinary insertion. Derive
++    // this mask on restore too, without adding cached data to the replay.
++    let reducedEdges=null;
++    if(referenceKnots) {
++        referenceKnots.sort((a,b)=>a-b);let k=0;
++        reducedEdges=Uint8Array.from(coordinates.slice(0,-1),(a,i)=>{
++            while(k<referenceKnots.length&&referenceKnots[k]<=a+1e-9)k++;
++            return referenceKnots[k]<coordinates[i+1]-1e-9?1:0;
++        });
++    }
+     const edgeTools = coordinates.slice(0,-1).map(x => tools.filter(t => x < t.insertion-1e-12).map(t => t.id));
+     const layout = createSharedAxisLayout(edgeTools);
+     const materials = tools.map(input => {
+@@ -191,7 +208,7 @@
+         id:`bend/${coordinates[e]}/${coordinates[e+1]}/${coordinates[e+2]}`,
+         dofs:[layout.positions[e],layout.positions[e+1],layout.positions[e+2]].flatMap(i=>[i,i+1,i+2]),
+         evaluate:evaluateBendLimit});
+-    const state = { adaptiveMesh,omitInactiveSampleRows, fractionalTipThreshold, rebaseNearTips, geometryKey:Symbol('pose'), maxBendAngle, kind: 'shared-axis-native', spacing, minimumEdgeLength, origin, coordinates, positions, materials, layout, wallSample, wallSamples, startCoordinate, boundaryCoordinates,
++    const state = { adaptiveMesh,reducedEdges,omitInactiveSampleRows, fractionalTipThreshold, rebaseNearTips, geometryKey:Symbol('pose'), maxBendAngle, kind: 'shared-axis-native', spacing, minimumEdgeLength, origin, coordinates, positions, materials, layout, wallSample, wallSamples, startCoordinate, boundaryCoordinates,
+         definitions, definitionIds: new Set(definitions.map(row=>row.id)), mixed: createSharedAxisLinear(layout, definitions,{lazy:true}),
+         chain: { layout, hessian: new Float64Array(layout.dofCount * layout.band), gradient: new Float64Array(layout.dofCount), hessianValid: true },
+         multipliers: new Float64Array(definitions.length), fixed: new Uint8Array(layout.dofCount), loads: new Float64Array(layout.dofCount),
+@@ -292,9 +309,17 @@
+             // change. Rediscover unloaded sites; retaining every old tip site
+             // would accumulate submillimetre constraints along the feed path.
+             if(!s.adaptiveMesh||!r.witness||!r.evaluate.retarget||!(s.multipliers[i]>1e-10))return [];
++            // Preserve reference retention in the protected proximal mesh.
++            // A moving fine tip is rediscovered as before, not converted into
++            // an adaptive contact merely because the distal shaft is reduced.
++            if(b<=(s.adaptiveMesh.finePrefixLength??-Infinity)+s.spacing)return [];
+             const site=a+(b-a)*r.witness.t;
+             const nextEdge=candidate.coordinates.findIndex((x,j)=>x<=site&&candidate.coordinates[j+1]>=site);
+             if(nextEdge<0)return [];
++            // A distal reduction must not change contact retention on two
++            // otherwise full-resolution intervals (including moving tips).
++            if(s.adaptiveMesh.finePrefixLength!==undefined&&
++                !s.reducedEdges?.[r.edge]&&!candidate.reducedEdges?.[nextEdge])return [];
+             const ca=candidate.coordinates[nextEdge],cb=candidate.coordinates[nextEdge+1],t=(site-ca)/(cb-ca);
+             const owner=r.witness.owner;
+             const id=`vessel/${ca}/${cb}/${t}/${r.witness.face}${owner?'/'+owner:''}`;
+@@ -550,7 +575,7 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { [fallbackWorkingSetLease]:failedCache=null, maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, condenseCompliantContacts=false, primalCompliantContacts=false, stagnationResidualSearch=false, localContactRestarts = true, reuseWorkingSet = true,reuseRejectedWorkingSet=true,recoverNegativeContact=false,eliminateConstantRows=true,reuseRejectedNewton=true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,wasmBasis=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false,roundoffStagnation=false } = {}) {
++export function* iterateSharedAxisNative(s, { [directionProfileLease]:directionProfile=null, [fallbackWorkingSetLease]:failedCache=null, maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, condenseCompliantContacts=false, primalCompliantContacts=false, stagnationResidualSearch=false, localContactRestarts = true, reuseWorkingSet = true,reuseRejectedWorkingSet=true,recoverNegativeContact=false,eliminateConstantRows=true,reuseRejectedNewton=true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,wasmBasis=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false,roundoffStagnation=false } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+@@ -650,11 +675,13 @@
+                     // without reaching its limit. A different tangent was tried
+                     // in between; repeating the rejected Newton work adds no
+                     // recovery path. Changed coefficients always run normally.
++                    if(directionProfile)recordSharedAxisDirection(directionProfile,method,null);
+                     observeTrial?.({kind:'reused-rejected-direction',iteration:iterations,method});
+                     continue;
+                 }
+                 const direction = isModified?modified.solve(base.rows,s.chain.gradient,linearOptions.tolerance):
+                     yield* iterateSharedAxisLinear(s.mixed,s.chain,linearOptions);
++                if(directionProfile)recordSharedAxisDirection(directionProfile,method,direction);
+                 if(method===0&&reuseRejectedNewton&&reuseWorkingSet&&reuseConstraintWork&&!modified&&!observeLinearSystem&&newtonActiveSetLimit!==Infinity)
+                     rejectedNewton=captureRejectedSharedAxisLinearization(s.chain,linearOptions,direction);
+                 if(method===0&&direction.converged)modified?.seal(base.rows,s.fixed);
+--- a/src/physics/kirchhoffSharedAxisAppSystem.js
++++ b/src/physics/kirchhoffSharedAxisAppSystem.js
+@@ -1,3 +1,4 @@
++import {directionProfileLease} from './kirchhoffSharedAxisDirectionProfile.js';
+ import {captureBloodFlow} from './bloodFlowCoupling.js';
+ import {createCapturePotential} from '../devices/stentGraftCapture.js';
+ import {captureSharedAxisReplay} from './kirchhoffSharedAxisReplay.js';
+@@ -196,7 +197,12 @@
+                 const key=JSON.stringify({bloodFlow:frozenBloodFlow?.time??flowNetwork?.time??null,capture,graftRevision:graftSurface?.revision??0,tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
+                 if(key===failedKey)return failedResult;
+                 if(state&&key===lastKey&&sleepFrames>=10)return {accepted:true,dt,status:'sleeping',diagnostics:{...diagnostics}};
+-                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,adaptiveMesh,physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,
++                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,
++                    // Keep the complete reference path until a distal shaft
++                    // interval exists beyond the fine prefix and tip guard.
++                    adaptiveMesh:adaptiveMesh?.finePrefixLength!==undefined&&
++                        Math.max(...tools.map(t=>t.insertion))<=adaptiveMesh.finePrefixLength+adaptiveMesh.tipLength+5?null:adaptiveMesh,
++                    physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,
+                     sheath,sheathLength,flowNetwork,rotations:{...rotations},
+                     requestTools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation}))};
+                 if(frozenBloodFlow!==undefined)pending.physicsOptions={...pending.physicsOptions,bloodFlow:structuredClone(frozenBloodFlow)};
+@@ -253,6 +259,11 @@
+ 
+ /** Feed and rotation subdivision is identical in the UI and anatomy replay. */
+ export function* advanceSharedAxis(starting,startingRotations,dt,tools,physicsOptions={}) {
++    if(physicsOptions.profileDirections&&!physicsOptions[directionProfileLease]) {
++        const directionProfile={};
++        const next=yield* advanceSharedAxis(starting,startingRotations,dt,tools,{...physicsOptions,[directionProfileLease]:directionProfile});
++        return {...next,result:{...next.result,directionProfile}};
++    }
+     let last;const attempts=[];const totals={fallbackLinearizationReuses:0,predictorFallbacks:0,retainedDiscoveryTrials:0,coupledFrictionRefreshes:0,coupledFrictionFallbacks:0,iterations:0,factorizations:0,workingSetReuses:0,backtracks:0,geometryRestarts:0,frictionIterations:0,substepAttempts:0,wallNormalFallbacks:0,fullAssemblies:0,residualAssemblies:0,promotedAssemblies:0,modifiedAttempts:0,modifiedAccepted:0,modifiedFallbacks:0};
+     const timings={assemblyMs:0,linearMs:0,frictionMs:0,tangentAssemblyMs:0,residualAssemblyMs:0,projectionMs:0};
+     const result=()=>({...last,...totals,timings,attempts});
+--- a/src/benchmark/crossoverScenarioRecording.js
++++ b/src/benchmark/crossoverScenarioRecording.js
+@@ -15,7 +15,7 @@
+ const validQuality=(quality,dt)=>Array.isArray(quality)&&quality.length===2&&quality.every(q=>crossoverPhysicalGate(dt,q));
+ const captureQuality=d=>({converged:d.last.converged,certificateBound:d.last.certificateBound,residual:{length:d.last.residual.length},
+     quality:{finite:d.last.quality.finite,maxPenetration:d.last.quality.maxPenetration,bodies:d.last.quality.bodies.map(b=>({maxLengthError:b.maxLengthError}))}});
+-const captureWork=d=>({mesh:{...d.mesh},...Object.fromEntries([
++const captureWork=d=>({mesh:{...d.mesh},...(d.last?.directionProfile?{directionProfile:structuredClone(d.last.directionProfile)}:{}),...Object.fromEntries([
+     'iterations','factorizations','backtracks','geometryRestarts','frictionIterations','substepAttempts','subdivisions',
+     'predictorFallbacks','coupledFrictionFallbacks','wallNormalFallbacks','replayCaptureMs',
+     'workerWallMs','workerDispatchDelayMs','workerResponseMs','workerPublicationDelayMs'
+@@ -114,13 +114,16 @@
+         record.goalAchieved=false; // A recording alone is not an optimization acceptance.
+         mode='finished';pending=null;onChunk(record,true);onChange();
+     }
+-    function start(configuration,replay=null) {
++    function start(configuration,replay=null,{shapeDifferenceLimitMm=.1}={}) {
++        if(!Number.isFinite(shapeDifferenceLimitMm)||shapeDifferenceLimitMm<=0||shapeDifferenceLimitMm>1)
++            throw new Error('Limit różnicy kształtu musi być większy od 0 i nie większy niż 1 mm.');
+         if(['recording','replaying'].includes(mode))throw new Error('Najpierw zakończ bieżące nagranie.');
+         if(replay)validateCrossoverRecording(replay,{maxSteps});
+         if(replay&&JSON.stringify(replay.configuration)!==JSON.stringify(configuration))throw new Error('Ustawienia anatomii, sprzętu lub przepływu nie pasują do nagrania.');
+         source=replay;mode=replay?'replaying':'recording';lastWall=now();cpuMs=frames=movingSteps=movingWallMs=0;pending=null;
+         record={schemaVersion:CROSSOVER_RECORDING_VERSION,kind:'crossover-input-sequence',recordedAt:new Date().toISOString(),dt:1/60,
+             replayOf:replay?.recordedAt??null,
++            validation:{shapeDifferenceLimitMm,scope:'Whole shared-axis polyline at every accepted step; physical stability gates unchanged.'},
+             startedAt:lastWall,configuration:structuredClone(configuration),steps:[],checkpoints:replay?structuredClone(replay.checkpoints):[],
+             complete:false,fullManeuverVerified:false,goalAchieved:false,
+             timingDefinition:'physicsHz counts common accepted steps per wall-clock second; cpuMs measures main-thread slices only. Worker compute and transport timings are recorded separately in providerMs and solverWork.',
+@@ -131,7 +134,7 @@
+         get mode(){return mode;},get record(){return record;},get active(){return mode==='recording'||mode==='replaying';},
+         get progress(){return {motionHz:movingWallMs>0?movingSteps*1000/movingWallMs:null,
+             stage:source?.steps[record?.steps.length]?.stage??record?.checkpoints.length??0};},
+-        startRecording:configuration=>start(configuration),startReplay:(configuration,replay)=>start(configuration,replay),
++        startRecording:configuration=>start(configuration),startReplay:(configuration,replay,validation)=>start(configuration,replay,validation),
+         boundary(inputs,configuration) {
+             if(!this.active)return inputs;
+             if(pending)throw new Error('Repeated scenario preparation before common publication');
+@@ -163,7 +166,7 @@
+                 moving:isMoving,intervalMs,cpuMs,
+                 providerMs:diagnostics.map(d=>d.last?.cpuMs??0),solverWork:diagnostics.map(captureWork),shapeDifferenceMm:difference});
+             lastWall=wall;pending=null;cpuMs=0;
+-            if(difference>.1){fail(`Różnica kształtu ${difference.toFixed(4)} mm przekracza 0,1 mm.`);return;}
++            if(difference>record.validation.shapeDifferenceLimitMm){fail(`Różnica kształtu ${difference.toFixed(4)} mm przekracza ${record.validation.shapeDifferenceLimitMm.toLocaleString('pl-PL')} mm.`);return;}
+             if(record.steps.length%120===0){onChunk(record,false);onChange();}
+             if(mode==='replaying'&&record.steps.length===source.steps.length)finish(true);
+             else if(record.steps.length>=maxSteps)fail('Osiągnięto limit długości nagrania; zapisz dotychczasowy przebieg.');
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -223,11 +223,12 @@
+         coupledFrictionNewton:new URLSearchParams(window.location.search).get('fastNewton')!=='0',
+         predictiveNewton:new URLSearchParams(window.location.search).get('predictiveNewton')!=='0',
+         ...(crossoverBenchmarkMode?{
+-            adaptiveMesh:crossoverBenchmarkMode==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:null,
++            adaptiveMesh:new URLSearchParams(window.location.search).get('crossoverDistalMesh')==='1'?{...CROSSOVER_WIDE_CONTACT_MODEL,finePrefixLength:450}:crossoverBenchmarkMode==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:null,
+             contactCandidateMargin:.01,lazyBasisCoefficients:true,wasmBasis:true,deferActiveBasis:true,
+             reuseFrictionAssembly:true,coupledFrictionNewton:true,predictiveNewton:true,modifiedNewton:false,
+             pruneInactiveWitnesses:false,projectiveDynamics:false,
+             physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,forceTolerance:1e-6,lengthTolerance:1e-5,
++                ...(new URLSearchParams(window.location.search).get('crossoverProfileDirections')==='1'?{profileDirections:true}:{}),
+                 ...(crossoverBenchmarkMode==='wide'?{recoverNegativeContact:true}:{})}
+         }:{}),
+         onReady:()=>runIdlePhysicsCatchup(synchronizedStep.epoch,false),
+--- a/tests/kirchhoffSharedAxisAppSystem.test.js
++++ b/tests/kirchhoffSharedAxisAppSystem.test.js
+@@ -5,7 +5,7 @@
+ import {restoreSharedAxisReplay,captureSharedAxisReplay} from './helpers/sharedAxisReplay.js';
+ import {Quaternion,Vector3,BufferGeometry,Float32BufferAttribute} from 'three';
+ import {MeshBVH} from 'three-mesh-bvh';
+-import {createSharedAxisAppSystem,sampleSharedAxisPosition,advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
++import {createSharedAxisAppSystem,sampleSharedAxisPosition,advanceSharedAxis,SHARED_AXIS_APP_PHYSICS_OPTIONS} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
+ import {EndovascularPhysicsWorld,DEFAULT_TOOL_PROFILES} from '../src/physics/endovascularPhysicsWorld.js';
+ import {createCoupledSolverSelection,resolveAppCoupledSolver} from '../src/physics/coupledSolverSelection.js';
+ import {createFixedStepTransaction} from '../src/physics/fixedStepTransaction.js';
+@@ -676,3 +676,25 @@
+     assert.equal(restored.wallSamples[1].candidateMargin,.01);
+     assert.equal(captureSharedAxisReplay(restored,events[0].sheath).contactCandidateMargin,.01);
+ });
++
++
++test('whole-step direction profiling preserves solver work and owns per-step counters',()=>{
++    const full=fixture({workSliceMs:Infinity}),instrumented=fixture({workSliceMs:Infinity,
++        physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,profileDirections:true}});
++    let previous=null,saved=null;
++    for(let step=0;step<12;step++) {
++        for(const f of [full,instrumented]) {
++            f.tools[0].insertion=step*.9;f.tools[1].insertion=step*.7;
++            f.tools[1].rotation=step*.03;finish(f);
++        }
++        const a=full.system.diagnostics.last,b=instrumented.system.diagnostics.last;
++        assert.deepEqual(instrumented.tools.map(t=>positions(t.body)),full.tools.map(t=>positions(t.body)));
++        for(const key of ['factorizations','iterations','certificateBound','fallbackLinearizationReuses'])assert.equal(b[key],a[key]);
++        assert.equal(Object.values(b.directionProfile).reduce((n,d)=>n+d.factorizations,0),b.factorizations);
++        if(previous){assert.deepEqual(previous,saved);assert.notEqual(b.directionProfile,previous);}
++        previous=b.directionProfile;saved=structuredClone(previous);
++    }
++    instrumented.system.reset();finish(instrumented);
++    assert.notEqual(instrumented.system.diagnostics.last.directionProfile,previous);
++    assert.deepEqual(previous,saved);
++});

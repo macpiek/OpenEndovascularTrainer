@@ -136,3 +136,21 @@ test('WASM row equilibration preserves the reference scales, direction and backw
     assert.deepEqual(scales,expectedScales);assert.deepEqual(actual,expected);
     assert.deepEqual(fast.diagnostics,reference.diagnostics);
 });
+
+test('changing local envelope sizes reuse one assembly capacity without leaking trailing coefficients',()=>{
+    const arena=createCoulombBandLUArena(),small=arena.getViews(31,13,100),large=arena.getViews(31,13,300);
+    assert.notEqual(large,small);assert.equal(arena.getViews(31,13,160),large);
+    assert.equal(arena.getViews(31,13,100),large);assert.equal(arena.diagnostics.viewBuilds,2);
+    assert.equal(arena.diagnostics.allocations,1);
+    const full=system(31,4,3),local=system(31,4,3),old=local.layout;
+    const starts=Int32Array.from(old.starts,(x,i)=>i%3===0?i:x),ends=Int32Array.from(old.ends,(x,i)=>i%4===0?i:x),offsets=new Int32Array(31);
+    let entries=0;
+    for(let i=0;i<31;i++){offsets[i]=entries-starts[i];entries+=ends[i]-starts[i]+1;}
+    const J=new Float64Array(entries);
+    for(let i=0;i<31;i++)for(let j=starts[i];j<=ends[i];j++)J[offsets[i]+j]=local.J[old.offsets[i]+j];
+    local.J=J;local.layout={...old,starts,ends,offsets,entries};
+    const cases=[full,local],shared=cases.map(s=>createCoulombBandLU(s.layout,s.count,{arena,wasmAssembly:true})),owned=cases.map(s=>createCoulombBandLU(s.layout,s.count));
+    for(const i of [0,1,0,1,1,0])assert.ok(compare(cases[i],shared[i],owned[i]));
+    arena.getViews(1000,200,30000);
+    for(const i of [1,0,1])assert.ok(compare(cases[i],shared[i],owned[i]));
+});

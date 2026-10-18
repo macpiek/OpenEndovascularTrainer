@@ -193,7 +193,6 @@ export function applyKirchhoffMaterialProfile(
     if (!Number.isFinite(resolvedTipCoordinate)) {
         throw new TypeError('Material tip coordinate must be finite');
     }
-    const wasKirchhoff = true;
     body.setActiveRange(activeStart, activeEnd);
 
     let materialCoordinateChanges = 0;

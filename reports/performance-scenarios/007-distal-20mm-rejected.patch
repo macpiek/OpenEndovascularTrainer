@@ -1,0 +1,100 @@
+--- a/src/physics/kirchhoffSharedAxisAdaptiveMesh.js
++++ b/src/physics/kirchhoffSharedAxisAdaptiveMesh.js
+@@ -19,7 +19,7 @@
+ export function adaptiveMeshOptions(value) {
+     if (!value) return null;
+     const options = {...DEFAULT_ADAPTIVE_MESH, ...(value === true ? {} : value)};
+-    if (!Object.entries(options).every(([key,v]) => Number.isFinite(v) && (key === 'contactMargin' || key === 'maxArcLoss' || key === 'tipRefinementAhead' ? v >= 0 : v > 0)) || options.maxTurn >= Math.PI || options.maxArcLoss >= 1)
++    if (!Object.entries(options).every(([key,v]) => Number.isFinite(v) && (key === 'contactMargin' || key === 'maxArcLoss' || key === 'tipRefinementAhead' || key === 'finePrefixLength' ? v >= 0 : v > 0)) || options.maxTurn >= Math.PI || options.maxArcLoss >= 1)
+         throw new RangeError('Invalid adaptive mesh budget');
+     return options;
+ }
+@@ -63,6 +63,7 @@
+     let edge = 0;
+     for (let n = 0; n < previous.coordinates.length; n++) {
+         const x = previous.coordinates[n];
++        if(x<=(options.finePrefixLength??-Infinity)+previous.spacing)continue;
+         if (x <= coordinates[0] || x >= coordinates.at(-1)) continue;
+         while (edge + 1 < coordinates.length - 1 && coordinates[edge + 1] < x) edge++;
+         const t = (x - coordinates[edge]) / (coordinates[edge + 1] - coordinates[edge]);
+@@ -96,7 +97,7 @@
+     // application factory enables this coarser contact neighbourhood yet.
+     const relaxContactMesh=(options.contactMaxSpacing??spacing)>spacing;
+     const tips = tools.map(tool => ({end: tool.insertion+(options.tipRefinementAhead??0), start: tool.insertion - tipLength(tool, options)}));
+-    const protectedNode = coordinates.map((x, i) => i < 2 || i === coordinates.length - 1 ||
++    const protectedNode = coordinates.map((x, i) => x<=(options.finePrefixLength??-Infinity)+spacing || i < 2 || i === coordinates.length - 1 ||
+         boundaries.includes(x) || (!relaxContactMesh&&(contacts.has(x) || contactSpans.some(([a,b])=>x>=a&&x<=b))) || tips.some(t => x >= t.start && x <= t.end) ||
+         boundaries.some(b => Math.abs(b - x) <= spacing));
+     const distance = (a, b) => Math.hypot(...a.map((v, k) => v - b[k]));
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -292,6 +292,10 @@
+             // change. Rediscover unloaded sites; retaining every old tip site
+             // would accumulate submillimetre constraints along the feed path.
+             if(!s.adaptiveMesh||!r.witness||!r.evaluate.retarget||!(s.multipliers[i]>1e-10))return [];
++            // Preserve reference retention in the protected proximal mesh.
++            // A moving fine tip is rediscovered as before, not converted into
++            // an adaptive contact merely because the distal shaft is reduced.
++            if(b<=(s.adaptiveMesh.finePrefixLength??-Infinity)+s.spacing)return [];
+             const site=a+(b-a)*r.witness.t;
+             const nextEdge=candidate.coordinates.findIndex((x,j)=>x<=site&&candidate.coordinates[j+1]>=site);
+             if(nextEdge<0)return [];
+--- a/src/physics/kirchhoffSharedAxisAppSystem.js
++++ b/src/physics/kirchhoffSharedAxisAppSystem.js
+@@ -196,7 +196,12 @@
+                 const key=JSON.stringify({bloodFlow:frozenBloodFlow?.time??flowNetwork?.time??null,capture,graftRevision:graftSurface?.revision??0,tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
+                 if(key===failedKey)return failedResult;
+                 if(state&&key===lastKey&&sleepFrames>=10)return {accepted:true,dt,status:'sleeping',diagnostics:{...diagnostics}};
+-                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,adaptiveMesh,physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,
++                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,
++                    // Keep the complete reference path until a distal shaft
++                    // interval exists beyond the fine prefix and tip guard.
++                    adaptiveMesh:adaptiveMesh?.finePrefixLength!==undefined&&
++                        Math.max(...tools.map(t=>t.insertion))<=adaptiveMesh.finePrefixLength+adaptiveMesh.tipLength+5?null:adaptiveMesh,
++                    physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,
+                     sheath,sheathLength,flowNetwork,rotations:{...rotations},
+                     requestTools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation}))};
+                 if(frozenBloodFlow!==undefined)pending.physicsOptions={...pending.physicsOptions,bloodFlow:structuredClone(frozenBloodFlow)};
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -223,7 +223,7 @@
+         coupledFrictionNewton:new URLSearchParams(window.location.search).get('fastNewton')!=='0',
+         predictiveNewton:new URLSearchParams(window.location.search).get('predictiveNewton')!=='0',
+         ...(crossoverBenchmarkMode?{
+-            adaptiveMesh:crossoverBenchmarkMode==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:null,
++            adaptiveMesh:new URLSearchParams(window.location.search).get('crossoverDistalMesh')==='1'?{...CROSSOVER_WIDE_CONTACT_MODEL,finePrefixLength:450}:crossoverBenchmarkMode==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:null,
+             contactCandidateMargin:.01,lazyBasisCoefficients:true,wasmBasis:true,deferActiveBasis:true,
+             reuseFrictionAssembly:true,coupledFrictionNewton:true,predictiveNewton:true,modifiedNewton:false,
+             pruneInactiveWitnesses:false,projectiveDynamics:false,
+--- a/tests/kirchhoffSharedAxisAdaptiveMesh.test.js
++++ b/tests/kirchhoffSharedAxisAdaptiveMesh.test.js
+@@ -242,3 +242,29 @@
+     assert.ok(coordinates.includes(237),'A physical cloth bend is not dropped by the tip-grid rule');
+     assert.deepEqual(previous.positions,saved);
+ });
++
++test('distal-only reduction preserves the complete proximal mesh and both fine tips',()=>{
++    const inputs=[{id:'wire',type:'glidewire',insertion:970},{id:'catheter',type:'pigtail',insertion:935}];
++    const options={...CONTACT_PROTECTED_MESH,maxSpacing:20,contactMaxSpacing:20,tipLength:80,tipRefinementAhead:80,finePrefixLength:450};
++    const fine=make(false,{tools:inputs}),reduced=make(options,{tools:inputs});
++    assert.deepEqual(reduced.coordinates.filter(x=>x<=455),fine.coordinates.filter(x=>x<=455));
++    assert.deepEqual(reduced.coordinates.filter(x=>x>=855),fine.coordinates.filter(x=>x>=855));
++    assert.ok(reduced.coordinates.length<fine.coordinates.length*.8);
++    for(const s of [fine,reduced])prepareSharedAxisDynamicStep(s,1/60);
++    assert.ok(Math.abs(fine.dynamicStep.masses.reduce((a,b)=>a+b,0)-reduced.dynamicStep.masses.reduce((a,b)=>a+b,0))<1e-10);
++    assert.throws(()=>adaptiveMeshOptions({...options,finePrefixLength:-1}),/Invalid/);
++});
++
++test('a moving tip inside the protected prefix retains exactly the reference wall topology',()=>{
++    const geometry=new PlaneGeometry(2000,2000),field={fallbackGeometry:geometry},results=[];
++    for(const adaptiveMesh of [null,{...CONTACT_PROTECTED_MESH,contactMaxSpacing:20,tipLength:80,finePrefixLength:450}]) {
++        const state=make(adaptiveMesh),edge=state.materials[1].last-1;
++        const row=createSharedAxisVesselWitness(field,{id:'moving-loaded',kind:'wall',edge,witness:{face:0,t:.9},
++            dofs:[state.layout.positions[edge],state.layout.positions[edge+1]].flatMap(p=>[p,p+1,p+2])});
++        extendSharedAxisNativeRows(state,[row]);state.multipliers[state.multipliers.length-1]=2;
++        const next=feedSharedAxisNative(state,{wire:300.7,catheter:240.4});
++        results.push({coordinates:next.coordinates,positions:next.positions,multipliers:Array.from(next.multipliers),
++            rows:next.definitions.map(r=>({id:r.id,edge:r.edge,dofs:r.dofs,kind:r.kind}))});
++    }
++    assert.deepEqual(results[1],results[0]);geometry.dispose();
++});

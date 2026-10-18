@@ -37,6 +37,7 @@ uniform sampler2D catheterTexture;
 uniform sampler2D catheterMarkerTexture;
 uniform sampler2D sheathTexture;
 uniform sampler2D boneTexture;
+uniform sampler2D softTissueTexture;
 uniform sampler2D dsaMaskTexture;
 uniform sampler2D roadmapTexture;
 uniform sampler2D cineTexture;
@@ -213,7 +214,11 @@ float attenuationAt(vec2 uv, vec4 bonePaths, float corticalEdge) {
     // The accumulated visible frame creates detector persistence across the
     // full fluoroscopy image while current attenuation still leads the frame.
     float temporalTrace = smoothstep(0.025, 0.72, sampleSignal(uTexture, uv)) * 0.46;
-    return max(0.0, bone + iodine + metal + catheter + catheterMarker + sheath + temporalTrace);
+    vec2 tissue = texture2D(softTissueTexture, uv).rg;
+    // Gas reduces the surrounding tissue's attenuation, never the signal of
+    // a guidewire, contrast column or bone projected in front of it.
+    float softTissue = max(0.0, tissue.r - tissue.g);
+    return max(0.0, softTissue + bone + iodine + metal + catheter + catheterMarker + sheath + temporalTrace);
 }
 
 float vignetteField(vec2 uv) {
@@ -380,11 +385,14 @@ void main() {
         // C-arm images are usually edge-enhanced after acquisition. Sharpen
         // attenuation before transmission. Screen-space derivatives preserve
         // local radiopaque borders without four full neighboring attenuation
-        // evaluations per detector pixel.
+        // evaluations per detector pixel. Derivatives are shared across 2x2
+        // fragment quads, including empty pixels beside the silhouette. Bound
+        // enhancement by local absorption so they cannot acquire dark dots
+        // outside the vessel (particularly visible after DSA amplification).
         float scatterSoftenedEdge = mix(0.34, 0.16, localScatter);
         float sharpenedAttenuation = max(
             0.0,
-            centerAttenuation + fwidth(centerAttenuation) * edgeStrength * scatterSoftenedEdge
+            centerAttenuation + min(fwidth(centerAttenuation), centerAttenuation) * edgeStrength * scatterSoftenedEdge
         );
 
         float transmission = exp(-sharpenedAttenuation);

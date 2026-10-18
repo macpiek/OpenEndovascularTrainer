@@ -1,0 +1,1144 @@
+{
+  "date": "2026-10-11",
+  "node": "v24.6.0",
+  "protocol": "Restore each fixture; repeat the recorded insertion delta each step (or hold the first target with --hold). Exclude anatomy loading, restoring and hashing from CPU step timings. Warm up separately for each fixture. Compare full physical replay hashes and per-step convergence, quality and residuals.",
+  "comparison": "Before/after run alternately in one Node process, restoring the same checkpoint for each run. The reference restores the original band-map construction and disables WASM packing. Both retain the same material/contact tolerances and physical dt. ProjectionMs is zero in every measured step.",
+  "warmupRepeatsPerCaseAndVariant": 3,
+  "measuredRepeatsPerCaseAndVariant": 7,
+  "stepsPerRepeat": 8,
+  "all480StepsConverged": true,
+  "limits": [
+    "CPU-only eight-step sequences at 60 Hz physical dt; not browser FPS, not a long-duration stability run.",
+    "Measurements include JIT/GC and scheduling variance. One case has a higher median despite a lower mean; this is a modest optimization, not a uniform speed guarantee.",
+    "600 mm wire; initially 491.4 mm / 312 mm Berenstein or 76.27 mm Pigtail. Recorded insertion delta repeated each step."
+  ],
+  "summary": [
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "initialTools": [
+        {
+          "id": "wire",
+          "insertion": 600
+        },
+        {
+          "id": "catheter",
+          "insertion": 491.4000000000027
+        }
+      ],
+      "nodes": 130,
+      "before": {
+        "steps": 56,
+        "meanMs": 26.7355156428571,
+        "medianMs": 25.54272899999978,
+        "p95Ms": 37.805499999998574
+      },
+      "after": {
+        "steps": 56,
+        "meanMs": 25.699957660714272,
+        "medianMs": 24.600811999999678,
+        "p95Ms": 36.24791699999878
+      },
+      "meanTimeReductionPercent": 3.8733420966185705,
+      "identicalPhysicalReplayAndPerStepCertificates": true,
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "initialTools": [
+        {
+          "id": "wire",
+          "insertion": 600
+        },
+        {
+          "id": "catheter",
+          "insertion": 312.00000000000114
+        }
+      ],
+      "nodes": 130,
+      "before": {
+        "steps": 56,
+        "meanMs": 27.790092249999816,
+        "medianMs": 21.453395999998975,
+        "p95Ms": 62.46545900000274
+      },
+      "after": {
+        "steps": 56,
+        "meanMs": 26.876606374999806,
+        "medianMs": 22.592687500000466,
+        "p95Ms": 60.096167000003334
+      },
+      "meanTimeReductionPercent": 3.287091913126039,
+      "identicalPhysicalReplayAndPerStepCertificates": true,
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "initialTools": [
+        {
+          "id": "wire",
+          "insertion": 600
+        },
+        {
+          "id": "catheter",
+          "insertion": 76.2666666666666
+        }
+      ],
+      "nodes": 110,
+      "before": {
+        "steps": 56,
+        "meanMs": 25.60745014285723,
+        "medianMs": 19.39802100000088,
+        "p95Ms": 62.33125000000291
+      },
+      "after": {
+        "steps": 56,
+        "meanMs": 23.15365330357138,
+        "medianMs": 18.34972899999957,
+        "p95Ms": 56.46137499999895
+      },
+      "meanTimeReductionPercent": 9.582355234889683,
+      "identicalPhysicalReplayAndPerStepCertificates": true,
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    }
+  ],
+  "samples": [
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "before",
+      "repeat": 0,
+      "warmup": true,
+      "stepMs": [
+        224.04533300000003,
+        68.5608749999999,
+        49.53741600000012,
+        26.73308299999985,
+        32.009667000000036,
+        37.72729199999981,
+        30.71616700000004,
+        33.26174999999989
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "after",
+      "repeat": 0,
+      "warmup": true,
+      "stepMs": [
+        114.31012500000043,
+        40.1388750000001,
+        36.93662499999982,
+        30.67495800000006,
+        32.56045899999981,
+        33.38087499999983,
+        70.2512499999998,
+        31.93558299999995
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "after",
+      "repeat": 1,
+      "warmup": true,
+      "stepMs": [
+        58.91966700000012,
+        35.16504199999963,
+        31.670874999999796,
+        28.445708000000195,
+        30.03412500000013,
+        30.235833000000184,
+        25.42191700000012,
+        30.20841700000028
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "before",
+      "repeat": 1,
+      "warmup": true,
+      "stepMs": [
+        74.84262500000023,
+        29.328207999999904,
+        26.07220799999959,
+        27.890125000000808,
+        46.867583000000195,
+        35.902499999999236,
+        46.42858299999989,
+        33.700832999999875
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "before",
+      "repeat": 2,
+      "warmup": true,
+      "stepMs": [
+        52.499166000000514,
+        31.1704579999996,
+        26.659375000000182,
+        27.709084000000075,
+        29.850792000000183,
+        32.2972920000002,
+        27.366500000000087,
+        37.29595900000004
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "after",
+      "repeat": 2,
+      "warmup": true,
+      "stepMs": [
+        39.45291600000019,
+        25.10924999999952,
+        21.395375000000058,
+        20.880333000000064,
+        24.035665999999765,
+        27.597083000000566,
+        29.561083999999937,
+        30.008624999999483
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "after",
+      "repeat": 3,
+      "warmup": false,
+      "stepMs": [
+        36.94762499999979,
+        24.400958000000173,
+        19.230082999999468,
+        21.330249999999978,
+        23.779499999999643,
+        30.69250000000011,
+        22.949750000000677,
+        27.161207999999533
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "before",
+      "repeat": 3,
+      "warmup": false,
+      "stepMs": [
+        39.41424999999981,
+        25.731707999999344,
+        23.65533400000004,
+        21.813500000000204,
+        24.19195800000034,
+        29.280292000000372,
+        31.134374999999636,
+        31.09020799999962
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "before",
+      "repeat": 4,
+      "warmup": false,
+      "stepMs": [
+        37.26733299999978,
+        33.90983300000062,
+        23.381791000000703,
+        21.613416999999572,
+        23.36541699999998,
+        28.581583000000137,
+        24.178624999999556,
+        27.663375000000087
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "after",
+      "repeat": 4,
+      "warmup": false,
+      "stepMs": [
+        33.07725000000028,
+        23.685708999999406,
+        32.695292000000336,
+        28.247709000000214,
+        21.74354200000016,
+        27.211291999999958,
+        25.622416999998677,
+        26.71916699999929
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "after",
+      "repeat": 5,
+      "warmup": false,
+      "stepMs": [
+        37.34966700000041,
+        27.521042000000307,
+        22.30500000000029,
+        25.104959000000235,
+        24.800665999999183,
+        27.494916999999987,
+        22.924415999999837,
+        27.92395800000122
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "before",
+      "repeat": 5,
+      "warmup": false,
+      "stepMs": [
+        37.10912500000086,
+        25.23920900000121,
+        23.081584000001385,
+        19.961208999999144,
+        22.059792000000016,
+        27.56383300000016,
+        27.65441699999974,
+        27.758749999999054
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "before",
+      "repeat": 6,
+      "warmup": false,
+      "stepMs": [
+        39.6477079999986,
+        24.871624999999767,
+        20.900165999999444,
+        22.363124999999854,
+        22.449000000000524,
+        26.922292000001107,
+        23.026166999999987,
+        27.439750000001368
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "after",
+      "repeat": 6,
+      "warmup": false,
+      "stepMs": [
+        34.604457999999795,
+        22.87054200000057,
+        20.952624999999898,
+        19.718666999999186,
+        22.332083999999668,
+        26.57837500000096,
+        32.116291000000274,
+        26.91424999999981
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "after",
+      "repeat": 7,
+      "warmup": false,
+      "stepMs": [
+        34.5563749999983,
+        24.365499999999884,
+        22.041291999999885,
+        19.412083000001076,
+        22.777792000000773,
+        25.781417000000147,
+        22.064166000000114,
+        26.331583999999566
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "before",
+      "repeat": 7,
+      "warmup": false,
+      "stepMs": [
+        36.285791000000245,
+        24.48229199999878,
+        22.833333000000493,
+        19.80804200000057,
+        23.992958000000726,
+        28.829374999999345,
+        28.677458000000115,
+        28.782874999998967
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "before",
+      "repeat": 8,
+      "warmup": false,
+      "stepMs": [
+        37.805499999998574,
+        26.56079200000022,
+        22.637708999998722,
+        20.870915999999852,
+        23.8994160000002,
+        26.900791999998546,
+        22.581500000000233,
+        27.508166999999958
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "after",
+      "repeat": 8,
+      "warmup": false,
+      "stepMs": [
+        34.61479099999997,
+        22.846166999999696,
+        20.827375000000757,
+        19.629917000000205,
+        22.159041999999317,
+        24.856792000000496,
+        27.31499999999869,
+        26.741542000001573
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "after",
+      "repeat": 9,
+      "warmup": false,
+      "stepMs": [
+        36.24791699999878,
+        23.727875000000495,
+        20.951333000000886,
+        21.085166000000754,
+        22.108416999999463,
+        25.294082999998864,
+        22.238750000000437,
+        24.217083999999886
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-492.27-stagnation.json",
+      "variant": "before",
+      "repeat": 9,
+      "warmup": false,
+      "stepMs": [
+        37.371917000000394,
+        26.394374999999854,
+        22.01258400000006,
+        20.588332999999693,
+        22.019458000000668,
+        25.35375000000022,
+        28.294167000000016,
+        28.376624999998967
+      ],
+      "physicalHash": "7b8e9975332c338fdf1958c27fac36f50aa5d7297bae34fad84b454ef48c9260"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "before",
+      "repeat": 0,
+      "warmup": true,
+      "stepMs": [
+        67.54241600000023,
+        20.193375000000742,
+        20.546666000000187,
+        41.867167000000336,
+        33.98449999999866,
+        25.676124999999956,
+        23.482749999999214,
+        26.038250000001426
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "after",
+      "repeat": 0,
+      "warmup": true,
+      "stepMs": [
+        57.67920799999956,
+        20.866833000000042,
+        21.331458000000566,
+        26.30829199999971,
+        28.20520800000122,
+        25.85912499999904,
+        23.683915999999954,
+        25.86383299999943
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "after",
+      "repeat": 1,
+      "warmup": true,
+      "stepMs": [
+        88.36191700000018,
+        27.977875000000495,
+        26.336624999999913,
+        26.708833999999115,
+        35.40587500000038,
+        29.786000000000058,
+        22.652374999999665,
+        37.04349999999977
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "before",
+      "repeat": 1,
+      "warmup": true,
+      "stepMs": [
+        88.5846249999995,
+        23.987082999999984,
+        24.72741700000006,
+        68.79912499999955,
+        36.64766700000109,
+        23.207374999999956,
+        31.96125000000029,
+        27.268416999999317
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "before",
+      "repeat": 2,
+      "warmup": true,
+      "stepMs": [
+        75.4780000000028,
+        25.071125000002212,
+        24.100915999999415,
+        23.052207999997336,
+        24.565374999998312,
+        29.30212499999834,
+        24.963332999999693,
+        27.710707999998704
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "after",
+      "repeat": 2,
+      "warmup": true,
+      "stepMs": [
+        72.83937499999956,
+        33.94383399999788,
+        30.738750000000437,
+        26.584125000001222,
+        57.519749999999476,
+        40.913791999999376,
+        51.274875000002794,
+        90.59074999999939
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "after",
+      "repeat": 3,
+      "warmup": false,
+      "stepMs": [
+        68.6977079999997,
+        27.30829200000153,
+        27.941125000001193,
+        21.449915999997756,
+        23.198209000001953,
+        21.08874999999898,
+        23.06174999999712,
+        37.69470799999908
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "before",
+      "repeat": 3,
+      "warmup": false,
+      "stepMs": [
+        60.55529199999728,
+        21.110250000001543,
+        18.884916000002704,
+        20.944415999998455,
+        25.12904200000048,
+        20.136332999998558,
+        21.469499999999243,
+        28.12458400000105
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "before",
+      "repeat": 4,
+      "warmup": false,
+      "stepMs": [
+        57.47795899999983,
+        22.236708000000363,
+        21.159124999998312,
+        20.637290999999095,
+        24.611042000000452,
+        20.16808300000048,
+        26.66358300000138,
+        24.762958999999682
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "after",
+      "repeat": 4,
+      "warmup": false,
+      "stepMs": [
+        55.47529200000281,
+        21.937167000000045,
+        18.201499999999214,
+        19.51695800000016,
+        23.63774999999805,
+        20.47441699999763,
+        20.315374999998312,
+        25.310083000000304
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "after",
+      "repeat": 5,
+      "warmup": false,
+      "stepMs": [
+        54.86345799999981,
+        19.880374999997002,
+        18.6082920000008,
+        21.945208000001003,
+        22.440875000000233,
+        23.595916999998735,
+        24.156083000001672,
+        26.276874999999563
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "before",
+      "repeat": 5,
+      "warmup": false,
+      "stepMs": [
+        62.46545900000274,
+        19.943790999997873,
+        19.914874999998574,
+        20.436625000002095,
+        25.408041999999114,
+        19.67345799999748,
+        20.547209000000294,
+        25.623959000000468
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "before",
+      "repeat": 6,
+      "warmup": false,
+      "stepMs": [
+        57.13066600000093,
+        20.318999999999505,
+        19.383582999998907,
+        19.28337499999907,
+        30.344375000000582,
+        19.098041000001103,
+        21.437291999998706,
+        25.82145799999853
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "after",
+      "repeat": 6,
+      "warmup": false,
+      "stepMs": [
+        60.096167000003334,
+        23.580582999999024,
+        21.208333000002312,
+        18.103624999999738,
+        23.751790999998775,
+        22.329083000000537,
+        19.836875000000873,
+        23.425458000001527
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "after",
+      "repeat": 7,
+      "warmup": false,
+      "stepMs": [
+        51.19149999999718,
+        19.585915999999997,
+        23.258417000000918,
+        19.75037499999962,
+        24.336041999998997,
+        18.117332999998325,
+        20.747958999996627,
+        25.051250000000437
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "before",
+      "repeat": 7,
+      "warmup": false,
+      "stepMs": [
+        60.84637500000099,
+        20.433959000001778,
+        18.383832999999868,
+        20.183333000000857,
+        24.215291999997135,
+        19.818374999998923,
+        21.335957999999664,
+        24.98304199999984
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "before",
+      "repeat": 8,
+      "warmup": false,
+      "stepMs": [
+        62.55912499999977,
+        23.07837500000096,
+        38.60775000000285,
+        46.424707999998645,
+        30.9529999999977,
+        19.764749999998457,
+        21.687834000000294,
+        26.070999999999913
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "after",
+      "repeat": 8,
+      "warmup": false,
+      "stepMs": [
+        62.866125000000466,
+        23.77679100000023,
+        20.588791999998648,
+        26.896208000001934,
+        22.68395800000144,
+        19.500166999998328,
+        21.373250000000553,
+        22.501416999999492
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "after",
+      "repeat": 9,
+      "warmup": false,
+      "stepMs": [
+        53.641208000000915,
+        19.341499999998632,
+        20.48675000000003,
+        19.33008400000108,
+        20.586457999997947,
+        20.367417000001296,
+        23.65445799999725,
+        26.04858400000012
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-berenstein-feed-312.87-projection.json",
+      "variant": "before",
+      "repeat": 9,
+      "warmup": false,
+      "stepMs": [
+        63.582125000000815,
+        20.983374999999796,
+        19.998749999998836,
+        18.245417000001908,
+        27.48516599999857,
+        19.807874999998603,
+        20.353665999999066,
+        25.53979199999958
+      ],
+      "physicalHash": "3c2a4a3fa5a87824466d9f40f0bbd1817db70db40f48731786f443f3a4ed5ba7"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "before",
+      "repeat": 0,
+      "warmup": true,
+      "stepMs": [
+        83.13054099999863,
+        17.62370799999917,
+        20.522750000000087,
+        16.34100000000035,
+        20.16399999999703,
+        31.084624999999505,
+        22.526458000000275,
+        16.7277920000015
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "after",
+      "repeat": 0,
+      "warmup": true,
+      "stepMs": [
+        60.98237499999959,
+        16.5679999999993,
+        17.3181250000016,
+        15.987999999997555,
+        19.0434580000001,
+        19.78754199999821,
+        19.05712499999936,
+        16.936249999998836
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "after",
+      "repeat": 1,
+      "warmup": true,
+      "stepMs": [
+        53.97062499999811,
+        15.48725000000195,
+        16.790334000001167,
+        15.844916999998532,
+        19.49174999999741,
+        21.023041000000376,
+        28.808750000000146,
+        16.985583000001498
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "before",
+      "repeat": 1,
+      "warmup": true,
+      "stepMs": [
+        60.42554099999688,
+        16.966166000001976,
+        17.611832999999024,
+        17.14941700000054,
+        19.873999999999796,
+        20.434917000002315,
+        23.432874999998603,
+        18.787709000000177
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "before",
+      "repeat": 2,
+      "warmup": true,
+      "stepMs": [
+        58.71441599999889,
+        16.12329099999988,
+        17.14520800000173,
+        17.80066699999952,
+        20.544584000002942,
+        21.09754199999952,
+        22.768083999999362,
+        16.056500000002416
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "after",
+      "repeat": 2,
+      "warmup": true,
+      "stepMs": [
+        62.53233399999954,
+        17.045125000000553,
+        21.506124999999884,
+        15.568083000001934,
+        22.029915999999503,
+        21.31499999999869,
+        17.973582999999053,
+        15.548917000000074
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "after",
+      "repeat": 3,
+      "warmup": false,
+      "stepMs": [
+        59.26158299999952,
+        15.588708999999653,
+        18.571708999999828,
+        14.32325000000128,
+        34.26858400000128,
+        20.830291999998735,
+        18.42816699999821,
+        16.114000000001397
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "before",
+      "repeat": 3,
+      "warmup": false,
+      "stepMs": [
+        59.25058299999728,
+        16.38787500000035,
+        18.48791600000186,
+        13.983707999999751,
+        21.741833000000042,
+        20.635541999999987,
+        18.679542000001675,
+        15.975209000000177
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "before",
+      "repeat": 4,
+      "warmup": false,
+      "stepMs": [
+        59.068875000000844,
+        16.18866699999853,
+        18.317541999997047,
+        14.508791999996902,
+        20.736042000000452,
+        18.1195000000007,
+        18.28650000000198,
+        18.020125000002736
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "after",
+      "repeat": 4,
+      "warmup": false,
+      "stepMs": [
+        50.80912499999977,
+        15.954792000000452,
+        18.07625000000189,
+        13.448166999998648,
+        19.125417000002926,
+        18.227582999999868,
+        18.32445899999948,
+        16.786833999998635
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "after",
+      "repeat": 5,
+      "warmup": false,
+      "stepMs": [
+        50.97054200000275,
+        15.381042000000889,
+        16.63916600000084,
+        14.372707999998966,
+        18.37037500000224,
+        16.477500000000873,
+        18.628124999999272,
+        13.106708000002982
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "before",
+      "repeat": 5,
+      "warmup": false,
+      "stepMs": [
+        60.89437500000349,
+        16.021875000002183,
+        18.194374999999127,
+        15.154791999997542,
+        20.731375000003027,
+        19.096957999998267,
+        19.474333999998635,
+        15.917999999997846
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "before",
+      "repeat": 6,
+      "warmup": false,
+      "stepMs": [
+        57.58787499999744,
+        15.138457999993989,
+        16.311792000000423,
+        15.705541999996058,
+        25.445458000001963,
+        19.98162500000035,
+        19.82929100000183,
+        14.76837499999965
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "after",
+      "repeat": 6,
+      "warmup": false,
+      "stepMs": [
+        52.043750000004366,
+        14.94041599999764,
+        16.347500000003492,
+        15.16887499999575,
+        18.198667000004207,
+        18.3290829999969,
+        17.587249999996857,
+        13.135290999998688
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "after",
+      "repeat": 7,
+      "warmup": false,
+      "stepMs": [
+        49.61983300000429,
+        14.510667000002286,
+        17.546375000005355,
+        13.009249999995518,
+        17.94287500000064,
+        19.076915999998164,
+        22.503540999998222,
+        13.689667000006011
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "before",
+      "repeat": 7,
+      "warmup": false,
+      "stepMs": [
+        68.3404159999991,
+        41.50158299999748,
+        31.61316700000316,
+        26.582500000004075,
+        51.83600000000297,
+        34.539834000002884,
+        30.29866700000275,
+        17.757833000003302
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "before",
+      "repeat": 8,
+      "warmup": false,
+      "stepMs": [
+        62.33125000000291,
+        18.69908299999952,
+        20.21512499999517,
+        16.024208000002545,
+        20.33058300000266,
+        20.88658299999952,
+        22.591417000003275,
+        22.15916699999798
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "after",
+      "repeat": 8,
+      "warmup": false,
+      "stepMs": [
+        61.841499999994994,
+        17.67633399999613,
+        22.210291999996116,
+        19.945833999998285,
+        22.24516600000061,
+        24.6918749999968,
+        22.29979099999764,
+        19.32050000000163
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "after",
+      "repeat": 9,
+      "warmup": false,
+      "stepMs": [
+        56.46137499999895,
+        20.003499999998894,
+        19.33162500000617,
+        17.8125,
+        22.388874999996915,
+        29.234624999997322,
+        33.76837499999965,
+        21.63737499999843
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    },
+    {
+      "fixture": "anatomy-pigtail-friction-settling-incoming.json",
+      "variant": "before",
+      "repeat": 9,
+      "warmup": false,
+      "stepMs": [
+        65.93404100000043,
+        15.453416999996989,
+        19.321708000003127,
+        13.986250000001746,
+        19.86308299999655,
+        20.402666999994835,
+        18.985082999999577,
+        15.720792000000074
+      ],
+      "physicalHash": "331796efe248374ccedeb77a5f3dc55390bce4e4055c277f25328a189a7fa708"
+    }
+  ],
+  "validation": {
+    "targetedTests": {
+      "passed": 101,
+      "failed": 0
+    },
+    "productionBuild": "passed (existing large-chunk warning)",
+    "existingFailure": {
+      "test": "kirchhoffSharedAxisProjection.test.js / anatomy-berenstein-feed-312.87-projection",
+      "message": "This fixture must exercise nonlinear trial corrections",
+      "reproducedWithPreOptimizationLinearCodeAndDefaults": true,
+      "detail": "The replay converges with identical reference/reduced output but reports projectionMs=0. The assertion also fails with the original linear code and provider defaults; projection code and this test are unchanged by this optimization."
+    },
+    "standaloneBenchmark": {
+      "passed": true,
+      "acceptedSteps": 240,
+      "allPhysicalHashesMatchComparison": true
+    }
+  }
+}

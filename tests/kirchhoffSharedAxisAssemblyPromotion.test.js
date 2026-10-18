@@ -2,9 +2,8 @@ import test, {after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {loadCoupledRuntimeAnatomy} from './helpers/coupledRuntimeFixture.js';
-import {restoreSharedAxisReplay,captureSharedAxisReplay} from './helpers/sharedAxisReplay.js';
+import {restoreSharedAxisReplay,captureSharedAxisReplay,assembleDiscoveredSharedAxis} from './helpers/sharedAxisReplay.js';
 import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
-import {assembleSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
 const anatomy=await loadCoupledRuntimeAnatomy();after(()=>anatomy.dispose());
 const load=name=>JSON.parse(readFileSync(new URL(`./fixtures/shared-axis/${name}.json`,import.meta.url)));
 
@@ -43,15 +42,17 @@ test(`promoted trial assembly preserves every direction/acceptance decision and 
 test('promotion rebuilds exactly the full matrix and refreshes reaction forces at the same pose',()=>{
     const fixture=load('anatomy-pigtail-wire-withdraw-200.27-incoming');
     const current=restoreSharedAxisReplay(fixture,anatomy.field),reference=restoreSharedAxisReplay(fixture,anatomy.field),promotion={hits:0};
-    const light=assembleSharedAxisNative(current,{withTangent:false,promotion});
-    const full=assembleSharedAxisNative(reference);
+    // Resolve newly discovered mesh witnesses using the production-style
+    // bounded topology restart before comparing the actual material matrices.
+    const light=assembleDiscoveredSharedAxis(current,{withTangent:false,promotion});
+    const full=assembleDiscoveredSharedAxis(reference);
     for(const k of ['energy','force','torque','constraint'])assert.equal(light[k],full[k]);
-    assembleSharedAxisNative(current,{promotion});
+    assembleDiscoveredSharedAxis(current,{promotion});
     assert.equal(promotion.hits,1);
     for(const k of ['gradient','tangent','hessian'])assert.deepEqual(current.chain[k],reference.chain[k],k);
     // Reaction-only changes cannot reuse cached physical force sums.
     current.multipliers[0]+=.1;reference.multipliers[0]+=.1;
-    const a=assembleSharedAxisNative(current,{promotion}),b=assembleSharedAxisNative(reference);
+    const a=assembleDiscoveredSharedAxis(current,{promotion}),b=assembleDiscoveredSharedAxis(reference);
     for(const k of ['energy','force','torque','constraint'])assert.equal(a[k],b[k]);
     for(const k of ['gradient','tangent','hessian'])assert.deepEqual(current.chain[k],reference.chain[k],k);
     assert.deepEqual(a.rows.map(r=>r.geometricHessian),b.rows.map(r=>r.geometricHessian));
@@ -59,7 +60,7 @@ test('promotion rebuilds exactly the full matrix and refreshes reaction forces a
     // whose old local data have already been replaced by another candidate.
     current.geometryKey=Symbol('moved');reference.geometryKey=Symbol('moved');
     current.positions[3][0]+=.0001;reference.positions[3][0]+=.0001;
-    const hits=promotion.hits;assembleSharedAxisNative(current,{promotion});assembleSharedAxisNative(reference);
+    const hits=promotion.hits;assembleDiscoveredSharedAxis(current,{promotion});assembleDiscoveredSharedAxis(reference);
     assert.equal(promotion.hits,hits);
     for(const k of ['gradient','tangent','hessian'])assert.deepEqual(current.chain[k],reference.chain[k],k);
 });

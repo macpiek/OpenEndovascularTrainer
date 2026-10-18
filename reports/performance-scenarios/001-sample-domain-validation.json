@@ -1,0 +1,180 @@
+{
+  "recordedAt": "2026-10-15T16:12:28.804Z",
+  "goalAchieved": false,
+  "decision": "Enable omission of provably inactive sampler-domain rows in the default shared-axis application options. Keep the selected 0.02 mm local mesh threshold and 80 mm tip guard; do not promote the 0.025 mm shape experiment.",
+  "exactOptimization": {
+    "beforeCheckout": "/tmp/oet-inactive-samples.JqURAJ",
+    "option": "omitInactiveSampleRows",
+    "physicalArgument": "Native sheath samples are constant gap=1/J=0 when coordinateA >= sheath length; vessel discovery samples are constant gap=1/J=0 when coordinateB <= sheath length. All straddling edges, exposed domains, and samplers without an explicit domain are retained. No proximity culling or relaxed tolerances.",
+    "passed": true,
+    "pairedSteps": 1200,
+    "comparisonReport": "001-sample-domain-confirmation.json",
+    "summary": {
+      "before": {
+        "steps": 1200,
+        "totalMs": 21218.79024699995,
+        "medianMs": 14.46020900000076,
+        "p95Ms": 32.94291599999997,
+        "maxMs": 219.37116700000024,
+        "cpuStepsPerSecond": 56.553648253800134,
+        "withinBudget": 869
+      },
+      "after": {
+        "steps": 1200,
+        "totalMs": 20158.57928100004,
+        "medianMs": 13.677582999998776,
+        "p95Ms": 31.38341599999694,
+        "maxMs": 222.48708299999998,
+        "cpuStepsPerSecond": 59.52800459162466,
+        "withinBudget": 935
+      }
+    },
+    "cpuSavedPercent": 4.996566503831723,
+    "maxWorldDifferenceMm": 0,
+    "rowCounts": [
+      {
+        "version": "before",
+        "repeat": 0,
+        "min": 750,
+        "max": 823
+      },
+      {
+        "version": "after",
+        "repeat": 0,
+        "min": 580,
+        "max": 648
+      },
+      {
+        "version": "before",
+        "repeat": 1,
+        "min": 750,
+        "max": 823
+      },
+      {
+        "version": "after",
+        "repeat": 1,
+        "min": 580,
+        "max": 648
+      }
+    ],
+    "fullModel": {
+      "report": "001-sample-domain-full-model.json",
+      "passed": true,
+      "pairedSteps": 200,
+      "maxWorldDifferenceMm": 0
+    }
+  },
+  "shapeExperiment": {
+    "report": "001-authorized-shape-025-confirmation.json",
+    "steps": 600,
+    "passed": true,
+    "maxFullShapeDifferenceMm": 0.09580195076432181,
+    "maxTipDifferenceMm": 0.012881207064447751,
+    "decision": "Not selected: 167–173 nodes vs 170–176, but 2402 iterations/3587 factorizations vs 2344/3252 and higher shape error. No demonstrated net benefit over selected model with the same exact optimization."
+  },
+  "browser": [
+    {
+      "report": "001-full-app-sample-domains.json",
+      "passed": true,
+      "steps": 600,
+      "acceptedPhysicsHz": 46.915317851278445,
+      "renderFps": 59.11330049261084,
+      "browserBudgetMet": false,
+      "clockAdvance": 9.999999999990905,
+      "flowAdvance": 9.999999999990905,
+      "initialMesh": {
+        "nodes": 207,
+        "dofs": 1008,
+        "minSpacing": 0.6666666666686751,
+        "maxSpacing": 5.000000000000028,
+        "adaptive": true,
+        "shapeTolerance": 0.02,
+        "contactMargin": 0.01,
+        "maxArcLoss": 0.0001,
+        "maxAllowedSpacing": 20
+      },
+      "finalMesh": {
+        "nodes": 171,
+        "dofs": 828,
+        "minSpacing": 0.6666666666686751,
+        "maxSpacing": 20,
+        "adaptive": true,
+        "shapeTolerance": 0.02,
+        "contactMargin": 0.01,
+        "maxArcLoss": 0.0001,
+        "maxAllowedSpacing": 20
+      },
+      "failedSteps": 0,
+      "maxPenetrationMm": 2.0028423364237824e-13,
+      "maxLengthError": 9.418391992136451e-14,
+      "maxCertificateBound": 9.904998790055686e-7
+    },
+    {
+      "report": "001-full-app-sample-domains-confirmation.json",
+      "passed": true,
+      "steps": 600,
+      "acceptedPhysicsHz": 49.28293331961214,
+      "renderFps": 58.728828872537804,
+      "browserBudgetMet": false,
+      "clockAdvance": 9.999999999990905,
+      "flowAdvance": 9.999999999990905,
+      "initialMesh": {
+        "nodes": 207,
+        "dofs": 1008,
+        "constraintRows": 2497,
+        "minSpacing": 0.6666666666686751,
+        "maxSpacing": 5.000000000000028,
+        "adaptive": true,
+        "shapeTolerance": 0.02,
+        "contactMargin": 0.01,
+        "maxArcLoss": 0.0001,
+        "maxAllowedSpacing": 20
+      },
+      "finalMesh": {
+        "nodes": 171,
+        "dofs": 828,
+        "constraintRows": 607,
+        "minSpacing": 0.6666666666686751,
+        "maxSpacing": 20,
+        "adaptive": true,
+        "shapeTolerance": 0.02,
+        "contactMargin": 0.01,
+        "maxArcLoss": 0.0001,
+        "maxAllowedSpacing": 20
+      },
+      "failedSteps": 0,
+      "maxPenetrationMm": 2.0028423364237824e-13,
+      "maxLengthError": 9.418391992136451e-14,
+      "maxCertificateBound": 9.904998790055686e-7
+    }
+  ],
+  "consoleErrors": [],
+  "validation": {
+    "regressions": {
+      "tests": 102,
+      "passed": 102,
+      "log": "001-sample-domain-regressions.log"
+    },
+    "publicationLog": "001-sample-domain-publication-tests.log",
+    "buildLog": "001-sample-domain-build.log",
+    "screenshot": "001-full-app-sample-domains-confirmation.jpg"
+  },
+  "limitations": [
+    "The original entire manual crossover is not replayed; these are continuations of its captured final state.",
+    "CPU pairing isolates the exact contact optimization; browser results remain below 60 physics Hz and vary with runtime load.",
+    "Reduced spatial mesh remains explicit research mode, while inactive-domain omission is enabled by default without changing the physical equations."
+  ],
+  "sourceSha256": {
+    "src/physics/kirchhoffSharedAxisNative.js": "5dd45a6b8a635c66271a706c0e308296fc9f8884ba6e1c60164fee695a2252de",
+    "src/physics/kirchhoffSharedAxisContacts.js": "9a8a649d030bea511a338a769782eec6a17096fcec2ff34c68c108d512d94581",
+    "src/physics/kirchhoffSharedAxisVesselWitnesses.js": "f3879eeed06d74dcfe4ffcfdfbd327f1ab3f4e7c7a3e7b44e3e8af71d5cce1cc",
+    "src/physics/kirchhoffSharedAxisAppSystem.js": "9c1db2c71427b65a87233a6e7f0a3c447b2a601f6729edf7f52d753281ccc025",
+    "src/physics/kirchhoffSharedAxisReplay.js": "074a5f6551e604a9ad6ff751b5a5cabe3639fa461ab3f106996b2531f42ad71a",
+    "src/physics/kirchhoffSharedAxisRestore.js": "ec3e3760c042d53c4516d36cc1f30a59cbfe2edbb648ef784804cca69dc15175",
+    "src/simulator.js": "05ef61924c82b824670fbcde6e0b7489da7536d64e4ec5e6c9f76823e90a1516",
+    "src/benchmark/crossoverAppBenchmark.js": "901acea3603436dcbb8faa4d708af5d92e161f40a9b54300b53a5f0c91ccd078",
+    "tests/kirchhoffSharedAxisSampleDomains.test.js": "e0e8c44688f91ef4af6e40feeae850aa41ce1c002a0cc9001ac2d26c1a5b6a4e",
+    "scripts/benchmark-crossover-throughput.mjs": "32e1dd445f365aa68850c5238de2df2f7c87a8ddb748f6574bafd21e7aee77c1",
+    "scripts/benchmark-crossover-reduced-model.mjs": "b10f06e02693ad842b7f820b23470d6a38f01b19929ed12521d1c02a144ff873"
+  }
+}

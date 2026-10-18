@@ -2,7 +2,7 @@ import test, {after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {loadCoupledRuntimeAnatomy} from './helpers/coupledRuntimeFixture.js';
-import {restoreSharedAxisReplay,captureSharedAxisReplay} from './helpers/sharedAxisReplay.js';
+import {restoreSharedAxisReplay,captureSharedAxisReplay,assembleDiscoveredSharedAxis} from './helpers/sharedAxisReplay.js';
 import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
 import {assembleSharedAxisNative,captureSharedAxisNative,restoreSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
 const anatomy=await loadCoupledRuntimeAnatomy();after(()=>anatomy.dispose());
@@ -41,9 +41,10 @@ test(`lazy trial evaluation preserves every direction/acceptance decision and co
 
 test('light evaluation keeps forces and row geometry; a subsequent full assembly restores all matrix coefficients',()=>{
     const fixture=load('anatomy-pigtail-wire-withdraw-200.27-incoming');
-    const s=restoreSharedAxisReplay(fixture,anatomy.field),pose=captureSharedAxisNative(s);
+    const s=restoreSharedAxisReplay(fixture,anatomy.field);
     s.cacheMechanicalAssembly=true;
-    const full=assembleSharedAxisNative(s),gradient=s.chain.gradient.slice(),matrix=s.chain.tangent.slice(),H=s.chain.hessian.slice();
+    const full=assembleDiscoveredSharedAxis(s),gradient=s.chain.gradient.slice(),matrix=s.chain.tangent.slice(),H=s.chain.hessian.slice();
+    const pose=captureSharedAxisNative(s);
     const light=assembleSharedAxisNative(s,{withTangent:false});
     assert.equal(s.chain.hessianValid,false);assert.deepEqual(s.chain.gradient,gradient);
     for(const k of ['energy','force','torque','constraint'])assert.equal(light[k],full[k]);

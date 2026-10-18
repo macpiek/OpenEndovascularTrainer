@@ -1,0 +1,108 @@
+<!doctype html><html lang="pl"><meta charset="utf-8">
+<title>Crossover — porównanie solverów</title>
+<style>
+body{background:#101922;color:#e3edf4;margin:24px;font:15px system-ui}h1{font-size:24px}p{max-width:1000px;line-height:1.5;color:#bbcbd6}
+button,select,a{padding:8px;background:#23485a;color:white;border:1px solid #537582;border-radius:6px}nav{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+main{display:flex;gap:24px;margin-top:24px}canvas{width:450px;max-width:55vw;background:#080e15;border:1px solid #354959}
+#metrics{white-space:pre-line;line-height:1.8;font-variant-numeric:tabular-nums}#status{font-weight:700}
+</style>
+<h1>Crossover — eksperymentalne solvery</h1>
+<p>Odtworzenie 7507 zapisanych kroków od pustych narzędzi. Zielony: nagranie referencyjne; pomarańczowy: obliczona trajektoria.
+    Kryterium: wykonanie całego crossover, stabilność i płynność podczas ruchu. Różnica kształtu jest tylko informacją — bez limitu 1 mm.
+    Sprawdzamy gałęzie naczyń w pięciu etapach. To test prawego dostępu, z uproszczonym podglądem, bez pełnego RTG.
+    Wynik nie oznacza 60 FPS całej aplikacji ani potwierdzenia realizmu.</p>
+<nav><label>Metoda <select id="solver"><option value="xpbd">XPBD</option><option value="hybrid" selected>XPBD + wspólna korekta długości i kontaktów</option><option value="projective">Projective Dynamics</option><option value="projective-hybrid">Projective Dynamics + korekta długości i kontaktów</option></select></label>
+<label>Iteracje <select id="iterations"><option>4</option><option>8</option><option>16</option><option>32</option><option selected>64</option><option>128</option></select></label>
+<label><input id="profile" type="checkbox"> Profil kosztów PD</label>
+<label>Optymalizacja PD <select id="optimization"><option value="none">Bez</option><option value="geometry">Buforowanie geometrii</option><option value="geometry-jacobi">Buforowanie geometrii i obrotów Jacobiego</option><option value="geometry-polar">Buforowanie i szybsze obroty polarne</option></select></label>
+<label>Siatka <select id="mesh"><option value="fine">Dokładna 5 mm</option><option value="adaptive250">Adaptacyjna 5–20 mm, początek 250 mm dokładny</option><option value="adaptive80">Adaptacyjna 5–20 mm, początek 80 mm dokładny</option></select></label>
+<button id="run" disabled>Odtwórz cały manewr</button><button id="stop" disabled>Zatrzymaj</button><a id="download" hidden>Pobierz raport</a></nav>
+<p><label>Przegląd przebiegu <input id="review" type="range" min="1" max="7507" value="1" disabled></label> <span id="reviewLabel"></span></p>
+<p id="stageChecks">Ocena przejścia do właściwych naczyń: oczekuje na próbę.</p>
+<p id="status" role="status">Ładowanie anatomii…</p>
+<main><canvas id="scene" width="600" height="900"></canvas><div id="metrics"></div></main>
+<script type="module">
+import {STLLoader} from 'three/examples/jsm/loaders/STLLoader.js';
+import {MeshBVH} from 'three-mesh-bvh';
+import {generateVessel} from '../src/vesselGeometry.js';
+import {transformAortaGeometry} from '../src/aortaTransform.js';
+import {decodeCollisionAsset} from '../src/physics/collision/collisionAssetFormat.js';
+import {VesselContactField} from '../src/physics/collision/vesselContactField.js';
+import {createCrossoverFlowFromAsset} from './helpers/crossoverFlowFromAsset.js';
+import {compareCrossoverAlternative,summarizeAlternative} from '../src/benchmark/crossoverAlternativeSolvers.js';
+import {CROSSOVER_ROUTE_LABELS} from '../src/benchmark/crossoverFunctionalRoute.js';
+const el=id=>document.getElementById(id),canvas=el('scene'),ctx=canvas.getContext('2d');
+const project=p=>[canvas.width/2+(p[0]-20)*canvas.height/850,canvas.height/2-(p[1]+640)*canvas.height/850];
+let active=false,iterator,report,started,lastShape,lastReference,downloadUrl;
+const read=async path=>{try{const r=await fetch(path);if(!r.ok)throw Error(`HTTP ${r.status}`);return r;}catch(e){throw Error(`${path}: ${e.message}`);}};
+const source='/reports/performance-scenarios/003-crossover-full-user-inputs.json.gz';
+const hash=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(x=>x.toString(16).padStart(2,'0')).join('');
+try {
+    const [sourceBytes,assetBytes,meshBytes]=await Promise.all([source,'/res/Aorta_infrarenal_aneurysm.collision.bin','/res/Aorta_infrarenal_aneurysm.stl'].map(p=>read(p).then(async r=>{try{return await r.arrayBuffer();}catch(e){throw Error(`${p} (body): ${e.message}`);}})));
+    el('status').textContent='Dekodowanie nagrania…';
+    const record=new Uint8Array(sourceBytes)[0]===31?await new Response(new Blob([sourceBytes]).stream().pipeThrough(new DecompressionStream('gzip'))).json():JSON.parse(new TextDecoder().decode(sourceBytes));
+    const sourceSha256=await hash(sourceBytes),asset=decodeCollisionAsset(assetBytes),geometry=new STLLoader().parse(meshBytes);
+    transformAortaGeometry(geometry,generateVessel(140,0).vessel);geometry.computeBoundingBox();geometry.boundsTree=new MeshBVH(geometry);
+    const field=new VesselContactField(asset,{fallbackGeometry:geometry,bvhValidationDistance:.02,capsuleBvhValidation:-.1});
+    const sourceHashes=Object.fromEntries(await Promise.all(['src/physics/sharedAxisXpbdExperimental.js','src/physics/kirchhoffSharedAxisProjective.js','src/physics/projectiveRotationPolar.js','src/physics/projectiveRotationScratch.js','src/physics/kirchhoffSharedAxisAdaptiveMesh.js','src/physics/kirchhoffSharedAxisNative.js','src/benchmark/crossoverAlternativeSolvers.js','src/benchmark/crossoverFunctionalRoute.js']
+        .map(async p=>[p,await hash(await read('/'+p).then(r=>r.arrayBuffer()))])));
+    const draw=()=>{
+        ctx.fillStyle='#080e15';ctx.fillRect(0,0,600,900);ctx.strokeStyle='#263a48';ctx.lineWidth=1;ctx.beginPath();
+        const a=asset.arrays.centerlineSegments;
+        for(let i=0;i<a.length;i+=9){ctx.moveTo(...project(a.subarray(i,i+3)));ctx.lineTo(...project(a.subarray(i+3,i+6)));}ctx.stroke();
+        const line=(positions,coordinates,color)=>{ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();let first=true;
+            for(let i=0;i<coordinates.length;i++){if(coordinates[i]<0)continue;const p=project(positions.slice(i*3,i*3+3));if(first)ctx.moveTo(...p);else ctx.lineTo(...p);first=false;}ctx.stroke();};
+        if(lastReference)line(lastReference.shape.positions,lastReference.shape.coordinates,'#6ad8a5');
+        if(lastShape)line(lastShape.positions,lastShape.coordinates,'#ffb769');
+    };
+    const show=()=>{
+        const summary=summarizeAlternative(report.rows,record.steps.length),wallMs=performance.now()-started,last=report.rows.at(-1);
+        el('metrics').textContent=`Próba: ${report.rows.length}/${record.steps.length}\nKroki dopuszczone geometrycznie: ${summary.acceptedSteps}\nCzas testu: ${(wallMs/1000).toFixed(1)} s\nRzeczywista przepustowość testu: ${(summary.acceptedSteps*1000/wallMs).toFixed(1)} kroków/s\nRóżnica kształtu teraz: ${last?.shapeDifferenceMm?.toFixed(3)??'—'} mm\nMaksymalna różnica: ${summary.maximumShapeDifferenceMm?.toFixed(3)??'—'} mm\nRóżnica kształtu: informacyjnie, bez limitu\nPełny manewr: wymaga oceny przebiegu i stabilności.\nCel 60 FPS pełnej aplikacji: niepotwierdzony.`;
+    };
+    const reviewStep=step=>{
+        const row=report.rows[step-1];if(!row?.shape)return;
+        lastShape=row.shape;lastReference=record.steps[step-1];draw();
+        el('review').value=step;el('reviewLabel').textContent=`Krok ${step} · etap ${row.stage+1}/5`;
+    };
+    el('review').oninput=()=>reviewStep(Number(el('review').value));
+    const showRoute=()=>{
+        const checks=report.rows.flatMap(r=>r.routeCheckpoint?[r.routeCheckpoint]:[]);
+        el('stageChecks').textContent=checks.map(c=>`Etap ${c.stage+1}: ${c.passed?'gałąź zgodna':'sprawdź trasę'} — prowadnik: ${CROSSOVER_ROUTE_LABELS[c.wire.region]}, cewnik: ${CROSSOVER_ROUTE_LABELS[c.catheter.region]}`).join(' | ')||'Ocena gałęzi: oczekuje na pierwszy punkt kontrolny.';
+    };
+    const finish=(reason)=>{
+        active=false;iterator?.return();report.summary=summarizeAlternative(report.rows,record.steps.length);
+        report.wallMs=performance.now()-started;report.finishedAt=new Date().toISOString();report.reason=reason;
+        el('status').textContent=reason;show();showRoute();
+        el('review').max=report.rows.filter(r=>r.accepted).length;el('review').disabled=Number(el('review').max)===0;el('run').disabled=false;el('stop').disabled=true;el('solver').disabled=el('iterations').disabled=el('profile').disabled=el('optimization').disabled=el('mesh').disabled=false;
+        if(downloadUrl)URL.revokeObjectURL(downloadUrl);downloadUrl=URL.createObjectURL(new Blob([JSON.stringify(report)],{type:'application/json'}));
+        el('download').href=downloadUrl;el('download').download=`crossover-alternative-${report.solver}-${report.options.iterations}.json`;el('download').hidden=false;
+    };
+    const tick=()=>{
+        if(!active)return;
+        try {
+            const n=iterator.next();if(n.done){finish(report.rows.length===record.steps.length?'Zakończono pełną sekwencję — oceń cały manewr suwakiem przebiegu.':'Próba zatrzymana po odrzuceniu geometrii.');return;}
+            report.rows.push(n.value);if(n.value.accepted)reviewStep(n.value.step);show();if(n.value.routeCheckpoint)showRoute();
+            if(!n.value.accepted){finish(`Odrzucono krok ${n.value.step}: ${n.value.status}.`);return;}
+            requestAnimationFrame(tick);
+        }catch(error){report.error=error.message;finish('Błąd testu: '+error.message);}
+    };
+    el('run').onclick=()=>{
+        const mode=el('solver').value,solver=mode.startsWith('projective')?'projective':'xpbd';
+        const options={iterations:Number(el('iterations').value),maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5,...(mode.endsWith('hybrid')?{hardClosure:true}:{})};
+        if(solver==='projective')Object.assign(options,{profile:el('profile').checked,
+            reuseGeometry:el('optimization').value!=='none',fastRotations:el('optimization').value==='geometry-polar',
+            scratchRotations:el('optimization').value==='geometry-jacobi'});
+        const mesh=el('mesh').value==='fine'?null:{maxSpacing:20,contactMaxSpacing:20,shapeTolerance:.15,maxArcLoss:.002,
+            maxTurn:Math.PI/15,contactMargin:.01,tipLength:80,tipRefinementAhead:80,finePrefixLength:el('mesh').value==='adaptive250'?250:80};
+        report={source,sourceSha256,sourceHashes,solver,options,mesh,dt:record.dt,startedAt:new Date().toISOString(),rows:[],
+            scope:'Browser research test: recorded targets from empty tools, right access only, simple axis drawing. One complete candidate per animation frame; includes rendering/scheduling. Not app FPS.',
+            acceptanceMode:'functional',shapeDifferenceLimitMm:null,productionDefaultChanged:false};
+        iterator=compareCrossoverAlternative({record,field,flow:createCrossoverFlowFromAsset(asset),solver,options,mesh});
+        lastShape=lastReference=null;draw();el('review').max=record.steps.length;el('review').value=1;
+        el('review').disabled=true;el('reviewLabel').textContent='';showRoute();
+        started=performance.now();active=true;el('run').disabled=true;el('stop').disabled=false;el('solver').disabled=el('iterations').disabled=el('profile').disabled=el('optimization').disabled=el('mesh').disabled=true;el('download').hidden=true;
+        el('status').textContent='Odtwarzanie wszystkich wejść od początku…';requestAnimationFrame(tick);
+    };
+    el('stop').onclick=()=>finish('Przerwano test — wynik częściowy.');draw();el('status').textContent='Gotowy · 7507 kroków od pustych narzędzi';el('run').disabled=false;
+}catch(error){el('status').textContent='Błąd ładowania: '+error.message;}
+</script></html>

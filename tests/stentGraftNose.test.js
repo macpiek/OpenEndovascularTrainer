@@ -100,3 +100,18 @@ test('nose retracts on committed time to the moving sheath edge without displaci
         step(1,'resheath');assert.equal(deliveryNoseState(d).remaining,0,'advancing cover cannot pass through the nose base');
     } finally {system.dispose();}
 });
+
+test('wire-supported extension preserves the solved shaft and only extrapolates beyond the wire tip',async()=>{
+    const {continueDeliveryOverWire}=await import('../src/devices/stentGraftPaths.js');
+    const shaft=new DevicePath([new THREE.Vector3(0,0,0),new THREE.Vector3(0,20,0)],[0,20]);
+    const wire=new DevicePath([new THREE.Vector3(.2,0,0),new THREE.Vector3(.2,20,0),
+        new THREE.Vector3(5,30,0),new THREE.Vector3(15,40,0)],[0,20,32,46]);
+    const path=continueDeliveryOverWire(shaft,wire,60);
+    assert.deepEqual(path.sample(20).toArray(),[0,20,0]);
+    assert.deepEqual(path.sample(10).toArray(),[0,10,0]);
+    assert.ok(path.sample(46).distanceTo(wire.sample(46))<1e-10);
+    const expected=wire.sample(46).addScaledVector(wire.sample(46).sub(wire.sample(45)).normalize(),14);
+    assert.ok(path.sample(60).distanceTo(expected)<1e-10);
+    assert.deepEqual(shaft.points.at(-1).toArray(),[0,20,0],'input snapshots remain immutable');
+    assert.deepEqual(wire.points[1].toArray(),[.2,20,0]);
+});

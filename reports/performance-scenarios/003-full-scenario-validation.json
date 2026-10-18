@@ -1,0 +1,221 @@
+{
+  "source": "003-crossover-full-user-inputs.json.gz",
+  "sha256": "bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac",
+  "recordedAt": "2026-10-15T17:28:16.880Z",
+  "steps": 7507,
+  "movingSteps": 3645,
+  "checkpoints": [
+    {
+      "stage": 0,
+      "label": "Pigtail nad rozwidleniem, prowadnik cofnięty, ogonek skierowany w drugą stronę",
+      "afterStep": 1249,
+      "tools": {
+        "wire": 175.26666666666594,
+        "catheter": 256.066666666666,
+        "wireRotation": 0,
+        "catheterRotation": -2.0263272615654153
+      }
+    },
+    {
+      "stage": 1,
+      "label": "Pigtail oparty o rozwidlenie, końcówka w przeciwległej biodrówce",
+      "afterStep": 1840,
+      "tools": {
+        "wire": 175.26666666666594,
+        "catheter": 212.3333333333328,
+        "wireRotation": 0,
+        "catheterRotation": -1.3194689145077125
+      }
+    },
+    {
+      "stage": 2,
+      "label": "Prowadnik przez pigtaila w przeciwległej biodrówce",
+      "afterStep": 2686,
+      "tools": {
+        "wire": 255.19999999999783,
+        "catheter": 209.1333333333328,
+        "wireRotation": 0,
+        "catheterRotation": -1.3194689145077125
+      }
+    },
+    {
+      "stage": 3,
+      "label": "Po korektach: prowadnik w biodrowej zewnętrznej i udowej",
+      "afterStep": 6216,
+      "tools": {
+        "wire": 473.7333333333356,
+        "catheter": 401.8666666666681,
+        "wireRotation": 0,
+        "catheterRotation": 11.309733552923282
+      }
+    },
+    {
+      "stage": 4,
+      "label": "Oba narzędzia wsunięte na prawie maksymalną długość",
+      "afterStep": 7507,
+      "tools": {
+        "wire": 970.9333333333459,
+        "catheter": 934.8666666666727,
+        "wireRotation": 0,
+        "catheterRotation": 11.309733552923282
+      }
+    }
+  ],
+  "dt": 0.016666666666666666,
+  "shapeBudgetMm": 0.1,
+  "forceTolerance": 1e-06,
+  "lengthToleranceMm": 1e-05,
+  "goalAchieved": false,
+  "runs": [
+    {
+      "variant": "baseline",
+      "file": "003-full-baseline-browser.json.gz",
+      "complete": true,
+      "identicalCommandsAndShapesAtEveryStep": true,
+      "bothAccessesPassedEveryStep": true,
+      "motionHz": 32.73032902710473,
+      "stageMotionHz": [
+        57.94635974551938,
+        55.66513257657541,
+        45.289855080118265,
+        31.944615845288588,
+        22.63099590604176
+      ],
+      "minimumMovingWindowHz": 10.779734099892202,
+      "maxCertificateBound": 9.950126695912331e-07,
+      "maxPenetrationMm": 9.934624012331028e-09,
+      "maximumShapeDifferenceMm": 0,
+      "renderFps": 58.021702862032626
+    },
+    {
+      "variant": "identity",
+      "file": "003-full-identity-browser.json.gz",
+      "complete": true,
+      "identicalCommandsAndShapesAtEveryStep": true,
+      "bothAccessesPassedEveryStep": true,
+      "motionHz": 35.00916289188791,
+      "stageMotionHz": [
+        60.07164508227626,
+        55.528835634129436,
+        46.6266623400719,
+        35.052823428561915,
+        23.91971818928072
+      ],
+      "minimumMovingWindowHz": 12.173348482506993,
+      "maxCertificateBound": 9.950126695912331e-07,
+      "maxPenetrationMm": 9.934624012331028e-09,
+      "maximumShapeDifferenceMm": 0,
+      "renderFps": 58.87879661814347
+    },
+    {
+      "variant": "worker",
+      "file": "003-full-worker-browser.json.gz",
+      "complete": true,
+      "identicalCommandsAndShapesAtEveryStep": true,
+      "bothAccessesPassedEveryStep": true,
+      "motionHz": 39.793836267576374,
+      "stageMotionHz": [
+        59.88188435654443,
+        57.869315607907176,
+        48.034752105606835,
+        41.0733702005209,
+        27.997529629345934
+      ],
+      "minimumMovingWindowHz": 13.748224187558874,
+      "maxCertificateBound": 9.950126695912331e-07,
+      "maxPenetrationMm": 9.934624012331028e-09,
+      "maximumShapeDifferenceMm": 0,
+      "renderFps": 60.00925472806746
+    },
+    {
+      "variant": "worker-confirmation",
+      "file": "003-full-worker-confirmation-browser.json.gz",
+      "complete": true,
+      "identicalCommandsAndShapesAtEveryStep": true,
+      "bothAccessesPassedEveryStep": true,
+      "motionHz": 39.399399659221146,
+      "stageMotionHz": [
+        59.922211074417795,
+        57.858769950516546,
+        49.40711462653026,
+        39.35114227887975,
+        28.577089099608603
+      ],
+      "minimumMovingWindowHz": 13.366005791935843,
+      "maxCertificateBound": 9.950126695912331e-07,
+      "maxPenetrationMm": 9.934624012331028e-09,
+      "maximumShapeDifferenceMm": 0,
+      "renderFps": 60.008899457760215
+    },
+    {
+      "variant": "larger-cache",
+      "file": "003-full-larger-cache-browser.json.gz",
+      "complete": true,
+      "identicalCommandsAndShapesAtEveryStep": true,
+      "bothAccessesPassedEveryStep": true,
+      "motionHz": 40.03629078346812,
+      "stageMotionHz": [
+        59.897103372743885,
+        56.62059741417744,
+        50.68312031732041,
+        41.2841757935659,
+        28.228317272252934
+      ],
+      "minimumMovingWindowHz": 14.297288281314277,
+      "maxCertificateBound": 9.950126695912331e-07,
+      "maxPenetrationMm": 9.934624012331028e-09,
+      "maximumShapeDifferenceMm": 0,
+      "renderFps": 60.00080188174917
+    }
+  ],
+  "rejectedExperiments": [
+    {
+      "variant": "wide",
+      "completedSteps": 712,
+      "reason": "Różnica kształtu 0.1093 mm przekracza 0,1 mm.",
+      "maxShapeDifferenceMm": 0.10930145005141384,
+      "enabled": false
+    },
+    {
+      "variant": "simultaneous",
+      "completedSteps": 1546,
+      "reason": "Różnica kształtu 0.1007 mm przekracza 0,1 mm.",
+      "maxShapeDifferenceMm": 0.1006981237172601,
+      "enabled": false
+    },
+    {
+      "variant": "larger-cache",
+      "reason": "Only 0.6% motion-throughput difference in a single run, 338 fewer factorizations out of 151180; insufficient benefit for four times as many cached entries. Restored original bounds.",
+      "enabled": false
+    }
+  ],
+  "retainedChanges": [
+    "Byte-exact geometry identity cache checks every byte, including unversioned edits; warm 62.8 MB identity checks about 13 ms versus 82 ms. Uses an owned 62.8 MB copy per live anatomy geometry.",
+    "Per-step solver work, recovery and worker timing measurements in complete scenario reports.",
+    "Full benchmark preset preserves ordinary negative-contact recovery fallback instead of explicitly disabling it."
+  ],
+  "limitations": [
+    "60 physics Hz during motion has NOT been reached. Rendering FPS is not physics throughput.",
+    "Worker remains a dev opt-in crossover prototype; ordinary application uses the local full solver. Worker has no transactional stent-graft support.",
+    "Shape and stability checked at every recorded step; anatomical stage placement was confirmed by the user.",
+    "Wall-clock results vary between runs. Larger-cache change was reverted.",
+    "Node profiling replay exceeded browser shape budget at step 782 and is not used as acceptance evidence."
+  ],
+  "tests": {
+    "regressions": {
+      "passed": 90,
+      "failed": 0,
+      "log": "003-final-regressions.log"
+    },
+    "build": {
+      "passed": true,
+      "log": "003-final-build.log"
+    }
+  },
+  "sourceHashes": {
+    "src/physics/kirchhoffSharedAxisGeometryIdentity.js": "7e1917b02ab63f2044fe3b645fc6ccece84b24a89cee182876e7ee2929a3f794",
+    "src/physics/kirchhoffSharedAxisLinear.js": "71adf60c58c065a2760d4341bc8a769c86acbf9b341147b5a097df9d87616c70",
+    "src/benchmark/crossoverScenarioRecording.js": "eccadc57fbfdd383f0f2a18b2f9f3a16fe89df797f338e05159ccb2f9dd1d243",
+    "src/simulator.js": "4cca8ba5bd9381d866ad5549b943363b1b0d9ba1db7e57ca0eee93ecda1936c3"
+  }
+}

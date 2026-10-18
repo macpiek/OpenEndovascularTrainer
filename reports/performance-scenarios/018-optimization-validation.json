@@ -1,0 +1,95 @@
+{
+  "updatedAt": "2026-10-17T16:56:37.401505+00:00",
+  "classificationOfPreviousGoalTurn": "Progress: 017 established a concrete Node/browser arithmetic difference and an exact two-step diagnostic replay, and corrected interpretation of CPU comparisons.",
+  "classificationOfThisTurn": "Progress: attempted the complete Node control with exact tool layouts and live flow; independently validated its rejected prefix. Implemented, tested and evaluated a new internal-half-step variant in the real browser, rejected it on shape and cost evidence, archived and restored the baseline.",
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "shapeDifferenceLimitMm": 1,
+  "targetAcceptedPhysicsHz": 60,
+  "nodeControl": {
+    "report": "018-node-control.json.gz",
+    "validation": "018-node-control-validation.json",
+    "completedAcceptedSteps": 4124,
+    "rejectedStep": 4125,
+    "firstBrowserBudgetViolation": 1688,
+    "maximumBrowserShapeDifferenceMm": 36.73412379512412,
+    "qualifiedReference": false,
+    "complete": false,
+    "scope": "Diagnostic full-maneuver attempt in Node. Its trajectory is not a substitute for the original browser reference."
+  },
+  "smallStepExperiment": {
+    "policy": {
+      "commonDt": 0.016666666666666666,
+      "preferredSubdivisions": 2,
+      "minimumIncomingAndTargetInsertionMm": 400,
+      "fallbackOrder": [
+        2,
+        1,
+        4,
+        8
+      ]
+    },
+    "manifest": "018-small-steps-manifest.json",
+    "report": "018-small-steps-browser.json.gz",
+    "validation": "018-small-steps-validation.json",
+    "screenshot": "018-small-steps-rejected.jpg",
+    "acceptedPrefixSteps": 6323,
+    "targetSteps": 7507,
+    "firstDifferentStep": 6126,
+    "maximumShapeDifferenceMm": 1.0284554133297914,
+    "complete": false,
+    "accepted": false,
+    "physicalChecks": 12646,
+    "maximumCertificate": 9.950126695912331e-07,
+    "maximumPenetrationMm": 7.600783225036878e-09,
+    "maximumLengthErrorMm": 7.600783225036878e-09
+  },
+  "prefixCosts": {
+    "scope": "Single non-alternating comparison over the same eligible moving prefix; not a full-maneuver speed claim.",
+    "firstEligibleStep": 6126,
+    "lastStep": 6323,
+    "goalAchieved": false,
+    "variants": {
+      "baseline": {
+        "movingSteps": 40,
+        "physicsHz": 48.43787842372208,
+        "meanIterations": 6.5,
+        "meanFactorizations": 20.8,
+        "meanWorkerResponseMs": 19.085000002384184,
+        "meanSubstepAttempts": 1.0
+      },
+      "candidate": {
+        "movingSteps": 40,
+        "physicsHz": 44.28697963734175,
+        "meanIterations": 7.925,
+        "meanFactorizations": 15.5,
+        "meanWorkerResponseMs": 21.027499979734422,
+        "meanSubstepAttempts": 2.0
+      }
+    }
+  },
+  "tests": {
+    "log": "018-small-steps-tests.log",
+    "passed": 38,
+    "newFeatureTests": 3,
+    "coverage": "Common dt and atomic publication; no change before eligibility; second-half-step failure restores the incoming state before the whole-step fallback, plus existing provider suite. Tests describe archived experimental code."
+  },
+  "archive": "018-small-steps-rejected-sources.json",
+  "patch": "018-small-steps-rejected.patch",
+  "restoredBaseline": {
+    "src/physics/kirchhoffSharedAxisAppSystem.js": true,
+    "src/simulator.js": true,
+    "tests/kirchhoffSharedAxisAppSystem.test.js": true
+  },
+  "retainedWork": [
+    "Auditable Node control runner recomputes live flow and keeps original force/geometry gates while reporting browser shape separately. It cannot qualify a candidate or claim app FPS.",
+    "Independent Node control validator recomputes original targets, physical gates and shape errors for every recorded accepted step."
+  ],
+  "decision": "Reject preferred half steps. The browser stayed bit-identical until eligibility, then exceeded 1 mm at step 6323. The same 40 eligible moving steps cost more despite fewer factorizations. The Node control is incomplete and cannot qualify same-runtime candidates.",
+  "limitations": [
+    "No new full passing browser run this turn. The rejected prefix cannot demonstrate 60 Hz over the complete scenario.",
+    "The 40-step cost comparison uses an earlier baseline run, not alternating repeated runs.",
+    "No production solver replacement or build claimed for the reverted experiment."
+  ],
+  "nextInvestigation": "The full Node control failed at step 4125; do not use it as an acceptance reference and do not spend further trials attempting to calibrate it by loosening physics. Full browser replay remains authoritative. Measure exact work across the expensive moving stages in the browser before selecting a new contact-solving change: distinguish redundant linear search/factorizations from material/constraint assembly and state-copy costs. Prefer reducing repeated exact work or a genuinely new contact solve; do not repeat always-two substeps, tangent reuse, or unchanged rejected XPBD variants. Preserve the original 7507-step maneuver and 1 mm bound."
+}

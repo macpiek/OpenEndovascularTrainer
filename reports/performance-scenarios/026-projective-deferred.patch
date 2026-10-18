@@ -1,0 +1,177 @@
+--- a/src/physics/kirchhoffSharedAxisProjective.js
++++ b/src/physics/kirchhoffSharedAxisProjective.js
+@@ -8,6 +8,7 @@
+ import {factorProjectiveBand,projectRotation,quaternionColumns} from './projectiveRodMath.js';
+ import {projectRotationPolar} from './projectiveRotationPolar.js';
+ import {createProjectRotationScratch} from './projectiveRotationScratch.js';
++import {isDeferredSharedAxisContact,materializeSharedAxisContact} from './kirchhoffSharedAxisInactiveContacts.js';
+ 
+ export const PROJECTIVE_ROD_DEFAULTS=Object.freeze({iterations:16,tolerance:.002,axialRigidity:2e6,
+     rotationPenalty:8,contactWeight:2e6,maxLengthError:.03,maxPenetration:.1,maxShear:.1});
+@@ -22,8 +23,8 @@
+  * Coulomb slip uses a bounded positional return, not the Newton certificate.
+  */
+ export function* iterateSharedAxisProjective(s,dt,{projective={},feedById={},bloodFlow=null,observeProjectionFailure=null}={}) {
+-    const {hardClosure=false,profile=false,reuseGeometry=false,fastRotations=false,scratchRotations=false,reuseContactRows=false,vectorSolve=false,triangleKernel=false,reuseProjectionWork=false,...settings}=projective;
+-    if([hardClosure,profile,reuseGeometry,fastRotations,scratchRotations,reuseContactRows,vectorSolve,triangleKernel,reuseProjectionWork].some(v=>typeof v!=='boolean')||fastRotations&&scratchRotations)throw new RangeError('Invalid PD boolean option');
++    const {hardClosure=false,profile=false,reuseGeometry=false,fastRotations=false,scratchRotations=false,reuseContactRows=false,vectorSolve=false,triangleKernel=false,reuseProjectionWork=false,deferSeparatedContacts=false,...settings}=projective;
++    if([hardClosure,profile,reuseGeometry,fastRotations,scratchRotations,reuseContactRows,vectorSolve,triangleKernel,reuseProjectionWork,deferSeparatedContacts].some(v=>typeof v!=='boolean')||fastRotations&&scratchRotations||deferSeparatedContacts&&!reuseContactRows)throw new RangeError('Invalid PD boolean option');
+     const rotationProjection=fastRotations?projectRotationPolar:scratchRotations?createProjectRotationScratch():projectRotation;
+     const o={...PROJECTIVE_ROD_DEFAULTS,...settings};
+     if(!Number.isInteger(o.iterations)||o.iterations<1||Object.values(o).some(v=>!Number.isFinite(v)||v<=0))throw new RangeError('Invalid PD options');
+@@ -31,6 +32,7 @@
+         reuseTriangleKernel:s.reuseTriangleKernel,acceptedWallGaps:s.acceptedWallGaps,wallFrictionHistory:s.wallFrictionHistory,acceptedSolves:s.acceptedSolves};
+     const started=performance.now(),timings={assemblyMs:0,linearMs:0,frictionMs:0,projectionMs:0};
+     if(profile)Object.assign(timings,{setupMs:0,constraintMs:0,rotationMs:0,closureSolveMs:0,constraintCalls:0,constraintReuse:0});
++    if(profile&&deferSeparatedContacts)Object.assign(timings,{deferredContactRows:0,resolvedDeferredRows:0});
+     let committed=false,iterations=0,factorizations=0,backtracks=0,closureIterations=0,rows=[],change=Infinity,maxShear=0;
+     // A yielded projection still owns these rows. Lease the entire arena for
+     // this step; another access/solver must never overwrite its live geometry.
+@@ -87,6 +89,13 @@
+             s.geometryKey=Symbol('pd-pose');
+         };
+         let evaluated=null;
++        const resolveContact=row=>{
++            if(!deferSeparatedContacts||!isDeferredSharedAxisContact(row))return;
++            const time=profile?performance.now():0;
++            materializeSharedAxisContact(row);
++            if(profile){timings.constraintMs+=performance.now()-time;timings.resolvedDeferredRows++;}
++        };
++        const resolveAll=rows=>{if(deferSeparatedContacts)for(const row of rows)resolveContact(row);return rows;};
+         const evaluate=()=>{
+             // PD keeps reactions fixed until final publication. Between a
+             // successful trial and the next iteration only director targets
+@@ -101,7 +110,7 @@
+             const time=profile?performance.now():0;
+             s.chain.gradient.fill(0);
+             const assemblyOptions={withTangent:false,outerMaterialAt:sharedAxisOuterMaterialAt,
+-                storage:rowStorage,cacheWallGeometry:reuseContactRows,reuseConstraintWork:triangleKernel};
++                storage:rowStorage,cacheWallGeometry:reuseContactRows,reuseConstraintWork:triangleKernel,cullInactiveContacts:deferSeparatedContacts};
+             let r=assembleSharedAxisConstraintRows(s,assemblyOptions);
+             for(let discovery=0;s.pendingVesselRows?.size;discovery++) {
+                 if(discovery>=64)throw new Error('PD contact discovery did not settle');
+@@ -109,6 +118,7 @@
+                 r=assembleSharedAxisConstraintRows(s,assemblyOptions);
+             }
+             if(profile){timings.constraintMs+=performance.now()-time;timings.constraintCalls++;}
++            if(profile&&deferSeparatedContacts)for(const row of r)if(isDeferredSharedAxisContact(row))timings.deferredContactRows++;
+             if(reuseGeometry)evaluated={key:s.geometryKey,definitions:s.definitions,count:s.definitions.length,rows:r};
+             return r;
+         };
+@@ -117,6 +127,10 @@
+             rows=evaluate();
+             for(let i=0;i<rows.length;i++) {
+                 const r=rows[i];
++                // A positive lower bound can exclude only a NEW penalty
++                // farther than the activation band. Existing penalties keep
++                // their exact derivatives even after the contact separates.
++                if(r.kind==='wall'&&(r.gap<=.1||contacts.has(i)))resolveContact(r);
+                 if(r.kind!=='wall'||r.gap>.1||!r.jacobian.some(v=>Math.abs(v)>1e-12)||contacts.has(i))continue;
+                 const ids=Array.from({length:r.dofs.length/3},(_,j)=>nodes[r.edge+j]);
+                 const projections=ids.map(id=>term([id],[1],o.contactWeight,x[id].slice()));
+@@ -197,7 +211,8 @@
+             // This does not certify PD energy or Newton force equilibrium.
+             const closureStart=performance.now();
+             for(let i=0;i<32;i++) {
+-                rows=evaluate();const q=measureSharedAxisQuality(s,rows);
++                // The global correction never receives surrogate Jacobians.
++                rows=resolveAll(evaluate());const q=measureSharedAxisQuality(s,rows);
+                 if(q.maxPenetration<=o.maxPenetration*.5&&absoluteLengthError()<=o.maxLengthError*.5&&
+                     q.bodies.every(b=>b.maxLengthError<=o.maxLengthError*.5)&&
+                     !rows.some(r=>r.subtype==='bend-limit'&&r.gap< -1e-9))break;
+@@ -228,7 +243,7 @@
+             }
+             timings.projectionMs+=performance.now()-closureStart;
+         }
+-        rows=evaluate();s.multipliers.fill(0);
++        rows=resolveAll(evaluate());s.multipliers.fill(0);
+         for(const row of rows)row.multiplier=0;
+         for(const [index,c] of contacts) {
+             const r=rows[index],norm=r.jacobian.reduce((sum,j)=>sum+j*j,0);
+@@ -240,7 +255,7 @@
+         const admissible=quality.finite&&Number.isFinite(change)&&maxLengthError<=o.maxLengthError&&quality.maxPenetration<=o.maxPenetration&&maxShear<=o.maxShear&&
+             (!hardClosure||maxLengthErrorMm<=o.maxLengthError)&&
+             quality.bodies.every(b=>b.maxBendLimitDegrees===null||b.maxBendAngleDegrees<=b.maxBendLimitDegrees+(hardClosure?1e-5:2));
+-        const pd={model:hardClosure?'projective-with-hard-kirchhoff-closure':'projective-cosserat-penalty',parameters:{...o,hardClosure,profile,reuseGeometry,fastRotations,scratchRotations,reuseContactRows,vectorSolve,triangleKernel,reuseProjectionWork},iterations,factorizations,
++        const pd={model:hardClosure?'projective-with-hard-kirchhoff-closure':'projective-cosserat-penalty',parameters:{...o,hardClosure,profile,reuseGeometry,fastRotations,scratchRotations,reuseContactRows,vectorSolve,triangleKernel,reuseProjectionWork,deferSeparatedContacts},iterations,factorizations,
+             change,maxShear,preClosureShear,maxLengthError,maxLengthErrorMm,closureCorrectionMm,closureIterations,dofs:3*x.length,
+             localGlobalConverged:!hardClosure&&change<o.tolerance,energyStepConverged:change<o.tolerance,equilibriumCertified:false,
+             limits:{lengthError:o.maxLengthError,penetration:o.maxPenetration,shear:o.maxShear},friction:'approximate-positional-coulomb'};
+--- a/tests/kirchhoffSharedAxisProjective.test.js
++++ b/tests/kirchhoffSharedAxisProjective.test.js
+@@ -1,8 +1,9 @@
+ import test from 'node:test';
+ import assert from 'node:assert/strict';
+-import {Quaternion,Vector3} from 'three';
++import {Quaternion,Vector3,BufferGeometry,Float32BufferAttribute} from 'three';
+ import {factorProjectiveBand,projectRotation,quaternionColumns} from '../src/physics/projectiveRodMath.js';
+-import {createSharedAxisNative,captureSharedAxisNative,rotateSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
++import {createSharedAxisNative,captureSharedAxisNative,rotateSharedAxisNative,extendSharedAxisNativeRows} from '../src/physics/kirchhoffSharedAxisNative.js';
++import {createSharedAxisVesselWitness} from '../src/physics/kirchhoffSharedAxisVesselWitnesses.js';
+ import {iterateSharedAxisProjective} from '../src/physics/kirchhoffSharedAxisProjective.js';
+ import {createSharedAxisContacts} from '../src/physics/kirchhoffSharedAxisContacts.js';
+ import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
+@@ -141,6 +142,34 @@
+ });
+ 
+ const strictClosure={hardClosure:true,maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5};
++test('PD separated-witness deferral preserves approach, contact, release and exact accepted gap history',()=>{
++    const geometry=new BufferGeometry().setAttribute('position',new Float32BufferAttribute([-1000,2,-1000,2000,2,-1000,-1000,2,2000],3));
++    const states=[create(),create()],calls=[0,0],options={...strictClosure,reuseGeometry:true,scratchRotations:true,reuseContactRows:true,
++        vectorSolve:true,triangleKernel:true,reuseProjectionWork:true,profile:true};
++    for(const [index,s] of states.entries())for(let edge=2;edge<s.positions.length-1;edge++) {
++        const row=createSharedAxisVesselWitness({fallbackGeometry:geometry},{kind:'wall',edge,id:`finite/${edge}`,
++            dofs:[s.layout.positions[edge],s.layout.positions[edge+1]].flatMap(p=>[p,p+1,p+2]),witness:{face:0,t:.5}});
++        const evaluate=input=>{calls[index]++;return row.evaluate(input);};Object.assign(evaluate,row.evaluate);
++        extendSharedAxisNativeRows(s,[{...row,evaluate}]);
++    }
++    let deferred=0,resolved=0,contactSeen=false;
++    try {
++        for(let step=0;step<30;step++) {
++            for(const s of states)s.loads[s.layout.positions.at(-1)+1]=step<16?1000:-1000;
++            const results=states.map((s,i)=>finish(iterateSharedAxisProjective(s,1/60,{projective:{...options,deferSeparatedContacts:i===1}})));
++            assert.ok(results.every(r=>r.converged),JSON.stringify(results));
++            deferred+=results[1].timings.deferredContactRows;resolved+=results[1].timings.resolvedDeferredRows;
++            contactSeen ||= states[1].positions.at(-1)[1]>1;
++            const snapshots=states.map(captureSharedAxisNative);
++            for(const key of ['positions','frames','multipliers'])assert.deepEqual(snapshots[0][key],snapshots[1][key]);
++            assert.deepEqual(results[0].quality,results[1].quality);assert.deepEqual(states[0].velocities,states[1].velocities);
++            assert.deepEqual(states[0].acceptedWallGaps,states[1].acceptedWallGaps);
++        }
++        assert.ok(contactSeen);assert.ok(deferred>resolved,'Some separated evaluations should actually be skipped');
++        assert.ok(calls[1]<calls[0],`${calls[1]} vs ${calls[0]}`);
++    } finally {geometry.dispose();}
++});
++
+ test('vector and projection kernels retain the loaded PD trajectory and restore scoped kernel selection',()=>{
+     const states=[false,true].map(()=>create({tools:[{id:'wire',type:'glidewire',insertion:80},{id:'catheter',type:'pigtail',insertion:65}],
+         wallSample:({b})=>({gap:.5-b[1],jacobian:[0,0,0,0,-1,0]})}));
+--- a/tests/crossoverAlternativeSolvers.browser.html
++++ b/tests/crossoverAlternativeSolvers.browser.html
+@@ -14,7 +14,7 @@
+ <nav><label>Metoda <select id="solver"><option value="xpbd">XPBD</option><option value="hybrid" selected>XPBD + wspólna korekta długości i kontaktów</option><option value="projective">Projective Dynamics</option><option value="projective-hybrid">Projective Dynamics + korekta długości i kontaktów</option></select></label>
+ <label>Iteracje <select id="iterations"><option>4</option><option>8</option><option>16</option><option>32</option><option selected>64</option><option>128</option></select></label>
+ <label><input id="profile" type="checkbox"> Profil kosztów PD</label>
+-<label>Optymalizacja PD <select id="optimization"><option value="none">Bez</option><option value="geometry">Buforowanie geometrii</option><option value="geometry-jacobi">Buforowanie geometrii i obrotów Jacobiego</option><option value="geometry-jacobi-rows">Geometria, obroty i bufory kontaktów</option><option value="geometry-jacobi-kernels">Geometria, obroty i wspólne obliczenia</option><option value="geometry-jacobi-all">Geometria, obroty, bufory i wspólne obliczenia</option><option value="geometry-polar">Buforowanie i szybsze obroty polarne</option></select></label>
++<label>Optymalizacja PD <select id="optimization"><option value="none">Bez</option><option value="geometry">Buforowanie geometrii</option><option value="geometry-jacobi">Buforowanie geometrii i obrotów Jacobiego</option><option value="geometry-jacobi-rows">Geometria, obroty i bufory kontaktów</option><option value="geometry-jacobi-kernels">Geometria, obroty i wspólne obliczenia</option><option value="geometry-jacobi-all">Geometria, obroty, bufory i wspólne obliczenia</option><option value="geometry-jacobi-deferred">Geometria i bezpieczne odraczanie dalekich kontaktów</option><option value="geometry-polar">Buforowanie i szybsze obroty polarne</option></select></label>
+ <label><input id="paired" type="checkbox"> Porównanie parami (obie pełne trajektorie)</label>
+ <label>Siatka <select id="mesh"><option value="fine">Dokładna 5 mm</option><option value="adaptive250">Adaptacyjna 5–20 mm, początek 250 mm dokładny</option><option value="adaptive80">Adaptacyjna 5–20 mm, początek 80 mm dokładny</option></select></label>
+ <button id="run" disabled>Odtwórz cały manewr</button><button id="stop" disabled>Zatrzymaj</button><a id="download" hidden>Pobierz raport</a></nav>
+@@ -98,7 +98,7 @@
+         const options={iterations:Number(el('iterations').value),maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5,...(mode.endsWith('hybrid')?{hardClosure:true}:{})};
+         if(solver==='projective')Object.assign(options,{profile:el('profile').checked,
+             reuseGeometry:el('optimization').value!=='none',fastRotations:el('optimization').value==='geometry-polar',
+-            scratchRotations:el('optimization').value.startsWith('geometry-jacobi'),reuseContactRows:['geometry-jacobi-rows','geometry-jacobi-all'].includes(el('optimization').value),vectorSolve:['geometry-jacobi-kernels','geometry-jacobi-all'].includes(el('optimization').value),triangleKernel:['geometry-jacobi-kernels','geometry-jacobi-all'].includes(el('optimization').value),reuseProjectionWork:['geometry-jacobi-kernels','geometry-jacobi-all'].includes(el('optimization').value)});
++            scratchRotations:el('optimization').value.startsWith('geometry-jacobi'),deferSeparatedContacts:el('optimization').value==='geometry-jacobi-deferred',reuseContactRows:['geometry-jacobi-rows','geometry-jacobi-all','geometry-jacobi-deferred'].includes(el('optimization').value),vectorSolve:['geometry-jacobi-kernels','geometry-jacobi-all','geometry-jacobi-deferred'].includes(el('optimization').value),triangleKernel:['geometry-jacobi-kernels','geometry-jacobi-all','geometry-jacobi-deferred'].includes(el('optimization').value),reuseProjectionWork:['geometry-jacobi-kernels','geometry-jacobi-all','geometry-jacobi-deferred'].includes(el('optimization').value)});
+         const mesh=el('mesh').value==='fine'?null:{maxSpacing:20,contactMaxSpacing:20,shapeTolerance:.15,maxArcLoss:.002,
+             maxTurn:Math.PI/15,contactMargin:.01,tipLength:80,tipRefinementAhead:80,finePrefixLength:el('mesh').value==='adaptive250'?250:80};
+         report={source,sourceSha256,sourceHashes,solver,options,mesh,dt:record.dt,startedAt:new Date().toISOString(),rows:[],
+@@ -107,7 +107,7 @@
+         iterator=compareCrossoverAlternative({record,field,flow:createCrossoverFlowFromAsset(asset),solver,options,mesh});
+         controlIterator=null;
+         if(el('paired').checked){
+-            report.controlOptions={...options,reuseContactRows:false,vectorSolve:false,triangleKernel:false,reuseProjectionWork:false};report.controlRows=[];
++            report.controlOptions=options.deferSeparatedContacts?{...options,deferSeparatedContacts:false}:{...options,reuseContactRows:false,vectorSolve:false,triangleKernel:false,reuseProjectionWork:false};report.controlRows=[];
+             report.pairedScope='Two independent complete trajectories; solver order alternates per input step; both run on the same browser thread.';
+             controlIterator=compareCrossoverAlternative({record,field,flow:createCrossoverFlowFromAsset(asset),solver,options:report.controlOptions,mesh});
+         }

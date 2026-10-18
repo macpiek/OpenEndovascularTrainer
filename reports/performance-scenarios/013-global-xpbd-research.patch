@@ -1,0 +1,865 @@
+diff --git a/src/physics/sharedAxisXpbdExperimental.js b/src/physics/sharedAxisXpbdExperimental.js
+new file mode 100644
+index 0000000..a1653aa
+--- /dev/null
++++ b/src/physics/sharedAxisXpbdExperimental.js
+@@ -0,0 +1,211 @@
++import {Quaternion} from 'three';
++import {evaluateAdaptationConstraint,evaluateBendTwistConstraint,quaternionExp} from './discreteKirchhoffRod.js';
++import {captureSharedAxisNative,restoreSharedAxisNative,applySharedAxisNativeIncrement,extendSharedAxisNativeRows,sharedAxisOuterMaterialAt} from './kirchhoffSharedAxisNative.js';
++import {prepareSharedAxisDynamicStep,completeSharedAxisDynamicStep} from './kirchhoffSharedAxisDynamics.js';
++import {assembleSharedAxisConstraintRows} from './kirchhoffSharedAxisConstraintRows.js';
++import {measureSharedAxisQuality} from './kirchhoffSharedAxisDiagnostics.js';
++import {iterateSharedAxisProjection} from './kirchhoffSharedAxisProjection.js';
++import {createXpbdChainIteration} from './xpbdChainIteration.js';
++
++// Research only. No production selection or automatic fallback imports this
++// solver. XPBD multipliers belong to one timestep, not to Newton's force duals.
++// Equation 18: https://matthias-research.github.io/pages/publications/XPBD.pdf
++export const XPBD_RESEARCH_DEFAULTS=Object.freeze({iterations:32,maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5});
++const axes=['x','y','z'];
++const xyz=p=>({x:p[0],y:p[1],z:p[2]});
++const identity=Float64Array.from([1,0,0,0,1,0,0,0,1]);
++const negativeIdentity=identity.map(x=>-x);
++
++// Three-component compliant constraint. Each gradient is row-major and each
++// variable has an isotropic inverse mass (angular inertia for orientations).
++export function xpbdVectorIncrement(value,lambda,compliance,dt,gradients,weights) {
++    const a=new Float64Array(9),b=new Float64Array(3);
++    for(let i=0;i<3;i++) {
++        const alpha=compliance[i]/(dt*dt);a[i*3+i]=alpha;b[i]=-value[i]-alpha*lambda[i];
++        for(let j=0;j<3;j++)for(let v=0;v<gradients.length;v++)for(let k=0;k<3;k++)
++            a[i*3+j]+=weights[v]*gradients[v][i*3+k]*gradients[v][j*3+k];
++    }
++    // Cholesky of the local SPD block. Fully prescribed constraints need no
++    // update; their violation remains visible in the final quality measure.
++    if(!(a[0]>0))return new Float64Array(3);
++    const l00=Math.sqrt(a[0]),l10=a[3]/l00,l20=a[6]/l00;
++    const d11=a[4]-l10*l10;if(!(d11>0))return new Float64Array(3);
++    const l11=Math.sqrt(d11),l21=(a[7]-l20*l10)/l11,d22=a[8]-l20*l20-l21*l21;
++    if(!(d22>0))return new Float64Array(3);
++    const l22=Math.sqrt(d22),y0=b[0]/l00,y1=(b[1]-l10*y0)/l11,y2=(b[2]-l20*y0-l21*y1)/l22;
++    const z2=y2/l22,z1=(y1-l21*z2)/l11,z0=(y0-l10*z1-l20*z2)/l00;
++    return Float64Array.from([z0,z1,z2]);
++}
++function correction(j,delta,w) {
++    return [0,1,2].map(k=>w*(j[k]*delta[0]+j[3+k]*delta[1]+j[6+k]*delta[2]));
++}
++function rotate(q,v) {
++    const d=quaternionExp(xyz(v));q.premultiply(new Quaternion(d.x,d.y,d.z,d.w)).normalize();
++}
++
++/** Independent Cosserat orientations, exact manufactured Log bend/twist
++ * potential, hard adaptation and unilateral contacts, mass-weighted XPBD.
++ * Shares mesh/feed and collision discovery with the reference solver. A finite
++ * iteration count is not a force-equilibrium certificate. A failed candidate
++ * rolls back its pose/history; callers must fork discovery before attempting it.
++ */
++export function* iterateSharedAxisXpbd(s,dt,{xpbd={},bloodFlow=null,feedById={}}={}) {
++    const {hardClosure=false,globalChain=false,chainPrimalBalance=true,chainSurfaceFriction=false,...settings}=xpbd;
++    const o={...XPBD_RESEARCH_DEFAULTS,...settings};
++    if(!(dt>0&&Number.isFinite(dt))||!Number.isInteger(o.iterations)||o.iterations<1||
++        Object.values(o).some(x=>!Number.isFinite(x)||x<=0))throw new RangeError('Invalid XPBD research options');
++    if(chainSurfaceFriction&&(!globalChain||!chainPrimalBalance||hardClosure))throw new RangeError('Surface friction requires the primal-balanced chain without post-projection');
++    const saved=captureSharedAxisNative(s),history={velocities:s.velocities,angularVelocities:s.angularVelocities,
++        acceptedWallGaps:s.acceptedWallGaps,wallFrictionHistory:s.wallFrictionHistory,acceptedSolves:s.acceptedSolves};
++    const started=performance.now();let committed=false,iterations=0,rows=[],frictionCorrections=0,closureIterations=0,factorizations=0;
++    try {
++        prepareSharedAxisDynamicStep(s,dt,bloodFlow);
++        const initial=s.dynamicStep,weights=initial.masses.map((m,i)=>s.fixed[s.layout.positions[i]]?0:1/m);
++        if([...weights].some(x=>!Number.isFinite(x)))throw new Error('XPBD requires finite positive free-node masses');
++        const frames=s.materials.map(({body,spec,last},m)=>Array.from({length:last},(_,e)=>({
++            q:new Quaternion(...(e===0?initial.frames[m][e].old:initial.frames[m][e].predicted)),
++            w:e===0?0:5/((spec.mass??(spec.id==='catheter'?1.4:1))*body.restLength[e]),
++            adaptation:new Float64Array(3),bend:new Float64Array(3),adaptationMeasure:{},bendMeasure:{},
++            compliance:[body.kirchhoffBendCompliance1[e],body.kirchhoffBendCompliance2[e],body.kirchhoffTwistCompliance[e]],
++            rest:{x:body.restRotation1[e],y:body.restRotation2[e],z:body.restRotation3[e]}
++        })));
++        for(let i=0;i<s.positions.length;i++)if(weights[i])for(let k=0;k<3;k++)
++            s.positions[i][k]=initial.predicted[i][k]+dt*dt*weights[i]*s.loads[s.layout.positions[i]+k];
++        const dofNode=new Int32Array(s.layout.dofCount).fill(-1);
++        s.layout.positions.forEach((p,n)=>{for(let k=0;k<3;k++)dofNode[p+k]=n;});
++        const contactLambda=[],contactSlip=[];
++        const chainIteration=globalChain?createXpbdChainIteration(s,frames,initial,weights,dt,
++            {balancePrimal:chainPrimalBalance,surfaceFriction:chainSurfaceFriction,feedById}):null;
++        const evaluate=()=>{
++            s.geometryKey=Symbol('xpbd-pose');s.chain.gradient.fill(0);
++            for(let retries=0;;retries++) {
++                try {const r=assembleSharedAxisConstraintRows(s,{withTangent:false,outerMaterialAt:sharedAxisOuterMaterialAt});
++                    if(!s.pendingVesselRows?.size)return r;
++                } catch(error) {if(error.message!=='shared-axis-wall-discovery'||!s.pendingVesselRows?.size)throw error;}
++                if(retries>=64)throw new Error('XPBD contact discovery did not settle');
++                extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();
++            }
++        };
++        const adaptation=(m,e)=>{
++            const f=frames[m][e],a=s.positions[e],b=s.positions[e+1],length=s.coordinates[e+1]-s.coordinates[e];
++            // A fractional material tip shares the same geometric tangent.
++            const r=evaluateAdaptationConstraint(xyz(a),xyz(b),f.q,length,f.adaptationMeasure);
++            const gradients=[negativeIdentity,identity,r.orientationGradient],w=[weights[e],weights[e+1],f.w];
++            const delta=xpbdVectorIncrement(axes.map(k=>r.constraint[k]),f.adaptation,[0,0,0],dt,gradients,w);
++            for(let k=0;k<3;k++){f.adaptation[k]+=delta[k];a[k]-=w[0]*delta[k];b[k]+=w[1]*delta[k];}
++            rotate(f.q,correction(r.orientationGradient,delta,f.w));
++        };
++        const bend=(m,e)=>{
++            const a=frames[m][e-1],b=frames[m][e],r=evaluateBendTwistConstraint(a.q,b.q,b.rest,b.bendMeasure);
++            const delta=xpbdVectorIncrement(axes.map(k=>r.strain[k]),b.bend,b.compliance,dt,[r.gradient0,r.gradient1],[a.w,b.w]);
++            for(let k=0;k<3;k++)b.bend[k]+=delta[k];
++            rotate(a.q,correction(r.gradient0,delta,a.w));rotate(b.q,correction(r.gradient1,delta,b.w));
++        };
++        for(let iteration=0;iteration<o.iterations;iteration++) {
++            if(chainIteration)factorizations+=chainIteration.step(evaluate,contactLambda,contactSlip).factorizations;
++            // Symmetric sweeps reduce dependence on insertion direction.
++            else for(let m=0;m<frames.length;m++) {
++                if(iteration%2===0){for(let e=1;e<frames[m].length;e++)bend(m,e);for(let e=0;e<frames[m].length;e++)adaptation(m,e);}
++                else {for(let e=frames[m].length-1;e>0;e--)bend(m,e);for(let e=frames[m].length-1;e>=0;e--)adaptation(m,e);}
++            }
++            rows=evaluate();
++            // Linearized contact rows all refer to this same pose. Account
++            // for earlier corrections in this sweep before computing each gap.
++            const base=s.positions.map(p=>p.slice());
++            for(let i=0;i<rows.length;i++) {
++                const r=rows[i];if(r.kind!=='wall')continue;
++                let gap=r.gap,denom=0;
++                for(let j=0;j<r.dofs.length;j++) {
++                    const n=dofNode[r.dofs[j]],k=j%3;if(n<0)throw new Error('Unexpected angular wall constraint');
++                    gap+=r.jacobian[j]*(s.positions[n][k]-base[n][k]);denom+=weights[n]*r.jacobian[j]**2;
++                }
++                if(!(denom>0))continue;
++                const old=contactLambda[i]??0,next=globalChain?old:Math.max(0,old-gap/denom),delta=next-old;contactLambda[i]=next;
++                for(let j=0;j<r.dofs.length;j++)s.positions[dofNode[r.dofs[j]]][j%3]+=weights[dofNode[r.dofs[j]]]*r.jacobian[j]*delta;
++                // Material slip includes commanded feed, not only mesh motion.
++                // Accumulated tangential impulse is projected onto the Coulomb
++                // disk; it must not be reapplied in full on every iteration.
++                if(!chainSurfaceFriction&&r.witness&&(next>0||contactSlip[i])&&r.dofs.length===6) {
++                    const t=r.witness.t,ws=[1-t,t],n=[0,1,2].map(k=>r.jacobian[k]+r.jacobian[k+3]),norm=Math.hypot(...n);
++                    if(norm===0)continue;for(let k=0;k<3;k++)n[k]/=norm;
++                    const spec=sharedAxisOuterMaterialAt(s,r.edge,t,r.witness.owner).spec;
++                    const tangent=s.positions[r.edge+1].map((v,k)=>v-s.positions[r.edge][k]),length=Math.hypot(...tangent);
++                    const slip=[0,1,2].map(k=>ws.reduce((v,w,j)=>v+w*(s.positions[r.edge+j][k]-initial.positions[r.edge+j][k]),0)+(feedById[spec.id]??0)*tangent[k]/length);
++                    const normal=slip.reduce((v,x,k)=>v+x*n[k],0),oldT=contactSlip[i]??[0,0,0];
++                    const trial=oldT.map((v,k)=>v-(slip[k]-normal*n[k])/denom),magnitude=Math.hypot(...trial);
++                    const limit=magnitude<=(spec.wallStaticFriction??0)*next?magnitude:(spec.wallKineticFriction??0)*next;
++                    const newT=trial.map(v=>v*Math.min(1,limit/Math.max(magnitude,1e-30)));contactSlip[i]=newT;
++                    for(let j=0;j<2;j++)for(let k=0;k<3;k++)s.positions[r.edge+j][k]+=weights[r.edge+j]*ws[j]*(newT[k]-oldT[k]);
++                    frictionCorrections++;
++                }
++            }
++            iterations++;yield {iteration,method:'xpbd',factorizations:0};
++        }
++        let maxShear=0;
++        for(let m=0;m<frames.length;m++)for(let e=0;e<frames[m].length;e++) {
++            const f=frames[m][e],length=s.coordinates[e+1]-s.coordinates[e],body=s.materials[m].body;
++            const r=evaluateAdaptationConstraint(xyz(s.positions[e]),xyz(s.positions[e+1]),f.q,length,f.adaptationMeasure);
++            maxShear=Math.max(maxShear,r.residual/length);
++            for(const k of ['X','Y','Z','W'])body['orientation'+k][e]=f.q[k.toLowerCase()];
++        }
++        const preClosureShear=maxShear,preClosurePositions=hardClosure?s.positions.map(p=>p.slice()):null;
++        const absoluteLengthError=()=>Math.max(...s.positions.slice(1).map((p,i)=>
++            Math.abs(Math.hypot(...p.map((v,k)=>v-s.positions[i][k]))-(s.coordinates[i+1]-s.coordinates[i]))));
++        if(hardClosure) {
++            // Research hybrid: impose the Kirchhoff tangent and globally close
++            // position constraints after local XPBD. This is an operator split,
++            // not a converged XPBD or Newton equilibrium. Record its correction
++            // and test its complete trajectory independently.
++            applySharedAxisNativeIncrement(s,new Float64Array(s.layout.dofCount),new Float64Array(s.multipliers.length));
++            for(let i=0;i<32;i++) {
++                rows=evaluate();
++                const q=measureSharedAxisQuality(s,rows);
++                const bendViolation=rows.some(r=>r.subtype==='bend-limit'&&r.gap< -1e-9);
++                if(q.maxPenetration<=o.maxPenetration*.5&&absoluteLengthError()<=o.maxLengthError*.5&&
++                    q.bodies.every(b=>b.maxLengthError<=o.maxLengthError*.5)&&!bendViolation)break;
++                const direction=yield* iterateSharedAxisProjection(s,{rows});
++                factorizations+=direction.factorizations??0;closureIterations++;
++                if(!direction.converged)throw new Error('XPBD hard closure could not solve the contact projection');
++                const pose=captureSharedAxisNative(s);let valid=false;
++                for(let trial=0;trial<14;trial++) {
++                    restoreSharedAxisNative(s,pose);
++                    try {
++                        applySharedAxisNativeIncrement(s,direction.increment,direction.zeroReactions,2**(-trial));
++                        evaluate();valid=true;break;
++                    } catch(error) {if(error.code!=='trial-outside-vessel')throw error;}
++                }
++                if(!valid)throw new Error('XPBD hard closure crossed the vessel surface');
++            }
++            // Measure the published frames, including any remaining stretch.
++            // The mismatch before correction is retained separately.
++            maxShear=0;
++            for(const {body,last} of s.materials)for(let e=0;e<last;e++) {
++                const q=new Quaternion(body.orientationX[e],body.orientationY[e],body.orientationZ[e],body.orientationW[e]);
++                const length=s.coordinates[e+1]-s.coordinates[e];
++                maxShear=Math.max(maxShear,evaluateAdaptationConstraint(xyz(s.positions[e]),xyz(s.positions[e+1]),q,length).residual/length);
++            }
++        }
++        rows=evaluate();s.multipliers.fill(0);
++        rows.forEach((r,i)=>{r.multiplier=r.kind==='wall'?(contactLambda[i]??0)/(dt*dt):0;s.multipliers[i]=r.multiplier;});
++        const quality=measureSharedAxisQuality(s,rows),maxLengthError=Math.max(...quality.bodies.map(b=>b.maxLengthError));
++        const maxLengthErrorMm=absoluteLengthError();
++        const closureCorrectionMm=preClosurePositions?Math.max(...s.positions.map((p,i)=>Math.hypot(...p.map((v,k)=>v-preClosurePositions[i][k])))):0;
++        const finiteFrames=frames.every(a=>a.every(f=>f.q.toArray().every(Number.isFinite)));
++        const admissible=quality.finite&&finiteFrames&&maxShear<=o.maxShear&&maxLengthError<=o.maxLengthError&&quality.maxPenetration<=o.maxPenetration&&
++            maxLengthErrorMm<=o.maxLengthError&&
++            quality.bodies.every(b=>b.maxBendLimitDegrees===null||b.maxBendAngleDegrees<=b.maxBendLimitDegrees+1e-5);
++        if(admissible) {
++            // Native publication requires frames aligned to the common axis.
++            // Raw mismatch is gated above, never hidden by this conversion.
++            applySharedAxisNativeIncrement(s,new Float64Array(s.layout.dofCount),new Float64Array(s.multipliers.length));
++            const frictionHistory=chainIteration?.frictionHistory(evaluate,contactLambda)??[];
++            completeSharedAxisDynamicStep(s);s.acceptedSolves++;
++            s.acceptedWallGaps=new Map(rows.filter(r=>r.id).map(r=>[r.id,r.gap]));s.wallFrictionHistory=frictionHistory;committed=true;
++        }
++        return {converged:admissible,status:admissible?'xpbd-geometry-admissible':'xpbd-quality-limit',quality,
++            xpbd:{parameters:{...o,hardClosure,globalChain,chainPrimalBalance,chainSurfaceFriction},maxShear,preClosureShear,maxLengthError,maxLengthErrorMm,closureCorrectionMm,frictionCorrections,closureIterations,
++                model:globalChain?'global-chain-xpbd':hardClosure?'xpbd-with-hard-kirchhoff-closure':'cosserat-xpbd',equilibriumCertified:false},iterations,factorizations,
++            timings:{},ms:performance.now()-started};
++    } catch(error) {return {converged:false,status:'xpbd-error',error:error.message,iterations,factorizations:0,timings:{},ms:performance.now()-started};}
++    finally {if(!committed){restoreSharedAxisNative(s,saved);Object.assign(s,history);s.dynamicStep=null;}}
++}
+diff --git a/src/physics/xpbdChainBlock.js b/src/physics/xpbdChainBlock.js
+new file mode 100644
+index 0000000..7c3311f
+--- /dev/null
++++ b/src/physics/xpbdChainBlock.js
+@@ -0,0 +1,77 @@
++/** Research global XPBD step. Rows are scalar constraints in spatial order;
++ * each owns gap, alpha=compliance/dt^2, accumulated lambda and sparse J.
++ * Solve the entire chain, including active unilateral rows, at once. The
++ * nonlinear primal residual is retained (local XPBD normally omits it).
++ */
++export function solveXpbdChainBlock(rows,weights,displacement,{maxActiveSetIterations=32,balancePrimal=true}={}) {
++    const active=rows.map(r=>!r.unilateral||r.lambda>0||r.gap<0);
++    const lambda=Float64Array.from(rows,r=>r.lambda??0);let factorizations=0;
++    let base=displacement;
++    if(!balancePrimal) {
++        // Original XPBD ignores the nonlinear primal residual. Still retain
++        // impulses here so removing an active contact undoes its old impulse.
++        base=new Float64Array(weights.length);
++        for(const r of rows)for(let j=0;j<r.dofs.length;j++)base[r.dofs[j]]+=weights[r.dofs[j]]*r.jacobian[j]*(r.lambda??0);
++    }
++    for(let iteration=0;iteration<maxActiveSetIterations;iteration++) {
++        const residual=Float64Array.from(base);
++        for(let i=0;i<rows.length;i++) {
++            if(!active[i])lambda[i]=0;
++            const r=rows[i];for(let j=0;j<r.dofs.length;j++)residual[r.dofs[j]]-=weights[r.dofs[j]]*r.jacobian[j]*lambda[i];
++        }
++        const included=[],scales=[];
++        for(let i=0;i<rows.length;i++)if(active[i]) {
++            const r=rows[i],diagonal=r.alpha+r.dofs.reduce((v,d,j)=>v+weights[d]*r.jacobian[j]**2,0);
++            if(diagonal>0){included.push(i);scales.push(1/Math.sqrt(diagonal));}
++            else if(Math.abs(r.gap)>1e-9)throw new Error('Inconsistent prescribed XPBD constraint');
++        }
++        const supports=Array.from({length:weights.length},()=>[]),count=included.length;
++        for(let i=0;i<count;i++) {
++            const r=rows[included[i]];
++            for(let j=0;j<r.dofs.length;j++)if(weights[r.dofs[j]]&&r.jacobian[j])supports[r.dofs[j]].push([i,r.jacobian[j]*scales[i]]);
++        }
++        let band=1;for(const support of supports)if(support.length)band=Math.max(band,1+support.at(-1)[0]-support[0][0]);
++        const a=new Float64Array(count*band),rhs=new Float64Array(count);
++        for(let d=0;d<supports.length;d++)for(const [i,ji] of supports[d])for(const [j,jj] of supports[d])
++            if(i>=j)a[i*band+i-j]+=weights[d]*ji*jj;
++        for(let i=0;i<count;i++) {
++            const r=rows[included[i]];a[i*band]+=r.alpha*scales[i]**2;
++            rhs[i]=scales[i]*(-r.gap-r.alpha*lambda[included[i]]+r.dofs.reduce((v,d,j)=>v+r.jacobian[j]*residual[d],0));
++        }
++        for(let i=0;i<count;i++)for(let j=Math.max(0,i-band+1);j<=i;j++) {
++            let v=a[i*band+i-j];
++            for(let k=Math.max(0,i-band+1);k<j;k++)v-=a[i*band+i-k]*a[j*band+j-k];
++            if(i===j){if(!(v>0&&Number.isFinite(v)))throw new Error('XPBD chain block lost positive definiteness');a[i*band]=Math.sqrt(v);}
++            else a[i*band+i-j]=v/a[j*band];
++        }
++        factorizations++;
++        for(let i=0;i<count;i++){for(let j=Math.max(0,i-band+1);j<i;j++)rhs[i]-=a[i*band+i-j]*rhs[j];rhs[i]/=a[i*band];}
++        for(let i=count-1;i>=0;i--){for(let j=i+1;j<Math.min(count,i+band);j++)rhs[i]-=a[j*band+j-i]*rhs[j];rhs[i]/=a[i*band];}
++        const increment=Float64Array.from(residual,v=>-v),nextLambda=lambda.slice();
++        for(let i=0;i<count;i++) {
++            const index=included[i],r=rows[index],delta=rhs[i]*scales[i];nextLambda[index]+=delta;
++            for(let j=0;j<r.dofs.length;j++)increment[r.dofs[j]]+=weights[r.dofs[j]]*r.jacobian[j]*delta;
++        }
++        // A simultaneous release/re-add can cycle even for this convex dual
++        // problem. Walk to the first nonnegative-reaction boundary instead,
++        // preserving a feasible dual iterate, then release that single row.
++        let blocking=-1,fraction=1;
++        for(let i=0;i<rows.length;i++)if(rows[i].unilateral&&active[i]&&nextLambda[i]<-1e-12) {
++            const bound=lambda[i]/(lambda[i]-nextLambda[i]);
++            if(bound<fraction){fraction=bound;blocking=i;}
++        }
++        if(blocking>=0) {
++            for(let i=0;i<rows.length;i++)lambda[i]+=fraction*(nextLambda[i]-lambda[i]);
++            active[blocking]=false;lambda[blocking]=0;continue;
++        }
++        let entering=-1,worst=-1e-10;
++        for(let i=0;i<rows.length;i++)if(rows[i].unilateral&&!active[i]) {
++            const r=rows[i],gap=r.gap+r.dofs.reduce((v,d,j)=>v+r.jacobian[j]*increment[d],0);
++            if(gap<worst){worst=gap;entering=i;}
++        }
++        if(entering>=0){lambda.set(nextLambda);active[entering]=true;continue;}
++        for(let i=0;i<rows.length;i++)if(rows[i].unilateral)nextLambda[i]=Math.max(0,nextLambda[i]);
++        return {increment,lambda:nextLambda,factorizations,band,rows:count,activeSetIterations:iteration+1};
++    }
++    throw new Error('XPBD chain active set did not converge');
++}
+diff --git a/src/physics/xpbdChainIteration.js b/src/physics/xpbdChainIteration.js
+new file mode 100644
+index 0000000..e2732ef
+--- /dev/null
++++ b/src/physics/xpbdChainIteration.js
+@@ -0,0 +1,121 @@
++import {Quaternion,Vector3} from 'three';
++import {evaluateBendTwistConstraint,quaternionExp} from './discreteKirchhoffRod.js';
++import {quaternionColumns} from './projectiveRodMath.js';
++import {solveXpbdChainBlock} from './xpbdChainBlock.js';
++import {createXpbdSurfaceFriction} from './xpbdSurfaceFriction.js';
++
++const axes=['x','y','z'];
++const vector=p=>({x:p[0],y:p[1],z:p[2]});
++const triples=i=>[i,i+1,i+2];
++
++/** Global alternative to the local XPBD bend/adaptation sweep. The shared
++ * axis has ONE length constraint per edge; each material adds only two shear
++ * constraints and its independent bend/twist energy. Duplicating a hard
++ * length constraint for both rods makes the dual matrix singular.
++ */
++export function createXpbdChainIteration(s,frames,initial,weights,dt,{normalCompliance=1e-12,balancePrimal=true,surfaceFriction=false,feedById={}}={}) {
++    let count=s.positions.length*3;const frameDofs=frames.map(a=>a.map(()=>{const d=count;count+=3;return d;}));
++    const inverseMass=new Float64Array(count);
++    for(let i=0;i<weights.length;i++)inverseMass.fill(weights[i],3*i,3*i+3);
++    frames.forEach((a,m)=>a.forEach((f,e)=>inverseMass.fill(f.w,frameDofs[m][e],frameDofs[m][e]+3)));
++    const target=initial.predicted.map((p,i)=>p.map((v,k)=>v+dt*dt*weights[i]*s.loads[s.layout.positions[i]+k]));
++    const nativeToPacked=new Int32Array(s.layout.dofCount).fill(-1);
++    s.layout.positions.forEach((d,n)=>{for(let k=0;k<3;k++)nativeToPacked[d+k]=3*n+k;});
++    const lambda=new Map(),frictionImpulses=new Map();
++    const friction=surfaceFriction?createXpbdSurfaceFriction(s,frames,initial,dt,feedById):null;
++    const build=(evaluate,contactLambda,contactSlip)=>{
++            const constraints=[],native=evaluate();
++            const add=(id,edge,dofs,jacobian,gap,alpha=0,extra={})=>constraints.push({id,edge,dofs,jacobian,gap,alpha,lambda:lambda.get(id)??0,...extra});
++            for(let e=0;e+1<s.positions.length;e++) {
++                const delta=s.positions[e+1].map((v,k)=>v-s.positions[e][k]),length=Math.hypot(...delta),rest=s.coordinates[e+1]-s.coordinates[e];
++                const tangent=delta.map(v=>v/length),dofs=[...triples(3*e),...triples(3*(e+1))];
++                add(`length/${e}`,e,dofs,[...tangent.map(v=>-v),...tangent],length-rest);
++                for(let m=0;m<frames.length;m++) {
++                    const f=frames[m][e];if(!f)continue;
++                    const columns=quaternionColumns(f.q);
++                    for(let k=0;k<2;k++) {
++                        const d=columns[k],angular=new Vector3(...d).cross(new Vector3(...delta)).multiplyScalar(1/rest).toArray();
++                        add(`shear/${m}/${e}/${k}`,e,[...dofs,...triples(frameDofs[m][e])],
++                            [...d.map(v=>-v/rest),...d.map(v=>v/rest),...angular],d.reduce((n,v,j)=>n+v*delta[j],0)/rest);
++                    }
++                    if(e>0) {
++                        const r=evaluateBendTwistConstraint(frames[m][e-1].q,f.q,f.rest,f.bendMeasure);
++                        for(let k=0;k<3;k++)add(`bend/${m}/${e}/${k}`,e,[...triples(frameDofs[m][e-1]),...triples(frameDofs[m][e])],
++                            [...r.gradient0.slice(k*3,k*3+3),...r.gradient1.slice(k*3,k*3+3)],r.strain[axes[k]],f.compliance[k]/(dt*dt));
++                    }
++                }
++            }
++            native.forEach((r,i)=>{
++                if(r.kind!=='wall')return;
++                if(r.dofs.some(d=>nativeToPacked[d]<0))throw new Error('Angular contact is unsupported by the chain prototype');
++                add(`wall/${i}`,r.edge,r.dofs.map(d=>nativeToPacked[d]),r.jacobian,r.gap,normalCompliance/(dt*dt),
++                    {unilateral:true,lambda:contactLambda[i]??0,nativeIndex:i});
++            });
++            if(friction)constraints.push(...friction.constraints(frameDofs,frictionImpulses));
++            constraints.sort((a,b)=>a.edge-b.edge);
++            const displacement=new Float64Array(count);
++            for(let i=0;i<s.positions.length;i++)if(weights[i])for(let k=0;k<3;k++)displacement[3*i+k]=s.positions[i][k]-target[i][k];
++            frames.forEach((a,m)=>a.forEach((f,e)=>{
++                if(!f.w)return;
++                const q=f.q.clone().multiply(new Quaternion(...initial.frames[m][e].predicted).invert()).normalize();
++                if(q.w<0){q.x*=-1;q.y*=-1;q.z*=-1;q.w*=-1;}
++                const n=Math.hypot(q.x,q.y,q.z),scale=n>1e-12?2*Math.atan2(n,q.w)/n:2;
++                displacement.set([q.x*scale,q.y*scale,q.z*scale],frameDofs[m][e]);
++            }));
++            // Include accumulated Coulomb impulses in the primal balance.
++            native.forEach((r,i)=>{
++                if(!r.witness||!contactSlip[i])return;
++                const ws=[1-r.witness.t,r.witness.t];
++                for(let j=0;j<2;j++)for(let k=0;k<3;k++)displacement[3*(r.edge+j)+k]-=weights[r.edge+j]*ws[j]*contactSlip[i][k];
++            });
++            return {constraints,displacement};
++    };
++    const merit=({constraints,displacement})=>{
++        const primal=displacement.slice();let value=0;
++        for(const r of constraints) {
++            const diagonal=r.alpha+r.dofs.reduce((v,d,j)=>v+inverseMass[d]*r.jacobian[j]**2,0);
++            const c=r.unilateral&&r.lambda<=0?Math.min(0,r.gap):r.gap+r.alpha*r.lambda;
++            if(diagonal>0)value+=c*c/diagonal;
++            for(let j=0;j<r.dofs.length;j++)primal[r.dofs[j]]-=inverseMass[r.dofs[j]]*r.jacobian[j]*r.lambda;
++        }
++        if(balancePrimal)for(let i=0;i<primal.length;i++)if(inverseMass[i])value+=primal[i]**2/inverseMass[i];
++        return value;
++    };
++    return {
++        step(evaluate,contactLambda,contactSlip) {
++            friction?.refresh(evaluate(),contactLambda);
++            const assembly=build(evaluate,contactLambda,contactSlip),{constraints,displacement}=assembly;
++            const beforeMerit=merit(assembly),result=solveXpbdChainBlock(constraints,inverseMass,displacement,{balancePrimal});
++            const oldPositions=s.positions.map(p=>p.slice()),oldFrames=frames.map(a=>a.map(f=>f.q.clone()));
++            let applied=false,scale;
++            for(let trial=0;trial<16;trial++) {
++                scale=2**(-trial);
++                for(let i=0;i<s.positions.length;i++)for(let k=0;k<3;k++)s.positions[i][k]=oldPositions[i][k]+scale*result.increment[3*i+k];
++                frames.forEach((a,m)=>a.forEach((f,e)=>{
++                    const d=frameDofs[m][e],v=Array.from(result.increment.slice(d,d+3),x=>scale*x),q=quaternionExp(vector(v));
++                    f.q.copy(oldFrames[m][e]).premultiply(new Quaternion(q.x,q.y,q.z,q.w)).normalize();
++                }));
++                frictionImpulses.clear();
++                constraints.forEach((r,i)=>{
++                    const next=r.lambda+scale*(result.lambda[i]-r.lambda);lambda.set(r.id,next);
++                    if(r.nativeIndex!==undefined)contactLambda[r.nativeIndex]=next;
++                    if(r.frictionId!==undefined){
++                        const impulse=frictionImpulses.get(r.frictionId)??[0,0,0];
++                        for(let k=0;k<3;k++)impulse[k]+=r.tangent[k]*next;
++                        frictionImpulses.set(r.frictionId,impulse);
++                    }
++                });
++                try {
++                    const afterMerit=merit(build(evaluate,contactLambda,contactSlip));
++                    if(afterMerit<=beforeMerit*(1-1e-4*scale)||afterMerit<1e-18){applied=true;break;}
++                }catch(error){if(error.code!=='trial-outside-vessel')throw error;}
++            }
++            if(!applied)throw new Error('XPBD chain trial failed residual decrease');
++            return {factorizations:result.factorizations,band:result.band,rows:result.rows,scale,beforeMerit};
++        },
++        frictionHistory(evaluate,contactLambda) {
++            if(!friction)return [];
++            friction.refresh(evaluate(),contactLambda);return friction.history();
++        }
++    };
++}
+diff --git a/src/physics/xpbdSurfaceFriction.js b/src/physics/xpbdSurfaceFriction.js
+new file mode 100644
+index 0000000..b98b803
+--- /dev/null
++++ b/src/physics/xpbdSurfaceFriction.js
+@@ -0,0 +1,73 @@
++import {Quaternion,Vector3} from 'three';
++import {sharedAxisOuterMaterialAt} from './kirchhoffSharedAxisNative.js';
++import {sharedAxisFrictionPotential} from './kirchhoffSharedAxisWallFriction.js';
++
++const dot=(a,b)=>a.reduce((v,x,k)=>v+x*b[k],0);
++const scale=(a,s)=>a.map(v=>v*s);
++const project=(a,n)=>a.map((v,k)=>v-dot(a,n)*n[k]);
++const rotate=(a,q)=>new Vector3(...a).applyQuaternion(q).toArray();
++const point=(positions,e,t)=>positions[e].map((v,k)=>(1-t)*v+t*positions[e+1][k]);
++
++// Research adapter for the reference regularized Coulomb law. Unlike the
++// original local XPBD disk, this preserves elastic slip, the contact radius,
++// material rotation and the feed direction of the incoming configuration.
++// Charts, modes and effective stiffness are frozen during each global trial.
++export function createXpbdSurfaceFriction(s,frames,initial,dt,feedById,{stiffness=1e4}={}) {
++    const history=s.wallFrictionHistory??[],byId=new Map(history.map(h=>[h.id,h])),modes=new Map();
++    let records=[];
++    const kinematics=r=>{
++        const rho=rotate(r.localRho,frames[r.materialIndex][r.edge].q),p=point(s.positions,r.edge,r.t);
++        const slip=project(r.elastic.map((v,k)=>v+r.feed[k]+p[k]-r.origin[k]+rho[k]-r.rho0[k]),r.n);
++        return {rho,slip};
++    };
++    const refresh=(rows,normalLambda)=>{
++        records=[];
++        rows.forEach((row,index)=>{
++            const def=s.definitions[index];
++            if(row.kind!=='wall'||!def?.witness||!def.evaluate||!(normalLambda[index]>0))return;
++            const {edge}=row,{t,face,owner}=def.witness;
++            const material=sharedAxisOuterMaterialAt(s,edge,t,owner),{spec,body}=material;
++            const muStatic=spec.wallStaticFriction??0,muKinetic=spec.wallKineticFriction??0;
++            if(!muStatic)return;
++            const materialIndex=s.materials.findIndex(m=>m.spec.id===spec.id);
++            const normal=row.jacobian.slice(0,3).map((v,k)=>v+row.jacobian[3+k]),length=Math.hypot(...normal);
++            if(!(length>1e-10))throw new Error('XPBD friction requires a surface normal');
++            const n=scale(normal,1/length),id=`${spec.id}/${def.id}`,siteCoordinate=(1-t)*s.coordinates[edge]+t*s.coordinates[edge+1];
++            const old=byId.get(id)??history.find(h=>h.owner===spec.id&&h.face===face&&Math.abs(h.siteCoordinate-siteCoordinate)<=1e-6);
++            const delta=initial.positions[edge+1].map((v,k)=>v-initial.positions[edge][k]),tangent=scale(delta,1/Math.hypot(...delta));
++            const rho0=scale(n,-body.radius),q0=new Quaternion(...initial.frames[materialIndex][edge].old);
++            let u=project(tangent,n);
++            if(Math.hypot(...u)<1e-8)u=project(Math.abs(n[0])<.8?[1,0,0]:[0,1,0],n);
++            u=scale(u,1/Math.hypot(...u));const v=new Vector3(...n).cross(new Vector3(...u)).toArray();
++            const r={id,owner:spec.id,face,siteCoordinate,materialIndex,edge,t,n,basis:[u,v],rho0,
++                localRho:rotate(rho0,q0.invert()),origin:point(initial.positions,edge,t),
++                feed:scale(tangent,feedById[spec.id]??0),elastic:project(old?.elastic??[0,0,0],n),
++                stiffness,muStatic,muKinetic,normalLoad:normalLambda[index]/(dt*dt),mode:modes.get(id)??old?.mode??'stick'};
++            const demand=stiffness*Math.hypot(...kinematics(r).slip);
++            if(r.mode==='stick'&&demand>muStatic*r.normalLoad)r.mode='slide';
++            else if(r.mode==='slide'&&demand<=muKinetic*r.normalLoad)r.mode='stick';
++            modes.set(id,r.mode);
++            // Iteratively reweighted compliance has the same fixed-point
++            // traction as the reference law. It is not a Newton certificate.
++            r.effectiveStiffness=r.mode==='slide'&&demand>muKinetic*r.normalLoad?
++                stiffness*muKinetic*r.normalLoad/demand:stiffness;
++            if(r.effectiveStiffness>0)records.push(r);
++        });
++    };
++    return {
++        refresh,
++        constraints(frameDofs,impulses) {
++            return records.flatMap(r=>{
++                const {rho,slip}=kinematics(r),d=frameDofs[r.materialIndex][r.edge];
++                const dofs=[3*r.edge,3*r.edge+1,3*r.edge+2,3*(r.edge+1),3*(r.edge+1)+1,3*(r.edge+1)+2,d,d+1,d+2];
++                return r.basis.map((tangent,k)=>({id:`friction/${r.id}/${k}`,frictionId:r.id,tangent,
++                    edge:r.edge,dofs,jacobian:[...scale(tangent,1-r.t),...scale(tangent,r.t),...new Vector3(...rho).cross(new Vector3(...tangent)).toArray()],
++                    gap:dot(slip,tangent),alpha:1/(r.effectiveStiffness*dt*dt),lambda:dot(impulses.get(r.id)??[0,0,0],tangent)}));
++            });
++        },
++        history() {
++            return records.map(r=>({id:r.id,siteCoordinate:r.siteCoordinate,owner:r.owner,face:r.face,mode:r.mode,
++                elastic:scale(sharedAxisFrictionPotential(kinematics(r).slip,r,false).traction,1/stiffness)}));
++        }
++    };
++}
+diff --git a/src/benchmark/crossoverAlternativeSolvers.js b/src/benchmark/crossoverAlternativeSolvers.js
+new file mode 100644
+index 0000000..86c95bd
+--- /dev/null
++++ b/src/benchmark/crossoverAlternativeSolvers.js
+@@ -0,0 +1,81 @@
++import {createSharedAxisContacts} from '../physics/kirchhoffSharedAxisContacts.js';
++import {createSharedAxisNative,feedSharedAxisNative,rotateSharedAxisNative} from '../physics/kirchhoffSharedAxisNative.js';
++import {iterateSharedAxisXpbd} from '../physics/sharedAxisXpbdExperimental.js';
++import {iterateSharedAxisProjective} from '../physics/kirchhoffSharedAxisProjective.js';
++import {captureBloodFlow} from '../physics/bloodFlowCoupling.js';
++import {sharedAxisGeometryIdentity} from '../physics/kirchhoffSharedAxisGeometryIdentity.js';
++import {validateCrossoverRecording,crossoverShapeDifference} from './crossoverScenarioRecording.js';
++import {GUIDEWIRE_RADIUS_MM,PIGTAIL_CATHETER_RADIUS_MM,INTRODUCER_SHEATH_INNER_RADIUS_MM} from '../toolDimensions.js';
++import {DEFAULT_TOOL_PROFILES} from '../physics/endovascularPhysicsWorld.js';
++import {catheterNodeMass} from '../physics/catheterDiscretization.js';
++
++const angleDifference=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
++
++/** Screening harness: original input targets from EMPTY tools; never restores
++ * reference shapes into the evolving candidate. CPU capacity is not app FPS.
++ * Geometry gates are unchanged; XPBD/PD cannot claim Newton force certificates.
++ * Yielded rows include failures and are not necessarily accepted steps.
++ */
++export function* compareCrossoverAlternative({record,field,flow,solver='xpbd',options={},onPose=()=>{}}) {
++    validateCrossoverRecording(record);
++    if(!record.fullManeuverRecorded)throw new Error('Require the complete recorded maneuver');
++    if(!['xpbd','projective'].includes(solver))throw new Error('Unknown alternative solver');
++    if(sharedAxisGeometryIdentity(field.fallbackGeometry)!==record.configuration.geometry)throw new Error('Recording mesh mismatch');
++    if(JSON.stringify(flow.hemodynamics)!==JSON.stringify(record.configuration.flow.parameters))throw new Error('Flow settings mismatch');
++    const access=record.configuration.accesses.find(a=>a.id==='right');
++    const sheath={start:access.sheath.start,end:access.sheath.end,innerRadius:INTRODUCER_SHEATH_INNER_RADIUS_MM,proximalExtension:40};
++    const tools=[{id:'wire',type:'glidewire',mass:DEFAULT_TOOL_PROFILES.guidewire.mass,radius:GUIDEWIRE_RADIUS_MM,wallStaticFriction:access.friction[0],wallKineticFriction:access.friction[1]},
++        {id:'catheter',type:'pigtail',mass:catheterNodeMass(DEFAULT_TOOL_PROFILES.catheter.mass),radius:PIGTAIL_CATHETER_RADIUS_MM,wallStaticFriction:.002,wallKineticFriction:.002}]
++        .map((t,i)=>({...t,insertion:0,rotation:0,shaftStiffness:access.stiffness[2*i],tipStiffness:access.stiffness[2*i+1]}));
++    const contacts=createSharedAxisContacts({sheath,contactField:field,localCoordinates:true,retainDiscoveryCertificates:true,contactCandidateMargin:.01});
++    let state=createSharedAxisNative({...contacts,maxBendAngle:Math.PI/4,tools}),rotations={wire:0,catheter:0};
++    const solve=solver==='xpbd'?iterateSharedAxisXpbd:iterateSharedAxisProjective;
++    for(let index=0;index<record.steps.length;index++) {
++        const reference=record.steps[index],started=performance.now(),attempts=[];
++        const bloodFlow=record.configuration.flow.enabled?captureBloodFlow(state,flow,contacts.length,
++            Math.max(reference.tools.wire,reference.tools.catheter)):null;
++        let accepted=null,last;
++        // Same feed/rotation subdivisions as the application. Every retry
++        // starts from the accepted pose and private collision discovery.
++        for(const subdivisions of [1,2,4,8]) {
++            let current={...state,wallSamples:state.wallSamples.map(s=>s.forkDiscovery?.({candidateMargin:.01})??s)},currentRotations=rotations;
++            let failed=false;
++            for(let part=1;part<=subdivisions;part++) {
++                const feeds=Object.fromEntries(current.materials.map(m=>[m.spec.id,state.materials.find(x=>x.spec.id===m.spec.id).spec.insertion+
++                    part/subdivisions*(reference.tools[m.spec.id]-state.materials.find(x=>x.spec.id===m.spec.id).spec.insertion)]));
++                const nextRotations=Object.fromEntries(tools.map(t=>[t.id,rotations[t.id]+part/subdivisions*angleDifference(reference.tools[t.id+'Rotation'],rotations[t.id])]));
++                const candidate=feedSharedAxisNative(current,feeds,{contactCandidateMargin:.01,omitInactiveSampleRows:true});
++                for(const t of tools)rotateSharedAxisNative(candidate,t.id,angleDifference(nextRotations[t.id],currentRotations[t.id]));
++                const feedById=Object.fromEntries(current.materials.map(m=>[m.spec.id,feeds[m.spec.id]-m.spec.insertion]));
++                const iterator=solve(candidate,record.dt/subdivisions,{[solver==='xpbd'?'xpbd':'projective']:options,bloodFlow,feedById});
++                let n;do{n=iterator.next();}while(!n.done);last=n.value;
++                attempts.push({subdivisions,part,status:last.status,error:last.error,iterations:last.iterations,ms:last.ms,
++                    maxLengthError:last.xpbd?.maxLengthError??last.pd?.maxLengthError,maxShear:last.xpbd?.maxShear??last.pd?.maxShear,
++                    penetrationMm:last.quality?.maxPenetration});
++                if(!last.converged){failed=true;break;}
++                current=candidate;currentRotations=nextRotations;
++            }
++            if(!failed){accepted={state:current,rotations:currentRotations,subdivisions};break;}
++        }
++        const cpuMs=performance.now()-started;
++        const shape=accepted?{coordinates:accepted.state.coordinates,positions:accepted.state.positions.flatMap(p=>p.map((v,k)=>v+accepted.state.origin[k]))}:null;
++        const shapeDifferenceMm=shape?crossoverShapeDifference(reference.shape,shape):null;
++        const row={step:index+1,stage:reference.stage,moving:reference.moving,tools:reference.tools,cpuMs,
++            accepted:!!accepted,shape,shapeDifferenceMm,shapeWithinLimit:shape!==null&&shapeDifferenceMm<=1,
++            status:last.status,quality:last.quality,xpbd:last.xpbd,pd:last.pd,attempts};
++        if(accepted){state=accepted.state;rotations=accepted.rotations;flow.update(record.dt);onPose(state,reference);}
++        yield row;
++        if(!accepted)return;
++    }
++}
++
++export function summarizeAlternative(rows,targetSteps) {
++    const accepted=rows.filter(r=>r.accepted),moving=accepted.filter(r=>r.moving),cost=moving.map(r=>r.cpuMs).sort((a,b)=>a-b);
++    const sum=moving.reduce((v,r)=>v+r.cpuMs,0),maxShape=Math.max(0,...accepted.map(r=>r.shapeDifferenceMm));
++    return {attemptedSteps:rows.length,acceptedSteps:accepted.length,targetSteps,complete:accepted.length===targetSteps,
++        movingSteps:moving.length,maximumShapeDifferenceMm:accepted.length?maxShape:null,shapeWithinLimit:accepted.length?accepted.every(r=>r.shapeWithinLimit):null,
++        firstShapeLimitStep:accepted.find(r=>!r.shapeWithinLimit)?.step??null,
++        movingCpuCapacityHz:sum>0?1000*moving.length/sum:null,movingMedianCpuMs:cost[Math.floor(cost.length/2)]??null,
++        movingP95CpuMs:cost[Math.max(0,Math.ceil(cost.length*.95)-1)]??null,
++        goalAchieved:false,applicationFpsVerified:false,equilibriumCertified:false};
++}
+diff --git a/scripts/benchmark-crossover-alternative-solvers.mjs b/scripts/benchmark-crossover-alternative-solvers.mjs
+new file mode 100644
+index 0000000..daa2295
+--- /dev/null
++++ b/scripts/benchmark-crossover-alternative-solvers.mjs
+@@ -0,0 +1,28 @@
++import fs from 'node:fs';
++import {gunzipSync,gzipSync} from 'node:zlib';
++import {createHash} from 'node:crypto';
++import {loadCoupledRuntimeAnatomy} from '../tests/helpers/coupledRuntimeFixture.js';
++import {createCrossoverFlow} from '../tests/helpers/crossoverFlow.js';
++import {compareCrossoverAlternative,summarizeAlternative} from '../src/benchmark/crossoverAlternativeSolvers.js';
++
++const input='reports/performance-scenarios/003-crossover-full-user-inputs.json.gz';
++const solver=process.argv[2]??'xpbd',options=JSON.parse(process.argv[3]??'{}');
++const output=process.argv[4]??`reports/performance-scenarios/012-${solver}-screen.json`;
++const bytes=fs.readFileSync(input),record=JSON.parse(gunzipSync(bytes));
++const anatomy=await loadCoupledRuntimeAnatomy(undefined,record.configuration.anatomy),rows=[];
++const report={solver,options,input,sourceSha256:createHash('sha256').update(bytes).digest('hex'),startedAt:new Date().toISOString(),
++    sourceHashes:Object.fromEntries(['src/physics/sharedAxisXpbdExperimental.js','src/physics/xpbdChainBlock.js','src/physics/xpbdChainIteration.js','src/physics/xpbdSurfaceFriction.js','src/physics/kirchhoffSharedAxisProjective.js',
++        'src/benchmark/crossoverAlternativeSolvers.js'].map(p=>[p,createHash('sha256').update(fs.readFileSync(p)).digest('hex')])),
++    scope:'CPU screening of full recorded targets from empty tools, right access only; not full-app FPS. Stops on geometry rejection, continues through shape-budget failures for diagnosis.',
++    defaultSolverChanged:false,rows};
++try {
++    for(const row of compareCrossoverAlternative({record,field:anatomy.field,flow:createCrossoverFlow(),solver,options})) {
++        rows.push(row);
++        if(row.step%300===0||!row.accepted)console.log(JSON.stringify({step:row.step,status:row.status,cpuMs:row.cpuMs,
++            differenceMm:row.shapeDifferenceMm,attempts:!row.accepted?row.attempts:undefined}));
++    }
++}catch(error){report.error=error.stack;process.exitCode=1;}
++finally {
++    report.summary=summarizeAlternative(rows,record.steps.length);report.finishedAt=new Date().toISOString();
++    const serialized=JSON.stringify(report);fs.writeFileSync(output,output.endsWith('.gz')?gzipSync(serialized):serialized+'\n');anatomy.dispose();console.log(JSON.stringify(report.summary));
++}
+diff --git a/scripts/validate-crossover-alternative.mjs b/scripts/validate-crossover-alternative.mjs
+new file mode 100644
+index 0000000..4ace499
+--- /dev/null
++++ b/scripts/validate-crossover-alternative.mjs
+@@ -0,0 +1,42 @@
++// Independent coverage/metric audit of REJECTED research runs. These reports
++// do not carry full candidate poses and cannot certify whole-trajectory shape.
++import fs from 'node:fs';
++import assert from 'node:assert/strict';
++import {gunzipSync} from 'node:zlib';
++import {createHash} from 'node:crypto';
++import {summarizeAlternative} from '../src/benchmark/crossoverAlternativeSolvers.js';
++import {crossoverShapeDifference} from '../src/benchmark/crossoverScenarioRecording.js';
++const [candidatePath,outputPath]=process.argv.slice(2);
++assert.ok(candidatePath&&outputPath,'Provide candidate and output paths');
++const referencePath='reports/performance-scenarios/003-crossover-full-user-inputs.json.gz';
++const bytes=fs.readFileSync(referencePath),decoded=gunzipSync(bytes),reference=JSON.parse(decoded);
++const candidateBytes=fs.readFileSync(candidatePath),candidate=JSON.parse(candidatePath.endsWith('.gz')?gunzipSync(candidateBytes):candidateBytes);
++const hash=b=>createHash('sha256').update(b).digest('hex');
++assert.equal(hash(bytes),'bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac');
++assert.ok([hash(bytes),hash(decoded)].includes(candidate.sourceSha256));
++assert.ok(candidate.rows.length<=reference.steps.length);
++for(const [i,row] of candidate.rows.entries()) {
++    assert.equal(row.step,i+1);assert.deepEqual(row.tools,reference.steps[i].tools);
++    for(const key of ['stage','moving'])assert.deepEqual(row[key],reference.steps[i][key]);
++    assert.ok(Number.isFinite(row.cpuMs)&&row.cpuMs>=0);
++    if(row.accepted) {
++        assert.equal(row.quality.finite,true);assert.ok(row.quality.maxPenetration<=1e-5);
++        assert.ok(row.quality.bodies.every(b=>b.maxLengthError<=1e-5));
++        assert.ok(Number.isFinite(row.shapeDifferenceMm)&&row.shapeDifferenceMm>=0);
++        assert.equal(row.shapeWithinLimit,row.shapeDifferenceMm<=1);
++        if(row.shape)assert.ok(Math.abs(crossoverShapeDifference(reference.steps[i].shape,row.shape)-row.shapeDifferenceMm)<1e-10);
++        if(row.xpbd?.maxLengthErrorMm!==undefined)assert.ok(row.xpbd.maxLengthErrorMm<=1e-5);
++    } else assert.equal(i,candidate.rows.length-1,'No inputs consumed after rejection');
++}
++const summary=summarizeAlternative(candidate.rows,reference.steps.length);
++const report={reference:referencePath,candidate:candidatePath,referenceSha256:hash(bytes),referenceDecodedSha256:hash(decoded),
++    candidateSha256:hash(candidateBytes),rightAccessTargetPrefixVerified:true,stepsChecked:candidate.rows.length,
++    expectedSteps:reference.steps.length,summary,
++    observedWallThroughputHz:candidate.wallMs?summary.acceptedSteps*1000/candidate.wallMs:null,
++    candidatePolylinesVerified:candidate.rows.filter(r=>r.accepted).every(r=>!!r.shape),
++    physicalForceCertificate:false,completeCommonStepReplay:false,goalAchieved:false,
++    limitations:['Research harness directly applies recorded right-access targets, not the app input handler or both accesses.',
++        ...(candidate.rows.some(r=>r.accepted&&!r.shape)?['Shape errors were measured by the running harness; candidate polylines are not included for independent recomputation.']:[]),
++        'CPU capacity and the simple browser test are not full-application physics FPS.',
++        'Incomplete/rejected trajectories cannot pass optimization acceptance.']};
++fs.writeFileSync(outputPath,JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(summary));
+diff --git a/scripts/diagnose-xpbd-chain.mjs b/scripts/diagnose-xpbd-chain.mjs
+new file mode 100644
+index 0000000..0ebef55
+--- /dev/null
++++ b/scripts/diagnose-xpbd-chain.mjs
+@@ -0,0 +1,24 @@
++// Constitutive calibration only, not a crossover throughput benchmark.
++import fs from 'node:fs';
++import {createSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
++import {iterateSharedAxisTimeStep} from '../src/physics/kirchhoffSharedAxisTimeStep.js';
++import {iterateSharedAxisXpbd} from '../src/physics/sharedAxisXpbdExperimental.js';
++const finish=it=>{let n;do{n=it.next();}while(!n.done);return n.value;};
++const cases=[];
++for(const type of ['straight','berenstein'])for(const chainPrimalBalance of [true,false]) {
++    const create=()=>createSharedAxisNative({tools:[{id:'catheter',type,insertion:60,shaftStiffness:2,tipStiffness:2}]});
++    const reference=create(),candidate=create(),item={type,chainPrimalBalance,steps:[],complete:false};cases.push(item);
++    reference.loads[reference.layout.positions.at(-1)+1]=candidate.loads[candidate.layout.positions.at(-1)+1]=1;
++    for(let step=0;step<30;step++) {
++        const before=performance.now(),a=finish(iterateSharedAxisTimeStep(reference,1/60)),referenceMs=performance.now()-before;
++        const start=performance.now(),b=finish(iterateSharedAxisXpbd(candidate,1/60,{xpbd:{iterations:32,globalChain:true,chainPrimalBalance}})),candidateMs=performance.now()-start;
++        const difference=Math.max(...reference.positions.map((p,i)=>Math.hypot(...p.map((v,k)=>v-candidate.positions[i][k]))));
++        item.steps.push({step:step+1,referenceMs,candidateMs,referenceConverged:a.converged,candidateConverged:b.converged,
++            candidateStatus:b.status,candidateError:b.error,referenceStatus:a.status,differenceMm:difference,
++            candidateQuality:b.xpbd,referenceTip:reference.positions.at(-1).slice(),candidateTip:candidate.positions.at(-1).slice()});
++        if(!a.converged||!b.converged)break;
++    }
++    item.complete=item.steps.length===30&&item.steps.at(-1).candidateConverged;
++    console.log(JSON.stringify({type,chainPrimalBalance,complete:item.complete,last:item.steps.at(-1)}));
++}
++fs.writeFileSync('reports/performance-scenarios/013-constitutive-calibration.json',JSON.stringify({scope:'Free 60 mm rod under unit tip load for 30 steps. Mechanical calibration; not scenario performance.',cases},null,2)+'\n');
+diff --git a/tests/xpbdChainBlock.test.js b/tests/xpbdChainBlock.test.js
+new file mode 100644
+index 0000000..c41ba42
+--- /dev/null
++++ b/tests/xpbdChainBlock.test.js
+@@ -0,0 +1,82 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {solveXpbdChainBlock} from '../src/physics/xpbdChainBlock.js';
++import {createSharedAxisNative,captureSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
++import {iterateSharedAxisXpbd} from '../src/physics/sharedAxisXpbdExperimental.js';
++import {iterateSharedAxisTimeStep} from '../src/physics/kirchhoffSharedAxisTimeStep.js';
++const close=(a,b,e=1e-8)=>assert.ok(Math.abs(a-b)<=e,`${a} vs ${b}`);
++const finish=it=>{let n;do{n=it.next();}while(!n.done);return n.value;};
++
++test('global block propagates a tip displacement through the whole inextensible chain in one solve',()=>{
++    const n=120,weights=new Float64Array(n).fill(1);weights[0]=0;
++    const displacement=new Float64Array(n);displacement[n-1]=1;
++    const rows=Array.from({length:n-1},(_,i)=>({dofs:[i,i+1],jacobian:[-1,1],gap:i===n-2?1:0,alpha:0,lambda:0}));
++    const result=solveXpbdChainBlock(rows,weights,displacement);
++    assert.equal(result.factorizations,1);assert.equal(result.band,2);
++    result.increment.forEach((x,i)=>close(x+displacement[i],0));
++});
++
++test('global compliant block satisfies both primal balance and compliant constraints',()=>{
++    const rows=[{dofs:[0,1],jacobian:[-1,1],gap:.4,alpha:.01,lambda:.3},
++        {dofs:[1,2],jacobian:[-1,1],gap:-.1,alpha:.2,lambda:-.2}];
++    const w=[.5,1,2],d=[.2,-.1,.3],r=solveXpbdChainBlock(rows,w,d);
++    for(let i=0;i<rows.length;i++)close(rows[i].gap+rows[i].dofs.reduce((s,k,j)=>s+rows[i].jacobian[j]*r.increment[k],0)+rows[i].alpha*r.lambda[i],0);
++    for(let k=0;k<3;k++)close(d[k]+r.increment[k],w[k]*rows.reduce((s,row,i)=>s+row.dofs.reduce((t,d,j)=>t+(d===k?row.jacobian[j]*r.lambda[i]:0),0),0));
++});
++
++test('unilateral reactions release tensile contacts and activate violated contacts',()=>{
++    for(const initialLambda of [0,10]) {
++        const r=solveXpbdChainBlock([{dofs:[0],jacobian:[1],gap:.5,alpha:1e-6,lambda:initialLambda,unilateral:true}], [1],[0]);
++        close(r.lambda[0],0);close(r.increment[0],0);
++    }
++    const r=solveXpbdChainBlock([{dofs:[0],jacobian:[1],gap:-.5,alpha:1e-6,lambda:0,unilateral:true}], [1],[0]);
++    assert.ok(r.lambda[0]>0);close(-.5+r.increment[0]+1e-6*r.lambda[0],0);
++});
++
++test('feasible dual pivots converge on conflicting contact normals without release/reactivation cycles',()=>{
++    let seed=718;const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32);
++    // Case 53 cycles with simultaneous active-set toggles. Check independent
++    // KKT conditions, rather than hard-coding this implementation's solution.
++    for(let sample=0;sample<200;sample++) {
++        const displacement=Array.from({length:3},()=>random()*2-1);
++        const rows=Array.from({length:6},()=>({dofs:[0,1,2],jacobian:Array.from({length:3},()=>random()*2-1),
++            gap:random()*2-1,alpha:.01,lambda:0,unilateral:true}));
++        const result=solveXpbdChainBlock(rows,[1,1,1],displacement);
++        rows.forEach((r,i)=>{
++            const gap=r.gap+r.jacobian.reduce((v,x,k)=>v+x*result.increment[k],0)+r.alpha*result.lambda[i];
++            assert.ok(result.lambda[i]>=0);assert.ok(gap>=-1e-9);close(gap*result.lambda[i],0,1e-8);
++        });
++        for(let k=0;k<3;k++)close(displacement[k]+result.increment[k],rows.reduce((v,r,i)=>v+r.jacobian[k]*result.lambda[i],0));
++    }
++});
++
++test('global two-material rod has no duplicate hard length equation and retains exact rest',()=>{
++    const s=createSharedAxisNative({tools:[{id:'wire',type:'straight',insertion:80},{id:'catheter',type:'straight',insertion:60}]}),before=captureSharedAxisNative(s);
++    const r=finish(iterateSharedAxisXpbd(s,1/60,{xpbd:{iterations:4,globalChain:true}}));
++    assert.equal(r.converged,true,JSON.stringify(r));assert.equal(r.xpbd.model,'global-chain-xpbd');
++    s.positions.forEach((p,i)=>p.forEach((x,k)=>close(x,before.positions[i][k])));
++});
++
++test('global chain cancellation restores poses and histories',()=>{
++    const s=createSharedAxisNative({tools:[{id:'catheter',type:'berenstein',insertion:60}]}),before=captureSharedAxisNative(s);
++    s.velocities=s.positions.map(()=>[0,.2,0]);const velocities=s.velocities;
++    const it=iterateSharedAxisXpbd(s,1/60,{xpbd:{iterations:8,globalChain:true}});assert.equal(it.next().done,false);it.return();
++    assert.deepEqual(captureSharedAxisNative(s),before);assert.equal(s.velocities,velocities);assert.equal(s.dynamicStep,null);
++});
++
++test('classic XPBD releases the previously applied unilateral impulse without inventing a new force balance',()=>{
++    const r=solveXpbdChainBlock([{dofs:[0],jacobian:[1],gap:.5,alpha:1e-6,lambda:.1,unilateral:true}], [1],[99],{balancePrimal:false});
++    close(r.lambda[0],0);close(r.increment[0],-.1);
++});
++
++test('global bending dynamics matches the reference curved-rod potential without contact',()=>{
++    const create=()=>createSharedAxisNative({tools:[{id:'catheter',type:'berenstein',insertion:60,shaftStiffness:2,tipStiffness:2}]});
++    const a=create(),b=create();a.loads[a.layout.positions.at(-1)+1]=b.loads[b.layout.positions.at(-1)+1]=1;
++    for(let i=0;i<20;i++) {
++        assert.equal(finish(iterateSharedAxisTimeStep(a,1/60)).converged,true);
++        const result=finish(iterateSharedAxisXpbd(b,1/60,{xpbd:{iterations:32,globalChain:true}}));
++        assert.equal(result.converged,true,JSON.stringify(result));
++        const error=Math.max(...a.positions.map((p,i)=>Math.hypot(...p.map((x,k)=>x-b.positions[i][k]))));
++        assert.ok(error<1e-6,`Free rod discrepancy: ${error}`);
++    }
++});
+diff --git a/tests/xpbdSurfaceFriction.test.js b/tests/xpbdSurfaceFriction.test.js
+new file mode 100644
+index 0000000..0e9228b
+--- /dev/null
++++ b/tests/xpbdSurfaceFriction.test.js
+@@ -0,0 +1,66 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {Quaternion,Vector3} from 'three';
++import {createSharedAxisNative,extendSharedAxisNativeRows,captureSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
++import {prepareSharedAxisDynamicStep} from '../src/physics/kirchhoffSharedAxisDynamics.js';
++import {createXpbdSurfaceFriction} from '../src/physics/xpbdSurfaceFriction.js';
++import {iterateSharedAxisTimeStep} from '../src/physics/kirchhoffSharedAxisTimeStep.js';
++import {iterateSharedAxisXpbd} from '../src/physics/sharedAxisXpbdExperimental.js';
++
++const finish=it=>{let r;do{r=it.next();}while(!r.done);return r.value;};
++const close=(a,b,e=1e-8)=>assert.ok(Math.abs(a-b)<=e,`${a} vs ${b}`);
++function fixture(mu=.5) {
++    const s=createSharedAxisNative({tools:[{id:'wire',type:'straight',insertion:20,wallStaticFriction:mu,wallKineticFriction:mu*.6}]});
++    const e=2;
++    extendSharedAxisNativeRows(s,[{kind:'wall',edge:e,id:'feed-wall',witness:{face:2,t:1},
++        dofs:[s.layout.positions[e],s.layout.positions[e+1]].flatMap(i=>[i,i+1,i+2]),
++        evaluate:({b})=>({gap:b[1],jacobian:[0,0,0,0,1,0]})}]);
++    s.loads[s.layout.positions[e+1]+1]=-100;return s;
++}
++
++test('coupled surface friction matches reference stick, slide and elastic history without stretching the rod',()=>{
++    for(const mu of [.006,.5]) {
++        const reference=fixture(mu),candidate=fixture(mu),modes=new Set();
++        for(let step=0;step<30;step++) {
++            const options={feedById:{wire:step<15?.0002:.1}};
++            assert.equal(finish(iterateSharedAxisTimeStep(reference,1/60,options)).converged,true);
++            const result=finish(iterateSharedAxisXpbd(candidate,1/60,{...options,xpbd:{iterations:32,globalChain:true,chainSurfaceFriction:true}}));
++            assert.equal(result.converged,true,JSON.stringify(result));
++            reference.positions.forEach((p,i)=>p.forEach((v,k)=>close(v,candidate.positions[i][k],1e-6)));
++            const a=reference.wallFrictionHistory,b=candidate.wallFrictionHistory;assert.equal(b.length,a.length);
++            a.forEach((h,i)=>{assert.equal(b[i].id,h.id);assert.equal(b[i].mode,h.mode);h.elastic.forEach((v,k)=>close(v,b[i].elastic[k],1e-7));modes.add(h.mode);});
++            assert.ok(result.xpbd.maxLengthErrorMm<1e-8);
++        }
++        if(mu===.5)assert.deepEqual([...modes].sort(),['slide','stick']);
++    }
++});
++
++test('surface-slip rows include the finite contact radius and differentiate independent material rotations',()=>{
++    const s=fixture(),dt=1/60;prepareSharedAxisDynamicStep(s,dt);
++    const frames=s.dynamicStep.frames.map(a=>a.map(f=>({q:new Quaternion(...f.old)})));
++    const adapter=createXpbdSurfaceFriction(s,frames,s.dynamicStep,dt,{wire:.001});
++    const index=s.definitions.length-1,rows=s.definitions.map(r=>({...r,jacobian:[0,0,0,0,1,0]}));
++    const lambda=new Float64Array(rows.length);lambda[index]=100*dt*dt;adapter.refresh(rows,lambda);
++    const frameDofs=[Array.from({length:frames[0].length},(_,e)=>s.positions.length*3+3*e)],impulses=new Map();
++    const expected=adapter.constraints(frameDofs,impulses),q=frames[0][2].q.clone(),h=1e-6;
++    for(const r of expected)for(let j=0;j<r.dofs.length;j++) {
++        const dof=r.dofs[j];
++        const sample=sign=>{
++            if(dof<s.positions.length*3)s.positions[Math.floor(dof/3)][dof%3]+=sign*h;
++            else {const axis=new Vector3().setComponent((dof-s.positions.length*3)%3,1);frames[0][2].q.copy(q).premultiply(new Quaternion().setFromAxisAngle(axis,sign*h));}
++            const result=adapter.constraints(frameDofs,impulses).find(x=>x.id===r.id).gap;
++            if(dof<s.positions.length*3)s.positions[Math.floor(dof/3)][dof%3]-=sign*h;else frames[0][2].q.copy(q);
++            return result;
++        };
++        close((sample(1)-sample(-1))/(2*h),r.jacobian[j],2e-8);
++    }
++    assert.ok(expected.some(r=>Math.hypot(...r.jacobian.slice(6))>.1),'Rotation must move the surface point');
++});
++
++test('cancelling a surface-friction step restores the accepted slip history and pose',()=>{
++    const s=fixture();s.wallFrictionHistory=[{id:'wire/feed-wall',owner:'wire',face:2,siteCoordinate:15,elastic:[.001,0,0],mode:'stick'}];
++    const pose=captureSharedAxisNative(s),history=s.wallFrictionHistory;
++    const it=iterateSharedAxisXpbd(s,1/60,{xpbd:{iterations:32,globalChain:true,chainSurfaceFriction:true},feedById:{wire:.1}});
++    assert.equal(it.next().done,false);assert.equal(it.next().done,false);it.return();
++    assert.deepEqual(captureSharedAxisNative(s),pose);assert.equal(s.wallFrictionHistory,history);assert.equal(s.dynamicStep,null);
++});

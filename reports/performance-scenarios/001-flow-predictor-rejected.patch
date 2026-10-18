@@ -1,0 +1,68 @@
+--- a/src/physics/kirchhoffSharedAxisTimeStep.js
++++ b/src/physics/kirchhoffSharedAxisTimeStep.js
+@@ -35,7 +35,9 @@
+         const increment=new Float64Array(s.layout.dofCount),decay=.98**(dt*120);
+         for(let n=0;n<s.positions.length;n++)for(let a=0;a<3;a++) {
+             const dof=s.layout.positions[n]+a;
+-            if(!s.fixed[dof])increment[dof]=options.velocityPredictor*dt*decay*(s.velocities?.[n]?.[a]??0);
++            if(!s.fixed[dof])increment[dof]=options.bloodFlowPredictor===true&&s.dynamicStep.bloodFlow
++                ? options.velocityPredictor*(s.dynamicStep.predicted[n][a]-s.dynamicStep.positions[n][a])
++                : options.velocityPredictor*dt*decay*(s.velocities?.[n]?.[a]??0);
+         }
+         for(const {spec,last} of s.materials)for(let e=0;e<last;e++) {
+             const dof=s.layout.spins.get(spec.id)[e],p=s.positions[e],q=s.positions[e+1],v=q.map((x,a)=>x-p[a]),length=Math.hypot(...v);
+--- a/tests/kirchhoffSharedAxisVelocityPredictor.test.js
++++ b/tests/kirchhoffSharedAxisVelocityPredictor.test.js
+@@ -2,11 +2,52 @@
+ import assert from 'node:assert/strict';
+ import {createSharedAxisNative,captureSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
+ import {stepSharedAxis,iterateSharedAxisTimeStep} from '../src/physics/kirchhoffSharedAxisTimeStep.js';
++import {prepareSharedAxisDynamicStep} from '../src/physics/kirchhoffSharedAxisDynamics.js';
+ 
+ function rod(){
+     const s=createSharedAxisNative({tools:[{id:'wire',insertion:20}]});
+     s.velocities=s.positions.map(()=>[0,2,0]);return s;
+ }
++
++const flow=s=>({time:2,coordinates:s.coordinates.slice(),velocities:s.coordinates.map(()=>[0,200,0]),
++    sheathLength:0,density:1060,viscosity:.0035,forceScale:1e6});
++
++test('flow prediction changes only the initial guess and cancellation restores the incoming state',()=>{
++    const s=rod(),before=captureSharedAxisNative(s),velocities=s.velocities,dt=1/60,bloodFlow=flow(s);
++    const reference=rod();prepareSharedAxisDynamicStep(reference,dt,bloodFlow);
++    let inspected=false;
++    const it=iterateSharedAxisTimeStep(s,dt,{velocityPredictor:1,bloodFlowPredictor:true,bloodFlow,observeIteration:()=>{
++        if(inspected)return;inspected=true;
++        assert.deepEqual(s.dynamicStep,reference.dynamicStep,'unchanged physical inertia target');
++        assert.ok(s.dynamicStep.predicted.at(-1)[1]>dt*.98**2*velocities.at(-1)[1],'flow modifies the guess');
++        for(let n=0;n<s.positions.length;n++)for(let a=0;a<3;a++){
++            const dof=s.layout.positions[n]+a;
++            const expected=s.fixed[dof]?before.positions[n][a]:reference.dynamicStep.predicted[n][a];
++            assert.ok(Math.abs(s.positions[n][a]-expected)<1e-12);
++        }
++    }});
++    for(let n=0;n<100&&!inspected;n++)assert.equal(it.next().done,false);
++    assert.ok(inspected);it.return();
++    assert.deepEqual(captureSharedAxisNative(s),before);assert.equal(s.velocities,velocities);
++    assert.equal(s.dynamicStep,null);assert.equal(s.wallFrictionStep,null);
++});
++
++test('flow prediction retains the physical equilibrium and force certificate',()=>{
++    const a=rod(),b=rod();a.fixed.fill(0);b.fixed.fill(0);
++    const common={velocityPredictor:1,bloodFlow:flow(a)};
++    const ref=stepSharedAxis(a,1/60,common),actual=stepSharedAxis(b,1/60,{...common,bloodFlowPredictor:true});
++    assert.ok(ref.converged&&actual.converged);assert.ok(actual.certificateBound<=1e-6);
++    assert.ok(actual.residual.length<=1e-5);
++    for(let i=0;i<a.positions.length;i++)for(let k=0;k<3;k++)assert.ok(Math.abs(a.positions[i][k]-b.positions[i][k])<1e-7);
++});
++
++test('flow prediction without flow retains the ordinary prediction exactly',()=>{
++    const a=rod(),b=rod();
++    const ref=stepSharedAxis(a,1/60,{velocityPredictor:1});
++    const actual=stepSharedAxis(b,1/60,{velocityPredictor:1,bloodFlowPredictor:true});
++    assert.ok(ref.converged&&actual.converged);
++    assert.deepEqual(b.positions,a.positions);assert.deepEqual(b.velocities,a.velocities);
++});
+ 
+ test('velocity prediction changes only the private initial guess, preserves inertia reference and rolls back on cancellation',()=>{
+     const s=rod(),before=captureSharedAxisNative(s),velocities=s.velocities,dt=1/120;let inspected=false;

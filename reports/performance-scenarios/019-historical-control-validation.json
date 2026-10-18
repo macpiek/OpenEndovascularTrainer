@@ -1,0 +1,18 @@
+{
+  "control": "reports/performance-scenarios/018-node-control.json.gz",
+  "sha256": "653638080faf9da16f045126bd2a13398a702778fba0a05cf58e89271d146781",
+  "verifiedPrefixSteps": 4124,
+  "targetSteps": 7507,
+  "complete": false,
+  "workerSteps": 4066,
+  "firstBrowserBudgetViolation": 1688,
+  "maximumBrowserShapeDifferenceMm": 36.73412379512412,
+  "maximumCertificate": 9.987270459532738e-7,
+  "maximumPenetrationMm": 9.048412574763631e-9,
+  "maximumLengthErrorMm": 9.048412574763631e-9,
+  "error": "AssertionError [ERR_ASSERTION]: Rejected step 4125: linear-solve\n    at file:///Users/macpiek/.codex/worktrees/33ba/OpenEndovascularTrainer/scripts/benchmark-crossover-node-control.mjs:65:16",
+  "reproducibilityVerified": false,
+  "qualifiedReference": false,
+  "goalAchieved": false,
+  "scope": "Checks original target prefix, every recorded physical gate and cross-runtime shape metric. No application FPS or same-runtime reproducibility claim."
+}

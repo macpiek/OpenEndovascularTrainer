@@ -1,0 +1,110 @@
+{
+  "input": "reports/performance-scenarios/029-schur-paired.json.gz",
+  "servedProjectionSourceHashesVerified": true,
+  "stepsPerVariant": 7507,
+  "bothFullTrajectoriesAndCoarseRoutesPassed": true,
+  "firstChangedStep": 1,
+  "maximumCandidateControlShapeDifferenceMm": 7.46988045531787,
+  "shapeComparisonRole": "diagnostic",
+  "profiles": {
+    "candidate": {
+      "moving": {
+        "steps": 3645,
+        "meanCpuMs": 16.483401919065354,
+        "meanNodes": 89.80246913580247,
+        "meanDofs": 1685.083950617284,
+        "meanClosureIterations": 2.225514403292181,
+        "timings": {
+          "constraintMs": 4.351028805210757,
+          "linearMs": 1.819506168757937,
+          "assemblyMs": 4.409327849831601,
+          "rotationMs": 2.4109190701457206,
+          "projectionMs": 3.639259259298505,
+          "closureSolveMs": 2.6947050739544736,
+          "schurAttempts": 11.87599451303155,
+          "schurSolves": 11.79286694101509,
+          "schurFallbacks": 0.0831275720164609
+        }
+      },
+      "longMoving": {
+        "steps": 952,
+        "meanCpuMs": 33.57489496093838,
+        "meanNodes": 157.98214285714286,
+        "meanDofs": 3032.9149159663866,
+        "meanClosureIterations": 2.119747899159664,
+        "timings": {
+          "constraintMs": 8.709663859185051,
+          "linearMs": 4.0869747866101624,
+          "assemblyMs": 8.092121848038264,
+          "rotationMs": 4.363760527692923,
+          "projectionMs": 8.810399160164746,
+          "closureSolveMs": 6.966806726044967,
+          "schurAttempts": 17.486344537815125,
+          "schurSolves": 17.168067226890756,
+          "schurFallbacks": 0.3182773109243697
+        }
+      }
+    },
+    "control": {
+      "moving": {
+        "steps": 3645,
+        "meanCpuMs": 16.732757201868484,
+        "meanNodes": 89.800548696845,
+        "meanDofs": 1685.038683127572,
+        "meanClosureIterations": 2.218655692729767,
+        "timings": {
+          "constraintMs": 4.375253759195775,
+          "linearMs": 1.7620850489790385,
+          "assemblyMs": 4.385294918104782,
+          "rotationMs": 2.4093827192675428,
+          "projectionMs": 3.9675994478626015,
+          "closureSolveMs": 3.0240603604597975,
+          "schurAttempts": 0,
+          "schurSolves": 0,
+          "schurFallbacks": 0
+        }
+      },
+      "longMoving": {
+        "steps": 952,
+        "meanCpuMs": 33.28508403221098,
+        "meanNodes": 157.98214285714286,
+        "meanDofs": 3032.9149159663866,
+        "meanClosureIterations": 2.0714285714285716,
+        "timings": {
+          "constraintMs": 8.557983193828278,
+          "linearMs": 3.844957974027185,
+          "assemblyMs": 7.973529404702306,
+          "rotationMs": 4.330462213824777,
+          "projectionMs": 9.20252101160899,
+          "closureSolveMs": 7.415966392815614,
+          "schurAttempts": 0,
+          "schurSolves": 0,
+          "schurFallbacks": 0
+        }
+      }
+    }
+  },
+  "matchedLong": {
+    "steps": 952,
+    "candidateMs": 33.57489496093838,
+    "controlMs": 33.28508403221098
+  },
+  "longStageCostReductionPercent": -0.8706930961836834,
+  "orderGroups": [
+    {
+      "first": "control",
+      "steps": 477,
+      "candidateMs": 33.277568132872354,
+      "controlMs": 33.93312369502566
+    },
+    {
+      "first": "candidate",
+      "steps": 475,
+      "candidateMs": 33.87347369143837,
+      "controlMs": 32.63431578134236
+    }
+  ],
+  "applicationFpsVerified": false,
+  "goalAchieved": false,
+  "caveat": "Independent full trajectories use alternating order on one browser thread. CPU ratios are not full-application FPS; route checks are coarse and require visual/functional review."
+}

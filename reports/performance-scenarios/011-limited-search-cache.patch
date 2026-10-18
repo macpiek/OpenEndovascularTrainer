@@ -1,0 +1,63 @@
+--- a/src/physics/kirchhoffSharedAxisRejectedLinearization.js
++++ b/src/physics/kirchhoffSharedAxisRejectedLinearization.js
+@@ -16,6 +16,9 @@
+     // The later unrestricted batch must still be tried in that case.
+     if(direction.converged||direction.failure==='active-set-limit'||direction.batchFailure==='active-set-limit'||
+         options.modifiedNewtonContext||options.incrementalContacts)return null;
++    return captureSharedAxisEquationValues(chain,options);
++}
++function captureSharedAxisEquationValues(chain,options) {
+     let size=options.rows.length*(5+arrayKeys.length);
+     for(const row of options.rows) {
+         if(!kindCode(row.kind))return null;
+@@ -93,7 +96,12 @@
+             if(!solutions?.size||entries.some(entry=>entry.solutions===solutions)||result.converged||
+                 !(Number.isFinite(result.residual)||result.failure==='band-lu-rejected'))return;
+             const config=configuration(options);if(!config)return;
+-            const snapshot=captureRejectedSharedAxisLinearization(chain,options,result);if(!snapshot)return;
++            // An exhausted search is not a certificate of impossibility. Only
++            // its individually solved KKT systems are reused: the later search
++            // still visits/pivots every working set, including new ones.
++            // The separate whole-Newton rejection memo above keeps its stricter
++            // guard and must NEVER skip a limited search's unrestricted retry.
++            const snapshot=captureSharedAxisEquationValues(chain,options);if(!snapshot)return;
+             if(entries.length===4)entries.shift();
+             // iterateActiveSet already owns copies of each saved direction.
+             // Retain that bounded map; never store mutable workspace outputs.
+--- a/tests/kirchhoffSharedAxisFallbackWorkingSet.test.js
++++ b/tests/kirchhoffSharedAxisFallbackWorkingSet.test.js
+@@ -40,10 +40,9 @@
+     cache.clear();assert.equal(cache.find(p.chain,p.options),null);
+ });
+ 
+-test('successful, limited, retained-factor, observed and unknown solver strategies retain their full retries',()=>{
++test('successful, retained-factor, observed and unknown solver strategies retain their full retries',()=>{
+     const p=problem();
+-    for(const result of [{...p.result,converged:true},{...p.result,failure:'active-set-limit'},
+-        {...p.result,batchFailure:'active-set-limit'}]) {
++    for(const result of [{...p.result,converged:true}]) {
+         const cache=createSharedAxisFallbackWorkingSetCache();cache.remember(p.chain,p.options,result,new Map([['1',structuredClone(result)]]));
+         assert.equal(cache.find(p.chain,p.options),null);
+     }
+@@ -118,3 +117,21 @@
+             captureSharedAxisReplay(earlyReference.state,fixture.sheath));
+     } finally {anatomy.dispose();}
+ });
++
++for(const wasmLinearAssembly of [false,true])test(`limited search retains solved systems while the unrestricted retry still completes its own pivots (WASM=${wasmLinearAssembly})`,()=>{
++    const n=9,layout={dofCount:n,band:n},hessian=new Float64Array(n*n);
++    for(let i=0;i<n;i++)hessian[i*n]=2+i;
++    const rows=Array.from({length:n},(_,i)=>({kind:'wall',id:`wall-${i}`,dofs:[i],jacobian:[1],gap:-.1,multiplier:0}));
++    const chain={layout,hessian},cache=createSharedAxisFallbackWorkingSetCache();
++    const options={rows,gradient:new Float64Array(n),fixed:new Uint8Array(n),tolerance:1e-8,
++        reuseConstraintWork:true,reuseMatrixAssembly:true,wasmLinearAssembly};
++    const run=extra=>solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,{...options,...extra});
++    const limited=run({maxActiveSetAttempts:1,[fallbackWorkingSetLease]:cache});
++    assert.equal(limited.converged,false);assert.equal(limited.failure,'active-set-limit');
++    const expected=run({}),actual=run({[fallbackWorkingSetLease]:cache});
++    assert.ok(actual.converged&&expected.converged);
++    for(const key of ['increment','multiplierIncrement','residual','activeSetAttempts','negativeReactionRecoveries','batchedRows'])
++        assert.deepEqual(actual[key],expected[key],key);
++    assert.ok(cache.hits>0);assert.ok(actual.factorizations<expected.factorizations);
++    cache.clear();assert.equal(cache.find(chain,options),null);
++});

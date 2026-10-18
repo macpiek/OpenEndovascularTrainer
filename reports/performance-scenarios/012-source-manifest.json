@@ -1,0 +1,18 @@
+{
+  "productionDefaultChanged": false,
+  "files": {
+    "src/physics/sharedAxisXpbdExperimental.js": "30a7c82c4db3307b128ec60fc1b3d9f96b4942500236fb0647bda9ac0af19be4",
+    "src/benchmark/crossoverAlternativeSolvers.js": "9cb9c603ff8099537304519aeca69dd75ff351f5b36e4aeeca15f3b3efdd8565",
+    "scripts/benchmark-crossover-alternative-solvers.mjs": "1033a2eb93287eee2ab610706c44aa00ecd6d71ca4c5b908e24ee0673d144c1b",
+    "scripts/validate-crossover-alternative.mjs": "db87e730ade524178a4bdd34e086cd28490f06ce2f7463321bc34afbf489fe8c",
+    "tests/sharedAxisXpbdExperimental.test.js": "3486a2a5649741b66e2caeee209112dda1a4b2e496874046fc8b25d32fa7e2b5",
+    "tests/crossoverAlternativeSolvers.browser.html": "15ad021f8381943c960d728a9aa1bbeb6c90ea459ea034dd75fd091bd866a189"
+  },
+  "browserRun": "012-xpbd64-browser.json",
+  "browserServedSources": {
+    "src/physics/sharedAxisXpbdExperimental.js": "dd38181d853aff76bcfd1aca7e00868aa5841a23aba767254a7c599de1f4e026",
+    "src/physics/kirchhoffSharedAxisProjective.js": "f382e6fe030191406f293962c849ac665d6225263b463620584691a2aac31550",
+    "src/benchmark/crossoverAlternativeSolvers.js": "5070fc8e347dfafd0f306ca81f902f2afa0e83ffd06697d52c91043f4151069d"
+  },
+  "note": "Browser hashes cover Vite-served modules and differ from raw filesystem module hashes. Original recording gzip and decoded hashes independently verified. Earlier 16-iteration prototype is retained in 012-xpbd-initial-prototype.js."
+}

@@ -1,0 +1,350 @@
+{
+  "recordedAt": "2026-10-14T12:40:38.490Z",
+  "goalAchieved": false,
+  "runtimeSourceHashesMatchLastVerifiedProduction": true,
+  "temporal": {
+    "script": "scripts/diagnose-crossover-temporal-accuracy.mjs",
+    "report": "001-temporal-accuracy.json",
+    "complete": true,
+    "cases": 7,
+    "runs": 42,
+    "acceptedRuns": 38,
+    "findings": [
+      {
+        "step": 99,
+        "replay": "001-temporal-step-99-replay.json.gz",
+        "failedRefinements": [
+          {
+            "name": "ordinary/16",
+            "substep": 8,
+            "status": "iteration-limit",
+            "finalResidual": {
+              "force": 0.000009377139576827176,
+              "torque": 2.475169713633818e-8,
+              "length": 8.970602038971265e-14
+            }
+          }
+        ],
+        "earlyDifference": {
+          "a": "ordinary/1",
+          "b": "early/1",
+          "maxPositionMm": 0.00542495354021119,
+          "rmsPositionMm": 0.00120557072962501,
+          "maxVelocityMmPerSecond": 0.5490940657614966,
+          "tipPositionMm": {
+            "wire": 0.00004650487078847236,
+            "catheter": 0.0013130187085029941
+          }
+        }
+      },
+      {
+        "step": 152,
+        "replay": "001-temporal-step-152-replay.json.gz",
+        "failedRefinements": [
+          {
+            "name": "ordinary/8",
+            "substep": 4,
+            "status": "iteration-limit",
+            "finalResidual": {
+              "force": 0.000002538386979722418,
+              "torque": 8.044935356776861e-9,
+              "length": 8.881784197001252e-14
+            }
+          },
+          {
+            "name": "ordinary/16",
+            "substep": 9,
+            "status": "iteration-limit",
+            "finalResidual": {
+              "force": 0.000009222143489751033,
+              "torque": 2.775414043032498e-8,
+              "length": 7.37188088351104e-14
+            }
+          }
+        ],
+        "earlyDifference": {
+          "a": "ordinary/1",
+          "b": "early/1",
+          "maxPositionMm": 0.0006418941634438235,
+          "rmsPositionMm": 0.00020527172182857592,
+          "maxVelocityMmPerSecond": 0.04538957663744663,
+          "tipPositionMm": {
+            "wire": 0.00008593642940982974,
+            "catheter": 0.00011098385590053461
+          }
+        }
+      },
+      {
+        "step": 173,
+        "replay": "001-temporal-step-173-replay.json.gz",
+        "failedRefinements": [],
+        "earlyDifference": {
+          "a": "ordinary/1",
+          "b": "early/1",
+          "maxPositionMm": 0.0005445568436423945,
+          "rmsPositionMm": 0.00013730572385010846,
+          "maxVelocityMmPerSecond": 0.008430330170108868,
+          "tipPositionMm": {
+            "wire": 0.000029413009697397647,
+            "catheter": 0.00007759444834704417
+          }
+        },
+        "ordinaryVsFine": {
+          "a": "ordinary/1",
+          "b": "ordinary/16",
+          "maxPositionMm": 0.0004837482131970734,
+          "rmsPositionMm": 0.00012763272768379988,
+          "maxVelocityMmPerSecond": 0.009176078309501819,
+          "tipPositionMm": {
+            "wire": 0.0000918747327810214,
+            "catheter": 0.0001061081805402248
+          }
+        },
+        "earlyVsFine": {
+          "a": "early/1",
+          "b": "ordinary/16",
+          "maxPositionMm": 0.001028283847128631,
+          "rmsPositionMm": 0.0002630377627686892,
+          "maxVelocityMmPerSecond": 0.017034006246422467,
+          "tipPositionMm": {
+            "wire": 0.00011941776698774499,
+            "catheter": 0.0001759476621144681
+          }
+        }
+      },
+      {
+        "step": 203,
+        "replay": "001-temporal-step-203-replay.json.gz",
+        "failedRefinements": [],
+        "earlyDifference": {
+          "a": "ordinary/1",
+          "b": "early/1",
+          "maxPositionMm": 1.1457157353758233e-13,
+          "rmsPositionMm": 4.195496698875648e-14,
+          "maxVelocityMmPerSecond": 0,
+          "tipPositionMm": {
+            "wire": 0,
+            "catheter": 0
+          }
+        },
+        "ordinaryVsFine": {
+          "a": "ordinary/1",
+          "b": "ordinary/16",
+          "maxPositionMm": 0.0008641107584105337,
+          "rmsPositionMm": 0.00029231753671205994,
+          "maxVelocityMmPerSecond": 0.015736858885536695,
+          "tipPositionMm": {
+            "wire": 0.0002481557466407863,
+            "catheter": 0.00027925920292749535
+          }
+        },
+        "earlyVsFine": {
+          "a": "early/1",
+          "b": "ordinary/16",
+          "maxPositionMm": 0.0008641107584105337,
+          "rmsPositionMm": 0.00029231753671205994,
+          "maxVelocityMmPerSecond": 0.015736858885536695,
+          "tipPositionMm": {
+            "wire": 0.0002481557466407863,
+            "catheter": 0.00027925920292749535
+          }
+        }
+      },
+      {
+        "step": 239,
+        "replay": "001-temporal-step-239-replay.json.gz",
+        "failedRefinements": [],
+        "earlyDifference": {
+          "a": "ordinary/1",
+          "b": "early/1",
+          "maxPositionMm": 0.00022633844370525356,
+          "rmsPositionMm": 0.00008643043911695886,
+          "maxVelocityMmPerSecond": 0.018770492983733716,
+          "tipPositionMm": {
+            "wire": 0.00004277522219266163,
+            "catheter": 0.000052939263549066254
+          }
+        },
+        "ordinaryVsFine": {
+          "a": "ordinary/1",
+          "b": "ordinary/16",
+          "maxPositionMm": 0.00006541053293091955,
+          "rmsPositionMm": 0.000024094335290132684,
+          "maxVelocityMmPerSecond": 0.007514283132186355,
+          "tipPositionMm": {
+            "wire": 0.000025915835384924212,
+            "catheter": 0.000018399726072008562
+          }
+        },
+        "earlyVsFine": {
+          "a": "early/1",
+          "b": "ordinary/16",
+          "maxPositionMm": 0.00028881645901003984,
+          "rmsPositionMm": 0.00010976495904533044,
+          "maxVelocityMmPerSecond": 0.02243483595539837,
+          "tipPositionMm": {
+            "wire": 0.00006868531253484491,
+            "catheter": 0.00007129156387066693
+          }
+        }
+      },
+      {
+        "step": 250,
+        "replay": "001-temporal-step-250-replay.json.gz",
+        "failedRefinements": [],
+        "earlyDifference": {
+          "a": "ordinary/1",
+          "b": "early/1",
+          "maxPositionMm": 1.1457157353758233e-13,
+          "rmsPositionMm": 3.877676471744004e-14,
+          "maxVelocityMmPerSecond": 0,
+          "tipPositionMm": {
+            "wire": 0,
+            "catheter": 0
+          }
+        },
+        "ordinaryVsFine": {
+          "a": "ordinary/1",
+          "b": "ordinary/16",
+          "maxPositionMm": 0.00048420003412149784,
+          "rmsPositionMm": 0.00014162990186154762,
+          "maxVelocityMmPerSecond": 0.012833029898061213,
+          "tipPositionMm": {
+            "wire": 0.00005052194828321758,
+            "catheter": 0.00010564188691365236
+          }
+        },
+        "earlyVsFine": {
+          "a": "early/1",
+          "b": "ordinary/16",
+          "maxPositionMm": 0.00048420003412149784,
+          "rmsPositionMm": 0.00014162990186154762,
+          "maxVelocityMmPerSecond": 0.012833029898061213,
+          "tipPositionMm": {
+            "wire": 0.00005052194828321758,
+            "catheter": 0.00010564188691365236
+          }
+        }
+      },
+      {
+        "step": 288,
+        "replay": "001-temporal-step-288-replay.json.gz",
+        "failedRefinements": [
+          {
+            "name": "ordinary/8",
+            "substep": 1,
+            "status": "iteration-limit",
+            "finalResidual": {
+              "force": 0.000002401800884399563,
+              "torque": 6.079062586650252e-9,
+              "length": 6.217248937900877e-14
+            }
+          }
+        ],
+        "earlyDifference": {
+          "a": "ordinary/1",
+          "b": "early/1",
+          "maxPositionMm": 1.1368683772161603e-13,
+          "rmsPositionMm": 3.8764183028362107e-14,
+          "maxVelocityMmPerSecond": 0,
+          "tipPositionMm": {
+            "wire": 0,
+            "catheter": 0
+          }
+        },
+        "ordinaryVsFine": {
+          "a": "ordinary/1",
+          "b": "ordinary/16",
+          "maxPositionMm": 0.00034616492487039694,
+          "rmsPositionMm": 0.00012602281573914653,
+          "maxVelocityMmPerSecond": 0.019682847216916478,
+          "tipPositionMm": {
+            "wire": 0.00004999686704003184,
+            "catheter": 0.00005294875637027289
+          }
+        },
+        "earlyVsFine": {
+          "a": "early/1",
+          "b": "ordinary/16",
+          "maxPositionMm": 0.00034616492487039694,
+          "rmsPositionMm": 0.00012602281573914653,
+          "maxVelocityMmPerSecond": 0.019682847216916478,
+          "tipPositionMm": {
+            "wire": 0.00004999686704003184,
+            "catheter": 0.00005294875637027289
+          }
+        }
+      }
+    ],
+    "decision": "Do not enable early negative-contact recovery. It changes accepted temporal subdivision, and at steps 173 and 239 it is farther from the finer-time reference. Refinement itself did not converge in four runs, so independent accuracy is not established for every case."
+  },
+  "firstSearchBudget": {
+    "experiments": [
+      {
+        "report": "001-newton-limit8-experiment.json",
+        "passed": false,
+        "comparisonToleranceMm": 1e-7,
+        "runs": [
+          {
+            "version": "before",
+            "steps": 41,
+            "maxWorldDifferenceMm": 0
+          },
+          {
+            "version": "after",
+            "steps": 40,
+            "maxWorldDifferenceMm": 2.104142209227009e-7
+          }
+        ]
+      },
+      {
+        "report": "001-newton-limit8-geometry-budget.json",
+        "passed": false,
+        "comparisonToleranceMm": 0.00001,
+        "runs": [
+          {
+            "version": "before",
+            "steps": 55,
+            "maxWorldDifferenceMm": 0
+          },
+          {
+            "version": "after",
+            "steps": 56,
+            "maxWorldDifferenceMm": 0.000015558134307754072
+          }
+        ]
+      }
+    ],
+    "decision": "Keep 16 as the initial active-set budget. Reducing it to 8 changed the trajectory; the difference grew from 2.1e-7 mm near step 40 to 1.56e-5 mm near step 55. Neither solver force nor geometry acceptance tolerances were changed in these experiments."
+  },
+  "alternateTangentCache": {
+    "report": "001-fallback-assembly-throughput.json",
+    "patch": "001-fallback-assembly-experiment.patch",
+    "runtimeEnabled": false,
+    "passed": true,
+    "stepsPerVersion": 600,
+    "maxWorldDifferenceMm": 0,
+    "warmCpuReductionPercent": 1.4411435636877745,
+    "combinedCpuReductionPercent": -0.48221116190085844,
+    "initialUnitTests": {
+      "report": "001-fallback-assembly-initial-tests.log",
+      "passed": 12,
+      "failed": 0
+    },
+    "decision": "Withdrawn from runtime: no convincing whole-scenario speedup (warm repetition about 1.4% faster, combined repetitions about 0.5% slower), while retaining another matrix raises memory and implementation complexity. The archived patch includes an extra changed-load assertion added after the initial unit run; rerun its suite before any future reuse."
+  },
+  "validation": {
+    "diagnosticSyntaxChecked": true,
+    "diffCheckPassed": true,
+    "productionRuntimeMatches": "001-row-work-final-throughput.json",
+    "productionBrowserUnchanged": "001-browser-row-work.json",
+    "note": "No new browser performance result: production code was restored exactly to the previously measured 23.9 Hz version."
+  },
+  "nextWork": "Use the captured difficult steps to inspect force/residual precision and avoid repeated failed assemblies without changing the accepted time integration path. Temporal-reference failures need reproduction before they can be used to judge a faster solver.",
+  "limitations": [
+    "Temporal refinement estimates consistency, not ground truth; contact/friction can make convergence non-monotone.",
+    "Frozen flow samples match production subdivision semantics; this does not test a fully coupled fluid substep.",
+    "Only one outer timestep per case is compared; this cannot establish long-cycle stability.",
+    "Diagnostic elapsed times are not paired performance benchmarks."
+  ]
+}

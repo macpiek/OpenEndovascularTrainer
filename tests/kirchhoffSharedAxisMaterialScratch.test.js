@@ -43,3 +43,27 @@ for(const wasmMaterial of [false,true])test(`material assembly scratch stays exa
         }
     }
 });
+
+for(const wasmMaterial of [false,true])test(`borrowed torque buffers cannot overwrite promoted poses or another hinge (WASM=${wasmMaterial})`,()=>{
+    const s=createSharedAxisNative({tools:[{id:'wire',insertion:75.3},{id:'catheter',insertion:63.7,type:'pigtail'}],
+        samplePosition:x=>[50*Math.sin(x/50),50*(1-Math.cos(x/50)),.02*x]});
+    const pose=captureSharedAxisNative(s),bank=[];
+    const delta=Float64Array.from({length:s.layout.dofCount},(_,i)=>.002*Math.sin(i));
+    for(let turn=0;turn<3;turn++) {
+        restoreSharedAxisNative(s,pose);
+        if(turn)applySharedAxisNativeIncrement(s,delta,new Float64Array(s.multipliers.length),turn);
+        const expectedEnergy=assembleSharedAxisMaterialTangent(s,true,null,wasmMaterial,false);
+        const expectedGradient=s.chain.gradient.slice(),expectedTangent=s.chain.tangent.slice(),accepted=captureSharedAxisNative(s);
+        const previous=bank.map(h=>h.material);
+        assembleSharedAxisMaterialTangent(s,false,{capture:bank},wasmMaterial,true);
+        if(previous.length)bank.forEach((h,i)=>assert.equal(h.material,previous[i],'capture reuses its own buffers'));
+        const saved=structuredClone(bank);
+        applySharedAxisNativeIncrement(s,delta,new Float64Array(s.multipliers.length));
+        assembleSharedAxisMaterialTangent(s,true,null,wasmMaterial,true);
+        assert.deepEqual(bank,saved,'unrelated trial must not mutate the captured pose');
+        restoreSharedAxisNative(s,accepted);
+        assert.equal(assembleSharedAxisMaterialTangent(s,true,{reuse:bank},wasmMaterial,true),expectedEnergy);
+        assert.deepEqual(s.chain.gradient,expectedGradient);
+        assert.deepEqual(s.chain.tangent,expectedTangent);
+    }
+});

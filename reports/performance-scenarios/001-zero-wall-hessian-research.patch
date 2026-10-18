@@ -1,0 +1,21 @@
+--- a/src/physics/kirchhoffSharedAxisMatrixAssembly.js
++++ b/src/physics/kirchhoffSharedAxisMatrixAssembly.js
+@@ -21,6 +21,9 @@
+     // the first wall Hessian stops the prefix even if currently inactive.
+     for(const r of context.rows) {
+         if(!r.geometricHessian)continue;
++        if(r.kind!=='length'&&r.geometricHessian.every(v=>v===0)) {
++            included.add(r);continue;
++        }
+         if(r.kind!=='length'||r.dofs.some(p=>r.dofs.some(q=>Math.abs(p-q)>half)))break;
+         const m=r.dofs.length;
+         for(let i=0;i<m;i++)for(let j=0;j<m;j++) {
+@@ -102,7 +105,7 @@
+         }
+         if(r.geometricHessian&&!base.included.has(r))addHessian(w,maps,r);
+     }
+-    for(const r of inactiveRows)if(r.geometricHessian)addHessian(w,maps,r);
++    for(const r of inactiveRows)if(r.geometricHessian&&!base.included.has(r))addHessian(w,maps,r);
+ }
+ 
+ // Fixed nodes usually occupy only the sheath entrance. Cache their exact band

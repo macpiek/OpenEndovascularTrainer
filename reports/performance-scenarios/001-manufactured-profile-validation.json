@@ -1,0 +1,532 @@
+{
+  "recordedAt": "2026-10-14T12:50:50.052Z",
+  "goalAchieved": false,
+  "change": "Reuse exact manufactured constitutive values when feed builds a fresh body with the same immutable built-in profile, material coordinates, tip coordinate and shaft/tip scales. Cache snapshots are private and independent of live body edits; custom samplers and delivery exposure are reevaluated.",
+  "sourceHashes": {
+    "src/physics/kirchhoffSharedAxisNative.js": "1bbe2b7c219ca54cc24f21023153d56beb42b206c5d1aed8f175c58e7c38bff9",
+    "tests/kirchhoffSharedAxisManufacturedProfile.test.js": "e6c0b01dc7b52083a2330f519693a1ad5303c427d1fa9778f975117e675fd838",
+    "scripts/test-suites.json": "81f0970e3346e5fed430bffba4179572a906505aeafb1ce23e00a00f6fd3dfaf"
+  },
+  "pairedBenchmarks": [
+    {
+      "file": "001-manufactured-profile-throughput.json",
+      "passed": true,
+      "stepsPerVersion": 600,
+      "maxWorldDifferenceMm": 0,
+      "cpuBudgetMet": false,
+      "totalMs": {
+        "before": {
+          "steps": 600,
+          "totalMs": 19732.20588100004,
+          "medianMs": 23.450082999999722,
+          "p95Ms": 77.86033399999724,
+          "maxMs": 459.17641600000206,
+          "cpuStepsPerSecond": 30.407142699526283,
+          "withinBudget": 12
+        },
+        "after": {
+          "steps": 600,
+          "totalMs": 19130.439205000104,
+          "medianMs": 22.57012499999837,
+          "p95Ms": 74.04641700000138,
+          "maxMs": 433.5387499999997,
+          "cpuStepsPerSecond": 31.363629113291793,
+          "withinBudget": 26
+        }
+      },
+      "cpuReductionPercent": 3.0496675314916177,
+      "repetitions": [
+        {
+          "version": "before",
+          "repeat": 0,
+          "summary": {
+            "steps": 300,
+            "totalMs": 9918.47141999999,
+            "medianMs": 23.378375000000233,
+            "p95Ms": 70.82462499999929,
+            "maxMs": 459.17641600000206,
+            "cpuStepsPerSecond": 30.24659620383322,
+            "withinBudget": 6
+          },
+          "phases": {
+            "hold": {
+              "steps": 30,
+              "totalMs": 1276.538705999999,
+              "medianMs": 29.783457999999882,
+              "p95Ms": 140.56612500000028,
+              "maxMs": 215.6824160000001,
+              "cpuStepsPerSecond": 23.501050033965853,
+              "withinBudget": 0
+            },
+            "withdraw": {
+              "steps": 20,
+              "totalMs": 566.2992519999998,
+              "medianMs": 26.60687499999949,
+              "p95Ms": 38.98441699999967,
+              "maxMs": 52.73720899999989,
+              "cpuStepsPerSecond": 35.31701645263696,
+              "withinBudget": 0
+            },
+            "advance": {
+              "steps": 20,
+              "totalMs": 586.954166999999,
+              "medianMs": 26.041000000000167,
+              "p95Ms": 43.623874999999316,
+              "maxMs": 84.47900000000027,
+              "cpuStepsPerSecond": 34.07421077223571,
+              "withinBudget": 0
+            },
+            "settle": {
+              "steps": 230,
+              "totalMs": 7488.6792949999935,
+              "medianMs": 22.326208000000406,
+              "p95Ms": 78.20716600000014,
+              "maxMs": 459.17641600000206,
+              "cpuStepsPerSecond": 30.713025747218914,
+              "withinBudget": 6
+            }
+          },
+          "factorizations": 3584
+        },
+        {
+          "version": "after",
+          "repeat": 0,
+          "summary": {
+            "steps": 300,
+            "totalMs": 9828.399071000022,
+            "medianMs": 22.47004200000083,
+            "p95Ms": 82.12437500000124,
+            "maxMs": 433.5387499999997,
+            "cpuStepsPerSecond": 30.523791090777873,
+            "withinBudget": 9
+          },
+          "phases": {
+            "hold": {
+              "steps": 30,
+              "totalMs": 1224.489957000003,
+              "medianMs": 28.38983300000018,
+              "p95Ms": 147.40712500000063,
+              "maxMs": 184.8801669999998,
+              "cpuStepsPerSecond": 24.499996777025366,
+              "withinBudget": 0
+            },
+            "withdraw": {
+              "steps": 20,
+              "totalMs": 561.6803760000003,
+              "medianMs": 26.164082999999664,
+              "p95Ms": 39.998499999999694,
+              "maxMs": 53.73033400000077,
+              "cpuStepsPerSecond": 35.607439487969565,
+              "withinBudget": 0
+            },
+            "advance": {
+              "steps": 20,
+              "totalMs": 604.5827490000001,
+              "medianMs": 26.08337500000016,
+              "p95Ms": 48.82074999999986,
+              "maxMs": 83.71450000000004,
+              "cpuStepsPerSecond": 33.080666018143354,
+              "withinBudget": 0
+            },
+            "settle": {
+              "steps": 230,
+              "totalMs": 7437.645989000018,
+              "medianMs": 21.80999999999949,
+              "p95Ms": 82.12437500000124,
+              "maxMs": 433.5387499999997,
+              "cpuStepsPerSecond": 30.923762752376334,
+              "withinBudget": 9
+            }
+          },
+          "factorizations": 3584
+        },
+        {
+          "version": "before",
+          "repeat": 1,
+          "summary": {
+            "steps": 300,
+            "totalMs": 9813.734461000047,
+            "medianMs": 23.603375000006054,
+            "p95Ms": 77.86033399999724,
+            "maxMs": 422.8947909999988,
+            "cpuStepsPerSecond": 30.569402625698224,
+            "withinBudget": 6
+          },
+          "phases": {
+            "hold": {
+              "steps": 30,
+              "totalMs": 1131.2792480000062,
+              "medianMs": 29.3772080000017,
+              "p95Ms": 104.9194580000003,
+              "maxMs": 108.63558299999931,
+              "cpuStepsPerSecond": 26.5186513878312,
+              "withinBudget": 0
+            },
+            "withdraw": {
+              "steps": 20,
+              "totalMs": 620.6980829999993,
+              "medianMs": 28.019374999999854,
+              "p95Ms": 60.50116699999853,
+              "maxMs": 63.39795800000138,
+              "cpuStepsPerSecond": 32.22178470945917,
+              "withinBudget": 0
+            },
+            "advance": {
+              "steps": 20,
+              "totalMs": 540.5163730000058,
+              "medianMs": 26.30816699999923,
+              "p95Ms": 39.17550000000119,
+              "maxMs": 64.60279100000116,
+              "cpuStepsPerSecond": 37.00165434211515,
+              "withinBudget": 0
+            },
+            "settle": {
+              "steps": 230,
+              "totalMs": 7521.240757000036,
+              "medianMs": 22.46170799999527,
+              "p95Ms": 79.28908299999966,
+              "maxMs": 422.8947909999988,
+              "cpuStepsPerSecond": 30.58006084779808,
+              "withinBudget": 6
+            }
+          },
+          "factorizations": 3584
+        },
+        {
+          "version": "after",
+          "repeat": 1,
+          "summary": {
+            "steps": 300,
+            "totalMs": 9302.040134000086,
+            "medianMs": 22.57116699999824,
+            "p95Ms": 62.84883300000365,
+            "maxMs": 389.3915829999969,
+            "cpuStepsPerSecond": 32.25098964080617,
+            "withinBudget": 17
+          },
+          "phases": {
+            "hold": {
+              "steps": 30,
+              "totalMs": 1050.6739989999987,
+              "medianMs": 29.541541999999026,
+              "p95Ms": 81.70295799999803,
+              "maxMs": 122.99666699999943,
+              "cpuStepsPerSecond": 28.55310022761878,
+              "withinBudget": 0
+            },
+            "withdraw": {
+              "steps": 20,
+              "totalMs": 579.1354560000109,
+              "medianMs": 27.7354579999992,
+              "p95Ms": 39.86204100000032,
+              "maxMs": 60.66437500000029,
+              "cpuStepsPerSecond": 34.534235113381875,
+              "withinBudget": 0
+            },
+            "advance": {
+              "steps": 20,
+              "totalMs": 547.1240859999998,
+              "medianMs": 25.36420899999939,
+              "p95Ms": 40.773166999999376,
+              "maxMs": 63.5023340000007,
+              "cpuStepsPerSecond": 36.5547789098797,
+              "withinBudget": 0
+            },
+            "settle": {
+              "steps": 230,
+              "totalMs": 7125.106593000077,
+              "medianMs": 21.50724999999875,
+              "p95Ms": 74.04641700000138,
+              "maxMs": 389.3915829999969,
+              "cpuStepsPerSecond": 32.280218828720265,
+              "withinBudget": 17
+            }
+          },
+          "factorizations": 3584
+        }
+      ]
+    },
+    {
+      "file": "001-manufactured-profile-confirmation.json",
+      "passed": true,
+      "stepsPerVersion": 600,
+      "maxWorldDifferenceMm": 0,
+      "cpuBudgetMet": false,
+      "totalMs": {
+        "before": {
+          "steps": 600,
+          "totalMs": 19070.44007400005,
+          "medianMs": 22.700999999999112,
+          "p95Ms": 69.26483400000143,
+          "maxMs": 417.7852919999932,
+          "cpuStepsPerSecond": 31.46230489027982,
+          "withinBudget": 13
+        },
+        "after": {
+          "steps": 600,
+          "totalMs": 18327.092332000044,
+          "medianMs": 21.8403330000001,
+          "p95Ms": 64.8650000000016,
+          "maxMs": 400.27991699999984,
+          "cpuStepsPerSecond": 32.738417482208526,
+          "withinBudget": 36
+        }
+      },
+      "cpuReductionPercent": 3.8979055497175397,
+      "repetitions": [
+        {
+          "version": "before",
+          "repeat": 0,
+          "summary": {
+            "steps": 300,
+            "totalMs": 9580.782708000006,
+            "medianMs": 22.507791999998517,
+            "p95Ms": 61.37250000000131,
+            "maxMs": 388.7212920000002,
+            "cpuStepsPerSecond": 31.312681765499008,
+            "withinBudget": 5
+          },
+          "phases": {
+            "hold": {
+              "steps": 30,
+              "totalMs": 1249.4879159999996,
+              "medianMs": 28.794582999999875,
+              "p95Ms": 171.63183299999992,
+              "maxMs": 201.26770799999986,
+              "cpuStepsPerSecond": 24.009836042303917,
+              "withinBudget": 0
+            },
+            "withdraw": {
+              "steps": 20,
+              "totalMs": 576.702792,
+              "medianMs": 25.536708000000544,
+              "p95Ms": 53.229207999999744,
+              "maxMs": 55.671917000000576,
+              "cpuStepsPerSecond": 34.6799083989869,
+              "withinBudget": 0
+            },
+            "advance": {
+              "steps": 20,
+              "totalMs": 587.2262489999966,
+              "medianMs": 25.97966699999961,
+              "p95Ms": 46.14166700000078,
+              "maxMs": 83.13983299999927,
+              "cpuStepsPerSecond": 34.058423025296534,
+              "withinBudget": 0
+            },
+            "settle": {
+              "steps": 230,
+              "totalMs": 7167.36575100001,
+              "medianMs": 21.76445799999783,
+              "p95Ms": 72.7755419999994,
+              "maxMs": 388.7212920000002,
+              "cpuStepsPerSecond": 32.08989299421615,
+              "withinBudget": 5
+            }
+          },
+          "factorizations": 3584
+        },
+        {
+          "version": "after",
+          "repeat": 0,
+          "summary": {
+            "steps": 300,
+            "totalMs": 9240.00142,
+            "medianMs": 21.909499999999753,
+            "p95Ms": 72.94995799999924,
+            "maxMs": 400.27991699999984,
+            "cpuStepsPerSecond": 32.467527477934084,
+            "withinBudget": 19
+          },
+          "phases": {
+            "hold": {
+              "steps": 30,
+              "totalMs": 1194.1476259999986,
+              "medianMs": 27.22400000000016,
+              "p95Ms": 157.29775000000018,
+              "maxMs": 177.8537080000001,
+              "cpuStepsPerSecond": 25.122521995450533,
+              "withinBudget": 0
+            },
+            "withdraw": {
+              "steps": 20,
+              "totalMs": 562.5820799999983,
+              "medianMs": 26.09150000000045,
+              "p95Ms": 39.763457999999446,
+              "maxMs": 53.58845800000017,
+              "cpuStepsPerSecond": 35.55036804585041,
+              "withinBudget": 0
+            },
+            "advance": {
+              "steps": 20,
+              "totalMs": 613.8929200000002,
+              "medianMs": 27.69145800000024,
+              "p95Ms": 45.484292000000096,
+              "maxMs": 86.13516700000037,
+              "cpuStepsPerSecond": 32.57897159002908,
+              "withinBudget": 0
+            },
+            "settle": {
+              "steps": 230,
+              "totalMs": 6869.378794000004,
+              "medianMs": 20.854208000000654,
+              "p95Ms": 72.94995799999924,
+              "maxMs": 400.27991699999984,
+              "cpuStepsPerSecond": 33.481921276621314,
+              "withinBudget": 19
+            }
+          },
+          "factorizations": 3584
+        },
+        {
+          "version": "before",
+          "repeat": 1,
+          "summary": {
+            "steps": 300,
+            "totalMs": 9489.657366000043,
+            "medianMs": 22.99724999999671,
+            "p95Ms": 69.26483400000143,
+            "maxMs": 417.7852919999932,
+            "cpuStepsPerSecond": 31.613364785419233,
+            "withinBudget": 8
+          },
+          "phases": {
+            "hold": {
+              "steps": 30,
+              "totalMs": 905.2016680000015,
+              "medianMs": 24.969583999998576,
+              "p95Ms": 69.26483400000143,
+              "maxMs": 98.0088340000002,
+              "cpuStepsPerSecond": 33.14178603568365,
+              "withinBudget": 0
+            },
+            "withdraw": {
+              "steps": 20,
+              "totalMs": 543.7355820000012,
+              "medianMs": 25.891499999997905,
+              "p95Ms": 39.04516700000022,
+              "maxMs": 53.56995800000004,
+              "cpuStepsPerSecond": 36.78258451733982,
+              "withinBudget": 0
+            },
+            "advance": {
+              "steps": 20,
+              "totalMs": 648.6136239999978,
+              "medianMs": 31.689500000000407,
+              "p95Ms": 64.92791700000089,
+              "maxMs": 75.09791699999914,
+              "cpuStepsPerSecond": 30.834998310180527,
+              "withinBudget": 0
+            },
+            "settle": {
+              "steps": 230,
+              "totalMs": 7392.106492000043,
+              "medianMs": 22.217624999997497,
+              "p95Ms": 78.3090830000001,
+              "maxMs": 417.7852919999932,
+              "cpuStepsPerSecond": 31.11427037055173,
+              "withinBudget": 8
+            }
+          },
+          "factorizations": 3584
+        },
+        {
+          "version": "after",
+          "repeat": 1,
+          "summary": {
+            "steps": 300,
+            "totalMs": 9087.090912000043,
+            "medianMs": 21.8214169999992,
+            "p95Ms": 63.411582999997336,
+            "maxMs": 385.6700839999976,
+            "cpuStepsPerSecond": 33.0138658130769,
+            "withinBudget": 17
+          },
+          "phases": {
+            "hold": {
+              "steps": 30,
+              "totalMs": 901.6432070000083,
+              "medianMs": 24.850749999997788,
+              "p95Ms": 64.8650000000016,
+              "maxMs": 98.62479099999837,
+              "cpuStepsPerSecond": 33.2725847287393,
+              "withinBudget": 0
+            },
+            "withdraw": {
+              "steps": 20,
+              "totalMs": 536.1586230000066,
+              "medianMs": 25.48791699999856,
+              "p95Ms": 38.018958000000566,
+              "maxMs": 54.23033299999952,
+              "cpuStepsPerSecond": 37.30239362391035,
+              "withinBudget": 0
+            },
+            "advance": {
+              "steps": 20,
+              "totalMs": 578.7382519999919,
+              "medianMs": 28.474332999998296,
+              "p95Ms": 43.39887499999895,
+              "maxMs": 63.411582999997336,
+              "cpuStepsPerSecond": 34.55793690996648,
+              "withinBudget": 0
+            },
+            "settle": {
+              "steps": 230,
+              "totalMs": 7070.5508300000365,
+              "medianMs": 21.17920800000138,
+              "p95Ms": 74.6262089999982,
+              "maxMs": 385.6700839999976,
+              "cpuStepsPerSecond": 32.529290225044434,
+              "withinBudget": 17
+            }
+          },
+          "factorizations": 3584
+        }
+      ]
+    }
+  ],
+  "aggregate": {
+    "stepsPerVersion": 1200,
+    "totalMs": {
+      "before": 38802.64595500009,
+      "after": 37457.53153700015
+    },
+    "cpuReductionPercent": 3.4665533364912404,
+    "maxWorldDifferenceMm": 0
+  },
+  "validation": {
+    "unitLog": "001-manufactured-profile-unit.log",
+    "unitPassed": 7,
+    "regressionLog": "001-manufactured-profile-regressions.log",
+    "regressionPassed": 73,
+    "failed": 0,
+    "note": "The five new cache tests appear in both test invocations.",
+    "buildLog": "001-manufactured-profile-build.log",
+    "buildPassed": true,
+    "diffCheckPassed": true
+  },
+  "browser": {
+    "report": "001-browser-manufactured-profile.json",
+    "screenshot": "001-browser-manufactured-profile.jpg",
+    "passed": true,
+    "acceptedPhysicsHz": 24.93392509858782,
+    "renderFps": 59.67519406928685,
+    "targetSteps": 300,
+    "wallSeconds": 12.031799999952316,
+    "simulationSeconds": 5,
+    "stepCpuMs": {
+      "median": 24.200000047683716,
+      "p95": 60,
+      "max": 335.39999985694885
+    },
+    "consoleErrors": 0,
+    "goalAchieved": false
+  },
+  "limitations": [
+    "Paired tests cover the saved stage-05 hold/withdraw/advance/settle continuation, not the entire manual crossover.",
+    "Browser measurement uses the actual fixed timestep scheduler and full mechanical grid, but only a simplified rendering of the axes, without full RTG and extra app work.",
+    "The small advance phase timing varies between the two runs; the aggregate full continuation improved in all four repetitions.",
+    "The 60 accepted-physics-Hz goal remains unmet."
+  ],
+  "nextWork": "Optimize remaining repeated contact assembly and failed-solve tails. Keep the exact full-resolution production model; early recovery and adaptive coarsening remain unproven for the required accuracy."
+}

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createSharedAxisLinear, solveSharedAxisLinear, iterateSharedAxisLinear } from '../src/physics/kirchhoffSharedAxisLinear.js';
+import { createSharedAxisLinear, solveSharedAxisLinear, iterateSharedAxisLinear, getSharedAxisLinearScratchStats } from '../src/physics/kirchhoffSharedAxisLinear.js';
 import { advanceSharedAxis } from '../src/physics/kirchhoffSharedAxisAppSystem.js';
 import { loadCoupledRuntimeAnatomy } from './helpers/coupledRuntimeFixture.js';
 import { captureSharedAxisReplay, restoreSharedAxisReplay } from './helpers/sharedAxisReplay.js';
@@ -14,6 +14,32 @@ function independent(n = 12) {
 }
 const output = r => ({ increment: Array.from(r.increment), multiplierIncrement: Array.from(r.multiplierIncrement),
     converged: r.converged, residual: r.residual, failure: r.failure });
+
+for(const wasmLinearAssembly of [false,true])test(`shared numerical buffers preserve interleaved solvers, cancelled calls and owned results (WASM=${wasmLinearAssembly})`,()=>{
+    const solveOptions={reuseConstraintWork:true,reuseMatrixAssembly:true,wasmLinearAssembly};
+    const run=(f,extra={})=>solveSharedAxisLinear(createSharedAxisLinear(f.layout,f.rows,{lazy:true}),f.chain,{...f,...solveOptions,...extra});
+    for(const size of [5,27,137,11,27]) {
+        const a=independent(size),b=independent(size+3);
+        b.chain.hessian.fill(2);b.gradient.fill(-.2);b.fixed[0]=1;b.rows[0].gap=1;
+        b.rows.forEach((r,i)=>{r.jacobian[0]=1+i/20;});
+        const beforeA=structuredClone(a),beforeB=structuredClone(b);
+        const expectedA=output(run(a,{reuseLinearBuffers:false})),expectedB=output(run(b,{reuseLinearBuffers:false}));
+        const wa=createSharedAxisLinear(a.layout,a.rows,{lazy:true}),wb=createSharedAxisLinear(b.layout,b.rows,{lazy:true});
+        const ia=iterateSharedAxisLinear(wa,a.chain,{...a,...solveOptions}),ib=iterateSharedAxisLinear(wb,b.chain,{...b,...solveOptions});
+        let na,nb;
+        do {if(!na?.done)na=ia.next();if(!nb?.done)nb=ib.next();}while(!na.done||!nb.done);
+        assert.deepEqual(output(na.value),expectedA);assert.deepEqual(output(nb.value),expectedB);
+        const retained=output(na.value);run(b);assert.deepEqual(output(na.value),retained);
+        const cancelled=iterateSharedAxisLinear(wa,a.chain,{...a,...solveOptions});cancelled.next();cancelled.next();
+        run(b);cancelled.return();assert.deepEqual(output(run(a)),expectedA);
+        assert.deepEqual(a,beforeA);assert.deepEqual(b,beforeB);
+    }
+    const warm=getSharedAxisLinearScratchStats();
+    for(let i=0;i<40;i++)run(independent(12+i%12));
+    const after=getSharedAxisLinearScratchStats();
+    assert.equal(after.compactNumericAllocations,warm.compactNumericAllocations,'New physical workspaces reuse the already-sized numerical arena');
+    assert.ok(after.compactLayouts<=16);
+});
 
 test('reused compact maps refresh coefficients, masks and extra-force supports and match a fresh reference',()=>{
     const f=independent(12),w=createSharedAxisLinear(f.layout,f.rows,{lazy:true});

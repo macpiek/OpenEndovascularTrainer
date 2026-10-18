@@ -1,0 +1,66 @@
+{
+  "updatedAt": "2026-10-17T16:43:34.459280+00:00",
+  "classificationOfPreviousGoalTurn": "Progress: 016 implemented and rejected two material-chord variants in the browser, restored the baseline, and identified an unexplained Node control mismatch.",
+  "classificationOfThisTurn": "Progress: captured exact browser worker requests, independently replayed them in Node, located the first arithmetic return difference, and recovered the first two browser poses exactly with an input-checked arithmetic trace. Added an independent audit validator and guarded interpretation of CPU screening reports.",
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "targetAcceptedPhysicsHz": 60,
+  "shapeDifferenceLimitMm": 1,
+  "validation": "017-runtime-audit-validation.json",
+  "validatorChecks": "017-validator-checks.json",
+  "reference": "003-crossover-full-user-inputs.json.gz",
+  "browserInputAudit": {
+    "steps": 659,
+    "workerRequests": 600,
+    "originalShapesUnchanged": true
+  },
+  "nodeExactInputReplay": {
+    "steps": 659,
+    "firstDifferentStep": 2,
+    "maximumShapeDifferenceMm": 0.02683375229512522
+  },
+  "firstArithmeticDifference": {
+    "step": 1,
+    "callIndex": 1635,
+    "function": "atan2",
+    "args": [
+      0.3566694982748345,
+      0.9342306294488412
+    ],
+    "browserResult": 0.3647004891562426,
+    "nodeResult": 0.36470048915624254
+  },
+  "arithmeticTraceReplay": {
+    "steps": 2,
+    "validatedCalls": 6710,
+    "exactBrowserShapes": true
+  },
+  "diagnosticSourceArchive": "017-audit-sources.json",
+  "diagnosticPatch": "017-audit.patch",
+  "runtime": {
+    "node": "24.6.0",
+    "v8": "13.6.233.10-node.24",
+    "browser": "In-app browser; exact engine version not collected"
+  },
+  "retainedChanges": [
+    "Independent validator recomputes 659 shape comparisons, checks original inputs and physical gates, verifies all 6710 arithmetic trace calls and exact recovery of both audited browser poses. It always reports incomplete maneuver and goalAchieved=false.",
+    "CPU screening reports identify uncalibrated Node/browser comparison and retain runtime versions. The Newton profiler now reads the accepted 1 mm policy instead of a stale hardcoded 0.1 mm limit. No change to physical force/geometry gates."
+  ],
+  "verification": {
+    "auditValidationPassed": true,
+    "corruptedOracleRejected": true,
+    "scriptSyntaxChecked": true,
+    "diffCheckPassed": true,
+    "buildRun": false
+  },
+  "restoredState": "All three temporary instrumentation files restored byte-for-byte to their pre-audit baseline; no Math wrappers remain in the simulator.",
+  "decision": "The initial Node/browser shape discrepancy is caused by a documented arithmetic return difference, not mismatched tool settings. Exact frozen requests alone do not establish cross-runtime parity. The arithmetic oracle confirms causality only for the two traced steps; it is neither a solver nor a performance improvement.",
+  "performance": "No new full-maneuver performance measurement in this turn. Prior passing browser research candidate remains approximately 42 Hz during motion and 32 Hz in the long-insertion stage; 60 Hz is not achieved.",
+  "limitations": [
+    "The oracle is diagnostic only and cannot run a new maneuver or qualify a physics solver.",
+    "Only two steps have arithmetic tracing; this does not prove all later divergence has the same cause.",
+    "The 659-step request audit is a prefix, not a performance or full-maneuver test.",
+    "Node comparisons require a same-runtime baseline for attribution; the original full browser replay remains authoritative."
+  ],
+  "nextInvestigation": "Use paired controls in the same JavaScript runtime for CPU screening. First produce and validate a complete Node control trajectory with the original inputs and original force/geometry checks; report its deviation from the browser separately and never replace the original browser reference. Then compare candidate and control under identical runtime/options, before any full browser qualification. The definitive gates remain all 7507 browser steps, both accesses, 1 mm whole-polyline error and 60 actual accepted physics Hz. Do not repeat rejected tangent-cache or unmodified XPBD variants."
+}

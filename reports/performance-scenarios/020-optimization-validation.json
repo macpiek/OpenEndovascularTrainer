@@ -1,0 +1,65 @@
+{
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "acceptanceMode": "functional",
+  "shapeDifferenceLimitMm": null,
+  "experiments": {
+    "020-coarse": {
+      "complete": false,
+      "steps": 4081,
+      "error": "linear-solve",
+      "motionHz": 53.3824737135851,
+      "longMotionHz": null,
+      "routeChecksPassed": false,
+      "maximumShapeDifferenceMm": 13.011040028444175,
+      "maxCertificate": 9.984972848542384e-07,
+      "maxPenetrationMm": 9.054327398949624e-09
+    },
+    "020-force": {
+      "complete": true,
+      "steps": 7507,
+      "error": null,
+      "motionHz": 45.750534698401246,
+      "longMotionHz": 35.7574801490839,
+      "routeChecksPassed": true,
+      "maximumShapeDifferenceMm": 27.225405149446797,
+      "maxCertificate": 9.981237498379869e-05,
+      "maxPenetrationMm": 9.929738309377711e-08
+    },
+    "020-short-prefix": {
+      "complete": true,
+      "steps": 7507,
+      "error": null,
+      "motionHz": 45.6442602812015,
+      "longMotionHz": 36.188637072196755,
+      "routeChecksPassed": true,
+      "maximumShapeDifferenceMm": 27.225405149446797,
+      "maxCertificate": 9.981237498379869e-05,
+      "maxPenetrationMm": 9.721580018773324e-08
+    },
+    "020-relaxed-mesh": {
+      "complete": true,
+      "steps": 7507,
+      "error": null,
+      "motionHz": 46.8895323775863,
+      "longMotionHz": 38.44150390255297,
+      "routeChecksPassed": true,
+      "maximumShapeDifferenceMm": 27.225405149446797,
+      "maxCertificate": 9.981237498379869e-05,
+      "maxPenetrationMm": 9.338085138477226e-08
+    }
+  },
+  "motionDiagnostics": "020-all-motion.json",
+  "regressionTests": {
+    "command": "node --test tests/crossoverScenarioRecording.test.js tests/crossoverAppBenchmark.test.js tests/crossoverFunctionalRoute.test.js",
+    "passed": 21
+  },
+  "notes": [
+    "Three full app replays passed all five coarse branch checks and every declared physical gate; no complete 60 Hz run.",
+    "Largest per-step tip jumps remain essentially the same as the original recording. This is diagnostic evidence, not independent clinical validation.",
+    "Protecting 250 rather than 450 mm removes at most one node under the tight remap budgets.",
+    "Relaxing local mesh budgets reduces long-stage average nodes to 127.8 but raises iteration count; mean provider cost remains 22.82 ms.",
+    "The successful research runs use force certificate tolerance 1e-4, explicitly recorded; they do not satisfy the reference 1e-6 certificate."
+  ],
+  "next": "Prototype Projective Dynamics with a global geometry closure. Plain PD was rejected at step 1 due to 0.031 mm penetration and finite stretch; coarse branch checks now permit constitutive differences. Preserve original targets and publish only valid states. Full app 60 Hz remains required."
+}

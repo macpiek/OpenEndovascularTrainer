@@ -1,16 +1,20 @@
+import {createSharedAxisWorkerSystem} from './physics/kirchhoffSharedAxisWorkerSystem.js';
+import {sharedAxisGeometryIdentity} from './physics/kirchhoffSharedAxisGeometryIdentity.js';
 import {createDebugVesselSurface} from './debugVesselSurface.js';
 import {prepareDeliveryMotion,configureDeliveryCatheter} from './devices/stentGraftDeliveryMechanics.js';
 import {resolveAnatomyVariant} from './anatomyVariant.js';
 import {StentGraftSystem} from './devices/stentGraftSystem.js';
 import {renderMetalProjection} from './imaging/renderMetalProjection.js';
+import {createPatientSoftTissue} from './imaging/patientSoftTissue.js';
 import {initStentGraftControls} from './ui/stentGraftControls.js';
 import {initAnatomyControls} from './ui/anatomyControls.js';
 import {createFemoralAccessController} from './femoralAccessController.js';
-import {runPhysicsFrameBudget} from './physics/physicsFrameBudget.js';
+import {runPhysicsFrameBudget,runPhysicsIdleBudget} from './physics/physicsFrameBudget.js';
 import {createSharedAxisRealtimeSystem} from './physics/kirchhoffSharedAxisRealtime.js';
 import {FULL_CYCLE_BENCHMARK_MODE,fullCycleDurationMs,sampleFullCycleBenchmark,summarizeFullCycle} from './benchmark/fullCycleBenchmark.js';
 import {WIRE60_BENCHMARK_MODE,wire60BenchmarkSteps,sampleWire60Benchmark} from './benchmark/wire60CatheterBenchmark.js';
-import { createSharedAxisAppSystem } from './physics/kirchhoffSharedAxisAppSystem.js';
+import { createSharedAxisAppSystem, SHARED_AXIS_APP_PHYSICS_OPTIONS } from './physics/kirchhoffSharedAxisAppSystem.js';
+import { CROSSOVER_WIDE_CONTACT_MODEL, CROSSOVER_PROJECTIVE_MODEL } from './physics/kirchhoffSharedAxisCrossoverPreset.js';
 import {initSolverDebugControls} from './ui/solverDebugControls.js';
 import {createRodNodesDebug} from './ui/rodNodesDebug.js';
 import { CATHETER_PHYSICS_SPACING_MM, catheterPhysicsNodeCount, catheterNodeMass } from './physics/catheterDiscretization.js';
@@ -41,6 +45,7 @@ import { solveKirchhoffCoupledSystem, applyKirchhoffCoupledCorrection } from './
 import { solveKirchhoffAxialCoupledSystem } from './physics/kirchhoffAxialCoupledSolver.js';
 import { solveKirchhoffTwoChannelSystem } from './physics/kirchhoffTwoChannelSystem.js';
 import { configureKirchhoffSplitBias } from './physics/kirchhoffSplitMotion.js';
+import {createSynchronizedStep} from './physics/synchronizedStep.js';
 import { createFixedStepTransaction } from './physics/fixedStepTransaction.js';
 import { createPreparedInputCheckpoint } from './physics/preparedInputCheckpoint.js';
 import { createCompositeAppInletReservoir } from './physics/kirchhoffCompositeAppReservoir.js';
@@ -122,10 +127,34 @@ import {
 } from './benchmark/catheterAortaSetup.js';
 
 const runtime = createRuntimeLifetime();
+const selectedCoupledSolver = resolveAppCoupledSolver(window.location.search);
+const projectiveCrossover = selectedCoupledSolver === 'shared-axis-projective-crossover';
+const crossoverBenchmarkMode=!projectiveCrossover&&import.meta.env.DEV&&['full','wide'].includes(new URLSearchParams(window.location.search).get('crossoverBenchmark'))?
+    new URLSearchParams(window.location.search).get('crossoverBenchmark'):null;
+let crossoverAppBenchmark=null;
+const crossoverScenarioMode=!projectiveCrossover&&import.meta.env.DEV&&new URLSearchParams(window.location.search).get('crossoverScenario')==='1';
+let crossoverScenario=null,scenarioGeometryIdentity=null;
 let simulationStepTransaction = null;
+let synchronizedStep = null;
+let synchronizedInputs = null;
+let completedSimulationTime = 0;
+let monitorPublishedTime = 0;
+const deferredSimulationChanges = new Map();
 function changePhysicsSetting(key, apply) {
-    if (simulationStepTransaction) simulationStepTransaction.change(key, apply);
+    if (synchronizedStep?.pending) {
+        const side = activeAccessId;
+        deferredSimulationChanges.set(`${side}:${key}`, () => accessController.run(side, apply));
+    }
+    else if (simulationStepTransaction) simulationStepTransaction.change(key, apply);
     else apply();
+}
+// Drain commands under the access that still owns the shared source objects.
+// Switching controls first would retarget a queued injection to the other sheath.
+function flushSimulationChanges() {
+    if (synchronizedStep?.pending) return;
+    for (const [key, apply] of deferredSimulationChanges) {
+        deferredSimulationChanges.delete(key); apply();
+    }
 }
 if (import.meta.hot) {
     import.meta.hot.on('vite:beforeFullReload', runtime.dispose);
@@ -152,9 +181,8 @@ const selectedAnatomy = resolveAnatomyVariant(window.location.search);
 initAnatomyControls({select:document.getElementById('anatomyVariant'),button:document.getElementById('applyAnatomy'),
     description:document.getElementById('anatomyDescription'),status:document.getElementById('anatomyStatus'),
     href:window.location.href,navigate:url=>window.location.assign(url)});
-const selectedCoupledSolver = resolveAppCoupledSolver(window.location.search);
 const axialBandSolve = new URLSearchParams(window.location.search).get('coupledLinearSolver') === 'axial-band';
-const PHYSICS_MODE = ['composite-joint','shared-axis','shared-axis-adaptive','shared-axis-projective','shared-axis-realtime'].includes(selectedCoupledSolver) ? selectedCoupledSolver : 'kirchhoff-direct';
+const PHYSICS_MODE = projectiveCrossover ? 'shared-axis-projective' : ['composite-joint','shared-axis','shared-axis-adaptive','shared-axis-projective','shared-axis-realtime'].includes(selectedCoupledSolver) ? selectedCoupledSolver : 'kirchhoff-direct';
 initSolverDebugControls({select:document.getElementById('debugSolverSelect'),button:document.getElementById('applyDebugSolver'),
     current:selectedCoupledSolver,href:window.location.href,navigate:url=>window.location.assign(url),
     modifiedNewtonToggle:document.getElementById('debugModifiedNewton'),
@@ -172,7 +200,7 @@ initSolverDebugControls({select:document.getElementById('debugSolverSelect'),but
 let compositeStepCommands = null;
 let compositeInitialEpoch = {};
 let compositeAppSystem, sharedAxisAppSystem, wholeAxisAppSystem;
-function initializeAccessSolver() {
+function initializeAccessSolver(accessId='right') {
     compositeAppSystem = selectedCoupledSolver === 'composite-joint' ? createCompositeJointAppSystem({
         readToolSources: readCompositeAppToolSources,
         readControls: readCompositeAppControls,
@@ -183,17 +211,31 @@ function initializeAccessSolver() {
         workSliceMs: 4,
         worldWall: {source: 'original-field', contactMode: 'material-points', rateMode: 'backward-euler-grid', seamUpdates: 'automatic'}
     }) : null;
-    sharedAxisAppSystem = ['shared-axis','shared-axis-adaptive','shared-axis-projective','shared-axis-realtime'].includes(selectedCoupledSolver) ? (selectedCoupledSolver==='shared-axis-realtime'?createSharedAxisRealtimeSystem:createSharedAxisAppSystem)({
+    sharedAxisAppSystem = ['shared-axis','shared-axis-adaptive','shared-axis-projective','shared-axis-projective-crossover','shared-axis-realtime'].includes(selectedCoupledSolver) ? (selectedCoupledSolver==='shared-axis-realtime'?createSharedAxisRealtimeSystem:
+        crossoverBenchmarkMode&&accessId==='right'&&new URLSearchParams(window.location.search).get('crossoverWorker')==='1'?createSharedAxisWorkerSystem:createSharedAxisAppSystem)({
+        ...(selectedCoupledSolver==='shared-axis'?{contactCandidateMargin:.01,lazyBasisCoefficients:true,wasmBasis:true,deferActiveBasis:true}:{}),
         adaptiveMesh:['shared-axis-adaptive','shared-axis-projective','shared-axis-realtime'].includes(selectedCoupledSolver),
         earlyPredictorFallback:selectedCoupledSolver==='shared-axis-realtime'&&new URLSearchParams(window.location.search).get('earlyPredictorFallback')==='1',
-        reuseFrictionAssembly:selectedCoupledSolver==='shared-axis-realtime'&&new URLSearchParams(window.location.search).get('frictionAssembly')!=='0',
-        wasmLinearAssembly:selectedCoupledSolver==='shared-axis-realtime'&&new URLSearchParams(window.location.search).get('wasmLinear')!=='0',
+        reuseFrictionAssembly:['shared-axis','shared-axis-realtime'].includes(selectedCoupledSolver)&&new URLSearchParams(window.location.search).get('frictionAssembly')!=='0',
+        wasmLinearAssembly:new URLSearchParams(window.location.search).get('wasmLinear')!=='0',
         projectiveDynamics:selectedCoupledSolver==='shared-axis-projective',
         modifiedNewton:new URLSearchParams(window.location.search).get('modifiedNewton')==='1',
         pruneInactiveWitnesses:new URLSearchParams(window.location.search).get('pruneWitnesses')==='1',
         coupledFrictionNewton:new URLSearchParams(window.location.search).get('fastNewton')!=='0',
         predictiveNewton:new URLSearchParams(window.location.search).get('predictiveNewton')!=='0',
+        ...(crossoverBenchmarkMode?{
+            adaptiveMesh:crossoverBenchmarkMode==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:null,
+            contactCandidateMargin:.01,lazyBasisCoefficients:true,wasmBasis:true,deferActiveBasis:true,
+            reuseFrictionAssembly:true,coupledFrictionNewton:true,predictiveNewton:true,modifiedNewton:false,
+            pruneInactiveWitnesses:false,projectiveDynamics:false,
+            physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,forceTolerance:1e-6,lengthTolerance:1e-5,
+                ...(crossoverBenchmarkMode==='wide'?{recoverNegativeContact:true}:{})}
+        }:{}),
+        ...(projectiveCrossover?{...CROSSOVER_PROJECTIVE_MODEL,
+            physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,...CROSSOVER_PROJECTIVE_MODEL.physicsOptions}}:{}),
+        onReady:()=>runIdlePhysicsCatchup(synchronizedStep.epoch,false),
         onRejectedStep:report=>ui.updateSolverFailure({...report, accessId:activeAccessId,anatomy:selectedAnatomy.id}),
+        readBloodFlow: () => document.getElementById('bloodFlowCoupling')?.checked ? contrastSystem?.flowNetwork : null,
         readSheath: () => ({...activeSheath, innerRadius: pigtailCatheter?.type==='stentgraft-delivery'?(pigtailCatheter.deliveryRadiusMm??3)+.2:INTRODUCER_SHEATH_INNER_RADIUS_MM, proximalExtension: 40}),
         readTools: () => [
             {id:'wire',body:xpbdWireBody,insertion:guidewireTransport.progress,rotation:guidewireRotation,
@@ -356,13 +398,18 @@ const contrastScene = new THREE.Scene();
 
 // Offscreen render targets used by various post-processing passes
 const offscreenTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
-const contrastTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
+const contrastTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, {
+    type: THREE.HalfFloatType
+});
 const metalTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const catheterTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const catheterMarkerTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const sheathTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const boneTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, {
     type: THREE.HalfFloatType
+});
+const softTissueTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, {
+    type: THREE.HalfFloatType, depthBuffer: false
 });
 const accumulateTarget1 = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
 const accumulateTarget2 = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight);
@@ -395,7 +442,7 @@ let previousTarget = accumulateTarget1;
 let currentTarget = accumulateTarget2;
 let contrastSystem = null;
 const dsaRoadmapState = new DsaRoadmapState({
-    nowMs: () => (contrastSystem?.simulationTimeSeconds ?? 0) * 1000
+    nowMs: () => completedSimulationTime * 1000
 });
 const anatomyCameraWorld = new Float64Array(16);
 const anatomyProjectionMatrix = new Float64Array(16);
@@ -549,6 +596,7 @@ const displayMaterial = new THREE.ShaderMaterial({
         catheterMarkerTexture: { value: catheterMarkerTarget.texture },
         sheathTexture: { value: sheathTarget.texture },
         boneTexture: { value: boneTarget.texture },
+        softTissueTexture: { value: softTissueTarget.texture },
         dsaMaskTexture: { value: dsaMaskTarget.texture },
         roadmapTexture: { value: roadmapTarget.texture },
         cineTexture: { value: roadmapTarget.texture },
@@ -624,6 +672,7 @@ const { group: skeletonModel, material: boneMaterial } = createBoneModel({
 // Lightweight centerline metadata; the visible vessel and collision surface are
 // loaded from the STL aorta model.
 const { vessel } = generateVessel(140, 0);
+const patientSoftTissue = createPatientSoftTissue({bifurcationY:vessel.branchPoint.y});
 let activeSheath = vessel.sheaths.right;
 let activeAccessId = 'right';
 let accessController = null;
@@ -639,9 +688,9 @@ let xpbdContainment = null;
 let xpbdExternalToolContact = null;
 let xpbdPortalInnerDriven = true;
 let catheterShaftStiffnessScale = 40.65;
-let catheterTipStiffnessScale = 66.8;
-let guidewireShaftStiffnessScale = 9.6;
-let guidewireTipStiffnessScale = 6.8;
+let catheterTipStiffnessScale = 100;
+let guidewireShaftStiffnessScale = 13.15;
+let guidewireTipStiffnessScale = 19.4;
 const MIN_CATHETER_STIFFNESS_SCALE = 0.25;
 const MAX_CATHETER_SHAFT_STIFFNESS_SCALE = 100;
 const MAX_CATHETER_TIP_STIFFNESS_SCALE = 100;
@@ -1205,21 +1254,21 @@ const ui = initUI({
             contrastSystem?.setInjectionHydraulicParameters(requested);
         });
     },
-    onPrepareCatheterAorta: () => prepareCatheterAortaScenario(),
-    onReproduceIliacContrastBug: () => prepareCatheterAortaScenario({
+    onPrepareCatheterAorta: () => changePhysicsSetting('scenario', () => prepareCatheterAortaScenario()),
+    onReproduceIliacContrastBug: () => changePhysicsSetting('scenario', () => prepareCatheterAortaScenario({
         reproduceIliacBug: true
-    }),
-    onReproduceRetrogradeGap: () => prepareCatheterAortaScenario({
+    })),
+    onReproduceRetrogradeGap: () => changePhysicsSetting('scenario', () => prepareCatheterAortaScenario({
         reproduceRetrogradeGap: true
-    }),
-    onReproduceArchBolus: () => prepareCatheterAortaScenario({
+    })),
+    onReproduceArchBolus: () => changePhysicsSetting('scenario', () => prepareCatheterAortaScenario({
         reproduceArchBolus: true
-    }),
-    onStartBrowserBenchmark: options => startBrowserBenchmarkScenario(
+    })),
+    onStartBrowserBenchmark: options => changePhysicsSetting('scenario', () => startBrowserBenchmarkScenario(
         Number.isFinite(options)
             ? { durationMs: options }
             : options
-    ),
+    )),
     onStopBrowserBenchmark: () => stopBrowserBenchmarkScenario('ui'),
     onRequestDsaMask: () => {
         dsaRoadmapState.stopCine();
@@ -1842,7 +1891,9 @@ globalThis.__OET_PHYSICS__ = {
     getStats: () => endovascularWorld.getStats(),
     getLastRejectedStep: () => sharedAxisAppSystem?.getLastFailure() ?? null,
     getStepAcceptance: () => ({ ...simulationLastAttempt,
-        pending: simulationStepTransaction?.pending ?? false,
+        pending: synchronizedStep?.pending ?? false,
+        simulationTimeSeconds: completedSimulationTime,
+        completedSteps: simulationExecutedSteps,
         blocked: simulationStepTransaction?.blocked ?? false,
         abandonedBacklogSeconds: simulationAbandonedBacklog }),
     getGuidewireType: () => activeGuidewireType,
@@ -2596,6 +2647,9 @@ function recordBrowserFrameCpu(startedAt, simulationEndedAt, updateEndedAt) {
     // Reserve the observed presentation cost even outside benchmarks. Decay
     // peaks slowly, so one cheap frame does not immediately shrink the reserve.
     simulationRenderReserveMs=Math.max(1.5,endedAt-simulationEndedAt,simulationRenderReserveMs*.98);
+    if(typeof crossoverAppBenchmark!=='undefined')crossoverAppBenchmark?.recordFrameCosts({
+        simulationMs:simulationEndedAt-startedAt,updateMs:updateEndedAt-simulationEndedAt,
+        renderMs:endedAt-updateEndedAt,reserveMs:simulationRenderReserveMs});
     if (!browserBenchmarkScenario.running) return;
     const simulationMs = simulationEndedAt - startedAt;
     const updateMs = updateEndedAt - simulationEndedAt;
@@ -2811,9 +2865,9 @@ function getBrowserBenchmarkReport() {
             fixedDt,
             maxStepsPerFrame: MAX_PHYSICS_STEPS_PER_FRAME,
             maxSlicesPerFrame: MAX_IDLE_PHYSICS_STEPS,
-            resumePendingInFrame: selectedCoupledSolver==='shared-axis-realtime',
-            adaptiveSliceBudget: selectedCoupledSolver==='shared-axis-realtime',
-            renderReserveMs: selectedCoupledSolver==='shared-axis-realtime'?simulationRenderReserveMs:PHYSICS_RENDER_RESERVE_MS,
+            resumePendingInFrame: !!sharedAxisAppSystem,
+            adaptiveSliceBudget: !!sharedAxisAppSystem,
+            renderReserveMs: sharedAxisAppSystem?simulationRenderReserveMs:PHYSICS_RENDER_RESERVE_MS,
             maxIdleSteps: MAX_IDLE_PHYSICS_STEPS,
             acceptedSeconds: benchmarkAcceptedSeconds,
             completedSimulationSeconds:benchmarkExecutedSteps*fixedDt,
@@ -3050,7 +3104,7 @@ function startBrowserBenchmarkScenario({
         pruneWitnesses:sharedAxisAppSystem?.diagnostics.pruneInactiveWitnesses,
         reuseFrictionAssembly:sharedAxisAppSystem?.diagnostics.reuseFrictionAssembly,
         wasmLinearAssembly:sharedAxisAppSystem?.diagnostics.wasmLinearAssembly,
-        lazyBasisCoefficients:sharedAxisAppSystem?.diagnostics.lazyBasisCoefficients,deferActiveBasis:sharedAxisAppSystem?.diagnostics.deferActiveBasis,
+        lazyBasisCoefficients:sharedAxisAppSystem?.diagnostics.lazyBasisCoefficients,wasmBasis:sharedAxisAppSystem?.diagnostics.wasmBasis,deferActiveBasis:sharedAxisAppSystem?.diagnostics.deferActiveBasis,
         earlyPredictorFallback:sharedAxisAppSystem?.diagnostics.earlyPredictorFallback,
         certifiedDiscoverySamples:sharedAxisAppSystem?.diagnostics.certifiedDiscoverySamples,
         continuousSegmentContacts:sharedAxisAppSystem?.diagnostics.continuousSegmentContacts,
@@ -3427,7 +3481,7 @@ function initializeAccessTransaction() {
     simulationStepTransaction = createFixedStepTransaction({
         world: endovascularWorld,
         prepare: prepareSimulationStep,
-        beforePrepare: () => { if (isControlledAccess()) prepareBrowserBenchmarkBoundary(); },
+        beforePrepare: () => {},
         recovery: sharedAxisAppSystem ? {
             readKey: () => isControlledAccess()
                 ? [ui.getAdvance(),ui.getGuidewireRotation(),ui.getCatheterAdvance(),ui.getCatheterRotation(),
@@ -3453,10 +3507,14 @@ function initializeAccessTransaction() {
 initializeAccessTransaction();
 const recoveryButtons=['retryToolMotionDebug'].map(id=>document.getElementById(id)).filter(Boolean);
 for(const button of recoveryButtons)button.addEventListener('click',()=>{
-    simulationStepTransaction.retryRejected();
+    for (const access of accessController.values()) accessController.run(access.activeAccessId, () => {
+        if (simulationStepTransaction.retryRejected() && synchronizedInputs)
+            synchronizedInputs[activeAccessId] = sampleSynchronizedInputs();
+    });
     button.blur();
 });
 let lastFluoroPulseTime = -Infinity;
+let lastFluoroViewRevision = -1;
 let fluoroPulseIndex = 0;
 let autoExposureLevel = 0;
 const autoExposureBeamDirection = new THREE.Vector3();
@@ -3469,7 +3527,7 @@ let contrastDiagnosticsAccumulator = Infinity;
 
 
 // Each access owns its rods, nonlinear solver history, contact caches and meshes.
-// Per-access clocks and rollback checkpoints allow both prepared steps to coexist.
+// Per-access rollback checkpoints coexist within one shared physical tick.
 function captureToolAccess() {
     return {
         activeSheath, activeAccessId, compositeAppSystem, sharedAxisAppSystem,
@@ -3482,12 +3540,8 @@ function captureToolAccess() {
         guidewireKineticWallFriction, guidewireResistanceEstimator, lastGuidewireAdvanceCommand, wireMesh,
         wireGroup, wireRenderPoints, wireRenderPolyline, guidewireBoundaryFrame,
         guidewireBoundaryOptions, browserBenchmarkBodies, simulationStepTransaction,
-        sharedInputCheckpoint, sharedInputScalars, compositePhysicsClockStarted,
-        simulationAccumulator, simulationPeakBacklog, simulationPeakBacklogScenarioMs,
-        simulationPeakBacklogElapsedMs, simulationPeakBacklogGuidewireMm,
-        simulationExecutedSteps, simulationIdleExecutedSteps, simulationAcceptedTime,
-        simulationStepEstimateMs, simulationCatchupPending, simulationLastAttempt,
-        simulationPendingStepCpuMs, simulationAbandonedBacklog
+        sharedInputCheckpoint, sharedInputScalars,
+        simulationLastAttempt, simulationPendingStepCpuMs
     };
 }
 function restoreToolAccess(state) {
@@ -3502,18 +3556,14 @@ function restoreToolAccess(state) {
         guidewireKineticWallFriction, guidewireResistanceEstimator, lastGuidewireAdvanceCommand, wireMesh,
         wireGroup, wireRenderPoints, wireRenderPolyline, guidewireBoundaryFrame,
         guidewireBoundaryOptions, browserBenchmarkBodies, simulationStepTransaction,
-        sharedInputCheckpoint, sharedInputScalars, compositePhysicsClockStarted,
-        simulationAccumulator, simulationPeakBacklog, simulationPeakBacklogScenarioMs,
-        simulationPeakBacklogElapsedMs, simulationPeakBacklogGuidewireMm,
-        simulationExecutedSteps, simulationIdleExecutedSteps, simulationAcceptedTime,
-        simulationStepEstimateMs, simulationCatchupPending, simulationLastAttempt,
-        simulationPendingStepCpuMs, simulationAbandonedBacklog
+        sharedInputCheckpoint, sharedInputScalars,
+        simulationLastAttempt, simulationPendingStepCpuMs
     } = state);
 }
 const rightAccess = captureToolAccess();
 activeSheath = vessel.sheaths.left;
 activeAccessId = 'left';
-initializeAccessSolver();
+initializeAccessSolver('left');
 initializeAccessSolverSelection();
 initializeAccessWire();
 initializeAccessWireMesh();
@@ -3525,8 +3575,9 @@ const leftAccess = captureToolAccess();
 restoreToolAccess(rightAccess);
 accessController = createFemoralAccessController({
     initial: 'right', entries: {right:rightAccess, left:leftAccess},
+    readCompletedSteps: () => simulationExecutedSteps,
     capture: captureToolAccess, restore: restoreToolAccess,
-    isPending: () => simulationStepTransaction.pending,
+    isPending: () => synchronizedStep?.pending || simulationStepTransaction.pending,
     beforeSwitch: () => {
         simulationStepTransaction.flushChanges();
         updateWireMesh();
@@ -3720,17 +3771,31 @@ function isControlledAccess() {
     return !accessController || activeAccessId === accessController.activeId;
 }
 
+function sampleSynchronizedInputs() {
+    return {
+        advance: ui.getAdvance(), rotation: ui.getGuidewireRotation(),
+        catheterAdvance: ui.getCatheterAdvance(), catheterRotation: ui.getCatheterRotation(),
+        wireType: ui.getSelectedGuidewireType(), catheterType: ui.getSelectedCatheterType(),
+        catheterTool: ui.getSelectedCatheterTool(),
+        automatic: {...ui.getAutomaticWithdrawal(activeAccessId)},
+        release: stentGraftControls?.readRelease(activeAccessId)
+    };
+}
+
 function prepareSimulationStep(dt) {
     // Advance input, integrate rod physics, collisions, and update medical monitors
     const controlled = isControlledAccess();
-    const sampledCommands = controlled ? sampleCatheterAortaScenario() || sampleBrowserBenchmarkScenario() : null;
+    const inputs = synchronizedInputs?.[activeAccessId] ?? sampleSynchronizedInputs();
+    const sampledCommands = controlled ?
+        (typeof crossoverAppBenchmark!=='undefined'?crossoverAppBenchmark?.commands(dt,{wire:guidewireTransport.progress,catheter:pigtailCatheter.progress}):null)||
+        sampleCatheterAortaScenario() || sampleBrowserBenchmarkScenario() : null;
     const automatedCommands = sampledCommands ? Object.freeze({ ...sampledCommands }) : null;
-    if (controlled) updateGuidewireType(ui.getSelectedGuidewireType());
+    if (controlled) updateGuidewireType(inputs.wireType);
     const deliveryDevice=stentGraftSystem?.accesses[activeAccessId].device;
     if(deliveryDevice) {
         configureDeliveryCatheter(deliveryDevice,pigtailCatheter);
     } else if(controlled) {
-        pigtailCatheter.setType(automatedCommands?.catheterType ?? ui.getSelectedCatheterType());
+        pigtailCatheter.setType(automatedCommands?.catheterType ?? inputs.catheterType);
         pigtailCatheter.setStiffnessScales({shaftStiffnessScale:catheterShaftStiffnessScale,tipStiffnessScale:catheterTipStiffnessScale});
         pigtailCatheter.deliveryExposureMm=0;
     }
@@ -3742,9 +3807,9 @@ function prepareSimulationStep(dt) {
             pigtailCatheter._kirchhoffMaterialOptions,pigtailCatheter._kirchhoffBoundaryOptions,
             xpbdContainment,xpbdExternalToolContact]);
     }
-    const backgroundWithdrawal=ui.getAutomaticWithdrawal(activeAccessId);
-    const advance = controlled ? automatedCommands?.guidewireAdvance ?? ui.getAdvance() : backgroundWithdrawal.guidewireAdvance;
-    const guidewireRotationCommand = controlled ? ui.getGuidewireRotation() : 0;
+    const backgroundWithdrawal=inputs.automatic;
+    const advance = controlled ? automatedCommands?.guidewireAdvance ?? inputs.advance : backgroundWithdrawal.guidewireAdvance;
+    const guidewireRotationCommand = controlled ? inputs.rotation : 0;
     if (guidewireRotationCommand !== 0) {
         guidewireRotation += guidewireRotationCommand *
             GUIDEWIRE_ROTATION_SPEED * dt;
@@ -3753,20 +3818,18 @@ function prepareSimulationStep(dt) {
             Math.cos(guidewireRotation)
         );
     }
-    const stentMode=!!deliveryDevice || (controlled && ui.getSelectedCatheterTool()==='stentgraft');
+    const stentMode=!!deliveryDevice || (controlled && inputs.catheterTool==='stentgraft');
     const stentGraftCommand=deliveryDevice ? {deviceId:deliveryDevice.id,
-        advance:controlled ? ui.getCatheterAdvance() : backgroundWithdrawal.catheterAdvance,
-        release:controlled ? stentGraftControls?.readRelease(activeAccessId) : null} : null;
+        advance:controlled ? inputs.catheterAdvance : backgroundWithdrawal.catheterAdvance,
+        release:controlled ? inputs.release : null} : null;
     const catheterAdvance = stentMode ? 0 :
-        controlled ? automatedCommands?.catheterAdvance ?? ui.getCatheterAdvance() : backgroundWithdrawal.catheterAdvance;
-    const catheterRotation = controlled ? automatedCommands?.catheterRotation ?? ui.getCatheterRotation() : 0;
-    const guidewireProgressDelta = advanceTailInput(advance, dt);
+        controlled ? automatedCommands?.catheterAdvance ?? inputs.catheterAdvance : backgroundWithdrawal.catheterAdvance;
+    const catheterRotation = controlled ? automatedCommands?.catheterRotation ?? inputs.catheterRotation : 0;
+    advanceTailInput(advance, dt);
     const inserted = Math.max(0, tailProgress);
-    const catheterProgressBefore = pigtailCatheter.progress;
     const catheterRotationBefore = pigtailCatheter.rotation;
     if(deliveryDevice)stentGraftCommand.mechanicalPosition=prepareDeliveryMotion(deliveryDevice,pigtailCatheter,dt,stentGraftCommand.advance,inserted,stentGraftCommand.release);
     else pigtailCatheter.advance(catheterAdvance, dt, inserted);
-    const catheterProgressDelta = pigtailCatheter.progress - catheterProgressBefore;
     pigtailCatheter.rotate(catheterRotation, dt);
     if (compositeAppSystem) compositeStepCommands = {
         wire: {spinIncrement: guidewireRotationCommand * GUIDEWIRE_ROTATION_SPEED * dt},
@@ -3904,7 +3967,7 @@ function stepSimulation(dt = fixedDt) {
 }
 
 function commitSimulationStep(context) {
-    const { dt, automatedCommands, inserted, firstContainedNode, materialEndNode } = context;
+    const { dt, firstContainedNode, materialEndNode } = context;
     const spatialRenderEnd = spatiallyCapturedContainmentEnd({
         innerBody: xpbdWireBody,
         outerBody: xpbdCatheterBody,
@@ -3924,8 +3987,13 @@ function commitSimulationStep(context) {
     );
     xpbdWireBody.syncToRodState(wire);
     stentGraftSystem?.updateAccess(activeAccessId,dt,{nodes:wire.nodes,
-        coordinate:i=>guidewireTransport.insertedCoordinate(i),catheterMm:pigtailCatheter.type==='stentgraft-delivery'?0:pigtailCatheter.progress},
+        coordinate:i=>guidewireTransport.insertedCoordinate(i),catheterMm:pigtailCatheter.type==='stentgraft-delivery'?0:pigtailCatheter.progress,
+        deliveryBody:pigtailCatheter.type==='stentgraft-delivery'?xpbdCatheterBody:null},
         context.stentGraftCommand?{...context.stentGraftCommand,mechanicalRotation:pigtailCatheter.rotation}:null);
+}
+
+function presentSimulationStep(context) {
+    const {dt, inserted, automatedCommands} = context;
     // Publish accepted lengths for both sheaths: a background withdrawal must
     // stop at the inlet without touching the foreground UI or trial state.
     ui.updateAutomaticWithdrawalLengths(activeAccessId,inserted/10,
@@ -3939,10 +4007,6 @@ function commitSimulationStep(context) {
             endovascularWorld, inserted, pigtailCatheter.progress, simulationAccumulator);
         recordBrowserPhysicsEnvelope();
     }
-    // Physical/contrast time is committed before fallible UI presentation.
-    contrastSystem?.setStentGraftSurface(stentGraftSystem?.getContrastSurface(dt,
-        contrastSystem.isInjecting||contrastSystem.hasVisibleContrast()));
-    contrastSystem?.update(dt);
     updateGuidewireResistance();
     ui.updateInsertedLength(inserted / 10, guidewireRotation);
     ui.updateCatheterLength(pigtailCatheter.progress / 10, pigtailCatheter.rotation);
@@ -4212,19 +4276,20 @@ function processDsaRoadmapCapture() {
     }
 }
 
-function executeAccumulatedPhysicsStep(idle = false, sliceBudgetMs = null) {
-    // Finish an already prepared step, but do not start another one while the
-    // user waits for the other access. Otherwise cooperative slices can keep
-    // a busy solver perpetually pending at every animation-frame boundary.
-    if (isControlledAccess() && accessController.switchRequested && !simulationStepTransaction.pending) return false;
+function executeAccessPhysicsStep(sliceBudgetMs = null) {
+    // Attempt only this member; the common barrier owns time and publication.
     if (wholeAxisAppSystem && (!loadingAssetsReady() || !endovascularWorld.contactField)) return false;
     if (!simulationStepTransaction.canAttempt()) return false;
+    if (simulationStepTransaction.blocked && synchronizedInputs)
+        synchronizedInputs[activeAccessId] = sampleSynchronizedInputs();
     const startedAt = performance.now();
     let result;
     try {
-        if(selectedCoupledSolver==='shared-axis-realtime'&&sliceBudgetMs!==null)
+        if(sharedAxisAppSystem&&sliceBudgetMs!==null)
             sharedAxisAppSystem.setWorkSliceBudget(sliceBudgetMs);
         result = stepSimulation(fixedDt);
+        if(typeof crossoverAppBenchmark!=='undefined')crossoverAppBenchmark?.recordSlice(result.durationMs??0,result);
+        crossoverScenario?.slice(result.durationMs??0,result);
         if(sharedAxisAppSystem) {
             // Sum synchronous work across every retry of this prepared dt.
             // This includes input preparation and native buffer publication,
@@ -4253,8 +4318,8 @@ function executeAccumulatedPhysicsStep(idle = false, sliceBudgetMs = null) {
             firstError: result.firstError?.message ?? result.error?.message ?? null };
         if (result.error) console.error('Physical timestep failed; prepared input retained', result.firstError ?? result.error);
         if(result.terminal) {
-            simulationAbandonedBacklog+=simulationAccumulator;
-            simulationAccumulator=0;simulationPendingStepCpuMs=0;simulationStepEstimateMs=1;simulationCatchupPending=false;
+            simulationPendingStepCpuMs=0;
+            if (synchronizedInputs) synchronizedInputs[activeAccessId] = sampleSynchronizedInputs();
             if(isControlledAccess()&&browserBenchmarkScenario.running)stopBrowserBenchmarkScenario('terminal-physics-failure');
             // Export/presentation failure must never prevent terminal recovery.
             try {
@@ -4265,18 +4330,14 @@ function executeAccumulatedPhysicsStep(idle = false, sliceBudgetMs = null) {
                 }
             } catch(error) { console.error('Could not present rejected-step capture', error); }
         }
-        if (!result.accepted) return false;
-        // Account for an irreversible successful World step before UI or
-        // diagnostics. A presentation exception cannot repeat this dt.
-        simulationAccumulator -= fixedDt;
-        simulationExecutedSteps++;
-        if (idle) simulationIdleExecutedSteps++;
-        commitSimulationStep(result.context);
-        return true;
+        return result;
     } catch (error) {
         simulationStepTransaction.blockCurrentFrame();
-        console.error('Simulation post-commit update failed', error);
-        return result?.accepted === true;
+        console.error('Simulation step failed', error);
+        // Diagnostics execute after World may have irreversibly accepted dt.
+        // Keep that acceptance at the barrier even if profiling/UI fails.
+        if (result?.accepted) { simulationPendingStepCpuMs = 0; return result; }
+        return {accepted:false, pending:false, error};
     } finally {
         const duration = performance.now() - startedAt;
         // Failed attempts cost CPU too; they do not consume simulated time.
@@ -4284,111 +4345,139 @@ function executeAccumulatedPhysicsStep(idle = false, sliceBudgetMs = null) {
     }
 }
 
-function runIdlePhysicsCatchup(deadline = null, epoch = simulationStepTransaction.epoch) {
-    if (epoch !== simulationStepTransaction.epoch || simulationStepTransaction.disposed) return;
-    simulationCatchupPending = false;
-    if (
-        !simulationStepTransaction.canAttempt() ||
-        document.visibilityState !== 'visible' ||
-        simulationAccumulator + 1e-9 < fixedDt
-    ) return;
-    const fallbackDeadline = lastRenderTime === null
-        ? performance.now()
-        : lastRenderTime + TARGET_RENDER_FRAME_MS;
-    let steps = 0;
-    while (
-        simulationAccumulator + 1e-9 >= fixedDt &&
-        steps < MAX_IDLE_PHYSICS_STEPS
-    ) {
-        const remainingMs = deadline
-            ? deadline.timeRemaining()
-            : fallbackDeadline - performance.now();
-        if (
-            remainingMs <=
-                (selectedCoupledSolver==='shared-axis-realtime'?PHYSICS_MIN_SLICE_MS:simulationStepEstimateMs) + PHYSICS_IDLE_GUARD_MS
-        ) break;
-        const accepted = executeAccumulatedPhysicsStep(true,Math.min(PHYSICS_MAX_SLICE_MS,remainingMs-PHYSICS_IDLE_GUARD_MS));
-        // Bound work slices as well as complete steps. A cooperative yield
-        // keeps the same prepared dt and can use the remaining idle budget;
-        // numerical rejection/error still blocks this frame immediately.
-        steps++;
-        if (!accepted && !(endovascularWorld.lastStepResult?.pending === true &&
-            simulationStepTransaction.canAttempt())) break;
+synchronizedStep = createSynchronizedStep({
+    members: accessController.values().map(access => ({
+        canAttempt: () => accessController.run(access.activeAccessId, () => simulationStepTransaction.canAttempt()),
+        beginFrame: () => accessController.run(access.activeAccessId, () => simulationStepTransaction.beginFrame()),
+        attempt: (dt, budget) => accessController.run(access.activeAccessId, () => executeAccessPhysicsStep(budget))
+    })),
+    begin: () => {
+        prepareBrowserBenchmarkBoundary();
+        flushSimulationChanges();
+        synchronizedInputs = Object.fromEntries(accessController.values().map(access =>
+            [access.activeAccessId, accessController.run(access.activeAccessId, sampleSynchronizedInputs)]));
+        if(crossoverScenario?.active)synchronizedInputs=crossoverScenario.boundary(synchronizedInputs,readCrossoverScenarioConfiguration());
+    },
+    publish: (dt, results) => {
+        const crossoverPublicationStart=typeof crossoverAppBenchmark!=='undefined'&&crossoverAppBenchmark?performance.now():0;
+        // No rendering or event handling can observe the intervening calls.
+        for (let i = 0; i < results.length; i++) {
+            const access = accessController.values()[i];
+            accessController.run(access.activeAccessId, () => commitSimulationStep(results[i].context));
+        }
+        contrastSystem?.setStentGraftSurface(stentGraftSystem?.getContrastSurface(dt,
+            contrastSystem.isInjecting || contrastSystem.hasVisibleContrast()));
+        contrastSystem?.advanceSynchronized(dt);
+        monitor.advance(dt);
+        simulationAccumulator = Math.max(0, simulationAccumulator - dt);
+        simulationExecutedSteps++;
+        completedSimulationTime += dt;
+        patientSoftTissue.update(completedSimulationTime, {
+            respiratoryRate: monitor.respiratoryRate,
+            cardiacPhase: monitor.ecgSamplesSinceBeat / monitor.ecgSamplesToNextBeat
+        });
+        synchronizedInputs = null;
+        // Freeze presentation from the fully committed state before another
+        // cooperative tick can mutate the underlying mechanical buffers.
+        for (const [i, access] of accessController.values().entries()) accessController.run(access.activeAccessId, () => {
+            try {
+                presentSimulationStep(results[i].context);
+                updateWireMesh();
+                pigtailCatheter.updateMesh();
+                access.rodNodes.update(xpbdWireBody, xpbdCatheterBody, !fluoroscopy && debugLayerVisibility.rodNodes);
+                stentGraftSystem.refreshDelivery(activeAccessId);
+            } catch (error) { console.error('Simulation presentation failed', error); }
+        });
+        if (contrastSystem) {
+            displayedContrastDoseMl = contrastSystem.totalDeliveredVolumeMl;
+            try { ui.updateDose(displayedContrastDoseMl); }
+            catch (error) { console.error('Dose presentation failed', error); }
+        }
+        if(typeof crossoverAppBenchmark!=='undefined')crossoverAppBenchmark?.recordCommit(dt,sharedAxisAppSystem.diagnostics,performance.now()-crossoverPublicationStart);
+        if(crossoverScenario?.active) {
+            try {
+                const state=sharedAxisAppSystem.captureFlowSamplingState();
+                crossoverScenario.commit({dt,diagnostics:accessController.values().map(access=>access.sharedAxisAppSystem.diagnostics),
+                    shape:{coordinates:state.coordinates,positions:state.positions.flatMap(p=>p.map((v,k)=>v+state.origin[k]))},
+                    tools:{wire:guidewireTransport.progress,catheter:pigtailCatheter.progress,wireRotation:guidewireRotation,catheterRotation:pigtailCatheter.rotation}});
+            }catch(error){crossoverScenario.fail(error.message);}
+        }
     }
+});
+
+function executeAccumulatedPhysicsStep(idle = false, sliceBudgetMs = null) {
+    if (wholeAxisAppSystem && (!loadingAssetsReady() || !endovascularWorld.contactField)) return false;
+    if (accessController.switchRequested && !synchronizedStep.pending) return false;
+    try {
+        const result = synchronizedStep.attempt(fixedDt, sliceBudgetMs);
+        if (result.accepted && idle) simulationIdleExecutedSteps++;
+        return result.accepted;
+    } catch (error) {
+        console.error('Shared simulation clock stopped', error);
+        return false;
+    }
+}
+
+function runIdlePhysicsCatchup(epoch = synchronizedStep.epoch, scheduled = true) {
+    // A worker message is already a new browser task. Use the remaining idle
+    // budget directly instead of adding another timer between physical steps.
+    // Preserve the pending timer flag when entering from that message.
+    if(scheduled)simulationCatchupPending = false;
+    if (epoch !== synchronizedStep.epoch || document.visibilityState !== 'visible') return;
+    const deadline = (lastRenderTime ?? performance.now()) + TARGET_RENDER_FRAME_MS;
+    runPhysicsIdleBudget({deadline,now:()=>performance.now(),guardMs:PHYSICS_IDLE_GUARD_MS,maxSliceMs:PHYSICS_MAX_SLICE_MS,
+        hasDebt:()=>simulationAccumulator+1e-9>=fixedDt,
+        canAttempt:()=>synchronizedStep.canAttempt()&&(!accessController.switchRequested||synchronizedStep.pending),
+        canFit:room=>room>=(sharedAxisAppSystem?PHYSICS_MIN_SLICE_MS:simulationStepEstimateMs),
+        attempt:budget=>executeAccumulatedPhysicsStep(true,budget),maxSlices:MAX_IDLE_PHYSICS_STEPS});
 }
 
 function scheduleIdlePhysicsCatchup() {
-    if (
-        simulationCatchupPending ||
-        !simulationStepTransaction.canAttempt() ||
-        simulationAccumulator + 1e-9 < fixedDt ||
-        document.visibilityState !== 'visible'
-    ) return;
+    if (simulationCatchupPending || !synchronizedStep.canAttempt() ||
+        simulationAccumulator + 1e-9 < fixedDt || document.visibilityState !== 'visible') return;
     simulationCatchupPending = true;
-    const epoch = simulationStepTransaction.epoch;
-    const scheduledTransaction = simulationStepTransaction;
-    const scheduledAccess = activeAccessId;
-    // requestIdleCallback is intentionally not used here. Chromium often
-    // withholds it while a continuously animated WebGL page is visible, so a
-    // single missed vsync could leave four 120 Hz steps pending while the next
-    // rAF was allowed to execute only two. A zero-delay task is guaranteed to
-    // run after the current render task; runIdlePhysicsCatchup still observes
-    // the same 60 Hz deadline and refuses work that does not fit.
-    runtime.timeout(() => accessController.run(scheduledAccess, () => {
-        if (scheduledTransaction === simulationStepTransaction) runIdlePhysicsCatchup(null, epoch);
-    }), 0);
-}
-
-function advanceBackgroundAccess(dt, frameStartedAt) {
-    for (const access of accessController.values()) {
-        if (access.activeAccessId === accessController.activeId) continue;
-        accessController.run(access.activeAccessId, () => {
-            simulationStepTransaction.beginFrame();
-            const ready = !wholeAxisAppSystem || loadingAssetsReady() && !!endovascularWorld.contactField;
-            const elapsed = !ready || !compositePhysicsClockStarted ||
-                simulationStepTransaction.blocked && !simulationStepTransaction.canAttempt() ? 0 : dt;
-            if (ready) compositePhysicsClockStarted = true;
-            simulationAcceptedTime += elapsed;
-            simulationAccumulator += elapsed;
-            simulationPeakBacklog = Math.max(simulationPeakBacklog, simulationAccumulator);
-            const startedAt = performance.now();
-            const room = () => Math.min(4 - (performance.now() - startedAt),
-                TARGET_RENDER_FRAME_MS - (performance.now() - frameStartedAt) - simulationRenderReserveMs);
-            runPhysicsFrameBudget({
-                hasDebt: () => simulationAccumulator + 1e-9 >= fixedDt,
-                canAttempt: () => simulationStepTransaction.canAttempt(),
-                canFit: () => room() > PHYSICS_MIN_SLICE_MS,
-                attempt: () => ({accepted:executeAccumulatedPhysicsStep(false,
-                    Math.max(PHYSICS_MIN_SLICE_MS, Math.min(PHYSICS_MAX_SLICE_MS, room()))),
-                    pending:endovascularWorld.lastStepResult?.pending === true}),
-                maxSteps:2, maxSlices:2, resumePending:selectedCoupledSolver === 'shared-axis-realtime'
-            });
-            scheduleIdlePhysicsCatchup();
-        });
-    }
+    const epoch = synchronizedStep.epoch;
+    runtime.timeout(() => runIdlePhysicsCatchup(epoch), 0);
 }
 
 function animate(time) {
+    if(typeof crossoverAppBenchmark!=='undefined')crossoverAppBenchmark?.recordFrame();
+    crossoverScenario?.frame();
     // Render loop: updates geometry, handles fluoroscopy accumulation, and UI
+    flushSimulationChanges();
     accessController.applyRequested();
-    simulationStepTransaction.beginFrame();
+    synchronizedStep.beginFrame();
+    const blockedAccess = accessController.values().find(access =>
+        accessController.run(access.activeAccessId, () => simulationStepTransaction.blocked));
     if (compositeStatus) {
         const result = endovascularWorld.lastStepResult;
         const progress = result?.diagnostics?.progress;
         const status = (sharedAxisAppSystem
-            ? `${sharedAxisAppSystem.diagnostics.projectiveDynamics?'Projective Dynamics':sharedAxisAppSystem.diagnostics.solver==='shared-axis-realtime'?'Kirchhoff — eksperyment 60 Hz':sharedAxisAppSystem.diagnostics.solver==='shared-axis-adaptive'?'Solver adaptacyjny':'Solver referencyjny'} · obliczenia: ${sharedAxisAppSystem.diagnostics.acceptedSteps} · kroki czasu: ${endovascularWorld.stepCount}`
+            ? `${sharedAxisAppSystem.diagnostics.projectiveDynamics?'Projective Dynamics':sharedAxisAppSystem.diagnostics.solver==='shared-axis-realtime'?'Kirchhoff — eksperyment 60 Hz':sharedAxisAppSystem.diagnostics.solver==='shared-axis-adaptive'?'Solver adaptacyjny':'Solver referencyjny'} · obliczenia: ${sharedAxisAppSystem.diagnostics.acceptedSteps} · wspólny czas: ${completedSimulationTime.toFixed(2)} s`
             : `Nowy wspólny solver · zaakceptowane kroki: ${endovascularWorld.stepCount}`) +
-            (simulationStepTransaction.blocked ? ` · ruch odrzucony (${result?.status ?? 'błąd'}) — szczegóły w Debug`
+            (blockedAccess ? ` · ruch odrzucony (${result?.status ?? 'błąd'}) — szczegóły w Debug`
                 : result?.status === 'shared-axis-pending' ? ' · obliczanie wspólnego kroku'
                 : result?.status === 'computing' ? ` · obliczanie: iteracja ${progress?.directions ?? 0}, ocena ${progress?.evaluations ?? 0}`
                 : result?.accepted === false ? ` · wstrzymany: ${result.message || result.status}` : '');
         if (compositeStatus.textContent !== status) compositeStatus.textContent = status;
-        for(const button of recoveryButtons)button.disabled=!sharedAxisAppSystem||!simulationStepTransaction.blocked;
+        for(const button of recoveryButtons)button.disabled=!sharedAxisAppSystem||!blockedAccess;
         const recoveryStatus=document.getElementById('toolMotionRecoveryStatus');
         const recoveries=sharedAxisAppSystem?.diagnostics.recoveries??0;
-        recoveryStatus.textContent=simulationStepTransaction.blocked
-            ?'Ruch cofnięty do ostatniego poprawnego stanu. Zmień kierunek lub użyj przycisku Wznów ruch.'
+        recoveryStatus.textContent=synchronizedStep.fault
+            ?'Błąd wspólnego kroku. Czas zatrzymany; przeładuj scenę.'
+            :blockedAccess
+            ?`Wspólny czas zatrzymany: dostęp ${blockedAccess.activeAccessId === 'left' ? 'lewy' : 'prawy'}. Użyj przycisku Wznów ruch.`
+            :sharedAxisAppSystem?.diagnostics.recoveryPending?'Sprawdzanie wznowienia z ostatniego poprawnego stanu…'
             :recoveries?'Przywrócono ostatni poprawny stan. Możesz ponownie sterować narzędziami.':'';
+    }
+    const flowStatus=document.getElementById('bloodFlowMechanicsStatus');
+    if(flowStatus){
+        const flow=sharedAxisAppSystem?.diagnostics.last?.bloodFlow;
+        const text=!sharedAxisAppSystem?'Oddziaływanie wymaga wspólnego solvera.':
+            !document.getElementById('bloodFlowCoupling').checked?'Oddziaływanie wyłączone.':
+            flow?`Przepływ przy narzędziach: do ${(flow.maxSpeed/10).toFixed(1)} cm/s · odsłonięte ${(flow.exposedLength/10).toFixed(1)} cm`:
+            'Przepływ aktywny — narzędzia w koszulce lub krok w trakcie obliczania.';
+        if(flowStatus.textContent!==text)flowStatus.textContent=text;
     }
     const frameCpuStartedAt = performance.now();
     const frameMs = lastRenderTime === null ? 0 : time - lastRenderTime;
@@ -4396,10 +4485,9 @@ function animate(time) {
     lastRenderTime = time;
     recordBrowserFrame(frameMs);
     if (browserBenchmarkScenario.running) shortCatheterBenchmarkMetrics?.recordFrame(frameMs);
-    advanceBackgroundAccess(dt, frameCpuStartedAt);
     const compositeReady = !wholeAxisAppSystem || loadingAssetsReady() && !!endovascularWorld.contactField;
     const physicsDt = wholeAxisAppSystem && (!compositeReady || !compositePhysicsClockStarted) ||
-        simulationStepTransaction.blocked&&!simulationStepTransaction.canAttempt() ? 0 : dt;
+        !synchronizedStep.canAttempt() ? 0 : dt;
     if (compositeReady) compositePhysicsClockStarted = true;
     simulationAcceptedTime += physicsDt;
     simulationAccumulator += physicsDt;
@@ -4416,24 +4504,26 @@ function animate(time) {
             simulationPeakBacklogGuidewireMm = guidewireTransport.progress;
         }
     }
-    const adaptiveSlices=selectedCoupledSolver==='shared-axis-realtime';
+    // Every shared-axis provider is cooperative. Resume its private pending
+    // step within the available frame budget, irrespective of solver preset.
+    const adaptiveSlices=!!sharedAxisAppSystem;
     const sliceRoom=()=>TARGET_RENDER_FRAME_MS-(performance.now()-frameCpuStartedAt)-
         (adaptiveSlices?simulationRenderReserveMs:PHYSICS_RENDER_RESERVE_MS)-PHYSICS_IDLE_GUARD_MS;
     runPhysicsFrameBudget({
         hasDebt:()=>simulationAccumulator+1e-9>=fixedDt,
-        canAttempt:()=>simulationStepTransaction.canAttempt(),
-        canFit:()=>adaptiveSlices?sliceRoom()>PHYSICS_MIN_SLICE_MS:
-            performance.now()-frameCpuStartedAt+simulationStepEstimateMs+PHYSICS_RENDER_RESERVE_MS<TARGET_RENDER_FRAME_MS,
-        attempt:()=>({accepted:executeAccumulatedPhysicsStep(false,adaptiveSlices?
-            Math.max(PHYSICS_MIN_SLICE_MS,Math.min(PHYSICS_MAX_SLICE_MS,sliceRoom())):null),pending:endovascularWorld.lastStepResult?.pending===true}),
+        canAttempt:()=>synchronizedStep.canAttempt() && (!accessController.switchRequested || synchronizedStep.pending),
+        canFit:()=>sliceRoom()>(adaptiveSlices ? PHYSICS_MIN_SLICE_MS : simulationStepEstimateMs),
+        attempt:()=>({accepted:executeAccumulatedPhysicsStep(false,
+            Math.max(PHYSICS_MIN_SLICE_MS,Math.min(PHYSICS_MAX_SLICE_MS,sliceRoom()))),
+            pending:synchronizedStep.canContinueFrame(adaptiveSlices)}),
         maxSteps:MAX_PHYSICS_STEPS_PER_FRAME,maxSlices:MAX_IDLE_PHYSICS_STEPS,
-        resumePending:selectedCoupledSolver==='shared-axis-realtime'
+        resumePending:true
     });
     scheduleIdlePhysicsCatchup();
     const frameSimulationEndedAt = performance.now();
     for(const key of Object.keys(framePresentationMs))framePresentationMs[key]=0;
 
-    for (const access of accessController.values()) access.rodNodes.update(access.xpbdWireBody,access.xpbdCatheterBody,!fluoroscopy&&debugLayerVisibility.rodNodes);
+    if (!synchronizedStep.pending) for (const access of accessController.values()) access.rodNodes.update(access.xpbdWireBody,access.xpbdCatheterBody,!fluoroscopy&&debugLayerVisibility.rodNodes);
     if(mechanicalMeshOutput) {
         const mesh=sharedAxisAppSystem?.diagnostics.mesh;
         const description=mesh?`${mesh.adaptive?'Adaptacyjna':'Referencyjna'} · ${mesh.nodes} węzłów osi · ${mesh.dofs} niewiadomych · odcinki ${mesh.minSpacing.toFixed(2)}–${mesh.maxSpacing.toFixed(1)} mm${mesh.adaptive?` · próg ${mesh.shapeTolerance.toFixed(2).replace('.',',')} mm · ochrona kontaktów ${mesh.contactMargin.toFixed(2).replace('.',',')} mm · skrócenie łuku ${(100*mesh.maxArcLoss).toFixed(2).replace('.',',')}% · limit odcinka ${mesh.maxAllowedSpacing.toFixed(0)} mm`:''}`:
@@ -4452,31 +4542,33 @@ function animate(time) {
         if(newtonDebugOutput.textContent!==text)newtonDebugOutput.textContent=text;
     }
 
-    // Physiology is cheap and owns a fixed-step clock derived from presented
-    // wall time. It must not inherit backlog from the much more expensive rod
-    // solver: otherwise the screen cursor eventually outruns the ECG/BP sample
-    // buffers and both traces disappear while their numeric readouts continue.
-    monitor.updatePresentation(dt);
+    // Both waveform samples and their screen cursors use committed time.
+    // Drawing remains independent of the solver and never advances physiology.
+    monitor.render(completedSimulationTime - monitorPublishedTime);
+    monitorPublishedTime = completedSimulationTime;
 
     guidewireMeshAccumulator += dt;
-    if (guidewireMeshAccumulator >= GUIDEWIRE_MESH_UPDATE_INTERVAL) {
+    if (!synchronizedStep.pending && guidewireMeshAccumulator >= GUIDEWIRE_MESH_UPDATE_INTERVAL) {
         guidewireMeshAccumulator = 0;
         const started=performance.now();
-        for (const access of accessController.values()) accessController.run(access.activeAccessId, updateWireMesh);
-        for(const side of ['right','left'])stentGraftSystem.refreshDelivery(side);
-        stentGraftControls.refresh();
+        // Whole-axis meshes are already frozen once at the common commit.
+        // Rebuilding them here repeats identical tube sampling between ticks.
+        for (const access of accessController.values()) if(!access.wholeAxisAppSystem) {
+            accessController.run(access.activeAccessId, updateWireMesh);
+            stentGraftSystem.refreshDelivery(access.activeAccessId);
+        }
         framePresentationMs.wireMesh+=performance.now()-started;
     }
     contactMarkerAccumulator += dt;
-    if (contactMarkerAccumulator >= CONTACT_MARKER_UPDATE_INTERVAL) {
+    if (!synchronizedStep.pending && contactMarkerAccumulator >= CONTACT_MARKER_UPDATE_INTERVAL) {
         contactMarkerAccumulator = 0;
         const started=performance.now();sampleGuidewireContactMarkers();framePresentationMs.wallDiagnostics+=performance.now()-started;
     }
     pigtailMeshAccumulator += dt;
-    if (pigtailMeshAccumulator >= PIGTAIL_MESH_UPDATE_INTERVAL) {
+    if (!synchronizedStep.pending && pigtailMeshAccumulator >= PIGTAIL_MESH_UPDATE_INTERVAL) {
         pigtailMeshAccumulator = 0;
         const started=performance.now();
-        for (const access of accessController.values()) access.pigtailCatheter.updateMesh();
+        for (const access of accessController.values()) if(!access.wholeAxisAppSystem)access.pigtailCatheter.updateMesh();
         framePresentationMs.catheterMesh+=performance.now()-started;
     }
     const contrastShouldRender = !!contrastSystem && (
@@ -4509,6 +4601,7 @@ function animate(time) {
     injectionUiAccumulator += dt;
     if (injectionUiAccumulator >= 0.1) {
         injectionUiAccumulator = 0;
+        stentGraftControls.refresh();
         const injectionSourceStatus = contrastSystem
             ? contrastSystem.getSourceStatus(ui.getInjectionSource())
             : { valid: false, label: '', reason: 'Loading flow model' };
@@ -4569,16 +4662,21 @@ function animate(time) {
         updateXrayTechniqueReadout();
         const pulseRate = Math.max(1, displayMaterial.uniforms.pulseRate.value || 15);
         const pulseInterval = 1000 / pulseRate;
-        const shouldAcquireFluoroFrame = time - lastFluoroPulseTime >= pulseInterval;
+        const viewRevision = ui.getCArmRevision();
+        // Integer physical ticks still accumulate floating-point roundoff.
+        // Camera movement must remain visible while a solver is paused.
+        const shouldAcquireFluoroFrame = viewRevision !== lastFluoroViewRevision ||
+            completedSimulationTime * 1000 - lastFluoroPulseTime + 1e-6 >= pulseInterval;
         if (!shouldAcquireFluoroFrame) {
             renderer.setRenderTarget(null);
             renderer.render(displayScene, postCamera);
-            ui.updatePerfStats(dt, accessController.getCompletedSteps());
+            ui.updatePerfStats(dt, {simulation:simulationExecutedSteps}, completedSimulationTime);
             recordBrowserFrameCpu(frameCpuStartedAt, frameSimulationEndedAt, frameUpdateEndedAt);
             runtime.frame(animate);
             return;
         }
-        lastFluoroPulseTime = time;
+        lastFluoroPulseTime = completedSimulationTime * 1000;
+        lastFluoroViewRevision = viewRevision;
         fluoroPulseIndex += 1;
         displayMaterial.uniforms.fluoroPulseIndex.value = fluoroPulseIndex;
 
@@ -4592,6 +4690,14 @@ function animate(time) {
         // 3) render scene to offscreen, accumulate with decay
         // 4) display attenuated fluoroscopy image via display shader
         if (staticAnatomyProjectionChanged()) updateStaticAnatomyProjection();
+
+        // Moving soft tissue is acquired with the X-ray pulse and is therefore
+        // included in both live imaging and DSA masks/cine. Bones remain cached.
+        renderer.setRenderTarget(softTissueTarget);
+        renderer.setClearColor(0x000000, 0);
+        renderer.clear();
+        renderer.render(patientSoftTissue.scene, camera);
+        renderer.setClearColor(0x000000, 1);
 
         renderer.setRenderTarget(contrastTarget);
         renderer.setClearColor(0x000000, 0);
@@ -4673,12 +4779,13 @@ function animate(time) {
         updateXrayTechniqueReadout();
         renderer.setRenderTarget(null);
         if (debugVesselSurface?.mesh.visible) debugVesselSurface.prepare(renderer, camera);
-        renderer.render(scene, camera);
+        if (contrastVolumeRenderer) contrastVolumeRenderer.renderDebug(renderer, scene, camera);
+        else renderer.render(scene, camera);
         if (debugLayerVisibility.vesselLabels) anatomyLabelRenderer.render(scene, camera);
         completeFirstLoadedFrame();
     }
 
-    ui.updatePerfStats(dt, accessController.getCompletedSteps());
+    ui.updatePerfStats(dt, {simulation:simulationExecutedSteps}, completedSimulationTime);
     recordBrowserFrameCpu(frameCpuStartedAt, frameSimulationEndedAt, frameUpdateEndedAt);
 
     runtime.frame(animate);
@@ -4695,6 +4802,7 @@ runtime.listen(document, 'visibilitychange', () => {
 });
 
 runtime.listen(window, 'resize', () => {
+    lastFluoroPulseTime = -Infinity;
     // Keep all targets and shader uniforms in sync with the canvas size
     const w = window.innerWidth;
     const h = window.innerHeight;
@@ -4711,6 +4819,7 @@ runtime.listen(window, 'resize', () => {
     catheterMarkerTarget.setSize(targetWidth, targetHeight);
     sheathTarget.setSize(targetWidth, targetHeight);
     boneTarget.setSize(targetWidth, targetHeight);
+    softTissueTarget.setSize(targetWidth, targetHeight);
     accumulateTarget1.setSize(targetWidth, targetHeight);
     accumulateTarget2.setSize(targetWidth, targetHeight);
     frontDepthTarget.setSize(targetWidth, targetHeight);
@@ -4754,9 +4863,12 @@ runtime.onDispose(() => {
     for (const access of accessController?.values() ?? []) {
         access.simulationStepTransaction.dispose();
         access.wholeAxisAppSystem?.reset(access.endovascularWorld);
+        access.wholeAxisAppSystem?.dispose?.();
     }
     simulationCatchupPending = false;
     disposeCArmPreview();
+    contrastVolumeRenderer?.dispose();
+    patientSoftTissue.dispose();
     disposeThreeResources({
         roots: [scene, contrastScene, blendScene, thicknessScene, displayScene, aortaModel.group],
         materials: [boneMaterial, aortaModel.material, depthMaterialFront, depthMaterialBack,
@@ -4765,7 +4877,7 @@ runtime.onDispose(() => {
         buffers: [dsaFrameReadback, dsaContrastScoreReadback,
             ...Object.values(vesselCollisionTarget.contactField?.arrays ?? {})],
         targets: [offscreenTarget, contrastTarget, metalTarget, catheterTarget,
-            catheterMarkerTarget, sheathTarget, boneTarget, accumulateTarget1, accumulateTarget2,
+            catheterMarkerTarget, sheathTarget, boneTarget, softTissueTarget, accumulateTarget1, accumulateTarget2,
             frontDepthTarget, backDepthTarget, thicknessTarget, dsaMaskTarget, roadmapTarget,
             dsaFrameCaptureTarget, dsaContrastScoreTarget]
     });
@@ -4784,3 +4896,114 @@ runtime.onDispose(() => {
     delete globalThis.__OET_PHYSICS__;
     delete globalThis.__OET_BENCHMARK__;
 });
+
+// Explicit local benchmark URL; ordinary simulator sessions keep their solver
+// and controls. Restoration happens at a common-step boundary, never mid-solve.
+if(crossoverBenchmarkMode&&!crossoverScenarioMode)import('./benchmark/crossoverAppBenchmark.js').then(async({createCrossoverAppBenchmark})=>{
+    crossoverAppBenchmark=await createCrossoverAppBenchmark({mode:crossoverBenchmarkMode,
+        dispose:callback=>runtime.onDispose(callback),
+        ready:()=>loadingAssetsReady()&&!!endovascularWorld.contactField&&fluoroscopy&&activeAccessId==='right'&&selectedCoupledSolver==='shared-axis',
+        read:()=>({anatomy:selectedAnatomy.id,access:activeAccessId,fluoroscopy,simulationTime:completedSimulationTime,
+            wireMm:guidewireTransport.progress,catheterMm:pigtailCatheter.progress,flowTime:contrastSystem?.flowNetwork.time,
+            mesh:sharedAxisAppSystem?.diagnostics.mesh,
+            physics:{solver:sharedAxisAppSystem?.diagnostics.solver,worker:sharedAxisAppSystem?.diagnostics.worker===true,acceptedSteps:sharedAxisAppSystem?.diagnostics.acceptedSteps,
+                failedSteps:sharedAxisAppSystem?.diagnostics.failedSteps},
+            stiffness:{wire:[guidewireShaftStiffnessScale,guidewireTipStiffnessScale],catheter:[catheterShaftStiffnessScale,catheterTipStiffnessScale]},
+            hemodynamics:{...contrastSystem?.flowNetwork.hemodynamics},
+            renderReserveMs:simulationRenderReserveMs}),
+        restore:fixture=>new Promise((resolve,reject)=>changePhysicsSetting('crossover-replay',()=>{
+            try {
+                if(fixture.anatomy!==selectedAnatomy.id||Math.abs(fixture.stepRequest.dt-fixedDt)>1e-12)
+                    throw new Error('Crossover anatomy or timestep mismatch');
+                for(const key of ['start','end'])for(const axis of ['x','y','z'])
+                    if(Math.abs(activeSheath[key][axis]-fixture.sheath[key][axis])>1e-8)throw new Error('Crossover sheath mismatch');
+                stopBrowserBenchmarkScenario('crossover-replay');stopCatheterAortaSetup(catheterAortaSetup);
+                ui.releaseToolInputs();synchronizedStep.reset();synchronizedInputs=null;
+                resetBrowserBenchmarkSimulation();
+                const request=fixture.stepRequest,w=request.tools.find(t=>t.id==='wire'),c=request.tools.find(t=>t.id==='catheter');
+                const controls=ui.captureAccessControls();
+                controls.selectedCatheterType=controls.selectedCatheterTool=c.type;controls.selectedGuidewireType=w.type;
+                controls.sliders.splice(0,4,...[w.shaftStiffness,w.tipStiffness,c.shaftStiffness,c.tipStiffness].map(String));
+                controls.outputs=[w.shaftStiffness,w.tipStiffness,c.shaftStiffness,c.tipStiffness].map(v=>v.toFixed(2));ui.restoreAccessControls(controls);
+                guidewireShaftStiffnessScale=w.shaftStiffness;guidewireTipStiffnessScale=w.tipStiffness;
+                catheterShaftStiffnessScale=c.shaftStiffness;catheterTipStiffnessScale=c.tipStiffness;
+                updateGuidewireType(w.type);applyActiveGuidewireElasticProfile();applyActiveGuidewireKirchhoffProfile();
+                guidewireTransport.tailProgress=w.insertion;tailProgress=w.insertion;guidewireRotation=w.rotation;
+                guidewireTransport.constrainSheath(0);xpbdWireBody.syncFromRodState(wire);
+                pigtailCatheter.setType(c.type);pigtailCatheter.setStiffnessScales({shaftStiffnessScale:c.shaftStiffness,tipStiffnessScale:c.tipStiffness});
+                pigtailCatheter.progress=c.insertion;pigtailCatheter.rotation=c.rotation;pigtailCatheter._pendingXpbdRotation=0;
+                pigtailCatheter.guidewireInserted=pigtailCatheter.previousGuidewireInserted=w.insertion;
+                pigtailCatheter.syncXpbdBody(xpbdCatheterBody,{reset:true});
+                sharedAxisAppSystem.restoreReplay(fixture,endovascularWorld);xpbdWireBody.syncToRodState(wire);
+                contrastSystem.setHemodynamics({cardiacOutputMlPerMin:5000,heartRateBpm:72});
+                contrastSystem.flowNetwork.time=request.options.bloodFlow.time;
+                document.getElementById('bloodFlowCoupling').checked=true;
+                completedSimulationTime=monitorPublishedTime=request.options.bloodFlow.time;
+                simulationExecutedSteps=simulationIdleExecutedSteps=0;simulationAcceptedTime=0;
+                simulationAccumulator=fixedDt;lastRenderTime=null;simulationCatchupPending=false;
+                ui.updateInsertedLength(w.insertion/10,w.rotation);ui.updateCatheterLength(c.insertion/10,c.rotation);
+                updateWireMesh();pigtailCatheter.updateMesh();resolve(sharedAxisAppSystem.whenReady?.());
+            }catch(error){reject(error);}
+        }))
+    });
+}).catch(error=>console.error('Crossover application benchmark setup failed',error));
+
+function readCrossoverScenarioConfiguration() {
+    return {anatomy:selectedAnatomy.id,geometry:scenarioGeometryIdentity,dt:fixedDt,access:accessController.activeId,
+        fluoroscopy,contrastDoseMl:contrastSystem?.totalDeliveredVolumeMl??0,
+        flow:{enabled:document.getElementById('bloodFlowCoupling').checked,parameters:{...contrastSystem?.flowNetwork.hemodynamics}},
+        accesses:accessController.values().map(access=>accessController.run(access.activeAccessId,()=>({
+            id:activeAccessId,wireType:activeGuidewireType,catheterType:pigtailCatheter.type,
+            stiffness:[guidewireShaftStiffnessScale,guidewireTipStiffnessScale,catheterShaftStiffnessScale,catheterTipStiffnessScale],
+            friction:[guidewireStaticWallFriction,guidewireKineticWallFriction],
+            sheath:{start:['x','y','z'].map(k=>activeSheath.start[k]),end:['x','y','z'].map(k=>activeSheath.end[k])}
+        })))};
+}
+
+if(crossoverScenarioMode)import('./benchmark/crossoverScenarioPanel.js').then(async({createCrossoverScenarioPanel})=>{
+    crossoverScenario=await createCrossoverScenarioPanel({configuration:readCrossoverScenarioConfiguration,
+        dispose:callback=>runtime.onDispose(callback),boundary:callback=>changePhysicsSetting('crossover-scenario-checkpoint',callback),
+        reset:(configuration,start)=>new Promise((resolve,reject)=>changePhysicsSetting('crossover-scenario-start',()=>{
+            try {
+                if(!loadingAssetsReady()||!endovascularWorld.contactField||!sharedAxisAppSystem||!fluoroscopy||activeAccessId!=='right')
+                    throw new Error('Poczekaj na anatomię; wymagany wspólny solver, tryb Fluoro i prawy dostęp.');
+                if(contrastSystem.totalDeliveredVolumeMl!==0||accessController.values().some(access=>accessController.run(access.activeAccessId,()=>
+                    !!endovascularWorld.readStentGraftSurface?.()||!!endovascularWorld.readStentGraftCapture?.())))
+                    throw new Error('Otwórz świeżą symulację bez kontrastu i stentgraftu, aby nagrać crossover.');
+                scenarioGeometryIdentity=sharedAxisGeometryIdentity(endovascularWorld.contactField.fallbackGeometry);
+                if(configuration&&(configuration.anatomy!==selectedAnatomy.id||configuration.geometry!==scenarioGeometryIdentity||configuration.dt!==fixedDt||configuration.access!=='right'))
+                    throw new Error('Nagranie pochodzi z innej anatomii, geometrii lub kroku czasu.');
+                const desired=configuration?.accesses??readCrossoverScenarioConfiguration().accesses;
+                for(const side of ['right','left']) {
+                    const a=desired.find(a=>a.id===side);
+                    if(!a||a.stiffness.length!==4||a.friction.length!==2||[...a.stiffness,...a.friction].some(v=>!Number.isFinite(v)||v<0||v>100))
+                        throw new Error('Nieprawidłowe parametry sprzętu w nagraniu.');
+                }
+                if(configuration&&(!configuration.flow||!Number.isFinite(configuration.flow.parameters?.cardiacOutputMlPerMin)||!Number.isFinite(configuration.flow.parameters?.heartRateBpm)))
+                    throw new Error('Nieprawidłowe parametry przepływu w nagraniu.');
+                stopBrowserBenchmarkScenario('crossover-recording');stopCatheterAortaSetup(catheterAortaSetup);ui.releaseToolInputs();
+                synchronizedStep.reset();synchronizedInputs=null;
+                for(const access of accessController.values())accessController.run(access.activeAccessId,()=>{
+                    const saved=desired.find(a=>a.id===activeAccessId),controls=ui.captureAccessControls();
+                    controls.selectedGuidewireType='glidewire';controls.selectedCatheterType=controls.selectedCatheterTool='pigtail';
+                    controls.sliders=[...saved.stiffness,...saved.friction].map(String);controls.outputs=saved.stiffness.map(v=>v.toFixed(2));
+                    access.controls=controls;
+                    [guidewireShaftStiffnessScale,guidewireTipStiffnessScale,catheterShaftStiffnessScale,catheterTipStiffnessScale]=saved.stiffness;
+                    [guidewireStaticWallFriction,guidewireKineticWallFriction]=saved.friction;
+                    updateGuidewireType('glidewire');applyActiveGuidewireElasticProfile();applyActiveGuidewireWallFriction();
+                    pigtailCatheter.setType('pigtail');pigtailCatheter.setStiffnessScales({shaftStiffnessScale:catheterShaftStiffnessScale,tipStiffnessScale:catheterTipStiffnessScale});
+                    resetBrowserBenchmarkSimulation();updateWireMesh();pigtailCatheter.updateMesh();
+                });
+                ui.restoreAccessControls(accessController.active.controls);
+                if(configuration){contrastSystem.setHemodynamics(configuration.flow.parameters);document.getElementById('bloodFlowCoupling').checked=configuration.flow.enabled;}
+                contrastSystem.flowNetwork.time=0;completedSimulationTime=monitorPublishedTime=0;
+                simulationExecutedSteps=simulationIdleExecutedSteps=0;simulationAcceptedTime=0;
+                simulationAccumulator=0;lastRenderTime=null;simulationCatchupPending=false;
+                ui.updateInsertedLength(0,0);ui.updateCatheterLength(0,0);
+                // Activate synchronously at this boundary, before any zero-tool
+                // step can escape recording while a Promise continuation waits.
+                start();resolve();
+            }catch(error){reject(error);}
+        }))
+    });
+}).catch(error=>console.error('Crossover scenario recorder setup failed',error));

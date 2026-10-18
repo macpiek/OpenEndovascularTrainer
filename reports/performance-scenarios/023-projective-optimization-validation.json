@@ -1,0 +1,208 @@
+{
+  "createdAt": "2026-10-17T19:31:03.776301+00:00",
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "acceptanceMode": "functional",
+  "shapeDifferenceLimitMm": null,
+  "referenceSha256": "efe60d05b63ac7cc4323c54701a4fc7db318dcf890b116f5ec5c34a753d90b14",
+  "scope": "Original 7507 right-access input targets in a browser research harness with simple axis rendering; not full-application FPS or proof of detailed realism.",
+  "scratchJacobi": {
+    "enabledByDefault": false,
+    "complete": true,
+    "allFiveCoarseRouteChecksPassed": true,
+    "all7507PosesAndQualityIdenticalToPreviousPd": true,
+    "baseline": {
+      "longMovingSteps": 952,
+      "longStageMeanCpuMs": 44.527626052624036,
+      "longStageCpuCapacityHz": 22.457967977411844,
+      "movingCpuCapacityHz": 45.046436757553785,
+      "wallThroughputHz": 43.088603991196834,
+      "meanNodes": 157.98214285714286,
+      "outsideSolverMs": 1.9404411716621464,
+      "timings": {
+        "setupMs": 0.3168067280985728,
+        "assemblyMs": 13.712184898993549,
+        "linearMs": 5.975105031448252,
+        "projectionMs": 10.17668066806152,
+        "constraintMs": 11.471953777205043,
+        "rotationMs": 10.229306722388548,
+        "closureSolveMs": 8.154621846034747,
+        "constraintCalls": 20.071428571428573,
+        "constraintReuse": 18.071428571428573
+      }
+    },
+    "optimized": {
+      "longMovingSteps": 952,
+      "longStageMeanCpuMs": 38.31670168192447,
+      "longStageCpuCapacityHz": 26.098279760643912,
+      "movingCpuCapacityHz": 52.62276479344904,
+      "wallThroughputHz": 46.61893199361606,
+      "meanNodes": 157.98214285714286,
+      "outsideSolverMs": 1.933928571829275,
+      "timings": {
+        "setupMs": 0.43014706283056436,
+        "assemblyMs": 7.857878147303557,
+        "linearMs": 5.968697471778934,
+        "projectionMs": 9.939285712081846,
+        "constraintMs": 11.18088234798247,
+        "rotationMs": 4.32930672669611,
+        "closureSolveMs": 7.965546211274732,
+        "constraintCalls": 20.071428571428573,
+        "constraintReuse": 18.071428571428573
+      }
+    },
+    "longStageCostReductionPercent": 13.948474062729765,
+    "validation": "023-projective-scratch-validation.json",
+    "timingCaveat": "Single full runs; CPU capacity excludes rendering/scheduling. Historical baseline from 022.",
+    "microbenchmark": "023-rotation-microbenchmark.json"
+  },
+  "adaptive250": {
+    "complete": true,
+    "allFiveCoarseRouteChecksPassed": true,
+    "profile": {
+      "longMovingSteps": 952,
+      "longStageMeanCpuMs": 44.773634458038984,
+      "longStageCpuCapacityHz": 22.334572837440334,
+      "movingCpuCapacityHz": 44.57014570323433,
+      "wallThroughputHz": 43.08071594217218,
+      "meanNodes": 129.47584033613447,
+      "outsideSolverMs": 2.000735292414657,
+      "timings": {
+        "setupMs": 0.28077731638395487,
+        "assemblyMs": 12.548319319717022,
+        "linearMs": 5.109453772546864,
+        "projectionMs": 10.762394950920795,
+        "constraintMs": 13.427100847749148,
+        "rotationMs": 8.758823546541839,
+        "closureSolveMs": 8.325420168768458,
+        "constraintCalls": 20.222689075630253,
+        "constraintReuse": 18.217436974789916
+      }
+    },
+    "acceptedAsPerformanceImprovement": false,
+    "reason": "Fewer mechanical nodes, but increased contact cost; no net long-stage saving.",
+    "validation": "023-projective-mesh250-validation.json"
+  },
+  "adaptive80": {
+    "complete": false,
+    "acceptedSteps": 5628,
+    "rejectedStep": 5629,
+    "attempts": [
+      {
+        "subdivisions": 1,
+        "part": 1,
+        "status": "pd-error",
+        "error": "Shared axis crossed the vessel surface",
+        "iterations": 1,
+        "ms": 0.6000001430511475,
+        "timings": {
+          "assemblyMs": 0,
+          "linearMs": 0,
+          "frictionMs": 0,
+          "projectionMs": 0,
+          "setupMs": 0.10000014305114746,
+          "constraintMs": 0,
+          "rotationMs": 0,
+          "closureSolveMs": 0,
+          "constraintCalls": 0,
+          "constraintReuse": 0
+        }
+      },
+      {
+        "subdivisions": 2,
+        "part": 1,
+        "status": "pd-error",
+        "error": "Shared axis crossed the vessel surface",
+        "iterations": 1,
+        "ms": 0.5999999046325684,
+        "timings": {
+          "assemblyMs": 0,
+          "linearMs": 0,
+          "frictionMs": 0,
+          "projectionMs": 0,
+          "setupMs": 0.19999980926513672,
+          "constraintMs": 0,
+          "rotationMs": 0,
+          "closureSolveMs": 0,
+          "constraintCalls": 0,
+          "constraintReuse": 0
+        }
+      },
+      {
+        "subdivisions": 4,
+        "part": 1,
+        "status": "pd-error",
+        "error": "Shared axis crossed the vessel surface",
+        "iterations": 1,
+        "ms": 0.6000001430511475,
+        "timings": {
+          "assemblyMs": 0,
+          "linearMs": 0,
+          "frictionMs": 0,
+          "projectionMs": 0,
+          "setupMs": 0.10000014305114746,
+          "constraintMs": 0,
+          "rotationMs": 0,
+          "closureSolveMs": 0,
+          "constraintCalls": 0,
+          "constraintReuse": 0
+        }
+      },
+      {
+        "subdivisions": 8,
+        "part": 1,
+        "status": "pd-geometry-admissible",
+        "iterations": 16,
+        "ms": 23.200000047683716,
+        "timings": {
+          "assemblyMs": 7.1000001430511475,
+          "linearMs": 2.5999996662139893,
+          "frictionMs": 0,
+          "projectionMs": 7,
+          "setupMs": 0.20000004768371582,
+          "constraintMs": 5.599999904632568,
+          "rotationMs": 5.100000381469727,
+          "closureSolveMs": 5.199999809265137,
+          "constraintCalls": 22,
+          "constraintReuse": 20
+        },
+        "maxLengthError": 2.877382823234708e-10,
+        "maxShear": 2.8773816641741645e-10,
+        "penetrationMm": 1.4973786099936603e-11
+      },
+      {
+        "subdivisions": 8,
+        "part": 2,
+        "status": "pd-error",
+        "error": "Shared axis crossed the vessel surface",
+        "iterations": 1,
+        "ms": 0.5,
+        "timings": {
+          "assemblyMs": 0,
+          "linearMs": 0,
+          "frictionMs": 0,
+          "projectionMs": 0,
+          "setupMs": 0.10000014305114746,
+          "constraintMs": 0,
+          "rotationMs": 0,
+          "closureSolveMs": 0,
+          "constraintCalls": 0,
+          "constraintReuse": 0
+        }
+      }
+    ],
+    "validation": "023-projective-mesh80-validation.json"
+  },
+  "localRefinement": {
+    "report": "023-projective-refinement-diagnosis.json",
+    "admissibleCases": 0,
+    "cases": 16,
+    "note": "Original-grid controls reproduce the incompatible projection. New midpoint grids report an outside-vessel sign at new sampling sites even though the starting polyline is identical. This is not proof that the refined mechanics are infeasible; the geometry query prevents the probe. No wall/sign checks were bypassed."
+  },
+  "regressionTests": {
+    "passed": 65,
+    "command": "node --test tests/kirchhoffSharedAxisAdaptiveMesh.test.js tests/kirchhoffSharedAxisProjective.test.js tests/projectiveRotationPolar.test.js tests/projectiveRotationScratch.test.js tests/kirchhoffSharedAxisProjection.test.js tests/crossoverScenarioRecording.test.js tests/crossoverFunctionalRoute.test.js tests/crossoverAppBenchmark.test.js"
+  },
+  "buildPassed": true,
+  "next": "Investigate remaining PD contact evaluation (~11.2 ms) and global geometry closure (~9.9 ms) in the long moving stage, plus matrix solve (~6.0 ms); timings overlap and must not be summed. The exact Jacobi workspace preserved all 7507 poses. Avoid enabling polar rotations or the 80 mm coarse-prefix mesh: both block mid-maneuver. Local midpoint refinement did not restore failed projection feasibility; changed sample grids report negative vessel sign even on the unchanged polyline, so audit sign/continuous containment before using that remedy. Qualify any fast candidate on the complete recording, then the full two-access app/common clock. Best full-app result remains 020-relaxed-mesh (46.89 Hz moving, 38.44 Hz long stage)."
+}

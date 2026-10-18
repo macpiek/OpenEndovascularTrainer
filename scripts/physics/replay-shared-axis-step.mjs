@@ -8,7 +8,7 @@ const output=process.argv[3];mkdirSync(output,{recursive:true});
 if(fixture.failure?.captureError)throw new Error(`Incomplete capture: ${fixture.failure.captureError}`);
 const incremental=process.argv.includes('--incremental-contacts');
 const compare=process.argv.includes('--compare-fallback');
-const anatomy=await loadCoupledRuntimeAnatomy();
+const anatomy=await loadCoupledRuntimeAnatomy(undefined, fixture.anatomy ?? 'plain');
 try {
     for(const earlyLiveFallback of (compare?[false,true]:[fixture.stepRequest.options?.earlyLiveFallback])) {
         const s=restoreSharedAxisReplay(fixture,anatomy.field),req=fixture.stepRequest;

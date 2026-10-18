@@ -1,4 +1,6 @@
+import {DilatedLumenMixing} from './dilatedLumenMixing.js';
 import * as THREE from 'three';
+import {FlowAdvection} from './flowAdvection.js';
 import { repairArterialFlowTopology } from '../arterialFlowTopology.js';
 
 const MM3_PER_ML = 1000;
@@ -15,7 +17,6 @@ const DEFAULT_BRANCH_CALIBER_SAMPLE_DISTANCE_MM = 6;
 const DEFAULT_MAXIMUM_CALIBER_CORRECTED_TERMINAL_OUTLETS = 2;
 const DEFAULT_CFL_LIMIT = 0.72;
 const MIN_ACTIVE_EDGE_MASS_MG = 5e-4;
-const MAX_TRANSPORT_SUBSTEPS = 24;
 const RADIUS_VALLEY_WINDOW_MM = 28;
 const RADIUS_VALLEY_SUPPORT_MM = 6;
 const RADIUS_VALLEY_RATIO = 0.78;
@@ -188,7 +189,6 @@ function orientedEdge(source, sourceIndex, startNode, endNode, edgeIndex, {
         active: false,
         massMg: new Float64Array(cellCount),
         nextMassMg: new Float64Array(cellCount),
-        dispersionDeltaMg: new Float64Array(cellCount),
         // Additive signed-flow corrections at the cell faces. A device outlet
         // inside an edge is a volume source, so the proximal and distal faces
         // of its source cell generally carry different flows. Keeping this at
@@ -281,11 +281,8 @@ export class ContrastFlowNetwork {
         this.nodeOrder = [];
         this.disconnectedSourceSegmentCount = 0;
         this.time = 0;
-        this._courantEpoch=0;
         this.outletIodineMassMg = 0;
         this.totalIodineMassMg = 0;
-        this._edgeOutMassMg = new Float64Array(this.sourceSegments.length);
-        this._edgeUpstreamOutMassMg = new Float64Array(this.sourceSegments.length);
         this._flowOverridesMm3PerS = new Float64Array(this.sourceSegments.length);
         this._flowOverridesMm3PerS.fill(Number.NaN);
         this._faceFlowDeltaEdgeIndices = new Set();
@@ -299,17 +296,12 @@ export class ContrastFlowNetwork {
         this._queryEpoch = 0;
         this._locationScratch = {};
         this._activeEdgeIndices = new Set();
-        this._touchMarks = new Uint32Array(this.sourceSegments.length);
-        this._touchEpoch = 0;
-        this._touchedEdgeIndices = [];
         this._buildDirectedTree();
         this._contractIntraluminalAorticBranchConnectors();
         this._suppressIntraluminalAorticDeadEnds();
         this._regularizeShortRadiusValleys();
         this._regularizeAorticBranchPrefixes();
         this._regularizeIntraluminalAorticConnectorVolumes();
-        this._edgeOutMassMg = new Float64Array(this.edges.length);
-        this._edgeUpstreamOutMassMg = new Float64Array(this.edges.length);
         this._flowOverridesMm3PerS = new Float64Array(this.edges.length);
         this._flowOverridesMm3PerS.fill(Number.NaN);
         this._branchInletFlowMm3PerS =
@@ -317,8 +309,6 @@ export class ContrastFlowNetwork {
         this._branchInletConcentrationMgPerMm3 =
             new Float64Array(this.edges.length);
         this._queryMarks = new Uint32Array(this.edges.length);
-        this._touchMarks = new Uint32Array(this.edges.length);
-        this._courantMarks=new Uint32Array(this.edges.length);
         this._computeHydraulicDistribution();
         this._buildSpatialIndex();
         this.minimumCellLength = this.edges.reduce(
@@ -326,6 +316,8 @@ export class ContrastFlowNetwork {
             Infinity
         );
         this._updateMaximumMeanVelocity();
+        this._advection = new FlowAdvection(this);
+        this.dilatedLumenMixing = new DilatedLumenMixing(this);
     }
 
     _updateMaximumMeanVelocity() {
@@ -1199,7 +1191,10 @@ export class ContrastFlowNetwork {
                 node.childEdgeIndices.length < 2
             ) continue;
             const parent = this.edges[node.parentEdgeIndex];
-            const parentRadius = parent?.rawRadiusEnd || 0;
+            // A sampled valley at the ostium may already have been repaired.
+            // Using only the raw value here misses branches inside a dilated
+            // aorta and gives their technical prefix the parent's full volume.
+            const parentRadius = Math.max(parent.rawRadiusEnd, parent.radiusEnd);
             if (parentRadius < AORTIC_PREFIX_MIN_PARENT_RADIUS_MM) {
                 continue;
             }
@@ -1208,7 +1203,7 @@ export class ContrastFlowNetwork {
                 const rootEdge = this.edges[rootEdgeIndex];
                 if (
                     !rootEdge ||
-                    rootEdge.rawRadiusStart <
+                    Math.max(rootEdge.rawRadiusStart, rootEdge.radiusStart) <
                         parentRadius * AORTIC_PREFIX_START_RADIUS_RATIO
                 ) continue;
 
@@ -1223,8 +1218,10 @@ export class ContrastFlowNetwork {
                     path.push(edge);
                     pathLengthMm += edge.length;
                     if (
-                        edge.rawRadiusEnd <=
-                            parentRadius * AORTIC_PREFIX_EXIT_RADIUS_RATIO
+                        edge.rawRadiusEnd <= Math.min(
+                            parentRadius * AORTIC_PREFIX_EXIT_RADIUS_RATIO,
+                            AORTIC_PREFIX_MAX_BRANCH_RADIUS_MM
+                        )
                     ) {
                         branchRadiusMm = Math.max(
                             MIN_RADIUS_MM,
@@ -1883,318 +1880,65 @@ export class ContrastFlowNetwork {
             this.time += dt;
             return;
         }
-        const waveform = arterialWaveform(this.time, this.hemodynamics.heartRateBpm);
-        let maximumActiveCourantRate = 0;
-        this._courantEpoch=(this._courantEpoch+1)>>>0;
-        if(!this._courantEpoch){this._courantMarks.fill(0);this._courantEpoch=1;}
-        const includeCourantRate = edge => {
-            if(edge.transportExcluded||this._courantMarks[edge.index]===this._courantEpoch)return;
-            this._courantMarks[edge.index]=this._courantEpoch;
-            const override = this._flowOverridesMm3PerS[edge.index];
-            const baseFlow = Number.isFinite(override)
-                ? override
-                : edge.meanFlowMm3PerS * waveform;
-            const faceDeltas = edge.faceFlowDeltaMm3PerS;
-            for (let index = 0; index < edge.cellCount; index++) {
-                const leftFaceFlow = baseFlow + faceDeltas[index];
-                const rightFaceFlow = baseFlow + faceDeltas[index + 1];
-                // Only volume leaving a cell constrains its explicit upwind
-                // step. At an injection cell both faces can point outward, so
-                // their rates must be added instead of taking one edge-wide
-                // absolute value.
-                const outwardFlow =
-                    Math.max(0, -leftFaceFlow) +
-                    Math.max(0, rightFaceFlow);
-                maximumActiveCourantRate = Math.max(
-                    maximumActiveCourantRate,
-                    outwardFlow /
-                        Math.max(1e-6, edge.volumes[index])
-                );
-            }
-        };
-        for (const edgeIndex of this._activeEdgeIndices) {
-            const edge = this.edges[edgeIndex];
-            includeCourantRate(edge);
-            for (const childIndex of edge.childEdgeIndices) {
-                includeCourantRate(this.edges[childIndex]);
-            }
-        }
-        for (const edgeIndex of this._branchInletEdgeIndices) {
-            const edge = this.edges[edgeIndex];
-            includeCourantRate(edge);
-        }
-        const advectiveSteps = Math.max(
-            1,
-            Math.ceil(
-                maximumActiveCourantRate * dt /
-                Math.max(1e-6, this.cflLimit)
-            )
-        );
-        const dispersion = Math.max(0, this.hemodynamics.axialDispersionMm2PerS);
-        const dispersiveSteps = dispersion > 0
-            ? Math.max(1, Math.ceil(
-                dispersion * dt /
-                Math.max(1e-6, this.minimumCellLength ** 2 * 0.45)
-            ))
-            : 1;
-        const substepCount = Math.min(
-            MAX_TRANSPORT_SUBSTEPS,
-            Math.max(advectiveSteps, dispersiveSteps)
-        );
-        this.lastTransportSubstepCount = substepCount;
-        const substep = dt / substepCount;
-        for (let step = 0; step < substepCount; step++) {
-            this._transportSubstep(substep);
-            this.stentGraftRemodeling?.sac?.update(substep);
-            this.time += substep;
+        // Accuracy steps resolve the pulse; stability no longer depends
+        // on the smallest atlas cell or an arbitrary cap on CFL substeps.
+        const count = Math.max(1, Math.ceil(dt*30)), step = dt/count;
+        this.lastTransportSubstepCount = count;
+        for (let i = 0; i < count; i++) {
+            this._advection.prepare(arterialWaveform(
+                this.time + step * 0.5,
+                this.hemodynamics.heartRateBpm
+            ));
+            this._transportSubstep(step);
+            this.stentGraftRemodeling?.sac?.update(step);
+            this.time += step;
         }
         this._updateEdgeConcentrations(true);
     }
 
     _transportSubstep(dt) {
-        const waveform = arterialWaveform(this.time, this.hemodynamics.heartRateBpm);
-        this._touchEpoch = (this._touchEpoch + 1) >>> 0;
-        if (this._touchEpoch === 0) {
-            this._touchMarks.fill(0);
-            this._touchEpoch = 1;
-        }
-        const epoch = this._touchEpoch;
-        const touched = this._touchedEdgeIndices;
-        touched.length = 0;
-        const markTouched = edgeIndex => {
-            if (edgeIndex < 0 || this._touchMarks[edgeIndex] === epoch) return;
-            this._touchMarks[edgeIndex] = epoch;
-            touched.push(edgeIndex);
-        };
-
-        for (const edgeIndex of this._activeEdgeIndices) {
-            const edge = this.edges[edgeIndex];
-            markTouched(edgeIndex);
-            for (const childIndex of edge.childEdgeIndices) markTouched(childIndex);
-            const parentIndex = edge.parentEdgeIndex;
-            if (parentIndex >= 0) {
-                const parent = this.edges[parentIndex];
-                markTouched(parentIndex);
-                for (const siblingIndex of parent.childEdgeIndices) {
-                    markTouched(siblingIndex);
-                }
-            }
-        }
-        for (const edgeIndex of this._branchInletEdgeIndices) {
-            const edge = this.edges[edgeIndex];
-            markTouched(edgeIndex);
-            for (const childIndex of edge.childEdgeIndices) {
-                markTouched(childIndex);
-            }
-        }
-
-        for (const edgeIndex of touched) {
-            const edge = this.edges[edgeIndex];
-            this._edgeOutMassMg[edgeIndex] = 0;
-            this._edgeUpstreamOutMassMg[edgeIndex] = 0;
-            // Start from the complete previous stock so inflow and transport
-            // remain conservative during this substep.
-            edge.nextMassMg.set(edge.massMg);
-        }
-
-        for (const edgeIndex of this._activeEdgeIndices) {
-            const edge = this.edges[edgeIndex];
-            const source = edge.massMg;
-            const next = edge.nextMassMg;
-            const override = this._flowOverridesMm3PerS[edge.index];
-            const baseFlow = Number.isFinite(override)
-                ? override
-                : edge.meanFlowMm3PerS * waveform;
-            const faceDeltas = edge.faceFlowDeltaMm3PerS;
-            for (let cellIndex = 0; cellIndex < edge.cellCount; cellIndex++) {
-                const leftFaceFlow = baseFlow + faceDeltas[cellIndex];
-                const rightFaceFlow = baseFlow + faceDeltas[cellIndex + 1];
-                const leftOutflow = Math.max(0, -leftFaceFlow);
-                const rightOutflow = Math.max(0, rightFaceFlow);
-                const totalOutflow = leftOutflow + rightOutflow;
-                if (!(totalOutflow > 0) || !(source[cellIndex] > 0)) {
-                    continue;
-                }
-                const transportedFraction = Math.min(
-                    1,
-                    totalOutflow * dt /
-                        Math.max(1e-9, edge.volumes[cellIndex])
-                );
-                const totalOutflowMass =
-                    source[cellIndex] * transportedFraction;
-                let leftMass = totalOutflowMass *
-                    leftOutflow / totalOutflow;
-                let rightMass = totalOutflowMass - leftMass;
-                next[cellIndex] -= totalOutflowMass;
-                const sac=this.stentGraftRemodeling?.sac;
-                if(sac) {
-                    leftMass-=sac.divert(edge.index,cellIndex,-1,leftMass);
-                    rightMass-=sac.divert(edge.index,cellIndex,1,rightMass);
-                }
-                if (leftMass > 0) {
-                    if (cellIndex > 0) {
-                        next[cellIndex - 1] += leftMass;
-                    } else {
-                        this._edgeUpstreamOutMassMg[edge.index] +=
-                            leftMass;
-                    }
-                }
-                if (rightMass > 0) {
-                    if (cellIndex + 1 < edge.cellCount) {
-                        next[cellIndex + 1] += rightMass;
-                    } else {
-                        this._edgeOutMassMg[edge.index] += rightMass;
-                    }
-                }
-            }
+        const touched = this._advection.update(dt), marks = this._advection.edgeMarks;
+        // Diffusion can enter a clear daughter after the directed sweep.
+        const reached = touched.length;
+        for (let k = 0; k < reached; k++) {
+            const edge = this.edges[touched[k]];
+            edge.active = true;
             this._applyAxialDispersion(edge, dt);
-        }
-        for (const edgeIndex of this._branchInletEdgeIndices) {
-            const inletMassMg =
-                this._branchInletFlowMm3PerS[edgeIndex] *
-                this._branchInletConcentrationMgPerMm3[edgeIndex] *
-                dt;
-            if (!(inletMassMg > 0)) continue;
-            const edge = this.edges[edgeIndex];
-            edge.nextMassMg[0] += inletMassMg;
-        }
-        this._applyJunctionDispersion(dt, touched);
-
-        // Mix every signed inflow at its actual graph node, then distribute it
-        // to every face whose flow leaves that node. This one rule handles
-        // normal bifurcation, reflux from a child, simultaneous parent/child
-        // inflow and smooth reversal through zero without anatomy-specific
-        // gates.
-        const nodeInflows = new Map();
-        const addNodeInflow = (nodeId, edge, boundaryCellIndex, massMg) => {
-            if (!(massMg > 0)) return;
-            let inlet = nodeInflows.get(nodeId);
-            if (!inlet) {
-                inlet = { massMg: 0, origins: [] };
-                nodeInflows.set(nodeId, inlet);
-            }
-            inlet.massMg += massMg;
-            inlet.origins.push({ edge, boundaryCellIndex, massMg });
-        };
-        for (const edgeIndex of this._activeEdgeIndices) {
-            const edge = this.edges[edgeIndex];
-            const upstreamOutflowMass = this._edgeUpstreamOutMassMg[edgeIndex];
-            if (upstreamOutflowMass > 0) {
-                addNodeInflow(
-                    edge.startNodeId,
-                    edge,
-                    0,
-                    upstreamOutflowMass
-                );
-            }
-            const outflowMass = this._edgeOutMassMg[edgeIndex];
-            if (outflowMass > 0) {
-                addNodeInflow(
-                    edge.endNodeId,
-                    edge,
-                    edge.cellCount - 1,
-                    outflowMass
-                );
+            for (const childIndex of edge.childEdgeIndices) if (!marks[childIndex]) {
+                marks[childIndex] = 1; touched.push(childIndex);
+                this.edges[childIndex].nextMassMg.set(this.edges[childIndex].massMg);
             }
         }
-
-        for (const [nodeId, inlet] of nodeInflows) {
-            const node = this.nodes.get(nodeId);
-            if (!node) {
-                this.outletIodineMassMg += inlet.massMg;
-                continue;
-            }
-            const outlets = [];
-            let totalOutletFlow = 0;
-            if (node.parentEdgeIndex >= 0) {
-                const parent = this.edges[node.parentEdgeIndex];
-                const signedFlow = this.getFaceSignedFlowMm3PerS(
-                    parent.index,
-                    parent.cellCount,
-                    waveform
-                );
-                if (signedFlow < 0) {
-                    const flow = -signedFlow;
-                    outlets.push({
-                        edge: parent,
-                        cellIndex: parent.cellCount - 1,
-                        flow
-                    });
-                    totalOutletFlow += flow;
-                }
-            }
-            for (const childIndex of node.childEdgeIndices) {
-                const child = this.edges[childIndex];
-                const signedFlow = this.getFaceSignedFlowMm3PerS(
-                    child.index,
-                    0,
-                    waveform
-                );
-                if (signedFlow > 0) {
-                    outlets.push({ edge: child, cellIndex: 0, flow: signedFlow });
-                    totalOutletFlow += signedFlow;
-                }
-            }
-            if (totalOutletFlow > 0) {
-                for (const outlet of outlets) {
-                    outlet.edge.nextMassMg[outlet.cellIndex] +=
-                        inlet.massMg * outlet.flow / totalOutletFlow;
-                    markTouched(outlet.edge.index);
-                }
-                continue;
-            }
-            const isOpenBoundary =
-                node.parentEdgeIndex < 0 ||
-                node.childEdgeIndices.length === 0;
-            if (isOpenBoundary) {
-                this.outletIodineMassMg += inlet.massMg;
-                continue;
-            }
-            // A transient zero-flow internal node has finite blood volume even
-            // though the graph node does not. Return mass to its donor boundary
-            // until a signed outlet reappears instead of deleting or teleporting
-            // the contrast.
-            for (const origin of inlet.origins) {
-                origin.edge.nextMassMg[origin.boundaryCellIndex] +=
-                    origin.massMg;
-            }
-        }
-
+        this._applyJunctionDispersion(dt, touched, reached);
+        this.dilatedLumenMixing.update(dt, touched, marks);
+        this._activeEdgeIndices.clear();
         for (const edgeIndex of touched) {
             const edge = this.edges[edgeIndex];
-            const swap = edge.massMg;
-            edge.massMg = edge.nextMassMg;
-            edge.nextMassMg = swap;
-            let activeMass = 0;
-            for (let cellIndex = 0; cellIndex < edge.cellCount; cellIndex++) {
-                activeMass += edge.massMg[cellIndex];
-            }
-            edge.active = activeMass > MIN_ACTIVE_EDGE_MASS_MG;
-            if (edge.active) this._activeEdgeIndices.add(edgeIndex);
+            const swap = edge.massMg; edge.massMg = edge.nextMassMg; edge.nextMassMg = swap;
+            let mass = 0;
+            for (const value of edge.massMg) mass += value;
+            edge.active = mass > MIN_ACTIVE_EDGE_MASS_MG;
+            if (edge.active) this._activeEdgeIndices.add(edge.index);
             else {
-                this._activeEdgeIndices.delete(edgeIndex);
-                // Sub-resolution remnants represent iodine that has entered
-                // terminal microcirculation beyond the resolved centerline
-                // tree. Account it as outlet mass instead of leaving a
-                // permanent numerical stain in a tiny vessel.
-                this.outletIodineMassMg += activeMass;
-                edge.massMg.fill(0);
-                edge.nextMassMg.fill(0);
-                edge.meanConcentrationMgPerMm3=0;
+                this.outletIodineMassMg += mass;
+                edge.massMg.fill(0); edge.nextMassMg.fill(0);
+                edge.meanConcentrationMgPerMm3 = 0;
             }
         }
     }
 
-    _applyJunctionDispersion(dt, touchedEdgeIndices = this.edges.map(edge => edge.index)) {
+    _applyJunctionDispersion(dt, touchedEdgeIndices = this.edges.map(edge => edge.index), count = touchedEdgeIndices.length) {
         const coefficient = Math.max(0, this.hemodynamics.axialDispersionMm2PerS);
         if (!(coefficient > 0)) return;
         const waveform = arterialWaveform(
             this.time,
             this.hemodynamics.heartRateBpm
         );
-        for (const edgeIndex of touchedEdgeIndices) {
+        for (let i = 0; i < count; i++) {
+            const edgeIndex = touchedEdgeIndices[i];
             const edge = this.edges[edgeIndex];
             if (!edge.childEdgeIndices.length) continue;
+            if (edge.childEdgeIndices.length === 1 && this.dilatedLumenMixing.weights[edge.index] && this.dilatedLumenMixing.weights[edge.childEdgeIndices[0]]) continue;
             if (!edge.active && !edge.childEdgeIndices.some(
                 childIndex => this.edges[childIndex].active
             )) continue;
@@ -2273,26 +2017,21 @@ export class ContrastFlowNetwork {
     }
 
     _applyAxialDispersion(edge, dt) {
+        if (this.dilatedLumenMixing.weights[edge.index]) return;
         const coefficient = Math.max(0, this.hemodynamics.axialDispersionMm2PerS);
         if (!(coefficient > 0) || edge.cellCount < 2) return;
-        const next = edge.nextMassMg;
-        const delta = edge.dispersionDeltaMg;
-        delta.fill(0);
-        for (let cellIndex = 0; cellIndex < edge.cellCount - 1; cellIndex++) {
-            const leftConcentration = next[cellIndex] / Math.max(1e-9, edge.volumes[cellIndex]);
-            const rightConcentration = next[cellIndex + 1] /
-                Math.max(1e-9, edge.volumes[cellIndex + 1]);
-            const interfaceArea = (edge.areas[cellIndex] + edge.areas[cellIndex + 1]) * 0.5;
-            let transfer = coefficient * interfaceArea *
-                (leftConcentration - rightConcentration) /
-                Math.max(1e-6, edge.cellLength) * dt;
-            if (transfer > 0) transfer = Math.min(transfer, next[cellIndex] * 0.45);
-            else transfer = -Math.min(-transfer, next[cellIndex + 1] * 0.45);
-            delta[cellIndex] -= transfer;
-            delta[cellIndex + 1] += transfer;
-        }
-        for (let cellIndex = 0; cellIndex < edge.cellCount; cellIndex++) {
-            next[cellIndex] = Math.max(0, next[cellIndex] + delta[cellIndex]);
+        const mass = edge.nextMassMg, volumes = edge.volumes, areas = edge.areas;
+        // Exact two-volume exchange is positive and mass-conservative at any
+        // cell size. Symmetric sweeps avoid a directional bias and remove the
+        // global diffusion timestep imposed by tiny atlas segments.
+        for (let pass = 0; pass < 2; pass++) for (let n = 0; n < edge.cellCount-1; n++) {
+            const i = pass ? edge.cellCount-2-n : n, j = i+1;
+            const a = Math.max(1e-9, volumes[i]), b = Math.max(1e-9, volumes[j]);
+            const rate = coefficient*(areas[i]+areas[j])*.5/edge.cellLength;
+            const effectiveVolume = a*b/(a+b);
+            const transfer = (mass[i]/a-mass[j]/b)*effectiveVolume *
+                (-Math.expm1(-rate/effectiveVolume*dt*.5));
+            mass[i] -= transfer; mass[j] += transfer;
         }
     }
 

@@ -56,4 +56,21 @@ for (let sample = 0; sample < 1200; sample++) {
     previousFace = libraryResult.faceIndex;
 }
 
+
+// A cached triangle is only a search hint. If all triangles are outside the
+// bounded query, reporting the hint as a hit suppresses the caller's exact
+// unbounded retry and can create an invalid wall-clearance certificate.
+for (const hint of [-1, previousFace]) {
+    const point = new THREE.Vector3(0, 0, 40);
+    const exact = geometry.boundsTree.closestPointToPoint(point, libraryTarget);
+    const maximum = exact.distance * .5;
+    const bounded = closestPointToPointScalarBvh(geometry.boundsTree,
+        point.x, point.y, point.z, scalarTarget, scratch, maximum, hint);
+    assert.equal(bounded, false, `Out-of-range triangle must not count as a hit (hint=${hint})`);
+    assert.equal(closestPointToPointScalarBvh(geometry.boundsTree,
+        point.x, point.y, point.z, scalarTarget, scratch, Infinity, hint), true);
+    assert.ok(Math.abs(scalarTarget.distance-exact.distance)<1e-10);
+}
+geometry.dispose();
+
 console.log('Scalar MeshBVH closest-point tests passed');

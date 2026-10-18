@@ -19,6 +19,9 @@ test('aneurysm atlas: graft exclusion preserves both original femoral territorie
   assert.ok(n.stentGraftRemodeling.trappedIodineMassMg<2,'patent sac must wash out after a bolus, not retain nearly all iodine for a minute');
   assert.ok(Math.abs(n.totalIodineMassMg+n.outletIodineMassMg+n.stentGraftRemodeling.trappedIodineMassMg-25)<1e-7);
   place(f.system,'left','limb');f.system.deploy('left');finish(f.system,'left');s.setStentGraftSurface(f.system.surface);
+  assert.equal(n.stentGraftRemodeling.surface.sealed,false,'IIs requires an ipsilateral extension too');
+  const body=f.system.accesses.right.device;body.position=body.target=0;f.system.removeDelivery('right');
+  place(f.system,'right','limb');f.system.deploy('right');finish(f.system,'right');s.setStentGraftSurface(f.system.surface);
   assert.equal(n.stentGraftRemodeling.surface.sealed,true);
   for(const index of outlets){assert.equal(n.edges[index].transportExcluded,false);assert.ok(n.edges[index].meanFlowMm3PerS>0);}
   assert.ok(n.stentGraftRemodeling.coveredEdges>100);

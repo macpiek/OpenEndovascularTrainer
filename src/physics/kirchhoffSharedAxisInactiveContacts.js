@@ -4,8 +4,14 @@
 // the state before a protected measure is consumed again.
 const work = new WeakMap();
 
+export const isDeferredSharedAxisContact=row=>work.get(row)?.pending===true;
+
 export function clearDeferredSharedAxisContact(row) {
     const w=work.get(row);if(w)w.pending=false;
+}
+
+export function releaseDeferredSharedAxisContact(row) {
+    work.delete(row);
 }
 
 export function deferSharedAxisContact(row,evaluate,input,lowerGap,cache=null,pose=null) {

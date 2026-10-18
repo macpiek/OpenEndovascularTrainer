@@ -77,6 +77,18 @@ export function applyStentGraftFlow(network,surface) {
             }
         }
     }
+    // A pruned internal branch is not a new outlet. Otherwise hydraulic
+    // distribution feeds a zero-volume closed junction and advection returns
+    // its iodine to the same boundary cell forever. Keep true native outlets.
+    const pending=[...excluded];
+    for(let i=0;i<pending.length;i++) {
+        const parent=network.edges[pending[i]].parentEdgeIndex;
+        if(parent<0||excluded.has(parent)||originals[parent].excluded)continue;
+        const children=originals[parent].children;
+        if(children.length&&children.every(index=>excluded.has(index)||originals[index].excluded)) {
+            excluded.add(parent);pending.push(parent);
+        }
+    }
     const trapped=new Map(),unmappedTrappedIodineMassMg=old?.unmappedTrappedIodineMassMg??0;let trappedMass=unmappedTrappedIodineMassMg;
     for(const edge of network.edges) {
         const original=originals[edge.index],sections=covered.get(edge.index),blocked=excluded.has(edge.index);
@@ -132,6 +144,7 @@ export function applyStentGraftFlow(network,surface) {
 export function graftFluidContactField(anatomy,surface) {
     const point=new THREE.Vector3(),region=surface.bounds.clone().expandByScalar(35);
     const inward=new THREE.Vector3(),closedHit={},wallHit={};
+    const crossingRay=new THREE.Ray(),crossingPoint=new THREE.Vector3();
     const query=(position,radius,out,previous)=>{
         const result=anatomy.querySphere(position,radius,out);point.copy(position);
         if(!region.containsPoint(point))return result;
@@ -139,7 +152,17 @@ export function graftFluidContactField(anatomy,surface) {
         const wall=surface.geometry.boundsTree.closestPointToPoint(point,wallHit);
         const inside=surface.contains(point);
         if(!wall||!closed||!inside&&closed.distance+.01<wall.distance)return result;
+        if(previous){crossingRay.origin.copy(previous);crossingRay.direction.copy(point).sub(previous).normalize();}
+        const crossingLength=previous?point.distanceTo(previous):0;
         const crossedPortal=previous&&surface.portals?.some(port=>{
+            // Wall-fit inlets are oval and can be nonplanar. An equivalent-area
+            // circle rejects valid inflow near the wide edge and strands jets
+            // at the aneurysm neck. Use the same actual cap as volume queries.
+            if(port.bounds&&!port.bounds.containsPoint(previous)&&
+                (!crossingRay.intersectBox(port.bounds,crossingPoint)||crossingRay.origin.distanceTo(crossingPoint)>crossingLength+1e-7))return false;
+            if(port.triangles?.length)return port.triangles.some(triangle=>
+                crossingRay.intersectTriangle(triangle.a,triangle.b,triangle.c,false,crossingPoint)&&
+                crossingRay.origin.distanceTo(crossingPoint)<=crossingLength+1e-7);
             const a=(previous.x-port.center.x)*port.normal.x+(previous.y-port.center.y)*port.normal.y+(previous.z-port.center.z)*port.normal.z;
             const b=(point.x-port.center.x)*port.normal.x+(point.y-port.center.y)*port.normal.y+(point.z-port.center.z)*port.normal.z;
             if(a*b>0||Math.abs(a-b)<1e-12)return false;

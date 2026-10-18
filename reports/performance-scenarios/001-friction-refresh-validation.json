@@ -1,0 +1,163 @@
+{
+  "goalAchieved": false,
+  "change": "Enable exact mechanical-residual reuse after coupled-friction refresh in the ordinary shared-axis application. Only the changed wall law is refreshed at an unchanged accepted pose. A new Newton direction still requires the full current tangent.",
+  "defaultPolicy": "createSharedAxisAppSystem enables reuse with coupledFrictionNewton unless explicitly overridden; simulator standard shared-axis enables it, with frictionAssembly=0 as opt-out. Browser crossover uses the same setting.",
+  "pairedBenchmarks": [
+    {
+      "file": "001-friction-refresh-full-cycle.json",
+      "passed": true,
+      "stepsPerVersion": 600,
+      "summary": {
+        "before": {
+          "steps": 600,
+          "totalMs": 19357.42516400005,
+          "medianMs": 22.80633300000045,
+          "p95Ms": 79.10383300000012,
+          "maxMs": 341.6423329999998,
+          "cpuStepsPerSecond": 30.995857915847676,
+          "withinBudget": 36
+        },
+        "after": {
+          "steps": 600,
+          "totalMs": 18627.26129100002,
+          "medianMs": 22.111832999999024,
+          "p95Ms": 71.24491699999999,
+          "maxMs": 346.09120899999834,
+          "cpuStepsPerSecond": 32.21085432939608,
+          "withinBudget": 40
+        }
+      },
+      "cpuReductionPercent": 3.7720092771323266
+    },
+    {
+      "file": "001-friction-refresh-confirmation.json",
+      "passed": true,
+      "stepsPerVersion": 600,
+      "summary": {
+        "before": {
+          "steps": 600,
+          "totalMs": 18796.484965999956,
+          "medianMs": 22.466042000000016,
+          "p95Ms": 74.39183400000002,
+          "maxMs": 335.66004200000316,
+          "cpuStepsPerSecond": 31.920861857166948,
+          "withinBudget": 37
+        },
+        "after": {
+          "steps": 600,
+          "totalMs": 18319.183524999993,
+          "medianMs": 21.750749999999243,
+          "p95Ms": 67.94795800000065,
+          "maxMs": 360.16179199999897,
+          "cpuStepsPerSecond": 32.752551399530795,
+          "withinBudget": 59
+        }
+      },
+      "cpuReductionPercent": 2.5393122270644275
+    }
+  ],
+  "combined": {
+    "stepsPerVersion": 1200,
+    "cpuReductionPercent": 3.164722330911429,
+    "maxWorldDifferenceMm": 0,
+    "identical": [
+      "iterations",
+      "factorizations",
+      "certificateBound",
+      "subdivisions",
+      "backtracks",
+      "geometryRestarts",
+      "maxPenetrationMm",
+      "nodes",
+      "rows"
+    ]
+  },
+  "confirmation": {
+    "sourceHashesMatchCurrent": true,
+    "fullAssemblies": {
+      "before": 4226,
+      "after": 3632
+    },
+    "fullAssemblyReductionPercent": 14.055844770468529,
+    "note": "Initial measurement predates application default activation; the advanceSharedAxis kernel and explicit before/after options were the same. Confirmation includes current source hashes and assembly counters."
+  },
+  "validation": {
+    "tests": {
+      "file": "001-friction-refresh-verified-tests.log",
+      "passed": 44,
+      "failed": 0
+    },
+    "build": {
+      "file": "001-friction-refresh-build.log",
+      "passed": true,
+      "warning": "Existing chunks exceed 500 kB"
+    },
+    "diffCheckPassed": true,
+    "fixtureRepair": "Two friction assembly replay tests now load the archived open anatomy. Its mesh identity exactly matches both saved discovery certificates; current anatomy mismatched them. No tolerances or assertions were weakened."
+  },
+  "browser": {
+    "file": "001-browser-friction-refresh.json",
+    "screenshot": "001-browser-friction-refresh.jpg",
+    "passed": true,
+    "steps": 300,
+    "acceptedPhysicsHz": 24.992294042570897,
+    "renderFps": 59.14842923408446,
+    "simulationSeconds": 5,
+    "wallSeconds": 12.003700000047683,
+    "stepCpuMs": {
+      "median": 23.99999976158142,
+      "p95": 63.40000033378601,
+      "max": 299.400000333786
+    },
+    "consoleErrors": 0
+  },
+  "rejectedExperiments": [
+    {
+      "name": "Adjacent edge geometry and pooled material buffers",
+      "file": "001-material-edge-reuse-throughput.json",
+      "passed": true,
+      "stepsPerVersion": 600,
+      "cpuReductionPercent": -0.5327772145249376,
+      "maxWorldDifferenceMm": 0,
+      "adopted": false
+    },
+    {
+      "name": "Batched WASM spatial preparation",
+      "file": "001-material-batch-prepare-throughput.json",
+      "passed": true,
+      "stepsPerVersion": 600,
+      "cpuReductionPercent": -0.7427309769462376,
+      "maxWorldDifferenceMm": 0,
+      "adopted": false
+    },
+    {
+      "name": "Start active-set search from previous wall reactions",
+      "file": "001-contact-warm-dual-screen.json",
+      "passed": true,
+      "stepsPerVersion": 200,
+      "cpuReductionPercent": -5.958124004161935,
+      "maxWorldDifferenceMm": 0,
+      "adopted": false
+    },
+    {
+      "name": "Primal compliant wall contact with compliance 1e-8",
+      "log": "001-primal-soft-contact-screen.log",
+      "adopted": false,
+      "result": "Interrupted before a paired repetition completed because it was much slower. No stability or accuracy conclusion from this incomplete run."
+    },
+    {
+      "name": "Newton working-set limit 8",
+      "file": "001-newton-limit8-full-cycle.json",
+      "adopted": false,
+      "result": "Stopped at step 181 when trajectory difference exceeded the 0.001 mm numerical screening threshold. This is not evidence of instability; the measured partial run did not offer a useful speed improvement.",
+      "maxWorldDifferenceMm": 0.001054042441424573
+    }
+  ],
+  "limitations": [
+    "60 accepted physics steps/s is not achieved.",
+    "Browser timing is a standalone verification, not a paired before/after measurement.",
+    "The preview excludes fluoroscopic rendering and the full manual crossover.",
+    "No spatial coarsening, relaxed force/contact tolerances or new contact law was enabled."
+  ],
+  "nextWork": "Investigate a validated reduced shaft model or a genuinely cheaper nonlinear direction that still certifies current physical residuals. Avoid repeating the rejected edge-reuse/WASM-preparation/limit-8 experiments without a new mechanism."
+}

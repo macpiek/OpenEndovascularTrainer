@@ -1,0 +1,278 @@
+{
+  "recordedAt": "2026-10-15T14:39:05.039Z",
+  "goalAchieved": false,
+  "shapeBudgetMm": 0.1,
+  "decision": "Keep the full-application replay benchmark, eliminate duplicate shared-axis mesh publication, and use the exact indexed mesh hash. Preserve the selected 20 mm/80 mm-tip research model; none of the new mesh variants is promoted to the production default.",
+  "productionDefault": "Full shared-axis model; reduced model enabled only by explicit developer crossoverBenchmark=wide URL.",
+  "selectedModelEvidence": "001-wide-contact-validation.json",
+  "fullAppRuns": [
+    {
+      "report": "001-full-app-wide-initial.json",
+      "passed": true,
+      "steps": 600,
+      "acceptedPhysicsHz": 52.78205410160545,
+      "renderFps": 57.70837915108863,
+      "wallSeconds": 11.3675,
+      "simulationSeconds": 10,
+      "browserBudgetMet": false,
+      "flowTimeAdvanced": 9.999999999990905,
+      "clockAdvanced": 9.999999999990905,
+      "stepCpuMs": 9576.600005149841,
+      "publicationMs": 556.6999955177307,
+      "replayCaptureMs": 0
+    },
+    {
+      "report": "001-full-app-wide-repeat.json",
+      "passed": true,
+      "steps": 600,
+      "acceptedPhysicsHz": 52.230685527747546,
+      "renderFps": 57.71490750816104,
+      "wallSeconds": 11.4875,
+      "simulationSeconds": 10,
+      "browserBudgetMet": false,
+      "flowTimeAdvanced": 9.999999999990905,
+      "clockAdvanced": 9.999999999990905,
+      "stepCpuMs": 10047.199998378754,
+      "publicationMs": 496.39999532699585,
+      "replayCaptureMs": 0
+    },
+    {
+      "report": "001-full-app-no-duplicate-mesh.json",
+      "passed": true,
+      "steps": 600,
+      "acceptedPhysicsHz": 47.54245144745109,
+      "renderFps": 58.318740442206675,
+      "wallSeconds": 12.620299999952316,
+      "simulationSeconds": 10,
+      "browserBudgetMet": false,
+      "flowTimeAdvanced": 9.999999999990905,
+      "clockAdvanced": 9.999999999990905,
+      "stepCpuMs": 10796.499997138977,
+      "publicationMs": 577.8999993801117,
+      "replayCaptureMs": 0
+    },
+    {
+      "report": "001-full-app-archive-timing.json",
+      "passed": true,
+      "steps": 600,
+      "acceptedPhysicsHz": 42.35613034350404,
+      "renderFps": 57.46315016602049,
+      "wallSeconds": 14.165600000143051,
+      "simulationSeconds": 10,
+      "browserBudgetMet": false,
+      "flowTimeAdvanced": 9.999999999990905,
+      "clockAdvanced": 9.999999999990905,
+      "stepCpuMs": 12168.899998903275,
+      "publicationMs": 592.8999998569489,
+      "replayCaptureMs": 362.5
+    },
+    {
+      "report": "001-full-app-archive-breakdown.json",
+      "passed": true,
+      "steps": 600,
+      "acceptedPhysicsHz": 44.99505054460101,
+      "renderFps": 57.59366469708929,
+      "wallSeconds": 13.334799999952317,
+      "simulationSeconds": 10,
+      "browserBudgetMet": false,
+      "flowTimeAdvanced": 9.999999999990905,
+      "clockAdvanced": 9.999999999990905,
+      "stepCpuMs": 11548.099991083145,
+      "publicationMs": 578.4000008106232,
+      "replayCaptureMs": 308.90000009536743
+    },
+    {
+      "report": "001-full-app-indexed-hash.json",
+      "passed": true,
+      "steps": 600,
+      "acceptedPhysicsHz": 48.4488299605699,
+      "renderFps": 59.18832060182956,
+      "wallSeconds": 12.384200000047684,
+      "simulationSeconds": 10,
+      "browserBudgetMet": false,
+      "flowTimeAdvanced": 9.999999999990905,
+      "clockAdvanced": 9.999999999990905,
+      "stepCpuMs": 10779.899997472763,
+      "publicationMs": 567.2000033855438,
+      "replayCaptureMs": 97.59999990463257
+    }
+  ],
+  "experiments": [
+    {
+      "report": "001-authorized-shaft-spacing-30.json",
+      "mesh": {
+        "maxSpacing": 30,
+        "shapeTolerance": 0.02,
+        "maxArcLoss": 0.0001,
+        "maxTurn": 0.06,
+        "contactMargin": 0.01,
+        "tipLength": 80,
+        "tipRefinementAhead": 80,
+        "contactMaxSpacing": 20
+      },
+      "passed": false,
+      "maxShapeDifferenceMm": 0.1126535161794467,
+      "maxTipDifferenceMm": 0.010555700669098734,
+      "summary": {
+        "reference": {
+          "steps": 300,
+          "totalMs": 7288.145505000005,
+          "medianMs": 16.49683399999958,
+          "p95Ms": 65.11233300000094,
+          "maxMs": 286.11608400000114,
+          "cpuStepsPerSecond": 41.16273471683381,
+          "withinBudget": 155,
+          "minNodes": 204,
+          "maxNodes": 207,
+          "maxPenetrationMm": 9.09027297879561e-11,
+          "maxLengthError": 1.7639223415244487e-13,
+          "maxCertificateBound": 9.993825074161578e-7,
+          "maxSpeed": 21.613441219624374
+        },
+        "reduced": {
+          "steps": 300,
+          "totalMs": 5185.4585339999885,
+          "medianMs": 14.078541999999288,
+          "p95Ms": 35.30033300000014,
+          "maxMs": 107.87637499999983,
+          "cpuStepsPerSecond": 57.85409294722183,
+          "withinBudget": 209,
+          "minNodes": 168,
+          "maxNodes": 176,
+          "maxPenetrationMm": 1.8707257964933888e-13,
+          "maxLengthError": 7.956598343062229e-14,
+          "maxCertificateBound": 9.70418341239565e-7,
+          "maxSpeed": 21.609973974509234
+        }
+      }
+    },
+    {
+      "report": "001-authorized-wide-arc-0002.json",
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.02,
+        "maxArcLoss": 0.0002,
+        "maxTurn": 0.06,
+        "contactMargin": 0.01,
+        "tipLength": 80,
+        "tipRefinementAhead": 80,
+        "contactMaxSpacing": 20
+      },
+      "passed": true,
+      "maxShapeDifferenceMm": 0.08149082037279416,
+      "maxTipDifferenceMm": 0.01385579740468673,
+      "summary": {
+        "reference": {
+          "steps": 300,
+          "totalMs": 8688.28563000001,
+          "medianMs": 19.625083000000814,
+          "p95Ms": 67.95424999999886,
+          "maxMs": 314.31566700000076,
+          "cpuStepsPerSecond": 34.529251543494624,
+          "withinBudget": 94,
+          "minNodes": 204,
+          "maxNodes": 207,
+          "maxPenetrationMm": 9.09027297879561e-11,
+          "maxLengthError": 1.7639223415244487e-13,
+          "maxCertificateBound": 9.993825074161578e-7,
+          "maxSpeed": 21.613441219624374
+        },
+        "reduced": {
+          "steps": 300,
+          "totalMs": 6556.198086000004,
+          "medianMs": 16.252707999999984,
+          "p95Ms": 44.58616700000039,
+          "maxMs": 230.27879099999973,
+          "cpuStepsPerSecond": 45.75822695787899,
+          "withinBudget": 158,
+          "minNodes": 170,
+          "maxNodes": 176,
+          "maxPenetrationMm": 2.2010171463193728e-13,
+          "maxLengthError": 3.703704010150917e-13,
+          "maxCertificateBound": 9.807522474147845e-7,
+          "maxSpeed": 21.611304441951287
+        }
+      }
+    },
+    {
+      "report": "001-authorized-wide-tip-guard-40.json",
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.02,
+        "maxArcLoss": 0.0001,
+        "maxTurn": 0.06,
+        "contactMargin": 0.01,
+        "tipLength": 40,
+        "tipRefinementAhead": 40,
+        "contactMaxSpacing": 20
+      },
+      "passed": true,
+      "maxShapeDifferenceMm": 0.08064761500231152,
+      "maxTipDifferenceMm": 0.013984445110720636,
+      "summary": {
+        "reference": {
+          "steps": 600,
+          "totalMs": 13549.514877000009,
+          "medianMs": 16.107875000001513,
+          "p95Ms": 56.77308300000004,
+          "maxMs": 315.9299579999997,
+          "cpuStepsPerSecond": 44.282028208883425,
+          "withinBudget": 337,
+          "minNodes": 204,
+          "maxNodes": 207,
+          "maxPenetrationMm": 7.719741068612507e-9,
+          "maxLengthError": 1.7639223415244487e-13,
+          "maxCertificateBound": 9.993825074161578e-7,
+          "maxSpeed": 21.613441219624374
+        },
+        "reduced": {
+          "steps": 600,
+          "totalMs": 9858.619863999967,
+          "medianMs": 13.88000000000011,
+          "p95Ms": 25.51495900000009,
+          "maxMs": 244.8415410000007,
+          "cpuStepsPerSecond": 60.86044581057213,
+          "withinBudget": 474,
+          "minNodes": 168,
+          "maxNodes": 176,
+          "maxPenetrationMm": 2.2010171463193728e-13,
+          "maxLengthError": 1.1361282285209786e-13,
+          "maxCertificateBound": 9.963049478756147e-7,
+          "maxSpeed": 21.611304441951287
+        }
+      }
+    }
+  ],
+  "findings": [
+    "Recovered step 2 synchronously hashes all 62,847,744 mesh bytes; indexed traversal preserves the v1 digest and unversioned-mutation detection.",
+    "Browser replay capture dropped from 308.9 ms (302.8 ms snapshot) to 97.6 ms (91.2 ms snapshot). This change does not alter physical equations or tolerances.",
+    "Wider 30 mm shaft spacing exceeds the authorized 0.1 mm shape budget; not enabled.",
+    "Doubling arc-loss allowance leaves the sampled trajectory and node counts unchanged; not enabled.",
+    "Shorter 40 mm tip guard passes 600 paired steps with 0.080647615 mm maximum full-shape difference, but only a small node-count saving; remains a recorded alternative.",
+    "Full application is below 60 accepted physics Hz despite approximately 60 render FPS; goal remains active."
+  ],
+  "validation": {
+    "tests": 81,
+    "passed": 81,
+    "failed": 0,
+    "log": "001-full-app-final-regressions.log",
+    "buildLog": "001-full-app-final-build.log",
+    "screenshot": "001-full-app-indexed-hash.jpg"
+  },
+  "limitations": [
+    "Continuation of the recorded final crossover with hold/withdraw/advance/settle; not the complete manually steered maneuver.",
+    "Shape error is measured in the paired CPU benchmark. Full-app benchmark validates physical certificates, clock advancement and actual throughput.",
+    "Timing varies across runs; no claim that removal of duplicate mesh publication alone provides a measured speedup."
+  ],
+  "sourceSha256": {
+    "src/simulator.js": "05ef61924c82b824670fbcde6e0b7489da7536d64e4ec5e6c9f76823e90a1516",
+    "src/benchmark/crossoverAppBenchmark.js": "901acea3603436dcbb8faa4d708af5d92e161f40a9b54300b53a5f0c91ccd078",
+    "src/physics/kirchhoffSharedAxisAppSystem.js": "a30e50c7c32469ac63c12d20bea0a9cc92cac57c93b4c79284082c9e43fe6d0a",
+    "src/physics/kirchhoffSharedAxisRestore.js": "3dd4985540da3f0795537e6911bee1014cf438f4a9dc8c50cd9667ae1c2b045f",
+    "src/physics/kirchhoffSharedAxisCrossoverPreset.js": "345275c26b00ecfc77d8a438ab618978daee8cc4644d4f627fb70cf5791bea07",
+    "src/physics/kirchhoffSharedAxisGeometryIdentity.js": "3a73cb4c0a57f34e3b38865ffbc534ad6ccb49827c6fc272c187160fa9911dc7",
+    "tests/crossoverAppBenchmark.test.js": "278852783b2d7e2079f9194c838505213aaa3b34adc5d2f86668a389fe9eebe7",
+    "tests/kirchhoffSharedAxisGeometryIdentity.test.js": "156fe5ce0a748e83426a18b06963e74c54bb13625d2b80c4f02abdb7d7c41f1b",
+    "tests/kirchhoffSharedAxisAppSystem.test.js": "b59fc2019d6ae7126fd65298796d007b6eec783b045f7206ad12d5f1f6945dda"
+  }
+}

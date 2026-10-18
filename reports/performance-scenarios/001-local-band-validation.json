@@ -1,0 +1,172 @@
+{
+  "recordedAt": "2026-10-14T12:09:51.329Z",
+  "goalAchieved": false,
+  "change": "Use local row envelopes for shared-axis KKT assembly while retaining the full physical Hessian stencil, original unknown order, exact coefficients and unchanged pivot-capable LU fill. Reuse assembly capacity across compatible factor shapes.",
+  "invariants": [
+    "No change to physical mesh, timestep, tolerances or acceptance certificates.",
+    "Every structural Hessian entry stays present even when numerically zero.",
+    "Actual constraint supports and nonsymmetric force columns determine local row widths.",
+    "Changed public row supports trigger a new envelope before assembly.",
+    "Only current row offsets are read when reusing larger assembly buffers."
+  ],
+  "exactComparison": {
+    "report": "001-local-band-verified-throughput.json",
+    "passed": true,
+    "stepsPerVersion": 600,
+    "summary": {
+      "before": {
+        "steps": 600,
+        "totalMs": 20728.081749000004,
+        "medianMs": 24.39795800000138,
+        "p95Ms": 73.55783299999894,
+        "maxMs": 461.8836659999979,
+        "cpuStepsPerSecond": 28.946238598704202,
+        "withinBudget": 2
+      },
+      "after": {
+        "steps": 600,
+        "totalMs": 20765.355670000048,
+        "medianMs": 23.91320799999812,
+        "p95Ms": 77.17408400000204,
+        "maxMs": 673.0225839999985,
+        "cpuStepsPerSecond": 28.894279950467066,
+        "withinBudget": 7
+      }
+    },
+    "runs": [
+      {
+        "version": "before",
+        "repeat": 0,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10283.002874999991,
+          "medianMs": 24.241500000000087,
+          "p95Ms": 69.00762500000019,
+          "maxMs": 461.8836659999979,
+          "cpuStepsPerSecond": 29.17435730076077,
+          "withinBudget": 1
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584
+      },
+      {
+        "version": "after",
+        "repeat": 0,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10440.31049800001,
+          "medianMs": 23.91949999999997,
+          "p95Ms": 74.78716700000041,
+          "maxMs": 673.0225839999985,
+          "cpuStepsPerSecond": 28.734777577493436,
+          "withinBudget": 3
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584
+      },
+      {
+        "version": "before",
+        "repeat": 1,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10445.07887400001,
+          "medianMs": 24.43995800000266,
+          "p95Ms": 73.55783299999894,
+          "maxMs": 439.75300000000425,
+          "cpuStepsPerSecond": 28.72165960821635,
+          "withinBudget": 1
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584
+      },
+      {
+        "version": "after",
+        "repeat": 1,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10325.045172000035,
+          "medianMs": 23.872042000002693,
+          "p95Ms": 77.17408400000204,
+          "maxMs": 412.8980840000004,
+          "cpuStepsPerSecond": 29.05556295419944,
+          "withinBudget": 4
+        },
+        "maxWorldDifferenceMm": 0,
+        "iterations": 1294,
+        "factorizations": 3584
+      }
+    ],
+    "maxWorldDifferenceMm": 0,
+    "runtimeSourceHashesVerified": true,
+    "warmCpuReductionPercent": 1.1491890434524588,
+    "combinedCpuReductionPercent": -0.1798233017960893,
+    "interpretation": "No clear full-scenario speedup: final warm repetition is about 1.15% faster, combined repetitions about 0.18% slower. Earlier paired trials ranged from about 0.6% to 1.6% faster. Timing variation and tail latency exceed this small effect."
+  },
+  "scratch": {
+    "before": {
+      "allocations": 2,
+      "capacityBytes": 2097152,
+      "grows": 1,
+      "viewBuilds": 194,
+      "requests": 13896,
+      "compactLayouts": 16,
+      "compactNumericAllocations": 13,
+      "compactNumericBytes": 555264
+    },
+    "after": {
+      "allocations": 2,
+      "capacityBytes": 2097152,
+      "grows": 1,
+      "viewBuilds": 312,
+      "requests": 13896,
+      "compactLayouts": 16,
+      "compactNumericAllocations": 10,
+      "compactNumericBytes": 358656
+    },
+    "compactNumericReductionPercent": 35.408022130013826,
+    "scope": "Shared compact numeric buffers only; LU WASM memory capacity remains 2 MiB. This is not a 35% reduction of total application memory."
+  },
+  "browser": {
+    "report": "001-browser-local-band.json",
+    "screenshot": "001-browser-local-band.jpg",
+    "passed": true,
+    "steps": 300,
+    "physicsHz": 23.358482633054887,
+    "renderFps": 59.25268427918256,
+    "wallSeconds": 12.843299999952317,
+    "simulationSeconds": 5,
+    "stepCpuMs": {
+      "median": 26.59999990463257,
+      "p95": 64.29999995231628,
+      "max": 359.7000005245209
+    },
+    "consoleErrors": 0
+  },
+  "tests": {
+    "passed": 88,
+    "failed": 0,
+    "report": "001-local-band-verified-tests.log",
+    "coverage": [
+      "Expanded KKT coefficient and solve parity, JS and WASM/prepared and ordinary assembly.",
+      "Changing public constraint supports, Hessians and extra force columns.",
+      "Arena reuse with changing envelope capacity and stale unused tails.",
+      "Full and reduced projection on a captured crossover step that actually exercises projection.",
+      "Contact basis, rejected working-set reuse, condensation, modified Newton, native/full-band and LU regression cases."
+    ],
+    "historicalFixture": "The older anatomy projection fixture no longer enters the projection branch in the frozen baseline either. Its physical parity checks remain; explicit projection coverage now also uses the real captured crossover fixture."
+  },
+  "build": {
+    "passed": true,
+    "report": "001-local-band-build.log",
+    "warning": "Existing bundle-size warning"
+  },
+  "limitations": [
+    "Two 300-step continuations of the captured long-tool crossover, not the complete manual maneuver.",
+    "Browser benchmark uses a lightweight preview and excludes full fluoroscopy and app idle catch-up.",
+    "No clear full-scenario speedup; this change primarily reduces assembly memory.",
+    "60 accepted physics steps per real second remains unachieved."
+  ]
+}

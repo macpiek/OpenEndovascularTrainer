@@ -1,0 +1,881 @@
+{
+  "mode": "checkpoint",
+  "anatomy": "infrarenal-aneurysm",
+  "node": "v24.6.0",
+  "fixtureSha256": "8511f5372df78240da9376f29efe2be77ab179f18b209633d05def97971572ac",
+  "dt": 0.016666666666666666,
+  "sourceRevision": "1adb1f84353a545c4e1686f09c4a1fb49516377e",
+  "rendering": false,
+  "runs": [
+    {
+      "enabled": false,
+      "repeat": 0,
+      "warmup": true,
+      "cpuMs": 13329.099,
+      "status": "converged",
+      "iterations": 983,
+      "factorizations": 1249,
+      "subdivisions": 2,
+      "certificateBound": 2.10795860766666e-7,
+      "residual": {
+        "force": 2.10795860766666e-7,
+        "torque": 2.424472178574888e-9,
+        "length": 8.43769498715119e-14
+      },
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 5.839773109528323e-14,
+        "contacts": 41,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.6697754290362355e-14,
+            "maxBendAngleDegrees": 25.18150628034958,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.2762894665879485,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 19824.509514674734
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.6697754290362355e-14,
+            "maxBendAngleDegrees": 25.18150628034958,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.2762894665879485,
+            "activeWallContacts": 35,
+            "currentNormalLoad": 487225.3994484949
+          }
+        ]
+      },
+      "attempts": [
+        {
+          "subdivisions": 1,
+          "index": 1,
+          "roundoffStagnation": false,
+          "dt": 0.016666666666666666,
+          "status": "iteration-limit",
+          "error": null,
+          "converged": false,
+          "residual": {
+            "force": 0.0000010833662145159906,
+            "torque": 8.729557521292008e-9,
+            "length": 8.704148513061227e-14
+          },
+          "friction": {
+            "converged": false,
+            "forceChange": 127.91775307794101,
+            "contacts": 36,
+            "sliding": 17
+          },
+          "wallNormalFallback": {
+            "attempted": true,
+            "liveFailure": "iteration-limit",
+            "converged": false
+          },
+          "iterations": 974,
+          "factorizations": 1240
+        },
+        {
+          "subdivisions": 2,
+          "index": 1,
+          "roundoffStagnation": false,
+          "dt": 0.008333333333333333,
+          "status": "converged",
+          "error": null,
+          "converged": true,
+          "residual": {
+            "force": 4.207239499010029e-7,
+            "torque": 8.309877230772145e-9,
+            "length": 9.370282327836321e-14
+          },
+          "friction": {
+            "converged": true,
+            "forceChange": 0,
+            "contacts": 36,
+            "sliding": 17
+          },
+          "iterations": 5,
+          "factorizations": 5
+        },
+        {
+          "subdivisions": 2,
+          "index": 2,
+          "roundoffStagnation": false,
+          "dt": 0.008333333333333333,
+          "status": "converged",
+          "error": null,
+          "converged": true,
+          "residual": {
+            "force": 2.10795860766666e-7,
+            "torque": 2.424472178574888e-9,
+            "length": 8.43769498715119e-14
+          },
+          "friction": {
+            "converged": true,
+            "forceChange": 0,
+            "contacts": 36,
+            "sliding": 17
+          },
+          "iterations": 4,
+          "factorizations": 4
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "repeat": 0,
+      "warmup": true,
+      "cpuMs": 272.25945800000045,
+      "status": "converged",
+      "iterations": 16,
+      "factorizations": 18,
+      "subdivisions": 1,
+      "certificateBound": 4.642379280994646e-8,
+      "residual": {
+        "force": 4.642379280994646e-8,
+        "torque": 1.9958821123600146e-9,
+        "length": 8.881784197001252e-14
+      },
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 8.093525849517391e-14,
+        "contacts": 41,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.794120407794253e-14,
+            "maxBendAngleDegrees": 25.18126592207243,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.276419818019785,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 19822.807158673968
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.794120407794253e-14,
+            "maxBendAngleDegrees": 25.18126592207243,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.276419818019785,
+            "activeWallContacts": 35,
+            "currentNormalLoad": 487306.17748445796
+          }
+        ]
+      },
+      "attempts": [
+        {
+          "subdivisions": 1,
+          "index": 1,
+          "roundoffStagnation": true,
+          "dt": 0.016666666666666666,
+          "status": "roundoff-stagnation",
+          "error": null,
+          "converged": false,
+          "residual": {
+            "force": 0.000001466003482164524,
+            "torque": 9.796126576588904e-9,
+            "length": 9.237055564881302e-14
+          },
+          "detectedRoundoffStagnation": {
+            "corrections": 8,
+            "relativeStep": 9.032266557800933e-14,
+            "merit": 1.466003482164524
+          },
+          "iterations": 12,
+          "factorizations": 14
+        },
+        {
+          "subdivisions": 1,
+          "index": 1,
+          "roundoffStagnation": true,
+          "dt": 0.016666666666666666,
+          "status": "converged",
+          "error": null,
+          "converged": true,
+          "residual": {
+            "force": 4.642379280994646e-8,
+            "torque": 1.9958821123600146e-9,
+            "length": 8.881784197001252e-14
+          },
+          "friction": {
+            "converged": true,
+            "forceChange": 0,
+            "contacts": 36,
+            "sliding": 18
+          },
+          "iterations": 4,
+          "factorizations": 4
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "repeat": 1,
+      "warmup": false,
+      "cpuMs": 432.1954579999983,
+      "status": "converged",
+      "iterations": 16,
+      "factorizations": 18,
+      "subdivisions": 1,
+      "certificateBound": 4.642379280994646e-8,
+      "residual": {
+        "force": 4.642379280994646e-8,
+        "torque": 1.9958821123600146e-9,
+        "length": 8.881784197001252e-14
+      },
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 8.093525849517391e-14,
+        "contacts": 41,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.794120407794253e-14,
+            "maxBendAngleDegrees": 25.18126592207243,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.276419818019785,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 19822.807158673968
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.794120407794253e-14,
+            "maxBendAngleDegrees": 25.18126592207243,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.276419818019785,
+            "activeWallContacts": 35,
+            "currentNormalLoad": 487306.17748445796
+          }
+        ]
+      },
+      "attempts": [
+        {
+          "subdivisions": 1,
+          "index": 1,
+          "roundoffStagnation": true,
+          "dt": 0.016666666666666666,
+          "status": "roundoff-stagnation",
+          "error": null,
+          "converged": false,
+          "residual": {
+            "force": 0.000001466003482164524,
+            "torque": 9.796126576588904e-9,
+            "length": 9.237055564881302e-14
+          },
+          "detectedRoundoffStagnation": {
+            "corrections": 8,
+            "relativeStep": 9.032266557800933e-14,
+            "merit": 1.466003482164524
+          },
+          "iterations": 12,
+          "factorizations": 14
+        },
+        {
+          "subdivisions": 1,
+          "index": 1,
+          "roundoffStagnation": true,
+          "dt": 0.016666666666666666,
+          "status": "converged",
+          "error": null,
+          "converged": true,
+          "residual": {
+            "force": 4.642379280994646e-8,
+            "torque": 1.9958821123600146e-9,
+            "length": 8.881784197001252e-14
+          },
+          "friction": {
+            "converged": true,
+            "forceChange": 0,
+            "contacts": 36,
+            "sliding": 18
+          },
+          "iterations": 4,
+          "factorizations": 4
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "repeat": 1,
+      "warmup": false,
+      "cpuMs": 14038.373417000003,
+      "status": "converged",
+      "iterations": 983,
+      "factorizations": 1249,
+      "subdivisions": 2,
+      "certificateBound": 2.10795860766666e-7,
+      "residual": {
+        "force": 2.10795860766666e-7,
+        "torque": 2.424472178574888e-9,
+        "length": 8.43769498715119e-14
+      },
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 5.839773109528323e-14,
+        "contacts": 41,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.6697754290362355e-14,
+            "maxBendAngleDegrees": 25.18150628034958,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.2762894665879485,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 19824.509514674734
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.6697754290362355e-14,
+            "maxBendAngleDegrees": 25.18150628034958,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.2762894665879485,
+            "activeWallContacts": 35,
+            "currentNormalLoad": 487225.3994484949
+          }
+        ]
+      },
+      "attempts": [
+        {
+          "subdivisions": 1,
+          "index": 1,
+          "roundoffStagnation": false,
+          "dt": 0.016666666666666666,
+          "status": "iteration-limit",
+          "error": null,
+          "converged": false,
+          "residual": {
+            "force": 0.0000010833662145159906,
+            "torque": 8.729557521292008e-9,
+            "length": 8.704148513061227e-14
+          },
+          "friction": {
+            "converged": false,
+            "forceChange": 127.91775307794101,
+            "contacts": 36,
+            "sliding": 17
+          },
+          "wallNormalFallback": {
+            "attempted": true,
+            "liveFailure": "iteration-limit",
+            "converged": false
+          },
+          "iterations": 974,
+          "factorizations": 1240
+        },
+        {
+          "subdivisions": 2,
+          "index": 1,
+          "roundoffStagnation": false,
+          "dt": 0.008333333333333333,
+          "status": "converged",
+          "error": null,
+          "converged": true,
+          "residual": {
+            "force": 4.207239499010029e-7,
+            "torque": 8.309877230772145e-9,
+            "length": 9.370282327836321e-14
+          },
+          "friction": {
+            "converged": true,
+            "forceChange": 0,
+            "contacts": 36,
+            "sliding": 17
+          },
+          "iterations": 5,
+          "factorizations": 5
+        },
+        {
+          "subdivisions": 2,
+          "index": 2,
+          "roundoffStagnation": false,
+          "dt": 0.008333333333333333,
+          "status": "converged",
+          "error": null,
+          "converged": true,
+          "residual": {
+            "force": 2.10795860766666e-7,
+            "torque": 2.424472178574888e-9,
+            "length": 8.43769498715119e-14
+          },
+          "friction": {
+            "converged": true,
+            "forceChange": 0,
+            "contacts": 36,
+            "sliding": 17
+          },
+          "iterations": 4,
+          "factorizations": 4
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "repeat": 2,
+      "warmup": false,
+      "cpuMs": 11876.304417,
+      "status": "converged",
+      "iterations": 983,
+      "factorizations": 1249,
+      "subdivisions": 2,
+      "certificateBound": 2.10795860766666e-7,
+      "residual": {
+        "force": 2.10795860766666e-7,
+        "torque": 2.424472178574888e-9,
+        "length": 8.43769498715119e-14
+      },
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 5.839773109528323e-14,
+        "contacts": 41,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.6697754290362355e-14,
+            "maxBendAngleDegrees": 25.18150628034958,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.2762894665879485,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 19824.509514674734
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.6697754290362355e-14,
+            "maxBendAngleDegrees": 25.18150628034958,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.2762894665879485,
+            "activeWallContacts": 35,
+            "currentNormalLoad": 487225.3994484949
+          }
+        ]
+      },
+      "attempts": [
+        {
+          "subdivisions": 1,
+          "index": 1,
+          "roundoffStagnation": false,
+          "dt": 0.016666666666666666,
+          "status": "iteration-limit",
+          "error": null,
+          "converged": false,
+          "residual": {
+            "force": 0.0000010833662145159906,
+            "torque": 8.729557521292008e-9,
+            "length": 8.704148513061227e-14
+          },
+          "friction": {
+            "converged": false,
+            "forceChange": 127.91775307794101,
+            "contacts": 36,
+            "sliding": 17
+          },
+          "wallNormalFallback": {
+            "attempted": true,
+            "liveFailure": "iteration-limit",
+            "converged": false
+          },
+          "iterations": 974,
+          "factorizations": 1240
+        },
+        {
+          "subdivisions": 2,
+          "index": 1,
+          "roundoffStagnation": false,
+          "dt": 0.008333333333333333,
+          "status": "converged",
+          "error": null,
+          "converged": true,
+          "residual": {
+            "force": 4.207239499010029e-7,
+            "torque": 8.309877230772145e-9,
+            "length": 9.370282327836321e-14
+          },
+          "friction": {
+            "converged": true,
+            "forceChange": 0,
+            "contacts": 36,
+            "sliding": 17
+          },
+          "iterations": 5,
+          "factorizations": 5
+        },
+        {
+          "subdivisions": 2,
+          "index": 2,
+          "roundoffStagnation": false,
+          "dt": 0.008333333333333333,
+          "status": "converged",
+          "error": null,
+          "converged": true,
+          "residual": {
+            "force": 2.10795860766666e-7,
+            "torque": 2.424472178574888e-9,
+            "length": 8.43769498715119e-14
+          },
+          "friction": {
+            "converged": true,
+            "forceChange": 0,
+            "contacts": 36,
+            "sliding": 17
+          },
+          "iterations": 4,
+          "factorizations": 4
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "repeat": 2,
+      "warmup": false,
+      "cpuMs": 256.5911669999987,
+      "status": "converged",
+      "iterations": 16,
+      "factorizations": 18,
+      "subdivisions": 1,
+      "certificateBound": 4.642379280994646e-8,
+      "residual": {
+        "force": 4.642379280994646e-8,
+        "torque": 1.9958821123600146e-9,
+        "length": 8.881784197001252e-14
+      },
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 8.093525849517391e-14,
+        "contacts": 41,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.794120407794253e-14,
+            "maxBendAngleDegrees": 25.18126592207243,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.276419818019785,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 19822.807158673968
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.794120407794253e-14,
+            "maxBendAngleDegrees": 25.18126592207243,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.276419818019785,
+            "activeWallContacts": 35,
+            "currentNormalLoad": 487306.17748445796
+          }
+        ]
+      },
+      "attempts": [
+        {
+          "subdivisions": 1,
+          "index": 1,
+          "roundoffStagnation": true,
+          "dt": 0.016666666666666666,
+          "status": "roundoff-stagnation",
+          "error": null,
+          "converged": false,
+          "residual": {
+            "force": 0.000001466003482164524,
+            "torque": 9.796126576588904e-9,
+            "length": 9.237055564881302e-14
+          },
+          "detectedRoundoffStagnation": {
+            "corrections": 8,
+            "relativeStep": 9.032266557800933e-14,
+            "merit": 1.466003482164524
+          },
+          "iterations": 12,
+          "factorizations": 14
+        },
+        {
+          "subdivisions": 1,
+          "index": 1,
+          "roundoffStagnation": true,
+          "dt": 0.016666666666666666,
+          "status": "converged",
+          "error": null,
+          "converged": true,
+          "residual": {
+            "force": 4.642379280994646e-8,
+            "torque": 1.9958821123600146e-9,
+            "length": 8.881784197001252e-14
+          },
+          "friction": {
+            "converged": true,
+            "forceChange": 0,
+            "contacts": 36,
+            "sliding": 18
+          },
+          "iterations": 4,
+          "factorizations": 4
+        }
+      ]
+    },
+    {
+      "enabled": true,
+      "repeat": 3,
+      "warmup": false,
+      "cpuMs": 240.17229200000293,
+      "status": "converged",
+      "iterations": 16,
+      "factorizations": 18,
+      "subdivisions": 1,
+      "certificateBound": 4.642379280994646e-8,
+      "residual": {
+        "force": 4.642379280994646e-8,
+        "torque": 1.9958821123600146e-9,
+        "length": 8.881784197001252e-14
+      },
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 8.093525849517391e-14,
+        "contacts": 41,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.794120407794253e-14,
+            "maxBendAngleDegrees": 25.18126592207243,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.276419818019785,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 19822.807158673968
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.794120407794253e-14,
+            "maxBendAngleDegrees": 25.18126592207243,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.276419818019785,
+            "activeWallContacts": 35,
+            "currentNormalLoad": 487306.17748445796
+          }
+        ]
+      },
+      "attempts": [
+        {
+          "subdivisions": 1,
+          "index": 1,
+          "roundoffStagnation": true,
+          "dt": 0.016666666666666666,
+          "status": "roundoff-stagnation",
+          "error": null,
+          "converged": false,
+          "residual": {
+            "force": 0.000001466003482164524,
+            "torque": 9.796126576588904e-9,
+            "length": 9.237055564881302e-14
+          },
+          "detectedRoundoffStagnation": {
+            "corrections": 8,
+            "relativeStep": 9.032266557800933e-14,
+            "merit": 1.466003482164524
+          },
+          "iterations": 12,
+          "factorizations": 14
+        },
+        {
+          "subdivisions": 1,
+          "index": 1,
+          "roundoffStagnation": true,
+          "dt": 0.016666666666666666,
+          "status": "converged",
+          "error": null,
+          "converged": true,
+          "residual": {
+            "force": 4.642379280994646e-8,
+            "torque": 1.9958821123600146e-9,
+            "length": 8.881784197001252e-14
+          },
+          "friction": {
+            "converged": true,
+            "forceChange": 0,
+            "contacts": 36,
+            "sliding": 18
+          },
+          "iterations": 4,
+          "factorizations": 4
+        }
+      ]
+    },
+    {
+      "enabled": false,
+      "repeat": 3,
+      "warmup": false,
+      "cpuMs": 11796.301167000005,
+      "status": "converged",
+      "iterations": 983,
+      "factorizations": 1249,
+      "subdivisions": 2,
+      "certificateBound": 2.10795860766666e-7,
+      "residual": {
+        "force": 2.10795860766666e-7,
+        "torque": 2.424472178574888e-9,
+        "length": 8.43769498715119e-14
+      },
+      "quality": {
+        "mesh": "shared-axis",
+        "interToolRows": 0,
+        "finite": true,
+        "maxPenetration": 5.839773109528323e-14,
+        "contacts": 41,
+        "bodies": [
+          {
+            "id": "wire",
+            "finite": true,
+            "maxLengthError": 1.6697754290362355e-14,
+            "maxBendAngleDegrees": 25.18150628034958,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.2762894665879485,
+            "activeWallContacts": 6,
+            "currentNormalLoad": 19824.509514674734
+          },
+          {
+            "id": "catheter",
+            "finite": true,
+            "maxLengthError": 1.6697754290362355e-14,
+            "maxBendAngleDegrees": 25.18150628034958,
+            "maxBendNode": 45,
+            "maxBendLimitDegrees": 45,
+            "maxSpeed": 3.2762894665879485,
+            "activeWallContacts": 35,
+            "currentNormalLoad": 487225.3994484949
+          }
+        ]
+      },
+      "attempts": [
+        {
+          "subdivisions": 1,
+          "index": 1,
+          "roundoffStagnation": false,
+          "dt": 0.016666666666666666,
+          "status": "iteration-limit",
+          "error": null,
+          "converged": false,
+          "residual": {
+            "force": 0.0000010833662145159906,
+            "torque": 8.729557521292008e-9,
+            "length": 8.704148513061227e-14
+          },
+          "friction": {
+            "converged": false,
+            "forceChange": 127.91775307794101,
+            "contacts": 36,
+            "sliding": 17
+          },
+          "wallNormalFallback": {
+            "attempted": true,
+            "liveFailure": "iteration-limit",
+            "converged": false
+          },
+          "iterations": 974,
+          "factorizations": 1240
+        },
+        {
+          "subdivisions": 2,
+          "index": 1,
+          "roundoffStagnation": false,
+          "dt": 0.008333333333333333,
+          "status": "converged",
+          "error": null,
+          "converged": true,
+          "residual": {
+            "force": 4.207239499010029e-7,
+            "torque": 8.309877230772145e-9,
+            "length": 9.370282327836321e-14
+          },
+          "friction": {
+            "converged": true,
+            "forceChange": 0,
+            "contacts": 36,
+            "sliding": 17
+          },
+          "iterations": 5,
+          "factorizations": 5
+        },
+        {
+          "subdivisions": 2,
+          "index": 2,
+          "roundoffStagnation": false,
+          "dt": 0.008333333333333333,
+          "status": "converged",
+          "error": null,
+          "converged": true,
+          "residual": {
+            "force": 2.10795860766666e-7,
+            "torque": 2.424472178574888e-9,
+            "length": 8.43769498715119e-14
+          },
+          "friction": {
+            "converged": true,
+            "forceChange": 0,
+            "contacts": 36,
+            "sliding": 17
+          },
+          "iterations": 4,
+          "factorizations": 4
+        }
+      ]
+    }
+  ],
+  "passed": true,
+  "limitations": [
+    "Node CPU timings are not browser FPS.",
+    "Only the captured stage-05 step is an exact input replay; earlier stages have recorded endpoints and descriptions.",
+    "The optimized solve can accept a full step instead of two half steps; the time discretization and rates then differ slightly."
+  ],
+  "maxWorldPositionDifferenceMm": 0.002442962385987824,
+  "positionToleranceMm": 0.01,
+  "summary": [
+    {
+      "enabled": false,
+      "medianCpuMs": 11876.304417,
+      "minCpuMs": 11796.301167000005,
+      "maxCpuMs": 14038.373417000003
+    },
+    {
+      "enabled": true,
+      "medianCpuMs": 256.5911669999987,
+      "minCpuMs": 240.17229200000293,
+      "maxCpuMs": 432.1954579999983
+    }
+  ]
+}

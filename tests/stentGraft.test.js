@@ -47,7 +47,7 @@ for(const variant of ['Aorta_plain','Aorta_infrarenal_aneurysm'])test(`${variant
         const frozen=body.parts.map(p=>Array.from(p.mesh.geometry.attributes.position.array));
         place(system,'left','limb');assert.equal(system.deploy('left').ok,true);finish(system,'left');
         assert.equal(system.implants[1].parentId,body.id);assert.equal(body.connectedLimbId,system.implants[1].id);
-        assert.equal(system.surface.sealed,true);
+        assert.equal(system.surface.sealed,false,'IIs still needs its ipsilateral extension');
         const trunk=body.parts[0],center=trunk.points[Math.floor(trunk.rows/2)];
         assert.equal(system.surface.contains(center),true,'union has a real enclosed lumen');
         const contrast=new HybridContrastSystem({centerlineSegments:f.segments,contactField,sheath:vessel.sheaths.right});
@@ -75,7 +75,9 @@ for(const variant of ['Aorta_plain','Aorta_infrarenal_aneurysm'])test(`${variant
             for(let i=0;i<p.count;i++) {
                 total++;if(implant.wallFit.query(new THREE.Vector3(p.getX(i),p.getY(i),p.getZ(i)),0).violation)outside++;
             }
-            for(let i=0;i<part.target.length;i++)assert.ok(Math.abs(p.array[i]-part.target[i])<1e-4,'every row must fully expand');
+            assert.ok(part.exposure.every(v=>v===1),'every row must be released');
+            assert.deepEqual(system.surface.paths.find(entry=>entry.part===part).positions,part.contactBasePositions??p.array,
+                'flow and containment must use the accepted cloth, including sewing and parent-wall constraints');
         }
         assert.equal(outside,0,`${outside}/${total} graft vertices lie outside the actual lumen`);
         system.setPosition('right',0);system.setPosition('left',0);

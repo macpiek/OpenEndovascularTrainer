@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
-import {loadCoupledRuntimeAnatomy} from './helpers/coupledRuntimeFixture.js';
+import {loadHistoricalSharedAxisAnatomy} from './helpers/historicalSharedAxisAnatomy.js';
 import {restoreSharedAxisReplay} from './helpers/sharedAxisReplay.js';
 import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
 import {captureSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
@@ -10,7 +10,9 @@ import {captureSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.
 test('fine mechanics ahead of the catheter recovers the captured coarse-contact obstruction at 659.53 mm',async()=>{
     const input=JSON.parse(gunzipSync(readFileSync(new URL('../reports/full-cycle-60hz-2026-09-19/contact-mesh-10mm/failed-incoming.json.gz',import.meta.url))));
     input.adaptiveMesh.tipRefinementAhead=40;
-    const anatomy=await loadCoupledRuntimeAnatomy();
+    // This September checkpoint names triangles and discovery certificates
+    // from the original open mesh; current anatomy is not interchangeable.
+    const anatomy=loadHistoricalSharedAxisAnatomy('open');
     try {
         const state=restoreSharedAxisReplay(input,anatomy.field),before=captureSharedAxisNative(state),r=input.stepRequest;
         const iterator=advanceSharedAxis(state,r.rotations,r.dt,r.tools,r.options);let next;

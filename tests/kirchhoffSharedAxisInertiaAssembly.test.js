@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createSharedAxisNative,applySharedAxisNativeIncrement,captureSharedAxisNative,restoreSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
 import {prepareSharedAxisDynamicStep,assembleSharedAxisInertia} from '../src/physics/kirchhoffSharedAxisDynamics.js';
 import {assembleSharedAxisInertia as reference} from './helpers/sharedAxisDynamicsReference.js';
+import {sharedAxisMaterialKernelWorkspace,sharedAxisMaterialInertiaWorkspace} from '../src/physics/kirchhoffSharedAxisMaterialKernel.js';
 
 const close=(a,b,tolerance=2e-12)=>assert.ok(Math.abs(a-b)<=tolerance*Math.max(1,Math.abs(a),Math.abs(b)),`${a} versus ${b}`);
 function fixture(edges=8,fractional=0) {
@@ -48,4 +49,58 @@ test('scratch kinetic energy gradient and both moving-frame tangent triangles ma
 for(const edges of [80,100])test(`long overlap retains native inertia energy and full tangent (${edges} edges)`,()=>{
     const s=fixture(edges,-.0001);reset(s);const energy=reference(s),g=s.chain.gradient.slice(),H=s.chain.tangent.slice();
     reset(s);close(assembleSharedAxisInertia(s),energy);g.forEach((v,i)=>close(v,s.chain.gradient[i]));H.forEach((v,i)=>close(v,s.chain.tangent[i]));
+});
+
+test('batched inertia retains every Float64 coefficient, signed zero and the preexisting material tangent',()=>{
+    for(const edges of [2,8,100])for(const fractional of [0,-.0001,.0001]) {
+        const s=fixture(edges,fractional),before=captureSharedAxisNative(s),dynamic=structuredClone(s.dynamicStep);
+        reset(s,true,true);
+        const energy=assembleSharedAxisInertia(s),gradient=s.chain.gradient.slice(),H=s.chain.tangent.slice();
+        const w=sharedAxisMaterialKernelWorkspace(s.chain,s.materials.reduce((sum,m)=>sum+Math.max(0,m.last-1),0));
+        for(let repeat=0;repeat<3;repeat++) {
+            reset(s,true,true);w.tangent.set(s.chain.tangent);s.chain.tangent=w.tangent;
+            assert.equal(sharedAxisMaterialInertiaWorkspace(s.chain),w);
+            assert.equal(assembleSharedAxisInertia(s,true,true),energy);
+            assert.deepEqual(s.chain.gradient,gradient);assert.deepEqual(s.chain.tangent,H);
+            assert.equal(s.chain.tangent,w.tangent,'No global matrix copy or replacement');
+        }
+        assert.deepEqual(captureSharedAxisNative(s),before);assert.deepEqual(s.dynamicStep,dynamic);
+        reset(s);assert.equal(sharedAxisMaterialInertiaWorkspace(s.chain),null,'A caller-owned tangent never aliases the kernel');
+        assert.throws(()=>w.assembleInertia(w.records.length+1),/capacity/);
+    }
+});
+
+test('inertia batches keep separate chain memories and preserve JS-only gradient and Gauss-Newton paths',()=>{
+    const a=fixture(5),b=fixture(9);
+    const run=s=>{
+        reset(s,true,true);
+        const w=sharedAxisMaterialKernelWorkspace(s.chain,s.materials.reduce((sum,m)=>sum+Math.max(0,m.last-1),0));
+        w.tangent.set(s.chain.tangent);s.chain.tangent=w.tangent;
+        assembleSharedAxisInertia(s,true,true);return s.chain.tangent.slice();
+    };
+    const saved=run(a);run(b);assert.deepEqual(a.chain.tangent,saved);
+    assert.notEqual(a.chain.tangent.buffer,b.chain.tangent.buffer);
+    for(const [full,tangent] of [[false,true],[true,false]]) {
+        reset(a,full,true);const expected=assembleSharedAxisInertia(a,tangent),g=a.chain.gradient.slice(),H=(a.chain.tangent??a.chain.hessian).slice();
+        reset(a,full,true);assert.equal(assembleSharedAxisInertia(a,tangent,true),expected);
+        assert.deepEqual(a.chain.gradient,g);assert.deepEqual(a.chain.tangent??a.chain.hessian,H);
+    }
+});
+
+test('inertia capacity is refreshed when the material layout changes without changing matrix dimensions',()=>{
+    const s=fixture(5),chain=s.chain,hinges=s.materials.reduce((sum,m)=>sum+Math.max(0,m.last-1),0);
+    const original=sharedAxisMaterialKernelWorkspace(chain,hinges);
+    chain.tangent=original.tangent;
+    const spins=chain.layout.spins;
+    chain.layout.spins=new Map([...spins,['new-material',[]]]);
+    assert.equal(sharedAxisMaterialInertiaWorkspace(chain),null,'The old matrix has insufficient record capacity');
+    const resized=sharedAxisMaterialKernelWorkspace(chain,hinges);
+    assert.notEqual(resized,original);
+    assert.equal(resized.records.length,original.records.length+1);
+    assert.equal(original.tangent.length,resized.tangent.length);
+    chain.tangent=resized.tangent;
+    assert.equal(sharedAxisMaterialInertiaWorkspace(chain),resized);
+    assert.equal(sharedAxisMaterialKernelWorkspace(chain,hinges),resized);
+    chain.layout.spins=spins;
+    assert.equal(sharedAxisMaterialInertiaWorkspace(chain),null,'Shrinking the layout also invalidates the workspace');
 });

@@ -16,10 +16,20 @@ export function fullyOpenDistance(device) {
 export function graftAttached(device) {
     return device.phase==='loaded'||device.phase==='deploying'&&(device.type==='body'?device.tipRelease<1:!device.limbReleased);
 }
+// Tool exchange depends on the delivery hardware, not on how long the
+// detached fabric needs to settle against the vessel.
+export function deliveryRemovalBlocked(device) {
+    if(!device)return false;
+    return device.position>.5 || device.phase==='deploying' &&
+        (graftAttached(device) || graftCoverWithdrawal(device)<device.coverLead+device.releaseLength-1e-8);
+}
 // After detachment the cover still moves with the delivery shaft, while the
 // implant's material origin stays fixed. Exposure must use their relative pose.
 export function graftCoverWithdrawal(device) {
-    return (device.sheathWithdrawal??0)+((device.implantPosition??device.position)-device.position);
+    const withdrawal=(device.sheathWithdrawal??0)+((device.implantPosition??device.position)-device.position);
+    // Once the hardware is removed there is no sleeve left to restrain the
+    // final opening transition. The implant's relaxation still consumes dt.
+    return device.deliveryRemoved?Math.max(withdrawal,device.sheathTravel??0):withdrawal;
 }
 export function deliveryNoseState(device) {
     const lead=device.type==='body'?SUPRARENAL_LENGTH_MM*graftScale(device):0;
@@ -61,14 +71,14 @@ export function advanceRelease(device,dt,control) {
         ((control==='nose'||control?.nose===true)&&device.tipRelease>=1?NOSECONE_RETRACTION_SPEED_MM_S*graftScale(device)*dt:0));
     // Moving the delivery cover after detachment cannot recapture the implant.
     if(device.phase==='deployed')return progress()!==before;
-    advanceRingOpenings(device,dt,previousEdge);
-    advanceGateOpening(device,dt,previousEdge);
-    if(device.type==='body')advanceBranchOpening(device,device.parts[1],'ipsi',dt,previousEdge);
+    const ringsChanged=advanceRingOpenings(device,dt,previousEdge,coverSpeed);
+    advanceGateOpening(device,dt,previousEdge,coverSpeed);
+    if(device.type==='body')advanceBranchOpening(device,device.parts[1],'ipsi',dt,previousEdge,coverSpeed);
     if(device.type==='limb') {
         const edge=graftCoverWithdrawal(device)-device.coverLead;
         if(!device.limbReleased&&edge>=device.releaseLength-1e-8) {
             device.limbReleased=true;
-            device.limbFreeTime=coverSpeed>0?Math.max(0,dt-Math.max(0,device.releaseLength-previousEdge)/coverSpeed):dt;
+            device.limbFreeTime=uncoveredTime(dt,previousEdge,edge,device.releaseLength,coverSpeed);
         } else if(device.limbReleased)device.limbFreeTime+=dt;
         const t=45*device.limbFreeTime;
         device.limbOpening=t>=8?1:1-(1+t)*Math.exp(-t);
@@ -92,7 +102,7 @@ export function advanceRelease(device,dt,control) {
     if(device.parts?.some(part=>part.scaffoldRings?.some(ring=>(ring.opening??0)<1))) {
         device.deployment=Math.min(device.deployment,1-1e-6);if(device.releaseStage==='complete')device.releaseStage='expanding';
     }
-    return progress()!==before;
+    return ringsChanged||progress()!==before;
 }
 
 // A retained ring forms a funnel: the free proximal end approaches its
@@ -108,9 +118,19 @@ function ringExposureAt(ring,s) {
     // second radial displacement (which made the transition taper pinch the wire).
     return Math.max(full,(ring.partialOpening??0)*revealed);
 }
-function advanceRingOpenings(device,dt,previousEdge) {
+// Time after the trailing strut actually clears the sleeve. Use commanded
+// speed, not the clamped endpoint's average speed: the sleeve may stop partway
+// through a step while an already freed ring keeps opening.
+function uncoveredTime(dt,previousEdge,edge,end,speed) {
+    if(edge<end-1e-8)return 0;
+    if(previousEdge>=end)return dt;
+    return speed>0?Math.max(0,dt-(end-previousEdge)/speed):dt;
+}
+function advanceRingOpenings(device,dt,previousEdge,coverSpeed) {
+    let changed=false;
     const edge=graftCoverWithdrawal(device)-device.coverLead;
     for(const part of device.parts??[])for(const ring of part.scaffoldRings??[]) {
+        const previousOpening=ring.opening??0,previousPartial=ring.partialOpening??0,previousReveal=ring.revealEdge;
         const start=ring.center-ring.maxHeight/2;
         const localEnd=ring===part.scaffoldRings.at(-1)?part.path.length:ring.center+ring.maxHeight/2;
         const end=part.releaseOffset+localEnd;
@@ -118,8 +138,9 @@ function advanceRingOpenings(device,dt,previousEdge) {
         // Spread the funnel over 6 mm instead of a narrow kink at the sleeve lip.
         ring.revealWidth=6*graftScale(device);
         ring.partialOpening=PARTIAL_RING_OPENING*smooth(2*(ring.revealEdge-start)/Math.max(1e-6,localEnd-start));
-        if(edge<end-1e-8&&!device.limbReleased) {ring.freeTime=0;ring.opening=0;continue;}
-        const freeDt=previousEdge<end&&edge>previousEdge?Math.max(0,dt-(end-previousEdge)/(SHEATH_SPEED_MM_S*graftScale(device))):dt;
+        changed||=previousPartial!==ring.partialOpening||previousReveal!==ring.revealEdge;
+        if(edge<end-1e-8&&!device.limbReleased) {ring.freeTime=0;ring.opening=0;changed||=previousOpening!==0;continue;}
+        const freeDt=device.limbReleased?dt:uncoveredTime(dt,previousEdge,edge,end,coverSpeed);
         ring.freeTime=(ring.freeTime??0)+freeDt;
         // Limit cloth speed in simulation time. An unscaled 45/s spring moved
         // the bifurcation several millimetres in a single physics step.
@@ -138,7 +159,9 @@ function advanceRingOpenings(device,dt,previousEdge) {
         }
         const t=ring.openingRate*ring.freeTime;
         ring.opening=t>=8?1:1-(1+t)*Math.exp(-t);
+        changed||=previousOpening!==ring.opening;
     }
+    return changed;
 }
 // freeOnly omits the retained-ring flare for shaft support and lumen contacts.
 export function sewnRingExposure(part,s,freeOnly=false) {
@@ -175,18 +198,18 @@ export function rowExposure(device,distance,offset=0) {
 // The short branch is packed alongside the ipsilateral limb. Its distal ring
 // is retained until the entire gate clears the sleeve, then it springs open in
 // committed simulation time, independently of further sleeve movement.
-function advanceGateOpening(device,dt,previousEdge) {
+function advanceGateOpening(device,dt,previousEdge,coverSpeed) {
     if(device.type!=='body')return;
-    advanceBranchOpening(device,device.parts[2],'gate',dt,previousEdge);
+    advanceBranchOpening(device,device.parts[2],'gate',dt,previousEdge,coverSpeed);
 }
-function advanceBranchOpening(device,part,prefix,dt,previousEdge) {
+function advanceBranchOpening(device,part,prefix,dt,previousEdge,coverSpeed) {
     if(!part?.path)return;
     const end=part.releaseOffset+part.path.length;
     const edge=graftCoverWithdrawal(device)-device.coverLead;
     if(edge<end-1e-8) {
         device[`${prefix}FreeTime`]=0;device[`${prefix}Opening`]=0;return;
     }
-    const freeDt=previousEdge<end&&edge>previousEdge?dt*Math.max(0,edge-end)/(edge-previousEdge):dt;
+    const freeDt=uncoveredTime(dt,previousEdge,edge,end,coverSpeed);
     device[`${prefix}FreeTime`]=(device[`${prefix}FreeTime`]??0)+freeDt;
     const t=45*device[`${prefix}FreeTime`];
     device[`${prefix}Opening`]=t>=8?1:1-(1+t)*Math.exp(-t);

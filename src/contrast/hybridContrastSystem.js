@@ -448,15 +448,7 @@ export class HybridContrastSystem {
             this._solverAccumulator + 1e-9 >= CONTRAST_SOLVER_STEP_SECONDS &&
             substeps < MAX_CONTRAST_SUBSTEPS
         ) {
-            this.flowNetwork.clearFlowOverrides();
-            this.pressureDrivenRetrogradeColumn.beginStep();
-            this.continuousInjectionFlowCoupler.beginStep();
-            if (this.injection) this._updateInjection(CONTRAST_SOLVER_STEP_SECONDS);
-            this.localSolver.update(CONTRAST_SOLVER_STEP_SECONDS);
-            this.flowNetwork.update(CONTRAST_SOLVER_STEP_SECONDS);
-            this.pressureDrivenRetrogradeColumn.updateDiagnostics(
-                this.medium.iodineMgPerMl
-            );
+            this._advanceTransport(CONTRAST_SOLVER_STEP_SECONDS);
             this._solverAccumulator -= CONTRAST_SOLVER_STEP_SECONDS;
             this.simulationTimeSeconds += CONTRAST_SOLVER_STEP_SECONDS;
             substeps++;
@@ -464,6 +456,30 @@ export class HybridContrastSystem {
         if (this._solverAccumulator >= CONTRAST_SOLVER_STEP_SECONDS) {
             this._solverAccumulator %= CONTRAST_SOLVER_STEP_SECONDS;
         }
+    }
+
+    // The application owns this interval and has already accepted both
+    // mechanical solvers. Reach exactly its boundary; no separate debt/drop.
+    advanceSynchronized(dt) {
+        if (!Number.isFinite(dt) || dt <= 0) throw new RangeError('Invalid shared timestep');
+        if (Math.abs(this._solverAccumulator) > 1e-9) {
+            throw new Error('Cannot switch contrast clocks with unconsumed time');
+        }
+        this.synchronized = true;
+        this._advanceTransport(dt);
+        this.simulationTimeSeconds += dt;
+    }
+
+    _advanceTransport(dt) {
+        this.flowNetwork.clearFlowOverrides();
+        this.pressureDrivenRetrogradeColumn.beginStep();
+        this.continuousInjectionFlowCoupler.beginStep();
+        if (this.injection) this._updateInjection(dt);
+        this.localSolver.update(dt);
+        this.flowNetwork.update(dt);
+        this.pressureDrivenRetrogradeColumn.updateDiagnostics(
+            this.medium.iodineMgPerMl
+        );
     }
 
     _updateInjection(dt) {

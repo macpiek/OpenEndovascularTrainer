@@ -1,0 +1,128 @@
+--- a/src/physics/kirchhoffSharedAxisMatrixAssembly.js
++++ b/src/physics/kirchhoffSharedAxisMatrixAssembly.js
+@@ -5,7 +5,7 @@
+ function commonPrimal(chain, context) {
+     if(context.primal)return context.primal;
+     const n=chain.layout.dofCount,half=chain.layout.band-1,width=2*half+1;
+-    const values=new Float64Array(n*width),included=new Set();
++    const values=new Float64Array(n*width),included=new Set(),partial=new Map();
+     if(chain.tangent) {
+         for(let i=0;i<n;i++)for(let j=Math.max(0,i-half);j<=Math.min(n-1,i+half);j++) {
+             const at=i*width+j-i+half,v=chain.tangent[at];if(v)values[at]+=v;
+@@ -16,19 +16,33 @@
+             if(v){values[i*width+j-i+half]+=v;if(i!==j)values[j*width+i-j+half]+=v;}
+         }
+     }
+-    // Only the invariant Hessian prefix can be moved here without reordering
+-    // floating-point additions. Walls without Hessians contribute nothing;
+-    // the first wall Hessian stops the prefix even if currently inactive.
++    // A wall stops the invariant prefix only at the matrix entries that it
++    // touches. Distant length rows remain reusable across working sets. Each
++    // coefficient retains the original addition order, even when a wall is
++    // moved to the inactive suffix by compact constraint elimination.
++    let blocked=null;
+     for(const r of context.rows) {
+         if(!r.geometricHessian)continue;
+-        if(r.kind!=='length'||r.dofs.some(p=>r.dofs.some(q=>Math.abs(p-q)>half)))break;
+         const m=r.dofs.length;
++        if(r.kind!=='length'||r.dofs.some(p=>r.dofs.some(q=>Math.abs(p-q)>half))) {
++            blocked??=new Uint8Array(n*width);
++            for(let i=0;i<m;i++)for(let j=0;j<m;j++) {
++                const p=r.dofs[i],q=r.dofs[j];
++                if(r.geometricHessian[i*m+j]&&Math.abs(p-q)<=half)blocked[p*width+q-p+half]=1;
++            }
++            continue;
++        }
++        let skipped=false,cached=0;
++        const mask=blocked?new Uint8Array(m*m):null;
+         for(let i=0;i<m;i++)for(let j=0;j<m;j++) {
+-            const v=r.geometricHessian[i*m+j];if(v)values[r.dofs[i]*width+r.dofs[j]-r.dofs[i]+half]+=v;
++            const k=i*m+j,v=r.geometricHessian[k];if(!v)continue;
++            const at=r.dofs[i]*width+r.dofs[j]-r.dofs[i]+half;
++            if(blocked?.[at]){skipped=true;continue;}
++            values[at]+=v;cached++;if(mask)mask[k]=1;
+         }
+-        included.add(r);
++        if(!skipped)included.add(r);else if(cached)partial.set(r,mask);
+     }
+-    return context.primal={values,included,n,half,width};
++    return context.primal={values,included,partial,n,half,width};
+ }
+ function mapsFor(w,base) {
+     // Only row starts and physical-to-packed indices are needed for a band
+@@ -42,11 +56,12 @@
+     }
+     return maps;
+ }
+-function addHessian(w,map,r) {
++function addHessian(w,map,r,mask) {
+     const {matrix:A,primal,band:{starts,ends}}=w,m=r.dofs.length;
+     for(let i=0;i<m;i++) {
+         const p=r.dofs[i],base=map.primalOffsets[p],row=primal[p];
+         for(let j=0;j<m;j++) {
++            if(mask?.[i*m+j])continue;
+             const v=r.geometricHessian[i*m+j];if(!v)continue;
+             const column=primal[r.dofs[j]];
+             if(column<starts[row]||column>ends[row])throw new RangeError('Shared axis matrix support overflow');
+@@ -100,9 +115,9 @@
+                 add(A,column<starts[d]||column>ends[d]?-1:dualOffset+column,r.jacobian[k]);
+             }
+         }
+-        if(r.geometricHessian&&!base.included.has(r))addHessian(w,maps,r);
++        if(r.geometricHessian&&!base.included.has(r))addHessian(w,maps,r,base.partial.get(r));
+     }
+-    for(const r of inactiveRows)if(r.geometricHessian)addHessian(w,maps,r);
++    for(const r of inactiveRows)if(r.geometricHessian)addHessian(w,maps,r,base.partial.get(r));
+ }
+ 
+ // Fixed nodes usually occupy only the sheath entrance. Cache their exact band
+--- a/tests/kirchhoffSharedAxisMatrixAssembly.test.js
++++ b/tests/kirchhoffSharedAxisMatrixAssembly.test.js
+@@ -1,6 +1,7 @@
+ import test from 'node:test';
+ import assert from 'node:assert/strict';
+ import {createSharedAxisLinear,solveSharedAxisLinear,iterateSharedAxisLinear} from '../src/physics/kirchhoffSharedAxisLinear.js';
++import {assemblePreparedSharedAxisMatrix} from '../src/physics/kirchhoffSharedAxisMatrixAssembly.js';
+ 
+ const physical=r=>({increment:r.increment.slice(),reaction:r.multiplierIncrement.slice(),converged:r.converged,failure:r.failure,
+     residual:r.residual,factorizations:r.factorizations,attempts:r.activeSetAttempts,reuses:r.workingSetReuses});
+@@ -63,3 +64,39 @@
+     const outputs=[false,true].map(reuseMatrixAssembly=>physical(solveSharedAxisLinear(reuseMatrixAssembly?w:createSharedAxisLinear(f.layout,f.rows),f.chain,{...f,compactWorkingSet:false,reuseMatrixAssembly})));
+     assert.deepEqual(outputs[1],outputs[0]);
+ });
++
++test('entry prefixes reuse distant length blocks without reordering overlapping active or inactive wall additions',()=>{
++    const layout={dofCount:9,band:4},hessian=new Float64Array(36);
++    for(let i=0;i<9;i++)hessian[i*4]=30+i;
++    const make=(kind,dofs,value)=>({kind,dofs,jacobian:dofs.map((_,k)=>k===0?1:0),gap:kind==='length'?0:-.01,
++        multiplier:.02,geometricHessian:Float64Array.from({length:dofs.length**2},(_,k)=>value*(k+1))});
++    const rows=[make('length',[0,1],.001),make('wall',[1,2],.003),make('length',[1,2,3],.002),
++        make('length',[6,7],.004),make('wall',[6,7],.005),make('length',[0,8],.006),make('length',[5,7,8],.007)];
++    rows[2].jacobian=[0,1,0];rows[4].jacobian=[0,1];rows[5].jacobian=[0,1];
++    const chain={layout,hessian},gradient=new Float64Array(9),fixed=new Uint8Array(9);
++    const context={rows},w=createSharedAxisLinear(layout,rows);
++    assemblePreparedSharedAxisMatrix(w,chain,{rows,gradient,fixed,tolerance:1e-8,activeSet:new Uint8Array(rows.length).fill(1)},context);
++    assert.ok(context.primal.included.has(rows[3]),'a distant complete length block survives an earlier wall');
++    assert.ok(context.primal.partial.has(rows[2]),'only the overlapping entries of a length block are excluded');
++    assert.equal(context.primal.included.has(rows[5]),false,'nonlocal support stays in ordinary assembly');
++    assert.ok(context.primal.partial.has(rows[6]),'nonlocal length rows also block subsequent overlapping entries');
++    for(const compactWorkingSet of [false,true])for(let trial=0;trial<12;trial++) {
++        for(const [index,row] of rows.entries())if(row.kind==='wall') {
++            row.multiplier=(trial+index)%2?.03:0;row.gap=(trial+index)%3?-.01:.02;
++        }
++        // Adjacent entries cancel across the wall/length boundary. Even when
++        // the wall is inactive its Hessian remains in the final suffix.
++        rows[1].geometricHessian[3]=trial%2?1e12:.003;
++        rows[2].geometricHessian[4]=trial%2?-1e12:.002;
++        const outputs=[],matrices=[];
++        for(const reuseMatrixAssembly of [false,true]) {
++            const local=createSharedAxisLinear(layout,rows),trace=[],saved=local.lu.solve,seen=[];
++            local.lu.solve=function(...args){seen.push(args[0].slice());return saved.apply(this,args);};
++            try{outputs.push({...physical(solveSharedAxisLinear(local,chain,{rows,gradient,fixed,compactWorkingSet,reuseMatrixAssembly,trace})),trace});}
++            finally{local.lu.solve=saved;}
++            matrices.push(seen);
++        }
++        assert.deepEqual(outputs[1],outputs[0]);
++        if(!compactWorkingSet){assert.ok(matrices[0].length);assert.deepEqual(matrices[1],matrices[0]);}
++    }
++});
