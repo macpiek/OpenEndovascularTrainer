@@ -1,0 +1,2996 @@
+{
+  "schemaVersion": 1,
+  "id": "001-demonstration",
+  "status": "demonstration-complete",
+  "title": "Crossover z prawego dostępu z użyciem cewnika pigtail",
+  "requestedPurpose": "Powtarzanie scenariusza użytkownika przy optymalizacji wydajności symulatora.",
+  "captureMode": "manual-checkpoints",
+  "automaticInputRecording": false,
+  "replayVerified": false,
+  "sourceRevision": "1adb1f84353a545c4e1686f09c4a1fb49516377e",
+  "initialObservation": {
+    "date": "2026-10-14",
+    "url": "http://127.0.0.1:5173/?anatomy=infrarenal-aneurysm&panel=anatomy",
+    "source": "Browser accessibility tree and DOM form controls; sequential read-only observations, not an atomic physics snapshot.",
+    "activeAccess": "right",
+    "view": "fluoroscopy",
+    "wire": {
+      "insertedCm": 0,
+      "rotationDeg": 0
+    },
+    "catheter": {
+      "insertedCm": 0,
+      "rotationDeg": 0
+    },
+    "deliveredContrastMl": 0,
+    "displayedSimulationSeconds": 550.82,
+    "cArm": {
+      "apDeg": 0,
+      "craDeg": 0,
+      "rollDeg": 0
+    },
+    "controls": [
+      {
+        "id": "dsaCineFrame",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "id": "dsaCineSpeed",
+        "label": "1×",
+        "type": "select",
+        "value": "1"
+      },
+      {
+        "id": "catheterType",
+        "label": "Berenstein",
+        "type": "select",
+        "value": "berenstein"
+      },
+      {
+        "id": "catheterShaftStiffness",
+        "type": "range",
+        "value": "40.65"
+      },
+      {
+        "id": "catheterTipStiffness",
+        "type": "range",
+        "value": "100"
+      },
+      {
+        "id": "guidewireType",
+        "label": "Glidewire",
+        "type": "select",
+        "value": "glidewire"
+      },
+      {
+        "id": "stiffness",
+        "type": "range",
+        "value": "13.15"
+      },
+      {
+        "id": "tipStiffness",
+        "type": "range",
+        "value": "19.4"
+      },
+      {
+        "id": "staticFriction",
+        "type": "range",
+        "value": "0.006"
+      },
+      {
+        "id": "kineticFriction",
+        "type": "range",
+        "value": "0.002"
+      },
+      {
+        "id": "persistence",
+        "type": "range",
+        "value": "0.3"
+      },
+      {
+        "id": "pulseRate",
+        "label": "15 p/s",
+        "type": "select",
+        "value": "15"
+      },
+      {
+        "id": "noiseLevel",
+        "type": "range",
+        "value": "0.1"
+      },
+      {
+        "id": "scatterStrength",
+        "type": "range",
+        "value": "0.45"
+      },
+      {
+        "id": "collimationLeft",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "id": "collimationRight",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "id": "collimationTop",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "id": "collimationBottom",
+        "type": "range",
+        "value": "0.08"
+      },
+      {
+        "id": "sideCollimatorRotation",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "id": "imageBrightness",
+        "type": "range",
+        "value": "0.18"
+      },
+      {
+        "id": "imageContrast",
+        "type": "range",
+        "value": "1.33"
+      },
+      {
+        "id": "edgeEnhancement",
+        "type": "range",
+        "value": "0.1"
+      },
+      {
+        "id": "boneVisibility",
+        "type": "range",
+        "value": "0.62"
+      },
+      {
+        "id": "opacityScale",
+        "type": "range",
+        "value": "100"
+      },
+      {
+        "id": "gain",
+        "type": "range",
+        "value": "5"
+      },
+      {
+        "id": "dsaSequenceSelect",
+        "label": "No saved sequence",
+        "type": "select",
+        "value": ""
+      },
+      {
+        "id": "dsaFrameSelect",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "id": "dsaRangeStart",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "id": "dsaRangeEnd",
+        "type": "range",
+        "value": "0"
+      },
+      {
+        "id": "roadmapOpacity",
+        "type": "range",
+        "value": "30"
+      },
+      {
+        "id": "roadmapBackground",
+        "type": "range",
+        "value": "100"
+      },
+      {
+        "id": "roadmapEdgeEnhancement",
+        "type": "range",
+        "value": "45"
+      },
+      {
+        "id": "roadmapEdgeDarkness",
+        "type": "range",
+        "value": "25"
+      },
+      {
+        "id": "dsaGain",
+        "type": "range",
+        "value": "2.2"
+      },
+      {
+        "id": "injSource",
+        "label": "Sheath",
+        "type": "select",
+        "value": "sheath"
+      },
+      {
+        "id": "injVolume",
+        "type": "range",
+        "value": "10"
+      },
+      {
+        "id": "injRate",
+        "type": "range",
+        "value": "15"
+      },
+      {
+        "id": "anatomyVariant",
+        "label": "Tętniak aorty podnerkowej · około 50 mm",
+        "type": "select",
+        "value": "infrarenal-aneurysm"
+      },
+      {
+        "id": "debugSolverSelect",
+        "label": "Kirchhoff — siatka 5 mm (referencyjny)",
+        "type": "select",
+        "value": "shared-axis"
+      },
+      {
+        "checked": false,
+        "id": "debugModifiedNewton",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "checked": true,
+        "id": "debugFastNewton",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "checked": true,
+        "id": "debugPredictiveNewton",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "checked": false,
+        "id": "debugPruneWitnesses",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "id": "debugShapeTolerance",
+        "type": "range",
+        "value": "0.15"
+      },
+      {
+        "id": "debugContactMargin",
+        "type": "range",
+        "value": "1"
+      },
+      {
+        "id": "debugMaxArcLoss",
+        "type": "range",
+        "value": "0.2"
+      },
+      {
+        "id": "debugMaxSpacing",
+        "type": "range",
+        "value": "20"
+      },
+      {
+        "checked": true,
+        "id": "bloodFlowCoupling",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "id": "cardiacOutput",
+        "type": "range",
+        "value": "5000"
+      },
+      {
+        "id": "contrastHeartRate",
+        "type": "range",
+        "value": "72"
+      },
+      {
+        "id": "injectorPressureLimit",
+        "type": "range",
+        "value": "1200"
+      },
+      {
+        "id": "contrastViscosity",
+        "type": "range",
+        "value": "6.3"
+      },
+      {
+        "id": "sheathHydraulicLength",
+        "type": "range",
+        "value": "110"
+      },
+      {
+        "id": "sheathInnerDiameter",
+        "type": "range",
+        "value": "1.8"
+      },
+      {
+        "id": "sheathPressureRating",
+        "type": "range",
+        "value": "300"
+      },
+      {
+        "id": "berensteinHydraulicLength",
+        "type": "range",
+        "value": "1000"
+      },
+      {
+        "id": "berensteinInnerDiameter",
+        "type": "range",
+        "value": "0.97"
+      },
+      {
+        "id": "berensteinPressureRating",
+        "type": "range",
+        "value": "1050"
+      },
+      {
+        "id": "pigtailHydraulicLength",
+        "type": "range",
+        "value": "1000"
+      },
+      {
+        "id": "pigtailInnerDiameter",
+        "type": "range",
+        "value": "0.97"
+      },
+      {
+        "id": "pigtailPressureRating",
+        "type": "range",
+        "value": "1200"
+      },
+      {
+        "checked": true,
+        "id": "showDebugStlModel",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "checked": true,
+        "id": "showDebugLegacyVessel",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "checked": true,
+        "id": "showDebugVesselShading",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "checked": false,
+        "id": "showDebugLumenCast",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "checked": false,
+        "id": "showDebugSections",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "checked": false,
+        "id": "showDebugCenterline",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "checked": false,
+        "id": "showDebugCapsules",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "checked": false,
+        "id": "showDebugVesselLabels",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "checked": false,
+        "id": "showDebugWallContacts",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "checked": true,
+        "id": "showDebugRodNodes",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "checked": true,
+        "id": "renderVoxels",
+        "type": "checkbox",
+        "value": "on"
+      },
+      {
+        "id": "stentGraftType",
+        "label": "Korpus rozwidlony + nóżka ipsilateralna",
+        "type": "select",
+        "value": "body"
+      },
+      {
+        "id": "stentGraftLimbLength",
+        "label": "Wszystkie długości",
+        "type": "select",
+        "value": "all"
+      },
+      {
+        "id": "stentGraftDiameter",
+        "type": "select",
+        "value": ""
+      },
+      {
+        "id": "stentGraftDistalDiameter",
+        "type": "select",
+        "value": ""
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "stage-01",
+      "userDescription": "Wsunąłem cewnik pigtail i prowadnik do aorty tuż ponad rozwidlenie.",
+      "userClarification": "Najpierw wsunąłem prowadnik do aorty, a potem po nim cewnik, następnie wycofałem prowadnik na tyle, żeby cewnik zwinął się w ogonek, i skierowałem go tym ogonkiem w stronę przeciwległej biodrówki. Wykonuję manewr crossover.",
+      "actionOrder": [
+        {
+          "order": 1,
+          "action": "advance-guidewire",
+          "description": "Wsunąć prowadnik z prawego dostępu do aorty.",
+          "maximumInsertedCm": null
+        },
+        {
+          "order": 2,
+          "action": "advance-catheter-over-guidewire",
+          "description": "Wsunąć pigtail po prowadniku do aorty tuż ponad rozwidlenie."
+        },
+        {
+          "order": 3,
+          "action": "withdraw-guidewire",
+          "description": "Cofnąć prowadnik na tyle, aby końcówka pigtaila odzyskała kształt ogonka."
+        },
+        {
+          "order": 4,
+          "action": "rotate-catheter",
+          "description": "Skierować ogonek pigtaila ku przeciwległej tętnicy biodrowej w ramach manewru crossover."
+        }
+      ],
+      "inputTiming": null,
+      "catheterRotationTiming": "after-guidewire-withdrawal-and-pigtail-curl",
+      "checkpointId": "checkpoint-01",
+      "clarificationPending": null,
+      "replayCalibrationPending": [
+        "Maksymalna długość wsunięcia prowadnika przed jego cofnięciem nie została zarejestrowana.",
+        "Czasy ruchów i przerw nie zostały zarejestrowane; opis kolejności i końcowy punkt kontrolny nie są dokładnym zapisem wejść."
+      ]
+    },
+    {
+      "id": "stage-02",
+      "userDescription": "Teraz wysuwając cewnik i prowadnik robię tak, aby cewnik się oparł o rozwidlenie aorty i jego końcówka wpadła do drugiej biodrówki.",
+      "actionSummary": "Cofanie cewnika i prowadnika w celu oparcia krzywizny pigtaila o rozwidlenie aorty i skierowania końcówki do przeciwległej tętnicy biodrowej.",
+      "actionOrder": null,
+      "inputTiming": null,
+      "simultaneousInputs": null,
+      "checkpointId": "checkpoint-02",
+      "observedNetChangeFromPrevious": {
+        "wireInsertedCm": -5.4,
+        "catheterInsertedCm": -6.4,
+        "catheterRotationDeg": -25
+      },
+      "replayCalibrationPending": [
+        "Dokładna kolejność i równoczesność cofania obu narzędzi nie zostały zarejestrowane.",
+        "Obrót cewnika zmienił się z -94° na -119°; moment obrotu względem cofania nie został zarejestrowany.",
+        "Warunek oparcia o rozwidlenie i wejścia do drugiej tętnicy biodrowej należy potwierdzić względem geometrii naczynia przy odtwarzaniu."
+      ]
+    },
+    {
+      "id": "stage-03",
+      "userDescription": "Teraz wsuwam prowadnik przez pigtaila do przeciwległej biodrówki, zapisz ten etap.",
+      "actionOrder": [
+        {
+          "order": 1,
+          "action": "advance-guidewire-through-pigtail",
+          "description": "Wsunąć prowadnik przez pigtail do przeciwległej tętnicy biodrowej.",
+          "targetCheckpointId": "checkpoint-03"
+        }
+      ],
+      "inputTiming": null,
+      "checkpointId": "checkpoint-03",
+      "observedNetChangeFromPrevious": {
+        "wireInsertedCm": 9.7,
+        "catheterInsertedCm": 0,
+        "wireRotationDeg": 0,
+        "catheterRotationDeg": 0
+      },
+      "replayCalibrationPending": [
+        "Czas wsuwania i ewentualnych przerw nie został zarejestrowany.",
+        "Pozycję w przeciwległej tętnicy biodrowej należy sprawdzić względem geometrii przy odtwarzaniu; obecny zapis zawiera opis użytkownika i obraz fluoroskopowy."
+      ]
+    },
+    {
+      "id": "stage-04",
+      "userDescription": "Teraz wsuwam pigtaila po prowadniku do przeciwległej biodrówki. Odpowiednio manewruję prowadnikiem i cewnikiem, aby prowadnik trafił do tętnicy biodrowej zewnętrznej, a następnie do udowej.",
+      "userClarification": "Wysuwałem prowadnik z wewnętrznej i wsuwałem oraz obracałem pigtailem, aby skierować ją bardziej w zewnętrzną, a następnie testowałem, czy prowadnik tam wejdzie.",
+      "actionOrder": [
+        {
+          "order": 1,
+          "action": "advance-catheter-over-guidewire",
+          "description": "Wsunąć pigtail po prowadniku do przeciwległej tętnicy biodrowej."
+        },
+        {
+          "order": 2,
+          "action": "navigate-guidewire-and-catheter",
+          "description": "Manewrować prowadnikiem i cewnikiem, kierując prowadnik do przeciwległej tętnicy biodrowej zewnętrznej, a następnie udowej.",
+          "detailedInputs": {
+            "source": "user-clarification",
+            "initialProblem": "Prowadnik trafiał do przeciwległej tętnicy biodrowej wewnętrznej.",
+            "correctionCycle": [
+              {
+                "order": 1,
+                "action": "withdraw-guidewire-from-internal-iliac",
+                "description": "Cofnąć prowadnik z tętnicy biodrowej wewnętrznej.",
+                "distanceCm": null
+              },
+              {
+                "order": 2,
+                "action": "advance-and-rotate-pigtail",
+                "description": "Wsunąć i obrócić pigtail, kierując końcówkę bardziej ku tętnicy biodrowej zewnętrznej.",
+                "distanceCm": null,
+                "rotationDeg": null,
+                "simultaneousInputs": null
+              },
+              {
+                "order": 3,
+                "action": "probe-external-iliac-with-guidewire",
+                "description": "Ponownie wsunąć prowadnik, sprawdzając, czy wchodzi do tętnicy biodrowej zewnętrznej.",
+                "distanceCm": null
+              }
+            ],
+            "repetitions": null,
+            "successCriterionFromUser": "Prowadnik wchodzi do tętnicy biodrowej zewnętrznej zamiast wewnętrznej; dalszy cel to tętnica udowa.",
+            "exactInputRecording": false
+          }
+        }
+      ],
+      "inputTiming": null,
+      "simultaneousInputs": null,
+      "checkpointId": "checkpoint-04",
+      "observedNetChangeFromPrevious": {
+        "wireInsertedCm": 9.5,
+        "catheterInsertedCm": 7.8,
+        "wireRotationDeg": 0,
+        "catheterRotationDeg": -6
+      },
+      "clarificationPending": null,
+      "replayCalibrationPending": [
+        "Kolejność korekt została opisana przez użytkownika. Liczba prób, długości poszczególnych ruchów, kąty obrotu, równoczesność i czasy nie zostały zarejestrowane.",
+        "Zmiana obrotu cewnika z -119° na -125° jest różnicą między punktami kontrolnymi, nie zapisem całego ruchu.",
+        "Przebieg przez tętnicę biodrową zewnętrzną do udowej należy zweryfikować względem geometrii naczynia przy odtwarzaniu."
+      ]
+    },
+    {
+      "id": "stage-05",
+      "userDescription": "Teraz wsuwamy cewnik i prowadnik na prawie maksymalną długość.",
+      "actionSummary": "Po wykonaniu crossover kontynuować głębokie wsuwanie cewnika pigtail i prowadnika.",
+      "actionOrder": null,
+      "inputTiming": null,
+      "simultaneousInputs": null,
+      "checkpointId": "checkpoint-05",
+      "observedNetChangeFromPrevious": {
+        "wireInsertedCm": 61.7,
+        "catheterInsertedCm": 57.1,
+        "wireRotationDeg": 0,
+        "catheterRotationDeg": 0
+      },
+      "replayCalibrationPending": [
+        "Kolejność, równoczesność wsuwania oraz przerwy nie zostały zarejestrowane.",
+        "Opis prawie maksymalnej długości pochodzi od użytkownika; punkt kontrolny zapisuje rzeczywiście wyświetlane długości."
+      ],
+      "performanceFocus": "Koszt rozwiązywania długiego układu po crossover, wielokrotne próby kroku i niemal zatrzymany wspólny czas."
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "checkpoint-01",
+      "source": "User description, browser accessibility tree, DOM form controls and screenshot; sequential observations, not an atomic physics snapshot.",
+      "date": "2026-10-14",
+      "anatomyTargetFromUser": "Aorta tuż ponad rozwidleniem",
+      "activeAccess": "right",
+      "wire": {
+        "type": "glidewire",
+        "insertedCm": 22.6,
+        "rotationDeg": 0
+      },
+      "catheter": {
+        "type": "pigtail",
+        "insertedCm": 27.6,
+        "rotationDeg": -94
+      },
+      "lengthResolutionCm": 0.1,
+      "rotationResolutionDeg": 1,
+      "deliveredContrastMl": 0,
+      "view": "fluoroscopy",
+      "cArm": {
+        "apDeg": 0,
+        "craDeg": 0,
+        "rollDeg": 0
+      },
+      "displayedSimulationSeconds": 787.6,
+      "controls": [
+        {
+          "id": "dsaCineFrame",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaCineSpeed",
+          "label": "1×",
+          "type": "select",
+          "value": "1"
+        },
+        {
+          "id": "catheterType",
+          "label": "Pigtail",
+          "type": "select",
+          "value": "pigtail"
+        },
+        {
+          "id": "catheterShaftStiffness",
+          "type": "range",
+          "value": "40.65"
+        },
+        {
+          "id": "catheterTipStiffness",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "guidewireType",
+          "label": "Glidewire",
+          "type": "select",
+          "value": "glidewire"
+        },
+        {
+          "id": "stiffness",
+          "type": "range",
+          "value": "13.15"
+        },
+        {
+          "id": "tipStiffness",
+          "type": "range",
+          "value": "19.4"
+        },
+        {
+          "id": "staticFriction",
+          "type": "range",
+          "value": "0.006"
+        },
+        {
+          "id": "kineticFriction",
+          "type": "range",
+          "value": "0.002"
+        },
+        {
+          "id": "persistence",
+          "type": "range",
+          "value": "0.3"
+        },
+        {
+          "id": "pulseRate",
+          "label": "15 p/s",
+          "type": "select",
+          "value": "15"
+        },
+        {
+          "id": "noiseLevel",
+          "type": "range",
+          "value": "0.1"
+        },
+        {
+          "id": "scatterStrength",
+          "type": "range",
+          "value": "0.45"
+        },
+        {
+          "id": "collimationLeft",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationRight",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationTop",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationBottom",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "sideCollimatorRotation",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "imageBrightness",
+          "type": "range",
+          "value": "0.18"
+        },
+        {
+          "id": "imageContrast",
+          "type": "range",
+          "value": "1.33"
+        },
+        {
+          "id": "edgeEnhancement",
+          "type": "range",
+          "value": "0.1"
+        },
+        {
+          "id": "boneVisibility",
+          "type": "range",
+          "value": "0.62"
+        },
+        {
+          "id": "opacityScale",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "gain",
+          "type": "range",
+          "value": "5"
+        },
+        {
+          "id": "dsaSequenceSelect",
+          "label": "No saved sequence",
+          "type": "select",
+          "value": ""
+        },
+        {
+          "id": "dsaFrameSelect",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaRangeStart",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaRangeEnd",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "roadmapOpacity",
+          "type": "range",
+          "value": "30"
+        },
+        {
+          "id": "roadmapBackground",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "roadmapEdgeEnhancement",
+          "type": "range",
+          "value": "45"
+        },
+        {
+          "id": "roadmapEdgeDarkness",
+          "type": "range",
+          "value": "25"
+        },
+        {
+          "id": "dsaGain",
+          "type": "range",
+          "value": "2.2"
+        },
+        {
+          "id": "injSource",
+          "label": "Catheter",
+          "type": "select",
+          "value": "catheter"
+        },
+        {
+          "id": "injVolume",
+          "type": "range",
+          "value": "10"
+        },
+        {
+          "id": "injRate",
+          "type": "range",
+          "value": "9.8"
+        },
+        {
+          "id": "anatomyVariant",
+          "label": "Tętniak aorty podnerkowej · około 50 mm",
+          "type": "select",
+          "value": "infrarenal-aneurysm"
+        },
+        {
+          "id": "debugSolverSelect",
+          "label": "Kirchhoff — siatka 5 mm (referencyjny)",
+          "type": "select",
+          "value": "shared-axis"
+        },
+        {
+          "checked": false,
+          "id": "debugModifiedNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "debugFastNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "debugPredictiveNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "debugPruneWitnesses",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "debugShapeTolerance",
+          "type": "range",
+          "value": "0.15"
+        },
+        {
+          "id": "debugContactMargin",
+          "type": "range",
+          "value": "1"
+        },
+        {
+          "id": "debugMaxArcLoss",
+          "type": "range",
+          "value": "0.2"
+        },
+        {
+          "id": "debugMaxSpacing",
+          "type": "range",
+          "value": "20"
+        },
+        {
+          "checked": true,
+          "id": "bloodFlowCoupling",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "cardiacOutput",
+          "type": "range",
+          "value": "5000"
+        },
+        {
+          "id": "contrastHeartRate",
+          "type": "range",
+          "value": "72"
+        },
+        {
+          "id": "injectorPressureLimit",
+          "type": "range",
+          "value": "1200"
+        },
+        {
+          "id": "contrastViscosity",
+          "type": "range",
+          "value": "6.3"
+        },
+        {
+          "id": "sheathHydraulicLength",
+          "type": "range",
+          "value": "110"
+        },
+        {
+          "id": "sheathInnerDiameter",
+          "type": "range",
+          "value": "1.8"
+        },
+        {
+          "id": "sheathPressureRating",
+          "type": "range",
+          "value": "300"
+        },
+        {
+          "id": "berensteinHydraulicLength",
+          "type": "range",
+          "value": "1000"
+        },
+        {
+          "id": "berensteinInnerDiameter",
+          "type": "range",
+          "value": "0.97"
+        },
+        {
+          "id": "berensteinPressureRating",
+          "type": "range",
+          "value": "1050"
+        },
+        {
+          "id": "pigtailHydraulicLength",
+          "type": "range",
+          "value": "1000"
+        },
+        {
+          "id": "pigtailInnerDiameter",
+          "type": "range",
+          "value": "0.97"
+        },
+        {
+          "id": "pigtailPressureRating",
+          "type": "range",
+          "value": "1200"
+        },
+        {
+          "checked": true,
+          "id": "showDebugStlModel",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugLegacyVessel",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugVesselShading",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugLumenCast",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugSections",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugCenterline",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugCapsules",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugVesselLabels",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugWallContacts",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugRodNodes",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "renderVoxels",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "stentGraftType",
+          "label": "Korpus rozwidlony + nóżka ipsilateralna",
+          "type": "select",
+          "value": "body"
+        },
+        {
+          "id": "stentGraftLimbLength",
+          "label": "Wszystkie długości",
+          "type": "select",
+          "value": "all"
+        },
+        {
+          "id": "stentGraftDiameter",
+          "type": "select",
+          "value": ""
+        },
+        {
+          "id": "stentGraftDistalDiameter",
+          "type": "select",
+          "value": ""
+        }
+      ],
+      "screenshot": "001-stage-01.png",
+      "screenshotDisplayedSimulationSeconds": 803.83,
+      "performanceObservations": {
+        "kind": "instantaneous UI readings, not a benchmark or a measured range",
+        "samples": [
+          {
+            "source": "accessibility-tree",
+            "simulationSeconds": 787.6,
+            "renderFps": 56.7,
+            "physicsHz": 28.3,
+            "memoryMb": 561.3
+          },
+          {
+            "source": "screenshot",
+            "simulationSeconds": 803.83,
+            "renderFps": 60.1,
+            "physicsHz": 45.1,
+            "memoryMb": 527.2
+          }
+        ]
+      },
+      "replayVerified": false
+    },
+    {
+      "id": "checkpoint-02",
+      "source": "User description, browser accessibility tree, DOM form controls and screenshot; sequential observations, not an atomic physics snapshot.",
+      "date": "2026-10-14",
+      "anatomyTargetFromUser": "Pigtail oparty o rozwidlenie aorty, końcówka skierowana do przeciwległej tętnicy biodrowej.",
+      "anatomicalEntryVerified": false,
+      "visualObservation": "W fluoroskopii widoczna łukowata końcówka pigtaila skierowana w dół po przeciwnej stronie niż jego trzon; światło naczynia nie jest uwidocznione kontrastem.",
+      "activeAccess": "right",
+      "wire": {
+        "type": "glidewire",
+        "insertedCm": 17.2,
+        "rotationDeg": 0
+      },
+      "catheter": {
+        "type": "pigtail",
+        "insertedCm": 21.2,
+        "rotationDeg": -119
+      },
+      "lengthResolutionCm": 0.1,
+      "rotationResolutionDeg": 1,
+      "deliveredContrastMl": 0,
+      "view": "fluoroscopy",
+      "cArm": {
+        "apDeg": 0,
+        "craDeg": 0,
+        "rollDeg": 0
+      },
+      "displayedSimulationSeconds": 960.32,
+      "controls": [
+        {
+          "id": "dsaCineFrame",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaCineSpeed",
+          "label": "1×",
+          "type": "select",
+          "value": "1"
+        },
+        {
+          "id": "catheterType",
+          "label": "Pigtail",
+          "type": "select",
+          "value": "pigtail"
+        },
+        {
+          "id": "catheterShaftStiffness",
+          "type": "range",
+          "value": "40.65"
+        },
+        {
+          "id": "catheterTipStiffness",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "guidewireType",
+          "label": "Glidewire",
+          "type": "select",
+          "value": "glidewire"
+        },
+        {
+          "id": "stiffness",
+          "type": "range",
+          "value": "13.15"
+        },
+        {
+          "id": "tipStiffness",
+          "type": "range",
+          "value": "19.4"
+        },
+        {
+          "id": "staticFriction",
+          "type": "range",
+          "value": "0.006"
+        },
+        {
+          "id": "kineticFriction",
+          "type": "range",
+          "value": "0.002"
+        },
+        {
+          "id": "persistence",
+          "type": "range",
+          "value": "0.3"
+        },
+        {
+          "id": "pulseRate",
+          "label": "15 p/s",
+          "type": "select",
+          "value": "15"
+        },
+        {
+          "id": "noiseLevel",
+          "type": "range",
+          "value": "0.1"
+        },
+        {
+          "id": "scatterStrength",
+          "type": "range",
+          "value": "0.45"
+        },
+        {
+          "id": "collimationLeft",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationRight",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationTop",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationBottom",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "sideCollimatorRotation",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "imageBrightness",
+          "type": "range",
+          "value": "0.18"
+        },
+        {
+          "id": "imageContrast",
+          "type": "range",
+          "value": "1.33"
+        },
+        {
+          "id": "edgeEnhancement",
+          "type": "range",
+          "value": "0.1"
+        },
+        {
+          "id": "boneVisibility",
+          "type": "range",
+          "value": "0.62"
+        },
+        {
+          "id": "opacityScale",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "gain",
+          "type": "range",
+          "value": "5"
+        },
+        {
+          "id": "dsaSequenceSelect",
+          "label": "No saved sequence",
+          "type": "select",
+          "value": ""
+        },
+        {
+          "id": "dsaFrameSelect",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaRangeStart",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaRangeEnd",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "roadmapOpacity",
+          "type": "range",
+          "value": "30"
+        },
+        {
+          "id": "roadmapBackground",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "roadmapEdgeEnhancement",
+          "type": "range",
+          "value": "45"
+        },
+        {
+          "id": "roadmapEdgeDarkness",
+          "type": "range",
+          "value": "25"
+        },
+        {
+          "id": "dsaGain",
+          "type": "range",
+          "value": "2.2"
+        },
+        {
+          "id": "injSource",
+          "label": "Catheter",
+          "type": "select",
+          "value": "catheter"
+        },
+        {
+          "id": "injVolume",
+          "type": "range",
+          "value": "10"
+        },
+        {
+          "id": "injRate",
+          "type": "range",
+          "value": "9.8"
+        },
+        {
+          "id": "anatomyVariant",
+          "label": "Tętniak aorty podnerkowej · około 50 mm",
+          "type": "select",
+          "value": "infrarenal-aneurysm"
+        },
+        {
+          "id": "debugSolverSelect",
+          "label": "Kirchhoff — siatka 5 mm (referencyjny)",
+          "type": "select",
+          "value": "shared-axis"
+        },
+        {
+          "checked": false,
+          "id": "debugModifiedNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "debugFastNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "debugPredictiveNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "debugPruneWitnesses",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "debugShapeTolerance",
+          "type": "range",
+          "value": "0.15"
+        },
+        {
+          "id": "debugContactMargin",
+          "type": "range",
+          "value": "1"
+        },
+        {
+          "id": "debugMaxArcLoss",
+          "type": "range",
+          "value": "0.2"
+        },
+        {
+          "id": "debugMaxSpacing",
+          "type": "range",
+          "value": "20"
+        },
+        {
+          "checked": true,
+          "id": "bloodFlowCoupling",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "cardiacOutput",
+          "type": "range",
+          "value": "5000"
+        },
+        {
+          "id": "contrastHeartRate",
+          "type": "range",
+          "value": "72"
+        },
+        {
+          "id": "injectorPressureLimit",
+          "type": "range",
+          "value": "1200"
+        },
+        {
+          "id": "contrastViscosity",
+          "type": "range",
+          "value": "6.3"
+        },
+        {
+          "id": "sheathHydraulicLength",
+          "type": "range",
+          "value": "110"
+        },
+        {
+          "id": "sheathInnerDiameter",
+          "type": "range",
+          "value": "1.8"
+        },
+        {
+          "id": "sheathPressureRating",
+          "type": "range",
+          "value": "300"
+        },
+        {
+          "id": "berensteinHydraulicLength",
+          "type": "range",
+          "value": "1000"
+        },
+        {
+          "id": "berensteinInnerDiameter",
+          "type": "range",
+          "value": "0.97"
+        },
+        {
+          "id": "berensteinPressureRating",
+          "type": "range",
+          "value": "1050"
+        },
+        {
+          "id": "pigtailHydraulicLength",
+          "type": "range",
+          "value": "1000"
+        },
+        {
+          "id": "pigtailInnerDiameter",
+          "type": "range",
+          "value": "0.97"
+        },
+        {
+          "id": "pigtailPressureRating",
+          "type": "range",
+          "value": "1200"
+        },
+        {
+          "checked": true,
+          "id": "showDebugStlModel",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugLegacyVessel",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugVesselShading",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugLumenCast",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugSections",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugCenterline",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugCapsules",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugVesselLabels",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugWallContacts",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugRodNodes",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "renderVoxels",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "stentGraftType",
+          "label": "Korpus rozwidlony + nóżka ipsilateralna",
+          "type": "select",
+          "value": "body"
+        },
+        {
+          "id": "stentGraftLimbLength",
+          "label": "Wszystkie długości",
+          "type": "select",
+          "value": "all"
+        },
+        {
+          "id": "stentGraftDiameter",
+          "type": "select",
+          "value": ""
+        },
+        {
+          "id": "stentGraftDistalDiameter",
+          "type": "select",
+          "value": ""
+        }
+      ],
+      "screenshot": "001-stage-02.png",
+      "screenshotDisplayedSimulationSeconds": 966.2,
+      "performanceObservations": {
+        "kind": "instantaneous UI readings, not a benchmark or a measured range",
+        "samples": [
+          {
+            "source": "accessibility-tree",
+            "simulationSeconds": 960.32,
+            "renderFps": 60,
+            "physicsHz": 28,
+            "memoryMb": 570.1
+          },
+          {
+            "source": "screenshot",
+            "simulationSeconds": 966.2,
+            "renderFps": 60,
+            "physicsHz": 56.3,
+            "memoryMb": 568.5
+          }
+        ]
+      },
+      "replayVerified": false
+    },
+    {
+      "id": "checkpoint-03",
+      "source": "User description, browser accessibility tree, DOM form controls and screenshot; sequential observations, not an atomic physics snapshot.",
+      "date": "2026-10-14",
+      "anatomyTargetFromUser": "Prowadnik przeprowadzony przez pigtail do przeciwległej tętnicy biodrowej.",
+      "anatomicalEntryVerified": false,
+      "visualObservation": "Prowadnik wychodzi z łukowato zagiętego pigtaila i biegnie w dół po przeciwnej stronie niż trzon cewnika; światło naczynia nie jest uwidocznione kontrastem.",
+      "activeAccess": "right",
+      "wire": {
+        "type": "glidewire",
+        "insertedCm": 26.9,
+        "rotationDeg": 0
+      },
+      "catheter": {
+        "type": "pigtail",
+        "insertedCm": 21.2,
+        "rotationDeg": -119
+      },
+      "lengthResolutionCm": 0.1,
+      "rotationResolutionDeg": 1,
+      "deliveredContrastMl": 0,
+      "view": "fluoroscopy",
+      "cArm": {
+        "apDeg": 0,
+        "craDeg": 0,
+        "rollDeg": 0
+      },
+      "displayedSimulationSeconds": 1043.47,
+      "controls": [
+        {
+          "id": "dsaCineFrame",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaCineSpeed",
+          "label": "1×",
+          "type": "select",
+          "value": "1"
+        },
+        {
+          "id": "catheterType",
+          "label": "Pigtail",
+          "type": "select",
+          "value": "pigtail"
+        },
+        {
+          "id": "catheterShaftStiffness",
+          "type": "range",
+          "value": "40.65"
+        },
+        {
+          "id": "catheterTipStiffness",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "guidewireType",
+          "label": "Glidewire",
+          "type": "select",
+          "value": "glidewire"
+        },
+        {
+          "id": "stiffness",
+          "type": "range",
+          "value": "13.15"
+        },
+        {
+          "id": "tipStiffness",
+          "type": "range",
+          "value": "19.4"
+        },
+        {
+          "id": "staticFriction",
+          "type": "range",
+          "value": "0.006"
+        },
+        {
+          "id": "kineticFriction",
+          "type": "range",
+          "value": "0.002"
+        },
+        {
+          "id": "persistence",
+          "type": "range",
+          "value": "0.3"
+        },
+        {
+          "id": "pulseRate",
+          "label": "15 p/s",
+          "type": "select",
+          "value": "15"
+        },
+        {
+          "id": "noiseLevel",
+          "type": "range",
+          "value": "0.1"
+        },
+        {
+          "id": "scatterStrength",
+          "type": "range",
+          "value": "0.45"
+        },
+        {
+          "id": "collimationLeft",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationRight",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationTop",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationBottom",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "sideCollimatorRotation",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "imageBrightness",
+          "type": "range",
+          "value": "0.18"
+        },
+        {
+          "id": "imageContrast",
+          "type": "range",
+          "value": "1.33"
+        },
+        {
+          "id": "edgeEnhancement",
+          "type": "range",
+          "value": "0.1"
+        },
+        {
+          "id": "boneVisibility",
+          "type": "range",
+          "value": "0.62"
+        },
+        {
+          "id": "opacityScale",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "gain",
+          "type": "range",
+          "value": "5"
+        },
+        {
+          "id": "dsaSequenceSelect",
+          "label": "No saved sequence",
+          "type": "select",
+          "value": ""
+        },
+        {
+          "id": "dsaFrameSelect",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaRangeStart",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaRangeEnd",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "roadmapOpacity",
+          "type": "range",
+          "value": "30"
+        },
+        {
+          "id": "roadmapBackground",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "roadmapEdgeEnhancement",
+          "type": "range",
+          "value": "45"
+        },
+        {
+          "id": "roadmapEdgeDarkness",
+          "type": "range",
+          "value": "25"
+        },
+        {
+          "id": "dsaGain",
+          "type": "range",
+          "value": "2.2"
+        },
+        {
+          "id": "injSource",
+          "label": "Catheter",
+          "type": "select",
+          "value": "catheter"
+        },
+        {
+          "id": "injVolume",
+          "type": "range",
+          "value": "10"
+        },
+        {
+          "id": "injRate",
+          "type": "range",
+          "value": "9.8"
+        },
+        {
+          "id": "anatomyVariant",
+          "label": "Tętniak aorty podnerkowej · około 50 mm",
+          "type": "select",
+          "value": "infrarenal-aneurysm"
+        },
+        {
+          "id": "debugSolverSelect",
+          "label": "Kirchhoff — siatka 5 mm (referencyjny)",
+          "type": "select",
+          "value": "shared-axis"
+        },
+        {
+          "checked": false,
+          "id": "debugModifiedNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "debugFastNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "debugPredictiveNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "debugPruneWitnesses",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "debugShapeTolerance",
+          "type": "range",
+          "value": "0.15"
+        },
+        {
+          "id": "debugContactMargin",
+          "type": "range",
+          "value": "1"
+        },
+        {
+          "id": "debugMaxArcLoss",
+          "type": "range",
+          "value": "0.2"
+        },
+        {
+          "id": "debugMaxSpacing",
+          "type": "range",
+          "value": "20"
+        },
+        {
+          "checked": true,
+          "id": "bloodFlowCoupling",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "cardiacOutput",
+          "type": "range",
+          "value": "5000"
+        },
+        {
+          "id": "contrastHeartRate",
+          "type": "range",
+          "value": "72"
+        },
+        {
+          "id": "injectorPressureLimit",
+          "type": "range",
+          "value": "1200"
+        },
+        {
+          "id": "contrastViscosity",
+          "type": "range",
+          "value": "6.3"
+        },
+        {
+          "id": "sheathHydraulicLength",
+          "type": "range",
+          "value": "110"
+        },
+        {
+          "id": "sheathInnerDiameter",
+          "type": "range",
+          "value": "1.8"
+        },
+        {
+          "id": "sheathPressureRating",
+          "type": "range",
+          "value": "300"
+        },
+        {
+          "id": "berensteinHydraulicLength",
+          "type": "range",
+          "value": "1000"
+        },
+        {
+          "id": "berensteinInnerDiameter",
+          "type": "range",
+          "value": "0.97"
+        },
+        {
+          "id": "berensteinPressureRating",
+          "type": "range",
+          "value": "1050"
+        },
+        {
+          "id": "pigtailHydraulicLength",
+          "type": "range",
+          "value": "1000"
+        },
+        {
+          "id": "pigtailInnerDiameter",
+          "type": "range",
+          "value": "0.97"
+        },
+        {
+          "id": "pigtailPressureRating",
+          "type": "range",
+          "value": "1200"
+        },
+        {
+          "checked": true,
+          "id": "showDebugStlModel",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugLegacyVessel",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugVesselShading",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugLumenCast",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugSections",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugCenterline",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugCapsules",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugVesselLabels",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugWallContacts",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugRodNodes",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "renderVoxels",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "stentGraftType",
+          "label": "Korpus rozwidlony + nóżka ipsilateralna",
+          "type": "select",
+          "value": "body"
+        },
+        {
+          "id": "stentGraftLimbLength",
+          "label": "Wszystkie długości",
+          "type": "select",
+          "value": "all"
+        },
+        {
+          "id": "stentGraftDiameter",
+          "type": "select",
+          "value": ""
+        },
+        {
+          "id": "stentGraftDistalDiameter",
+          "type": "select",
+          "value": ""
+        }
+      ],
+      "screenshot": "001-stage-03.png",
+      "screenshotDisplayedSimulationSeconds": 1051.2,
+      "performanceObservations": {
+        "kind": "instantaneous UI readings, not a benchmark or a measured range",
+        "samples": [
+          {
+            "source": "accessibility-tree",
+            "simulationSeconds": 1043.47,
+            "renderFps": 56.3,
+            "physicsHz": 30,
+            "memoryMb": 560.4
+          },
+          {
+            "source": "screenshot",
+            "simulationSeconds": 1051.2,
+            "renderFps": 60,
+            "physicsHz": 16,
+            "memoryMb": 519.4
+          }
+        ]
+      },
+      "replayVerified": false
+    },
+    {
+      "id": "checkpoint-04",
+      "source": "User description, browser accessibility tree, DOM form controls and screenshot; sequential observations, not an atomic physics snapshot.",
+      "date": "2026-10-14",
+      "anatomyTargetFromUser": "Pigtail w przeciwległej tętnicy biodrowej; prowadnik skierowany przez tętnicę biodrową zewnętrzną do tętnicy udowej.",
+      "anatomicalEntryVerified": false,
+      "visualObservation": "Narzędzia tworzą łuk nad rozwidleniem i biegną w dół po stronie przeciwległej do dostępu, w kierunku pachwiny i górnej części uda. Światło naczynia nie jest uwidocznione kontrastem.",
+      "activeAccess": "right",
+      "wire": {
+        "type": "glidewire",
+        "insertedCm": 36.4,
+        "rotationDeg": 0
+      },
+      "catheter": {
+        "type": "pigtail",
+        "insertedCm": 29,
+        "rotationDeg": -125
+      },
+      "lengthResolutionCm": 0.1,
+      "rotationResolutionDeg": 1,
+      "deliveredContrastMl": 0,
+      "view": "fluoroscopy",
+      "cArm": {
+        "apDeg": 0,
+        "craDeg": 0,
+        "rollDeg": 0,
+        "translationRecorded": false
+      },
+      "framingObservation": "Kadr przesunięty w stronę miednicy i górnej części uda względem poprzedniego punktu; dokładne przesunięcie ramienia lub stołu nie jest dostępne w odczytanych kontrolkach.",
+      "displayedSimulationSeconds": 1175.42,
+      "controls": [
+        {
+          "id": "dsaCineFrame",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaCineSpeed",
+          "label": "1×",
+          "type": "select",
+          "value": "1"
+        },
+        {
+          "id": "catheterType",
+          "label": "Pigtail",
+          "type": "select",
+          "value": "pigtail"
+        },
+        {
+          "id": "catheterShaftStiffness",
+          "type": "range",
+          "value": "40.65"
+        },
+        {
+          "id": "catheterTipStiffness",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "guidewireType",
+          "label": "Glidewire",
+          "type": "select",
+          "value": "glidewire"
+        },
+        {
+          "id": "stiffness",
+          "type": "range",
+          "value": "13.15"
+        },
+        {
+          "id": "tipStiffness",
+          "type": "range",
+          "value": "19.4"
+        },
+        {
+          "id": "staticFriction",
+          "type": "range",
+          "value": "0.006"
+        },
+        {
+          "id": "kineticFriction",
+          "type": "range",
+          "value": "0.002"
+        },
+        {
+          "id": "persistence",
+          "type": "range",
+          "value": "0.3"
+        },
+        {
+          "id": "pulseRate",
+          "label": "15 p/s",
+          "type": "select",
+          "value": "15"
+        },
+        {
+          "id": "noiseLevel",
+          "type": "range",
+          "value": "0.1"
+        },
+        {
+          "id": "scatterStrength",
+          "type": "range",
+          "value": "0.45"
+        },
+        {
+          "id": "collimationLeft",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationRight",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationTop",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationBottom",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "sideCollimatorRotation",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "imageBrightness",
+          "type": "range",
+          "value": "0.18"
+        },
+        {
+          "id": "imageContrast",
+          "type": "range",
+          "value": "1.33"
+        },
+        {
+          "id": "edgeEnhancement",
+          "type": "range",
+          "value": "0.1"
+        },
+        {
+          "id": "boneVisibility",
+          "type": "range",
+          "value": "0.62"
+        },
+        {
+          "id": "opacityScale",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "gain",
+          "type": "range",
+          "value": "5"
+        },
+        {
+          "id": "dsaSequenceSelect",
+          "label": "No saved sequence",
+          "type": "select",
+          "value": ""
+        },
+        {
+          "id": "dsaFrameSelect",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaRangeStart",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaRangeEnd",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "roadmapOpacity",
+          "type": "range",
+          "value": "30"
+        },
+        {
+          "id": "roadmapBackground",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "roadmapEdgeEnhancement",
+          "type": "range",
+          "value": "45"
+        },
+        {
+          "id": "roadmapEdgeDarkness",
+          "type": "range",
+          "value": "25"
+        },
+        {
+          "id": "dsaGain",
+          "type": "range",
+          "value": "2.2"
+        },
+        {
+          "id": "injSource",
+          "label": "Catheter",
+          "type": "select",
+          "value": "catheter"
+        },
+        {
+          "id": "injVolume",
+          "type": "range",
+          "value": "10"
+        },
+        {
+          "id": "injRate",
+          "type": "range",
+          "value": "9.8"
+        },
+        {
+          "id": "anatomyVariant",
+          "label": "Tętniak aorty podnerkowej · około 50 mm",
+          "type": "select",
+          "value": "infrarenal-aneurysm"
+        },
+        {
+          "id": "debugSolverSelect",
+          "label": "Kirchhoff — siatka 5 mm (referencyjny)",
+          "type": "select",
+          "value": "shared-axis"
+        },
+        {
+          "checked": false,
+          "id": "debugModifiedNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "debugFastNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "debugPredictiveNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "debugPruneWitnesses",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "debugShapeTolerance",
+          "type": "range",
+          "value": "0.15"
+        },
+        {
+          "id": "debugContactMargin",
+          "type": "range",
+          "value": "1"
+        },
+        {
+          "id": "debugMaxArcLoss",
+          "type": "range",
+          "value": "0.2"
+        },
+        {
+          "id": "debugMaxSpacing",
+          "type": "range",
+          "value": "20"
+        },
+        {
+          "checked": true,
+          "id": "bloodFlowCoupling",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "cardiacOutput",
+          "type": "range",
+          "value": "5000"
+        },
+        {
+          "id": "contrastHeartRate",
+          "type": "range",
+          "value": "72"
+        },
+        {
+          "id": "injectorPressureLimit",
+          "type": "range",
+          "value": "1200"
+        },
+        {
+          "id": "contrastViscosity",
+          "type": "range",
+          "value": "6.3"
+        },
+        {
+          "id": "sheathHydraulicLength",
+          "type": "range",
+          "value": "110"
+        },
+        {
+          "id": "sheathInnerDiameter",
+          "type": "range",
+          "value": "1.8"
+        },
+        {
+          "id": "sheathPressureRating",
+          "type": "range",
+          "value": "300"
+        },
+        {
+          "id": "berensteinHydraulicLength",
+          "type": "range",
+          "value": "1000"
+        },
+        {
+          "id": "berensteinInnerDiameter",
+          "type": "range",
+          "value": "0.97"
+        },
+        {
+          "id": "berensteinPressureRating",
+          "type": "range",
+          "value": "1050"
+        },
+        {
+          "id": "pigtailHydraulicLength",
+          "type": "range",
+          "value": "1000"
+        },
+        {
+          "id": "pigtailInnerDiameter",
+          "type": "range",
+          "value": "0.97"
+        },
+        {
+          "id": "pigtailPressureRating",
+          "type": "range",
+          "value": "1200"
+        },
+        {
+          "checked": true,
+          "id": "showDebugStlModel",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugLegacyVessel",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugVesselShading",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugLumenCast",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugSections",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugCenterline",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugCapsules",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugVesselLabels",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugWallContacts",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugRodNodes",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "renderVoxels",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "stentGraftType",
+          "label": "Korpus rozwidlony + nóżka ipsilateralna",
+          "type": "select",
+          "value": "body"
+        },
+        {
+          "id": "stentGraftLimbLength",
+          "label": "Wszystkie długości",
+          "type": "select",
+          "value": "all"
+        },
+        {
+          "id": "stentGraftDiameter",
+          "type": "select",
+          "value": ""
+        },
+        {
+          "id": "stentGraftDistalDiameter",
+          "type": "select",
+          "value": ""
+        }
+      ],
+      "screenshot": "001-stage-04.png",
+      "screenshotDisplayedSimulationSeconds": 1179.87,
+      "performanceObservations": {
+        "kind": "instantaneous UI readings, not a benchmark or a measured range",
+        "samples": [
+          {
+            "source": "accessibility-tree",
+            "simulationSeconds": 1175.42,
+            "renderFps": 60,
+            "physicsHz": 16,
+            "memoryMb": 512.9
+          },
+          {
+            "source": "screenshot",
+            "simulationSeconds": 1179.87,
+            "renderFps": 60,
+            "physicsHz": 30,
+            "memoryMb": 574.3
+          }
+        ]
+      },
+      "replayVerified": false
+    },
+    {
+      "id": "checkpoint-05",
+      "source": "User description, browser accessibility tree, DOM form controls, screenshots and exported solver replay; sequential observations, not one atomic simulation snapshot.",
+      "date": "2026-10-14",
+      "anatomyTargetFromUser": "Głębokie wsunięcie obu narzędzi po crossover, prawie na maksymalną długość.",
+      "anatomicalEntryVerified": false,
+      "visualObservation": "Kadr obejmuje kolano i podudzie; widoczny długi odcinek narzędzia schodzący poniżej kolana. Światło naczynia nie jest uwidocznione kontrastem.",
+      "activeAccess": "right",
+      "wire": {
+        "type": "glidewire",
+        "insertedCm": 98.1,
+        "rotationDeg": 0
+      },
+      "catheter": {
+        "type": "pigtail",
+        "insertedCm": 86.1,
+        "rotationDeg": -125
+      },
+      "lengthResolutionCm": 0.1,
+      "rotationResolutionDeg": 1,
+      "deliveredContrastMl": 0,
+      "view": "fluoroscopy",
+      "cArm": {
+        "apDeg": 0,
+        "craDeg": 0,
+        "rollDeg": 0,
+        "translationRecorded": false
+      },
+      "framingObservation": "Kadr przesunięty ku kolanu i podudziu. Dokładne przesunięcie ramienia lub stołu nie jest dostępne w odczytanych kontrolkach.",
+      "displayedSimulationSeconds": 1309.83,
+      "controls": [
+        {
+          "id": "dsaCineFrame",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaCineSpeed",
+          "label": "1×",
+          "type": "select",
+          "value": "1"
+        },
+        {
+          "id": "catheterType",
+          "label": "Pigtail",
+          "type": "select",
+          "value": "pigtail"
+        },
+        {
+          "id": "catheterShaftStiffness",
+          "type": "range",
+          "value": "40.65"
+        },
+        {
+          "id": "catheterTipStiffness",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "guidewireType",
+          "label": "Glidewire",
+          "type": "select",
+          "value": "glidewire"
+        },
+        {
+          "id": "stiffness",
+          "type": "range",
+          "value": "13.15"
+        },
+        {
+          "id": "tipStiffness",
+          "type": "range",
+          "value": "19.4"
+        },
+        {
+          "id": "staticFriction",
+          "type": "range",
+          "value": "0.006"
+        },
+        {
+          "id": "kineticFriction",
+          "type": "range",
+          "value": "0.002"
+        },
+        {
+          "id": "persistence",
+          "type": "range",
+          "value": "0.3"
+        },
+        {
+          "id": "pulseRate",
+          "label": "15 p/s",
+          "type": "select",
+          "value": "15"
+        },
+        {
+          "id": "noiseLevel",
+          "type": "range",
+          "value": "0.1"
+        },
+        {
+          "id": "scatterStrength",
+          "type": "range",
+          "value": "0.45"
+        },
+        {
+          "id": "collimationLeft",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationRight",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationTop",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "collimationBottom",
+          "type": "range",
+          "value": "0.08"
+        },
+        {
+          "id": "sideCollimatorRotation",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "imageBrightness",
+          "type": "range",
+          "value": "0.18"
+        },
+        {
+          "id": "imageContrast",
+          "type": "range",
+          "value": "1.33"
+        },
+        {
+          "id": "edgeEnhancement",
+          "type": "range",
+          "value": "0.1"
+        },
+        {
+          "id": "boneVisibility",
+          "type": "range",
+          "value": "0.62"
+        },
+        {
+          "id": "opacityScale",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "gain",
+          "type": "range",
+          "value": "5"
+        },
+        {
+          "id": "dsaSequenceSelect",
+          "label": "No saved sequence",
+          "type": "select",
+          "value": ""
+        },
+        {
+          "id": "dsaFrameSelect",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaRangeStart",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "dsaRangeEnd",
+          "type": "range",
+          "value": "0"
+        },
+        {
+          "id": "roadmapOpacity",
+          "type": "range",
+          "value": "30"
+        },
+        {
+          "id": "roadmapBackground",
+          "type": "range",
+          "value": "100"
+        },
+        {
+          "id": "roadmapEdgeEnhancement",
+          "type": "range",
+          "value": "45"
+        },
+        {
+          "id": "roadmapEdgeDarkness",
+          "type": "range",
+          "value": "25"
+        },
+        {
+          "id": "dsaGain",
+          "type": "range",
+          "value": "2.2"
+        },
+        {
+          "id": "injSource",
+          "label": "Catheter",
+          "type": "select",
+          "value": "catheter"
+        },
+        {
+          "id": "injVolume",
+          "type": "range",
+          "value": "10"
+        },
+        {
+          "id": "injRate",
+          "type": "range",
+          "value": "9.8"
+        },
+        {
+          "id": "anatomyVariant",
+          "label": "Tętniak aorty podnerkowej · około 50 mm",
+          "type": "select",
+          "value": "infrarenal-aneurysm"
+        },
+        {
+          "id": "debugSolverSelect",
+          "label": "Kirchhoff — siatka 5 mm (referencyjny)",
+          "type": "select",
+          "value": "shared-axis"
+        },
+        {
+          "checked": false,
+          "id": "debugModifiedNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "debugFastNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "debugPredictiveNewton",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "debugPruneWitnesses",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "debugShapeTolerance",
+          "type": "range",
+          "value": "0.15"
+        },
+        {
+          "id": "debugContactMargin",
+          "type": "range",
+          "value": "1"
+        },
+        {
+          "id": "debugMaxArcLoss",
+          "type": "range",
+          "value": "0.2"
+        },
+        {
+          "id": "debugMaxSpacing",
+          "type": "range",
+          "value": "20"
+        },
+        {
+          "checked": true,
+          "id": "bloodFlowCoupling",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "cardiacOutput",
+          "type": "range",
+          "value": "5000"
+        },
+        {
+          "id": "contrastHeartRate",
+          "type": "range",
+          "value": "72"
+        },
+        {
+          "id": "injectorPressureLimit",
+          "type": "range",
+          "value": "1200"
+        },
+        {
+          "id": "contrastViscosity",
+          "type": "range",
+          "value": "6.3"
+        },
+        {
+          "id": "sheathHydraulicLength",
+          "type": "range",
+          "value": "110"
+        },
+        {
+          "id": "sheathInnerDiameter",
+          "type": "range",
+          "value": "1.8"
+        },
+        {
+          "id": "sheathPressureRating",
+          "type": "range",
+          "value": "300"
+        },
+        {
+          "id": "berensteinHydraulicLength",
+          "type": "range",
+          "value": "1000"
+        },
+        {
+          "id": "berensteinInnerDiameter",
+          "type": "range",
+          "value": "0.97"
+        },
+        {
+          "id": "berensteinPressureRating",
+          "type": "range",
+          "value": "1050"
+        },
+        {
+          "id": "pigtailHydraulicLength",
+          "type": "range",
+          "value": "1000"
+        },
+        {
+          "id": "pigtailInnerDiameter",
+          "type": "range",
+          "value": "0.97"
+        },
+        {
+          "id": "pigtailPressureRating",
+          "type": "range",
+          "value": "1200"
+        },
+        {
+          "checked": true,
+          "id": "showDebugStlModel",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugLegacyVessel",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugVesselShading",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugLumenCast",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugSections",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugCenterline",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugCapsules",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugVesselLabels",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": false,
+          "id": "showDebugWallContacts",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "showDebugRodNodes",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "checked": true,
+          "id": "renderVoxels",
+          "type": "checkbox",
+          "value": "on"
+        },
+        {
+          "id": "stentGraftType",
+          "label": "Korpus rozwidlony + nóżka ipsilateralna",
+          "type": "select",
+          "value": "body"
+        },
+        {
+          "id": "stentGraftLimbLength",
+          "label": "Wszystkie długości",
+          "type": "select",
+          "value": "all"
+        },
+        {
+          "id": "stentGraftDiameter",
+          "type": "select",
+          "value": ""
+        },
+        {
+          "id": "stentGraftDistalDiameter",
+          "type": "select",
+          "value": ""
+        }
+      ],
+      "screenshot": "001-stage-05.png",
+      "screenshotDisplayedSimulationSeconds": 1309.97,
+      "afterExportScreenshot": "001-stage-05-after-export.png",
+      "afterExportDisplayedSimulationSeconds": 1310.2,
+      "displayedMotionStatus": "Przywrócono ostatni poprawny stan. Możesz ponownie sterować narzędziami.",
+      "performanceObservations": {
+        "kind": "instantaneous UI readings plus a specific exported solver step; not an aggregate benchmark",
+        "samples": [
+          {
+            "source": "accessibility-tree",
+            "simulationSeconds": 1309.83,
+            "renderFps": 56,
+            "physicsHz": 0,
+            "memoryMb": 542.5
+          },
+          {
+            "source": "screenshot",
+            "simulationSeconds": 1309.97,
+            "renderFps": 60,
+            "physicsHz": 0,
+            "memoryMb": 539.7
+          },
+          {
+            "source": "after-export-screenshot",
+            "simulationSeconds": 1310.2,
+            "renderFps": 60,
+            "physicsHz": 0,
+            "memoryMb": 580.5
+          }
+        ]
+      },
+      "solverDiagnostics": {
+        "earlierPanelText": "Historia odrzuceń: 332 kroków; trwale zapisane: 332.\nOstatnie odrzucenie: 2026-10-14T06:47:46.415Z\nWynik kroku: odrzucony\nPrzyczyna: iteration-limit\nDostęp udowy: prawy\nwire: 981.2000000000128 → 981.2000000000128 mm; obrót 0 → 0 rad\ncatheter: 860.6666666666687 → 860.6666666666687 mm; obrót 4.099778412934685 → 4.099778412934685 rad\nIteracje: 4008; faktoryzacje: 4985\nBłędy ograniczeń: {\"force\":0.0000013995221479490283,\"torque\":3.1111204723544006e-9,\"length\":9.50350909079134e-14}\nPodział 1, część 1: iteration-limit; wcześniejsza próba: iteration-limit\nPodział 2, część 1: converged\nPodział 2, część 2: iteration-limit; wcześniejsza próba: iteration-limit\nPodział 4, część 1: iteration-limit; wcześniejsza próba: iteration-limit\nPodział 8, część 1: converged\nPodział 8, część 2: converged\nPodział 8, część 3: converged\nPodział 8, część 4: converged\nPodział 8, część 5: converged\nPodział 8, część 6: iteration-limit; wcześniejsza próba: iteration-limit",
+        "panelAndExportAreDifferentSteps": true,
+        "export": {
+          "file": "001-stage-05-replay.json.gz",
+          "source": "Pobierz ostatni krok in the simulator Debug panel",
+          "id": "37a7f67d-95b1-4119-9722-c7f26418e18c",
+          "capturedAt": "2026-10-14T06:48:04.470Z",
+          "recovered": true,
+          "anatomy": "infrarenal-aneurysm",
+          "accessId": "right",
+          "requestedDtSeconds": 0.016666666666666666,
+          "requestedInsertionsMm": [
+            {
+              "id": "wire",
+              "insertion": 981.2000000000128,
+              "rotationRad": 0
+            },
+            {
+              "id": "catheter",
+              "insertion": 860.6666666666687,
+              "rotationRad": 4.099778412934685
+            }
+          ],
+          "iterations": 983,
+          "factorizations": 1234,
+          "cpuMs": 11892.399993896484,
+          "wallMs": 17238.799999952316,
+          "status": "converged",
+          "initialAttemptStatus": "iteration-limit",
+          "bloodFlowSimulationSeconds": 1310.066666665804,
+          "scope": "One shared-axis step on the right access; full manual session not recorded."
+        }
+      },
+      "replayVerified": true
+    }
+  ],
+  "replayRequirements": {
+    "startFromKnownResetState": true,
+    "useAcceptedSimulationTimeForInputSchedule": true,
+    "includeBothAccesses": true,
+    "validateAnatomyAndToolConfiguration": true,
+    "recordCameraAndImagingSettings": true,
+    "compareGeometryAndStabilityAlongsidePerformance": true
+  },
+  "pending": [
+    "Pełne odtworzenie pierwszych etapów wymaga nagrania kolejności i czasu sterowania; rekonstrukcja z samych punktów kontrolnych nie odtworzyła drogi crossover.",
+    "Stan drugiego dostępu i dokładne ustawienia kamery nie zostały atomowo zapisane."
+  ],
+  "metricsToCollect": [
+    "wall-clock duration",
+    "accepted simulation duration / wall-clock duration",
+    "physics step CPU ms: median, p95, p99",
+    "render frame ms: median, p95, p99",
+    "rejected steps and retries",
+    "tool insertion and geometry at checkpoints",
+    "peak memory"
+  ],
+  "demonstrationCompletedDate": "2026-10-14",
+  "replayValidation": {
+    "exactCapturedStep": {
+      "checkpoint": "checkpoint-05",
+      "verified": true,
+      "benchmarkCommand": "npm run benchmark:crossover",
+      "report": "001-checkpoint-result.json"
+    },
+    "continuation": {
+      "verified": true,
+      "steps": 100,
+      "dtSeconds": 0.016666666666666666,
+      "actions": [
+        "hold",
+        "withdraw both by 10 mm",
+        "advance both by 10 mm",
+        "settle"
+      ],
+      "freshPulsatileBloodFlow": true,
+      "benchmarkCommand": "npm run benchmark:crossover -- continuation",
+      "report": "001-continuation-result.json"
+    },
+    "fullDemonstration": {
+      "verified": false,
+      "reason": "Checkpoints and verbal descriptions do not encode the complete sequence and timing of inputs. The estimated reconstruction did not reproduce the contralateral branch and stopped during follow-wire.",
+      "report": "001-reconstruct-result.json"
+    },
+    "preview": "/tests/crossoverReplay.browser.html"
+  }
+}

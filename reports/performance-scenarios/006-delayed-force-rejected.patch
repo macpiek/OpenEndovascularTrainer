@@ -1,0 +1,258 @@
+--- a/src/benchmark/crossoverAppBenchmark.js
++++ b/src/benchmark/crossoverAppBenchmark.js
+@@ -10,11 +10,11 @@
+         guidewireRotation:0,catheterRotation:0,catheterType:'pigtail'};
+ }
+ 
+-export function crossoverPhysicalGate(dt,result) {
++export function crossoverPhysicalGate(dt,result,{forceTolerance=1e-6}={}) {
+     const quality=result?.quality,bodies=quality?.bodies;
+     const bounded=(value,limit,inclusive=true)=>Number.isFinite(value)&&value>=0&&(inclusive?value<=limit:value<limit);
+-    return dt===1/60&&result?.converged===true&&quality?.finite===true&&
+-        bounded(result.certificateBound,1e-6)&&bounded(result.residual?.length,1e-5)&&
++    return Number.isFinite(forceTolerance)&&forceTolerance>0&&forceTolerance<=1e-4&&dt===1/60&&result?.converged===true&&quality?.finite===true&&
++        bounded(result.certificateBound,forceTolerance)&&bounded(result.residual?.length,1e-5)&&
+         bounded(quality.maxPenetration,1e-5)&&Array.isArray(bodies)&&bodies.length>0&&
+         bodies.every(body=>bounded(body.maxLengthError,1e-5,false));
+ }
+--- a/src/benchmark/crossoverScenarioRecording.js
++++ b/src/benchmark/crossoverScenarioRecording.js
+@@ -12,11 +12,11 @@
+ const validShape=s=>s&&s.coordinates?.length>=2&&s.positions?.length===s.coordinates.length*3&&
+     [...s.coordinates,...s.positions].every(Number.isFinite)&&s.coordinates.every((x,i)=>!i||x>s.coordinates[i-1]);
+ const validTools=t=>t&&['wire','catheter','wireRotation','catheterRotation'].every(key=>Number.isFinite(t[key]))&&t.wire>=0&&t.catheter>=0;
+-const validQuality=(quality,dt)=>Array.isArray(quality)&&quality.length===2&&quality.every(q=>crossoverPhysicalGate(dt,q));
++const validQuality=(quality,dt,forceTolerance=1e-6)=>Array.isArray(quality)&&quality.length===2&&quality.every(q=>crossoverPhysicalGate(dt,q,{forceTolerance}));
+ const captureQuality=d=>({converged:d.last.converged,certificateBound:d.last.certificateBound,residual:{length:d.last.residual.length},
+     quality:{finite:d.last.quality.finite,maxPenetration:d.last.quality.maxPenetration,bodies:d.last.quality.bodies.map(b=>({maxLengthError:b.maxLengthError}))}});
+ const captureWork=d=>({mesh:{...d.mesh},...Object.fromEntries([
+-    'iterations','factorizations','backtracks','geometryRestarts','frictionIterations','substepAttempts','subdivisions',
++    'forceTolerance','iterations','factorizations','backtracks','geometryRestarts','frictionIterations','substepAttempts','subdivisions',
+     'predictorFallbacks','coupledFrictionFallbacks','wallNormalFallbacks','replayCaptureMs',
+     'workerWallMs','workerDispatchDelayMs','workerResponseMs','workerPublicationDelayMs'
+ ].map(key=>[key,d.last?.[key]??0])),timings:{...d.last?.timings},replayCaptureTimes:{...d.last?.replayCaptureTimes}});
+@@ -53,7 +53,7 @@
+ 
+ /** Validate before resetting any live tools. Checkpoints describe operator
+  * confirmations; they cannot manufacture missing inputs or stability proof. */
+-export function validateCrossoverRecording(record,{maxSteps=36000}={}) {
++export function validateCrossoverRecording(record,{maxSteps=36000,forceCertificateLimit=1e-6}={}) {
+     if(record?.schemaVersion!==CROSSOVER_RECORDING_VERSION||record.kind!=='crossover-input-sequence'||record.dt!==1/60||
+         record.complete!==true||!Array.isArray(record.steps)||!record.steps.length||record.steps.length>maxSteps||
+         !record.configuration||!Array.isArray(record.checkpoints)||record.checkpoints.length>CROSSOVER_STAGES.length)
+@@ -69,7 +69,7 @@
+     for(const [index,step] of record.steps.entries()) {
+         while(record.checkpoints[stage]?.afterStep<=index)stage++;
+         validateCrossoverInputs(step.inputs);
+-        if(!validShape(step.shape)||!validTools(step.tools)||!validQuality(step.quality,record.dt)||step.stage!==stage||step.moving!==moving(step.inputs)||
++        if(!validShape(step.shape)||!validTools(step.tools)||!validQuality(step.quality,record.dt,forceCertificateLimit)||step.stage!==stage||step.moving!==moving(step.inputs)||
+             !Number.isFinite(step.intervalMs)||step.intervalMs<0||!Number.isFinite(step.cpuMs)||step.cpuMs<0)
+             throw new Error(`Niekompletny lub nieprawidłowy krok ${index+1}: kształt, sprzęt, stabilność albo czas.`);
+     }
+@@ -114,13 +114,17 @@
+         record.goalAchieved=false; // A recording alone is not an optimization acceptance.
+         mode='finished';pending=null;onChunk(record,true);onChange();
+     }
+-    function start(configuration,replay=null) {
++    function start(configuration,replay=null,{shapeDifferenceLimitMm=.1,forceCertificateLimit=1e-6}={}) {
++        if(!Number.isFinite(forceCertificateLimit)||forceCertificateLimit<=0||forceCertificateLimit>1e-4)throw new Error('Invalid experimental force certificate limit');
++        if(!Number.isFinite(shapeDifferenceLimitMm)||shapeDifferenceLimitMm<=0||shapeDifferenceLimitMm>1)
++            throw new Error('Limit różnicy kształtu musi być większy od 0 i nie większy niż 1 mm.');
+         if(['recording','replaying'].includes(mode))throw new Error('Najpierw zakończ bieżące nagranie.');
+         if(replay)validateCrossoverRecording(replay,{maxSteps});
+         if(replay&&JSON.stringify(replay.configuration)!==JSON.stringify(configuration))throw new Error('Ustawienia anatomii, sprzętu lub przepływu nie pasują do nagrania.');
+         source=replay;mode=replay?'replaying':'recording';lastWall=now();cpuMs=frames=movingSteps=movingWallMs=0;pending=null;
+         record={schemaVersion:CROSSOVER_RECORDING_VERSION,kind:'crossover-input-sequence',recordedAt:new Date().toISOString(),dt:1/60,
+             replayOf:replay?.recordedAt??null,
++            validation:{shapeDifferenceLimitMm,forceCertificateLimit,lengthErrorLimitMm:1e-5,penetrationLimitMm:1e-5,scope:'Whole polyline per accepted step; explicit experimental force tolerance, unchanged geometric constraints.'},
+             startedAt:lastWall,configuration:structuredClone(configuration),steps:[],checkpoints:replay?structuredClone(replay.checkpoints):[],
+             complete:false,fullManeuverVerified:false,goalAchieved:false,
+             timingDefinition:'physicsHz counts common accepted steps per wall-clock second; cpuMs measures main-thread slices only. Worker compute and transport timings are recorded separately in providerMs and solverWork.',
+@@ -131,7 +135,7 @@
+         get mode(){return mode;},get record(){return record;},get active(){return mode==='recording'||mode==='replaying';},
+         get progress(){return {motionHz:movingWallMs>0?movingSteps*1000/movingWallMs:null,
+             stage:source?.steps[record?.steps.length]?.stage??record?.checkpoints.length??0};},
+-        startRecording:configuration=>start(configuration),startReplay:(configuration,replay)=>start(configuration,replay),
++        startRecording:configuration=>start(configuration),startReplay:(configuration,replay,validation)=>start(configuration,replay,validation),
+         boundary(inputs,configuration) {
+             if(!this.active)return inputs;
+             if(pending)throw new Error('Repeated scenario preparation before common publication');
+@@ -147,7 +151,7 @@
+         frame(){if(this.active)frames++;},
+         commit({dt,diagnostics,shape,tools}) {
+             if(!this.active)return;
+-            if(!pending||dt!==record.dt||!validQuality(diagnostics?.map(d=>d.last),dt)||!validShape(shape)||!validTools(tools)){
++            if(!pending||dt!==record.dt||!validQuality(diagnostics?.map(d=>d.last),dt,record.validation.forceCertificateLimit)||!validShape(shape)||!validTools(tools)){
+                 fail('Krok nie przeszedł kontroli obu solverów, kształtu lub pozycji sprzętu.');return;
+             }
+             const index=record.steps.length,reference=source?.steps[index];let difference=0;
+@@ -163,7 +167,7 @@
+                 moving:isMoving,intervalMs,cpuMs,
+                 providerMs:diagnostics.map(d=>d.last?.cpuMs??0),solverWork:diagnostics.map(captureWork),shapeDifferenceMm:difference});
+             lastWall=wall;pending=null;cpuMs=0;
+-            if(difference>.1){fail(`Różnica kształtu ${difference.toFixed(4)} mm przekracza 0,1 mm.`);return;}
++            if(difference>record.validation.shapeDifferenceLimitMm){fail(`Różnica kształtu ${difference.toFixed(4)} mm przekracza ${record.validation.shapeDifferenceLimitMm.toLocaleString('pl-PL')} mm.`);return;}
+             if(record.steps.length%120===0){onChunk(record,false);onChange();}
+             if(mode==='replaying'&&record.steps.length===source.steps.length)finish(true);
+             else if(record.steps.length>=maxSteps)fail('Osiągnięto limit długości nagrania; zapisz dotychczasowy przebieg.');
+--- a/src/benchmark/crossoverScenarioPanel.js
++++ b/src/benchmark/crossoverScenarioPanel.js
+@@ -11,18 +11,19 @@
+ const requestValue=request=>new Promise((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});
+ 
+ export async function createCrossoverScenarioPanel({configuration,reset,boundary,dispose}) {
++    const experimentalForceTolerance=new URLSearchParams(window.location.search).get('crossoverForceTolerance')==='0.0001'?1e-4:1e-6;
+     const panel=document.createElement('section');panel.id='crossoverScenarioRecorder';
+     panel.style.cssText='position:fixed;top:74px;left:16px;z-index:10000;background:#10202ff5;color:#fff;padding:12px;border:1px solid #69c8c0;border-radius:8px;max-width:460px;font:14px system-ui';
+-    panel.innerHTML='<strong>Crossover · cały manewr</strong><p data-status>Gotowy do nagrania od pustych narzędzi.</p><p data-stage>Rozpocznij nagrywanie, następnie wykonaj manewr.</p><button data-record>Nagraj od początku</button> <button data-mark disabled>Zapisz etap 1/5</button> <button data-stop disabled>Przerwij</button><p><button data-replay disabled>Odtwórz całe nagranie</button> <button data-save disabled>Pobierz nagranie / raport</button></p><label>Wczytaj nagranie <input data-file type="file" accept=".json,.gz"></label><small data-storage style="display:block;margin-top:8px">Zapis lokalny co 120 kroków. Nie przeładowuj strony w trakcie manewru.</small>';
++    panel.innerHTML='<strong>Crossover · cały manewr</strong><p data-status>Gotowy do nagrania od pustych narzędzi.</p><p data-stage>Rozpocznij nagrywanie, następnie wykonaj manewr.</p><button data-record>Nagraj od początku</button> <button data-mark disabled>Zapisz etap 1/5</button> <button data-stop disabled>Przerwij</button><p><button data-replay disabled>Odtwórz całe nagranie</button> <button data-save disabled>Pobierz nagranie / raport</button></p><p><label>Limit różnicy kształtu <select data-limit aria-label="Limit różnicy kształtu"><option value="0.1">0,1 mm</option><option value="0.25">0,25 mm</option><option value="0.5">0,5 mm</option><option value="1" selected>1,0 mm — priorytet płynności</option></select></label></p><label>Wczytaj nagranie <input data-file type="file" accept=".json,.gz"></label><small data-storage style="display:block;margin-top:8px">Zapis lokalny co 120 kroków. Nie przeładowuj strony w trakcie manewru.</small>';
+     document.body.append(panel);
+-    const element=name=>panel.querySelector(`[data-${name}]`),status=element('status'),stage=element('stage'),recordButton=element('record'),mark=element('mark'),stop=element('stop'),replay=element('replay'),save=element('save'),file=element('file'),storage=element('storage');
++    const element=name=>panel.querySelector(`[data-${name}]`),status=element('status'),stage=element('stage'),recordButton=element('record'),mark=element('mark'),stop=element('stop'),replay=element('replay'),save=element('save'),file=element('file'),storage=element('storage'),limit=element('limit');
+     let db=null,saveQueue=Promise.resolve(),saved=0,lastRecording=null,lastReplayable=false,lastCompleted=null,
+         busy=true,disposed=false,downloadUrl=null,feedback=null;
+     let recording;
+     function update() {
+         if(disposed)return;
+         const r=recording.record,active=recording.active;
+-        recordButton.disabled=busy||active;mark.disabled=busy||recording.mode!=='recording';stop.disabled=busy||!active;
++        limit.disabled=busy||active;recordButton.disabled=busy||active;mark.disabled=busy||recording.mode!=='recording';stop.disabled=busy||!active;
+         const replayable=()=>lastReplayable&&lastRecording?.complete;
+         replay.disabled=busy||active||!replayable();file.disabled=busy||active;save.disabled=busy||active||!r&&!lastRecording;
+         replay.textContent=lastRecording?.fullManeuverRecorded?'Odtwórz cały manewr':'Odtwórz zapisany fragment';
+@@ -30,6 +31,8 @@
+         if(!r){if(feedback)status.textContent=feedback;return;}
+         const hz=r.summary?.duringMotion.physicsHz??recording.progress.motionHz;
+         status.textContent=`${recording.mode==='recording'?'Nagrywanie':recording.mode==='replaying'?'Odtwarzanie':r.complete?'Zakończono':'Przerwano'} · ${r.steps.length} kroków · podczas ruchu: ${hz===null?'—':hz.toFixed(1)} Hz`;
++        if(r.replayOf)status.textContent+=` · limit: ${r.validation.shapeDifferenceLimitMm.toLocaleString('pl-PL')} mm`;
++        status.textContent+=` · próg sił: ${r.validation?.forceCertificateLimit??1e-6}`;
+         if(r.error)status.textContent+=` · ${r.error}`;
+         else if(recording.mode==='finished'&&r.replayOf)status.textContent+=` · różnica kształtu: ${r.summary.maximumShapeDifferenceMm.toFixed(5)} mm`;
+         stage.textContent=active?`${Math.min(5,recording.progress.stage+1)}. ${CROSSOVER_STAGES[recording.progress.stage]??'Odtwarzanie zapisanych komend'}`:
+@@ -61,7 +64,7 @@
+         try {
+             if(source)validateCrossoverRecording(source);
+             await reset(source?.configuration??null,()=>{
+-                if(source)recording.startReplay(configuration(),source);
++                if(source)recording.startReplay(configuration(),source,{shapeDifferenceLimitMm:Number(limit.value),forceCertificateLimit:experimentalForceTolerance});
+                 else{saved=0;recording.startRecording(configuration());}
+             });
+         }catch(error){feedback=error.message;}
+--- a/src/physics/kirchhoffSharedAxisAppSystem.js
++++ b/src/physics/kirchhoffSharedAxisAppSystem.js
+@@ -8,6 +8,20 @@
+ import {iterateSharedAxisTimeStep} from './kirchhoffSharedAxisTimeStep.js';
+ import {adaptiveMeshOptions,ADAPTIVE_SOLVE_OPTIONS} from './kirchhoffSharedAxisAdaptiveMesh.js';
+ import {createStentGraftContacts} from '../devices/stentGraftContacts.js';
++
++// Research-only accuracy policy. Selection is frozen once at a common-step
++// boundary; retries and worker yields keep the same target. The setting never
++// relaxes geometry, activates a graft, or uses recorded step numbers.
++export function sharedAxisStepAccuracy(options,tools) {
++    const threshold=options.longInsertionForceThresholdMm;
++    if(threshold===undefined)return options;
++    if(!Number.isFinite(threshold)||threshold<400)throw new RangeError('Invalid long-insertion force threshold');
++    const wire=tools.find(t=>t.id==='wire'),catheter=tools.find(t=>t.id==='catheter');
++    const eligible=wire?.type==='glidewire'&&catheter?.type==='pigtail'&&
++        Number.isFinite(wire.insertion)&&Number.isFinite(catheter.insertion)&&
++        wire.insertion>=threshold&&catheter.insertion>=threshold;
++    return eligible?{...options,forceTolerance:1e-4}:options;
++}
+ 
+ const angleDifference=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
+ export const SHARED_AXIS_APP_PHYSICS_OPTIONS=Object.freeze({liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true,omitInactiveSampleRows:true});
+@@ -196,7 +210,7 @@
+                 const key=JSON.stringify({bloodFlow:frozenBloodFlow?.time??flowNetwork?.time??null,capture,graftRevision:graftSurface?.revision??0,tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
+                 if(key===failedKey)return failedResult;
+                 if(state&&key===lastKey&&sleepFrames>=10)return {accepted:true,dt,status:'sleeping',diagnostics:{...diagnostics}};
+-                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,adaptiveMesh,physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,
++                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,adaptiveMesh,physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:sharedAxisStepAccuracy(physicsOptions,tools),started:performance.now(),cpuMs:0,
+                     sheath,sheathLength,flowNetwork,rotations:{...rotations},
+                     requestTools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation}))};
+                 if(frozenBloodFlow!==undefined)pending.physicsOptions={...pending.physicsOptions,bloodFlow:structuredClone(frozenBloodFlow)};
+@@ -211,7 +225,7 @@
+                     return failedResult={accepted:false,terminal:true,dt,status:'shared-axis-error',diagnostics:{...diagnostics}};
+                 }
+                 if(next.done) {
+-                    const entry=pending,{tools,key,started}=pending,cpuMs=pending.cpuMs+performance.now()-start;pending=null;diagnostics.last={...next.value.result,cpuMs,wallMs:performance.now()-started};
++                    const entry=pending,{tools,key,started}=pending,cpuMs=pending.cpuMs+performance.now()-start;pending=null;diagnostics.last={...next.value.result,forceTolerance:entry.physicsOptions.forceTolerance??1e-6,cpuMs,wallMs:performance.now()-started};
+                     if(!next.value.state){failedKey=key;diagnostics.failedSteps++;recordFailure(entry,diagnostics.last);return failedResult={accepted:false,terminal:true,dt,status:diagnostics.last.status,diagnostics:{...diagnostics}};}
+                     if(diagnostics.last.attempts?.some(attempt=>attempt.converged===false))recordFailure(entry,diagnostics.last,true);
+                     // A graft publication failure must not leave a newer
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -228,6 +228,7 @@
+             reuseFrictionAssembly:true,coupledFrictionNewton:true,predictiveNewton:true,modifiedNewton:false,
+             pruneInactiveWitnesses:false,projectiveDynamics:false,
+             physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,forceTolerance:1e-6,lengthTolerance:1e-5,
++                ...(new URLSearchParams(window.location.search).get('crossoverForceTolerance')==='0.0001'?{longInsertionForceThresholdMm:400}:{}),
+                 ...(crossoverBenchmarkMode==='wide'?{recoverNegativeContact:true}:{})}
+         }:{}),
+         onReady:()=>runIdlePhysicsCatchup(synchronizedStep.epoch,false),
+--- a/tests/crossoverScenarioRecording.test.js
++++ b/tests/crossoverScenarioRecording.test.js
+@@ -122,3 +122,48 @@
+     assert.equal(saved.solverWork[0].replayCaptureTimes.snapshot,2);
+     assert.equal(session.record.summary.duringMotion.physicsHz,40);
+ });
++
++
++test('relaxed shape limits apply to every polyline vertex and are saved separately from the source',()=>{
++    const source=oneStepRecord(),original=structuredClone(source);
++    for(const limit of [.25,.5,1])for(const difference of [limit,limit+.0001]){
++        const session=createCrossoverScenarioRecording();
++        session.startReplay({},source,{shapeDifferenceLimitMm:limit});session.boundary(input(0),{});
++        const altered={coordinates:[0,2.5,5,10],positions:[0,0,0,difference,2.5,0,0,5,0,0,10,0]};
++        session.commit({...sample,shape:altered});
++        assert.equal(session.record.complete,difference<=limit);
++        assert.equal(session.record.validation.shapeDifferenceLimitMm,limit);
++        assert.equal(session.record.summary.maximumShapeDifferenceMm,difference);
++        assert.equal(session.record.goalAchieved,false);
++    }
++    assert.deepEqual(source,original);
++    for(const limit of [0,-1,NaN,Infinity,1.01])assert.throws(()=>createCrossoverScenarioRecording().startReplay({},source,{shapeDifferenceLimitMm:limit}),/Limit/);
++});
++
++test('a one millimetre shape allowance never relaxes stability or wall contact gates',()=>{
++    for(const corrupt of [d=>d[0].last.certificateBound=1.01e-6,d=>d[0].last.quality.maxPenetration=1.01e-5,
++        d=>d[1].last.residual.length=1.01e-5,d=>d[1].last.quality.finite=false]){
++        const session=createCrossoverScenarioRecording();session.startReplay({},oneStepRecord(),{shapeDifferenceLimitMm:1});
++        session.boundary(input(0),{});const measured=structuredClone(sample);corrupt(measured.diagnostics);session.commit(measured);
++        assert.equal(session.record.complete,false);assert.equal(session.record.steps.length,0);
++        assert.match(session.record.error,/kontroli obu solverów/);
++    }
++});
++
++test('experimental force relaxation is explicit, bounded and never weakens geometry or source import',()=>{
++    const source=oneStepRecord(),unchanged=structuredClone(source);
++    for(const bad of [NaN,Infinity,0,-1,1e-3])assert.throws(()=>createCrossoverScenarioRecording().startReplay({},source,{forceCertificateLimit:bad}),/force/);
++    const candidate=structuredClone(sample);candidate.diagnostics[0].last.certificateBound=8e-5;
++    const strict=createCrossoverScenarioRecording();strict.startReplay({},source);strict.boundary(input(0),{});strict.commit(candidate);
++    assert.equal(strict.record.complete,false);
++    const loose=createCrossoverScenarioRecording();loose.startReplay({},source,{shapeDifferenceLimitMm:1,forceCertificateLimit:1e-4});loose.boundary(input(0),{});loose.commit(candidate);
++    assert.equal(loose.record.complete,true);assert.equal(loose.record.validation.forceCertificateLimit,1e-4);
++    assert.throws(()=>validateCrossoverRecording(loose.record));
++    assert.equal(validateCrossoverRecording(loose.record,{forceCertificateLimit:1e-4}),loose.record);
++    for(const alter of [q=>q.certificateBound=1.001e-4,q=>q.quality.maxPenetration=1.001e-5,q=>q.quality.bodies[0].maxLengthError=1e-5,q=>q.converged=false]) {
++        const failed=structuredClone(candidate);alter(failed.diagnostics[0].last);
++        const replay=createCrossoverScenarioRecording();replay.startReplay({},source,{shapeDifferenceLimitMm:1,forceCertificateLimit:1e-4});replay.boundary(input(0),{});replay.commit(failed);
++        assert.equal(replay.record.complete,false);assert.equal(replay.record.steps.length,0);
++    }
++    assert.deepEqual(source,unchanged);
++});
+--- /dev/null
++++ b/tests/sharedAxisStepAccuracy.test.js
+@@ -0,0 +1,13 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {sharedAxisStepAccuracy} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
++test('accuracy selection is explicit, restricted to both long research tools, immutable and reversible',()=>{
++ const base={forceTolerance:1e-6,lengthTolerance:1e-5};
++ const options={...base,longInsertionForceThresholdMm:400};
++ const tools=[{id:'wire',type:'glidewire',insertion:600},{id:'catheter',type:'pigtail',insertion:400}];
++ assert.equal(sharedAxisStepAccuracy(base,tools),base);
++ const relaxed=sharedAxisStepAccuracy(options,tools);assert.equal(relaxed.forceTolerance,1e-4);assert.equal(relaxed.lengthTolerance,1e-5);
++ for(const variant of [[{...tools[0],insertion:399},tools[1]],[tools[0],{...tools[1],insertion:399}],[tools[0]],[tools[0],{...tools[1],type:'stentgraft-delivery'}],[{...tools[0],insertion:Infinity},tools[1]]])assert.equal(sharedAxisStepAccuracy(options,variant),options);
++ assert.deepEqual(options,{...base,longInsertionForceThresholdMm:400});assert.equal(tools[1].insertion,400);
++ for(const threshold of [0,399,NaN,Infinity])assert.throws(()=>sharedAxisStepAccuracy({...base,longInsertionForceThresholdMm:threshold},tools));
++});

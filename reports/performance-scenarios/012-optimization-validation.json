@@ -1,0 +1,166 @@
+{
+  "goalAchieved": false,
+  "classificationOfPreviousGoalTurn": "Paused goal status was honored; explicit goal continuation resumed research.",
+  "classificationOfThisTurn": "Progress: implemented an isolated XPBD solver and full-target comparison harness; rejected five tested variants using measured geometry/trajectory failures.",
+  "userDirection": "Test alternative solvers including XPBD, prioritize fluidity with a 1.0 mm shape difference reference.",
+  "shapeDifferenceLimitMm": 1,
+  "targetAcceptedPhysicsHz": 60,
+  "productionDefaultChanged": false,
+  "tests": {
+    "passed": 17,
+    "log": "012-alternative-solvers-tests.log",
+    "buildPassed": true,
+    "buildLog": "012-build.log"
+  },
+  "experiments": [
+    {
+      "report": "012-xpbd32-strict.json",
+      "solver": "xpbd",
+      "options": {
+        "iterations": 32
+      },
+      "summary": {
+        "attemptedSteps": 1,
+        "acceptedSteps": 0,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 0,
+        "maximumShapeDifferenceMm": 0,
+        "shapeWithinLimit": true,
+        "firstShapeLimitStep": null,
+        "movingCpuCapacityHz": null,
+        "movingMedianCpuMs": null,
+        "movingP95CpuMs": null,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "accepted": false,
+      "scope": "CPU screening of full recorded targets from empty tools, right access only; not full-app FPS. Stops on geometry rejection, continues through shape-budget failures for diagnosis."
+    },
+    {
+      "report": "012-xpbd128-strict.json",
+      "solver": "xpbd",
+      "options": {
+        "iterations": 128
+      },
+      "summary": {
+        "attemptedSteps": 108,
+        "acceptedSteps": 107,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 41,
+        "maximumShapeDifferenceMm": 0.06804724328848172,
+        "shapeWithinLimit": true,
+        "firstShapeLimitStep": null,
+        "movingCpuCapacityHz": 22.12242404646371,
+        "movingMedianCpuMs": 44.361665999999786,
+        "movingP95CpuMs": 52.465416000000005,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "accepted": false,
+      "scope": "CPU screening of full recorded targets from empty tools, right access only; not full-app FPS. Stops on geometry rejection, continues through shape-budget failures for diagnosis."
+    },
+    {
+      "report": "012-projective-strict.json",
+      "solver": "projective",
+      "options": {
+        "maxLengthError": 1e-05,
+        "maxPenetration": 1e-05,
+        "maxShear": 1e-05
+      },
+      "summary": {
+        "attemptedSteps": 1,
+        "acceptedSteps": 0,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 0,
+        "maximumShapeDifferenceMm": 0,
+        "shapeWithinLimit": true,
+        "firstShapeLimitStep": null,
+        "movingCpuCapacityHz": null,
+        "movingMedianCpuMs": null,
+        "movingP95CpuMs": null,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "accepted": false,
+      "scope": "CPU screening of full recorded targets from empty tools, right access only; not full-app FPS. Stops on geometry rejection, continues through shape-budget failures for diagnosis."
+    },
+    {
+      "report": "012-xpbd16-closure.json",
+      "solver": "xpbd",
+      "options": {
+        "iterations": 16,
+        "hardClosure": true
+      },
+      "summary": {
+        "attemptedSteps": 6323,
+        "acceptedSteps": 6322,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 2730,
+        "maximumShapeDifferenceMm": 195.91679937879434,
+        "shapeWithinLimit": false,
+        "firstShapeLimitStep": 254,
+        "movingCpuCapacityHz": 97.72982156706911,
+        "movingMedianCpuMs": 9.474792000000889,
+        "movingP95CpuMs": 19.04054200000246,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "accepted": false,
+      "scope": "CPU screening of full recorded targets from empty tools, right access only; not full-app FPS. Stops on geometry rejection, continues through shape-budget failures for diagnosis."
+    },
+    {
+      "report": "012-xpbd64-browser.json",
+      "solver": "xpbd",
+      "options": {
+        "iterations": 64,
+        "maxLengthError": 1e-05,
+        "maxPenetration": 1e-05,
+        "maxShear": 1e-05,
+        "hardClosure": true
+      },
+      "summary": {
+        "attemptedSteps": 7089,
+        "acceptedSteps": 7088,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 3278,
+        "maximumShapeDifferenceMm": 281.83915010350285,
+        "shapeWithinLimit": false,
+        "firstShapeLimitStep": 252,
+        "movingCpuCapacityHz": 32.74257523269948,
+        "movingMedianCpuMs": 24.5,
+        "movingP95CpuMs": 62.200000047683716,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "accepted": false,
+      "scope": "Browser research test: recorded targets from empty tools, right access only, simple axis drawing. One complete candidate per animation frame; includes rendering/scheduling. Not app FPS."
+    }
+  ],
+  "browserValidation": "012-xpbd64-browser-validation.json",
+  "screenshot": "012-xpbd64-browser.jpg",
+  "sources": "012-source-manifest.json",
+  "currentBestPassingCandidate": "007-distal-remap-passing.patch",
+  "decision": "Do not replace the application solver with these prototypes. Local XPBD requires excessive iterations for hard rod constraints; a final global geometry correction is fast in some segments but does not restore the coupled elastic solution. Increased iterations still choose a markedly different trajectory.",
+  "nextInvestigation": "Implement a direct/block chain solve that couples bend, twist and inextensibility in the same iteration; retain independent contact validation and compare all original targets. Do not treat the present geometry-only closure or low-cost local XPBD as an accepted model. Capture candidate polylines and per-step wall-clock intervals before any future passing claim.",
+  "references": [
+    "https://matthias-research.github.io/pages/publications/XPBD.pdf",
+    "https://www.animation.rwth-aachen.de/media/papers/2018-CGF-Rods.pdf"
+  ],
+  "limits": [
+    "None of these alternatives completes all 7507 recorded targets under the required fidelity.",
+    "The standalone benchmark drives recorded right-access physical targets; it does not exercise both app accesses or RTG.",
+    "XPBD/PD results do not have the original Newton force certificate.",
+    "Prototype shape differences are harness measurements; full candidate polylines were not retained for independent recomputation."
+  ],
+  "browserWallThroughputHz": 31.70493654090991
+}

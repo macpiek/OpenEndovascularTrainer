@@ -1,0 +1,40 @@
+--- a/src/physics/kirchhoffSharedAxisMatrixAssembly.js
++++ b/src/physics/kirchhoffSharedAxisMatrixAssembly.js
+@@ -28,7 +28,17 @@
+         }
+         included.add(r);
+     }
+-    return context.primal={values,included,n,half,width};
++    // The primal coefficients are immutable throughout this active-set call.
++    // Compact their nonzero traversal once; every working set only remaps
++    // their physical row/column to its packed layout. Preserve row-major
++    // order and the exact coefficient arithmetic above.
++    const sourceRows=new Int32Array(values.length),sourceColumns=new Int32Array(values.length);
++    let entries=0;
++    for(let i=0;i<n;i++)for(let j=Math.max(0,i-half);j<=Math.min(n-1,i+half);j++) {
++        const v=values[i*width+j-i+half];if(!v)continue;
++        sourceRows[entries]=i;sourceColumns[entries]=j;values[entries++]=v;
++    }
++    return context.primal={values,included,n,half,width,sourceRows,sourceColumns,entries};
+ }
+ function mapsFor(w,base) {
+     // Only row starts and physical-to-packed indices are needed for a band
+@@ -68,14 +78,10 @@
+     // This map is determined by the packed layout, not by changing geometry
+     // or Jacobian values. Read current supports directly; no copied row graph.
+     const {starts,ends}=w.band,primal=w.primal;
+-    for(let i=0;i<base.n;i++) {
+-        const row=primal[i],offset=maps.primalOffsets[i],source=i*base.width-i+base.half;
+-        for(let j=Math.max(0,i-base.half);j<=Math.min(base.n-1,i+base.half);j++) {
+-            const v=base.values[source+j];if(!v)continue;
+-            const column=primal[j];
+-            if(column<starts[row]||column>ends[row])throw new RangeError('Shared axis matrix support overflow');
+-            A[offset+column]+=v;
+-        }
++    for(let k=0;k<base.entries;k++) {
++        const i=base.sourceRows[k],row=primal[i],column=primal[base.sourceColumns[k]];
++        if(column<starts[row]||column>ends[row])throw new RangeError('Shared axis matrix support overflow');
++        A[maps.primalOffsets[i]+column]+=base.values[k];
+     }
+     for(let index=0;index<rows.length;index++) {
+         const r=rows[index],d=w.dual[index],sign=r.kind==='wall'?-1:1,dualOffset=maps.dualOffsets[index];

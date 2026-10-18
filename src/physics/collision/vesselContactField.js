@@ -819,7 +819,7 @@ export class VesselContactField {
         }
         this._sdfCornerScratch = new Float64Array(8);
         this._scalarBvhScratch = createScalarMeshBvhScratch();
-        this.runtimeBytes = decoded.metadata.decodedBytes + this.sdfBrickLookup.byteLength +
+        this.baseRuntimeBytes = decoded.metadata.decodedBytes + this.sdfBrickLookup.byteLength +
             this.signCacheKeyLow.byteLength + this.signCacheKeyHigh.byteLength +
             this.signCacheInside.byteLength + this.signCacheValid.byteLength +
             this.signCacheVictim.byteLength + this._sdfCornerScratch.byteLength +
@@ -867,6 +867,14 @@ export class VesselContactField {
 
     resetStats() {
         this.stats.fill(0);
+        this._scalarBvhScratch.neighborhoodWinnerHits = 0;
+        this._scalarBvhScratch.neighborhoodHits = 0;
+        this._scalarBvhScratch.neighborhoodMisses = 0;
+    }
+
+    get runtimeBytes() {
+        // Numeric neighborhood storage grows only up to the scalar BVH cap.
+        return this.baseRuntimeBytes + this._scalarBvhScratch.neighborhoodBytes;
     }
 
     getStats() {
@@ -895,6 +903,10 @@ export class VesselContactField {
                 stats[STAT_KNOWN_INSIDE_NEAR_WALL_HITS],
             certifiedCapsuleQueries: stats[STAT_CERTIFIED_CAPSULE_QUERIES],
             certifiedCapsuleSamples: stats[STAT_CERTIFIED_CAPSULE_SAMPLES],
+            bvhNeighborhoodWinnerHits: this._scalarBvhScratch.neighborhoodWinnerHits,
+            bvhNeighborhoodHits: this._scalarBvhScratch.neighborhoodHits,
+            bvhNeighborhoodMisses: this._scalarBvhScratch.neighborhoodMisses,
+            bvhNeighborhoodBytes: this._scalarBvhScratch.neighborhoodBytes,
             runtimeBytes: this.runtimeBytes
         };
     }

@@ -2,6 +2,7 @@ export const DEBUG_SOLVERS = Object.freeze([
     {id:'shared-axis', label:'Kirchhoff — siatka 5 mm (referencyjny)'},
     {id:'shared-axis-adaptive', label:'Kirchhoff — siatka adaptacyjna (eksperymentalny)'},
     {id:'shared-axis-realtime', label:'Kirchhoff — eksperyment 60 Hz (w rozwoju)'},
+    {id:'shared-axis-projective-crossover', label:'PD — crossover, siatka 5 mm (eksperymentalny)'},
     {id:'shared-axis-projective', label:'Projective Dynamics — pręt podatny, siatka adaptacyjna (eksperymentalny)'},
     {id:'joint-active-coulomb', label:'Starszy sprzężony Kirchhoff / Coulomb'},
     {id:'reference', label:'Starszy bezpośredni Kirchhoff'}
@@ -18,6 +19,10 @@ export function solverDebugUrl(href, solver, modifiedNewton, pruneWitnesses, fas
     if(predictiveNewton!==undefined)url.searchParams.set('predictiveNewton',predictiveNewton?'1':'0');
     url.searchParams.delete('experimentalSplitMotion');
     url.searchParams.delete('coupledLinearSolver');
+    // Manual PD must not inherit the Newton-only recording/replay harness.
+    if(solver==='shared-axis-projective-crossover') {
+        for(const key of ['crossoverScenario','crossoverBenchmark','crossoverWorker'])url.searchParams.delete(key);
+    }
     return url.href;
 }
 

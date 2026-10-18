@@ -1,0 +1,69 @@
+{
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "shapeDifferenceLimitMm": 1,
+  "completeBrowserReplays": [
+    {
+      "report": "reports/performance-scenarios/005-body-scratch-full-browser.json.gz",
+      "steps": 7507,
+      "motionHz": 40.31856645150228,
+      "lastStageMotionHz": 28.680141111691256,
+      "maximumShapeDifferenceMm": 0,
+      "maximumCertificate": 9.950126695912331e-07,
+      "maximumPenetrationMm": 9.934624012331028e-09,
+      "performanceTargetMet": false
+    },
+    {
+      "report": "reports/performance-scenarios/005-assembly-scratch-full-browser.json.gz",
+      "steps": 7507,
+      "motionHz": 39.992275840841586,
+      "lastStageMotionHz": 28.82359174652194,
+      "maximumShapeDifferenceMm": 0,
+      "maximumCertificate": 9.950126695912331e-07,
+      "maximumPenetrationMm": 9.934624012331028e-09,
+      "performanceTargetMet": false
+    },
+    {
+      "report": "reports/performance-scenarios/005-simd-identity-full-browser.json.gz",
+      "steps": 7507,
+      "motionHz": 39.958517687030096,
+      "lastStageMotionHz": 28.57666019240162,
+      "maximumShapeDifferenceMm": 0,
+      "maximumCertificate": 9.950126695912331e-07,
+      "maximumPenetrationMm": 9.934624012331028e-09,
+      "performanceTargetMet": false
+    }
+  ],
+  "rejectedContactSearches": [
+    {
+      "report": "005-simultaneous-1mm-rejected.json.gz",
+      "complete": false,
+      "steps": 1593,
+      "error": "Różnica kształtu 1.1413 mm przekracza 1 mm.",
+      "maximumShapeDifferenceMm": 1.1413362958039717
+    },
+    {
+      "report": "005-near-first-1mm-rejected.json.gz",
+      "complete": false,
+      "steps": 1592,
+      "error": "Różnica kształtu 1.1993 mm przekracza 1 mm.",
+      "maximumShapeDifferenceMm": 1.199338048377486
+    }
+  ],
+  "diagnosticComparison": {
+    "beforeMedianMs": 13.333917,
+    "afterMedianMs": 4.642083,
+    "bytes": 62847744,
+    "equalDigest": true
+  },
+  "decision": "No candidate demonstrates 60 Hz during the complete movement. Exact scratch and byte-comparison variants preserve every recorded shape and strict physical gates but whole-scenario throughput remains around 40 Hz; keep patches as experiments, no production default change.",
+  "reproducibility": {
+    "validator": "scripts/validate-crossover-recording.mjs",
+    "reference": "003-crossover-full-user-inputs.json.gz",
+    "recorderPatch": "004-configurable-shape-limit.patch",
+    "currentPhysicsPatch": "005-simd-identity.patch",
+    "temporaryWorkspace": "/tmp/oet-fluidity-1mm-zb0gv7v4",
+    "url": "http://127.0.0.1:5181/?anatomy=infrarenal-aneurysm&panel=anatomy&crossoverScenario=1&crossoverBenchmark=full&crossoverWorker=1"
+  },
+  "nextInvestigation": "Focus on the core repeated linear/contact solves (about 16 ms per moving step in the final stage), not further minor allocation tuning. Consider a private research solver that factors the length-constrained band once per Newton linearization and reuses it for wall-contact changes, with full original-equation certification and fallback. Check existing bordered/incremental experiments before implementation."
+}

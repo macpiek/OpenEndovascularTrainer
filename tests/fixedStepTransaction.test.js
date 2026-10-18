@@ -1,5 +1,5 @@
 import {createSynchronizedStep} from '../src/physics/synchronizedStep.js';
-import {runPhysicsFrameBudget} from '../src/physics/physicsFrameBudget.js';
+import {runPhysicsFrameBudget,runPhysicsIdleBudget} from '../src/physics/physicsFrameBudget.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
@@ -124,7 +124,7 @@ const simulatorSource=fs.readFileSync(new URL('../src/simulator.js',import.meta.
 function schedulerHarness(outcomes,{shared=false,fixedDt=dt,sliceMs=1,realtime=false}={}) {
     const world=stubWorld(outcomes,fixedDt),queue=[],errors=[];let clock=0;
     const originalAdvance=world.advance.bind(world);world.advance=(...args)=>{clock+=sliceMs;return originalAdvance(...args);};
-    const state={world,queue,errors,activeAccessId:'right',isControlledAccess:()=>true,accessController:{applyRequested:()=>false,values:()=>[{activeAccessId:'right'}],run:(_id,operation)=>operation()},runPhysicsFrameBudget,selectedCoupledSolver:realtime?'shared-axis-realtime':'shared-axis-adaptive',performance:{now:()=>clock},console:{error:(...args)=>errors.push(args)},
+    const state={world,queue,errors,activeAccessId:'right',isControlledAccess:()=>true,accessController:{applyRequested:()=>false,values:()=>[{activeAccessId:'right'}],run:(_id,operation)=>operation()},runPhysicsFrameBudget,runPhysicsIdleBudget,selectedCoupledSolver:realtime?'shared-axis-realtime':'shared-axis-adaptive',performance:{now:()=>clock},console:{error:(...args)=>errors.push(args)},
         fixedDt,WIRE60_BENCHMARK_MODE:'wire60-catheter',FULL_CYCLE_BENCHMARK_MODE:'full-cycle-60hz',MAX_PHYSICS_STEPS_PER_FRAME:2,MAX_IDLE_PHYSICS_STEPS:6,
         TARGET_RENDER_FRAME_MS:1000/60,PHYSICS_IDLE_GUARD_MS:.75,PHYSICS_RENDER_RESERVE_MS:3.5,
         PHYSICS_MIN_SLICE_MS:.5,PHYSICS_MAX_SLICE_MS:4,simulationRenderReserveMs:3.5,sliceBudgets:[],
@@ -136,7 +136,7 @@ function schedulerHarness(outcomes,{shared=false,fixedDt=dt,sliceMs=1,realtime=f
         compositeStatus:null,compositePhysicsClockStarted:false,endovascularWorld:world,
         synchronizedInputs:null,completedSimulationTime:0,simulationPendingStepCpuMs:0,browserBenchmarkEpoch:0,simulationAbandonedBacklog:0,
         browserConstraintStageProfile:{record:()=>{}},loadingAssetsReady:()=>true,
-        browserBenchmarkScenario:{running:false},shortCatheterBenchmarkMetrics:null,guidewireTransport:{progress:0},
+        browserBenchmarkScenario:{running:false},crossoverScenario:null,shortCatheterBenchmarkMetrics:null,guidewireTransport:{progress:0},
         flushSimulationChanges:()=>{},recordBrowserFrame:()=>{},recoveryButtons:[],document:{visibilityState:'visible',getElementById:()=>({textContent:''})},runtime:{timeout:cb=>queue.push(cb)},
         prepares:0,commits:0,contrastTime:0,benchmarkTime:0,throwPresentation:false};
     state.wholeAxisAppSystem=state.sharedAxisAppSystem;
@@ -226,12 +226,14 @@ test('shared-axis 60 Hz retries retain one input and report complete CPU work wi
     assert.ok(Math.abs(s.simulationAcceptedTime-s.simulationExecutedSteps*fixedDt-s.simulationAccumulator)<1e-12);
 });
 
-test('actual scheduler gives rendering one pending slice then finishes the same timestep within bounded idle work',()=>{
+test('actual scheduler hands a pending frame slice to bounded idle work without preparing the timestep twice',()=>{
     const fixedDt=1/60,s=schedulerHarness([cooperative(),cooperative(),cooperative(),true],{shared:true,fixedDt});
     const records=[];s.world.contactField={};s.browserBenchmarkScenario.running=true;
     s.browserConstraintStageProfile.record=(world,options)=>records.push({...options});
-    s.frame(0);s.frame(20);
-    assert.equal(s.world.attempts,1,'rAF stops at its first pending slice');assert.equal(s.queue.length,1);
+    // Isolate the hand-off with a one-slice frame budget. Production rAF can
+    // now resume several pending slices; its budget is tested independently.
+    s.MAX_IDLE_PHYSICS_STEPS=1;s.frame(0);s.frame(20);s.MAX_IDLE_PHYSICS_STEPS=6;
+    assert.equal(s.world.attempts,1,'rAF consumes its configured one-slice budget');assert.equal(s.queue.length,1);
     assert.equal(s.world.stepCount,0);assert.equal(s.simulationExecutedSteps,0);assert.equal(s.simulationAccumulator,.02);
     s.elapse(3);s.queue.shift()();
     assert.equal(s.world.attempts,4);assert.equal(s.world.stepCount,1);assert.equal(s.prepares,1);
@@ -244,18 +246,19 @@ test('actual scheduler gives rendering one pending slice then finishes the same 
 
 test('actual idle loop bounds pending slices by both its attempt cap and the remaining render deadline',()=>{
     const s=schedulerHarness(Array.from({length:30},cooperative),{shared:true,fixedDt:1/60});
-    s.world.contactField={};s.frame(0);s.frame(20);s.queue.shift()();
+    s.world.contactField={};s.MAX_IDLE_PHYSICS_STEPS=1;s.frame(0);s.frame(20);s.MAX_IDLE_PHYSICS_STEPS=6;s.queue.shift()();
     assert.equal(s.world.attempts,1+s.MAX_IDLE_PHYSICS_STEPS);
     assert.equal(s.prepares,1);assert.equal(s.simulationExecutedSteps,0);assert.equal(s.simulationAccumulator,.02);
     const timed=schedulerHarness(Array.from({length:30},cooperative),{shared:true,fixedDt:1/60,sliceMs:3});
-    timed.world.contactField={};timed.frame(0);timed.frame(20);timed.elapse(9);timed.queue.shift()();
-    assert.equal(timed.world.attempts,2,'Only one further 3 ms slice fits before the render guard');
+    timed.world.contactField={};timed.MAX_IDLE_PHYSICS_STEPS=1;timed.frame(0);timed.frame(20);timed.MAX_IDLE_PHYSICS_STEPS=6;timed.elapse(9);timed.queue.shift()();
+    assert.equal(timed.world.attempts,3,'The last attempt gets only the remaining partial slice');
+    assert.ok(Math.abs(timed.sliceBudgets.at(-1)-(1000/60-15-.75))<1e-12);
     assert.equal(timed.simulationExecutedSteps,0);assert.equal(timed.simulationAccumulator,.02);
 });
 
 test('an error after cooperative progress stops idle work even when the previous World report said pending',()=>{
     const s=schedulerHarness([cooperative(),new Error('after yield'),true],{shared:true,fixedDt:1/60});
-    s.world.contactField={};s.frame(0);s.frame(20);s.queue.shift()();
+    s.world.contactField={};s.MAX_IDLE_PHYSICS_STEPS=1;s.frame(0);s.frame(20);s.MAX_IDLE_PHYSICS_STEPS=6;s.queue.shift()();
     assert.equal(s.world.attempts,2);assert.equal(s.errors.length,1);assert.equal(s.simulationExecutedSteps,0);
     assert.equal(s.simulationStepTransaction.canAttempt(),false);
     s.runIdlePhysicsCatchup();assert.equal(s.world.attempts,2);assert.equal(s.prepares,1);
@@ -567,7 +570,7 @@ test('queued injection is drained before switching the shared source to the othe
 test('actual common publication continues when a mesh or dose readout fails',()=>{
     const events=[],errors=[];
     const entries=['right','left'].map(activeAccessId=>({activeAccessId,rodNodes:{update(){}}}));
-    const s={createSynchronizedStep,synchronizedStep:null,synchronizedInputs:{},
+    const s={createSynchronizedStep,synchronizedStep:null,synchronizedInputs:{},crossoverScenario:null,
         activeAccessId:'right',simulationAccumulator:2/60,simulationExecutedSteps:0,completedSimulationTime:0,
         console:{error:(...args)=>errors.push(args)},simulationStepTransaction:{canAttempt:()=>true,beginFrame(){}},
         executeAccessPhysicsStep:()=>({accepted:true,context:{}}),

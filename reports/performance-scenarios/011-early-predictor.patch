@@ -1,0 +1,10 @@
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -226,6 +226,7 @@
+             adaptiveMesh:new URLSearchParams(window.location.search).get('crossoverDistalMesh')==='1'?{...CROSSOVER_WIDE_CONTACT_MODEL,finePrefixLength:450}:crossoverBenchmarkMode==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:null,
+             contactCandidateMargin:.01,lazyBasisCoefficients:true,wasmBasis:true,deferActiveBasis:true,
+             reuseFrictionAssembly:true,coupledFrictionNewton:true,predictiveNewton:true,modifiedNewton:false,
++            earlyPredictorFallback:new URLSearchParams(window.location.search).get('crossoverEarlyPredictor')==='1',
+             pruneInactiveWitnesses:false,projectiveDynamics:false,
+             physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,forceTolerance:1e-6,lengthTolerance:1e-5,
+                 ...(new URLSearchParams(window.location.search).get('crossoverProfileDirections')==='1'?{profileDirections:true}:{}),

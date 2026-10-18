@@ -1,0 +1,236 @@
+{
+  "recordedAt": "2026-10-15T16:33:13.966Z",
+  "goalAchieved": false,
+  "decision": "Rejected for production: separate discovery probes reduce Node CPU work but the full-browser AB/BA comparison is slower. Restored every source file to its pre-experiment contents; retain patch, tests and measurements for future worker evaluation.",
+  "experimentalPatch": "001-discovery-probes-experiment.patch",
+  "sourceManifest": "001-discovery-probes-source-manifest.json",
+  "exactCpu": {
+    "report": "001-discovery-probes-confirmation.json",
+    "passed": true,
+    "steps": 1200,
+    "maxWorldDifferenceMm": 0,
+    "cpuSavedPercent": 4.578762249363855,
+    "summary": {
+      "before": {
+        "steps": 1200,
+        "totalMs": 18718.371959999982,
+        "medianMs": 13.025207999999111,
+        "p95Ms": 25.5089160000025,
+        "maxMs": 219.69766700000037,
+        "cpuStepsPerSecond": 64.10813945594877,
+        "withinBudget": 988
+      },
+      "after": {
+        "steps": 1200,
+        "totalMs": 17861.302210999995,
+        "medianMs": 12.509707999999591,
+        "p95Ms": 24.919291999999587,
+        "maxMs": 208.26779200000055,
+        "cpuStepsPerSecond": 67.18435116455129,
+        "withinBudget": 1021
+      }
+    },
+    "note": "The 1200-step measurement precedes addition of the sampler replacement guard. Full-model and browser runs include that guard."
+  },
+  "fullModel": {
+    "report": "001-discovery-probes-full-model.json",
+    "passed": true,
+    "steps": 200,
+    "maxWorldDifferenceMm": 0
+  },
+  "browser": [
+    {
+      "file": "001-full-app-discovery-probes.json",
+      "variant": "separate",
+      "passed": true,
+      "acceptedPhysicsHz": 44.319692716797164,
+      "renderFps": 58.13266361353228,
+      "steps": 600,
+      "failedSteps": 0,
+      "clockAdvance": 9.999999999990905,
+      "flowAdvance": 9.999999999990905,
+      "mesh": {
+        "nodes": 171,
+        "dofs": 828,
+        "constraintRows": 446,
+        "discoveryProbes": 161,
+        "minSpacing": 0.6666666666686751,
+        "maxSpacing": 20,
+        "adaptive": true,
+        "shapeTolerance": 0.02,
+        "contactMargin": 0.01,
+        "maxArcLoss": 0.0001,
+        "maxAllowedSpacing": 20
+      },
+      "cpuMs": 11373.20000052452,
+      "providerMs": 10863.500001192093,
+      "publicationMs": 605.6999969482422,
+      "iterations": 2351,
+      "factorizations": 3177,
+      "maxCertificate": 9.904998790055686e-7,
+      "maxPenetration": 2.0028423364237824e-13,
+      "maxLengthError": 9.418391992136451e-14
+    },
+    {
+      "file": "001-full-app-discovery-legacy-a.json",
+      "variant": "legacy",
+      "passed": true,
+      "acceptedPhysicsHz": 49.847549577344545,
+      "renderFps": 58.487791504084264,
+      "steps": 600,
+      "failedSteps": 0,
+      "clockAdvance": 9.999999999990905,
+      "flowAdvance": 9.999999999990905,
+      "mesh": {
+        "nodes": 171,
+        "dofs": 828,
+        "constraintRows": 607,
+        "discoveryProbes": 0,
+        "minSpacing": 0.6666666666686751,
+        "maxSpacing": 20,
+        "adaptive": true,
+        "shapeTolerance": 0.02,
+        "contactMargin": 0.01,
+        "maxArcLoss": 0.0001,
+        "maxAllowedSpacing": 20
+      },
+      "cpuMs": 10379.600002527237,
+      "providerMs": 9927.30000257492,
+      "publicationMs": 566.0000004768372,
+      "iterations": 2351,
+      "factorizations": 3177,
+      "maxCertificate": 9.904998790055686e-7,
+      "maxPenetration": 2.0028423364237824e-13,
+      "maxLengthError": 9.418391992136451e-14
+    },
+    {
+      "file": "001-full-app-discovery-separated-b.json",
+      "variant": "separate",
+      "passed": true,
+      "acceptedPhysicsHz": 47.719789397205716,
+      "renderFps": 59.01347288787773,
+      "steps": 600,
+      "failedSteps": 0,
+      "clockAdvance": 9.999999999990905,
+      "flowAdvance": 9.999999999990905,
+      "mesh": {
+        "nodes": 171,
+        "dofs": 828,
+        "constraintRows": 446,
+        "discoveryProbes": 161,
+        "minSpacing": 0.6666666666686751,
+        "maxSpacing": 20,
+        "adaptive": true,
+        "shapeTolerance": 0.02,
+        "contactMargin": 0.01,
+        "maxArcLoss": 0.0001,
+        "maxAllowedSpacing": 20
+      },
+      "cpuMs": 10647.79999947548,
+      "providerMs": 10140.200003623962,
+      "publicationMs": 594.4000027179718,
+      "iterations": 2351,
+      "factorizations": 3177,
+      "maxCertificate": 9.904998790055686e-7,
+      "maxPenetration": 2.0028423364237824e-13,
+      "maxLengthError": 9.418391992136451e-14
+    },
+    {
+      "file": "001-full-app-discovery-separated-b2.json",
+      "variant": "separate",
+      "passed": true,
+      "acceptedPhysicsHz": 48.13593588274926,
+      "renderFps": 58.16425585832202,
+      "steps": 600,
+      "failedSteps": 0,
+      "clockAdvance": 9.999999999990905,
+      "flowAdvance": 9.999999999990905,
+      "mesh": {
+        "nodes": 171,
+        "dofs": 828,
+        "constraintRows": 446,
+        "discoveryProbes": 161,
+        "minSpacing": 0.6666666666686751,
+        "maxSpacing": 20,
+        "adaptive": true,
+        "shapeTolerance": 0.02,
+        "contactMargin": 0.01,
+        "maxArcLoss": 0.0001,
+        "maxAllowedSpacing": 20
+      },
+      "cpuMs": 10535.999998807907,
+      "providerMs": 10024.400000810623,
+      "publicationMs": 589.7000036239624,
+      "iterations": 2351,
+      "factorizations": 3177,
+      "maxCertificate": 9.904998790055686e-7,
+      "maxPenetration": 2.0028423364237824e-13,
+      "maxLengthError": 9.418391992136451e-14
+    },
+    {
+      "file": "001-full-app-discovery-legacy-a2.json",
+      "variant": "legacy",
+      "passed": true,
+      "acceptedPhysicsHz": 49.97626127668793,
+      "renderFps": 58.97198830649175,
+      "steps": 600,
+      "failedSteps": 0,
+      "clockAdvance": 9.999999999990905,
+      "flowAdvance": 9.999999999990905,
+      "mesh": {
+        "nodes": 171,
+        "dofs": 828,
+        "constraintRows": 607,
+        "discoveryProbes": 0,
+        "minSpacing": 0.6666666666686751,
+        "maxSpacing": 20,
+        "adaptive": true,
+        "shapeTolerance": 0.02,
+        "contactMargin": 0.01,
+        "maxArcLoss": 0.0001,
+        "maxAllowedSpacing": 20
+      },
+      "cpuMs": 10401.59999871254,
+      "providerMs": 9948.500003576279,
+      "publicationMs": 566.3000013828278,
+      "iterations": 2351,
+      "factorizations": 3177,
+      "maxCertificate": 9.904998790055686e-7,
+      "maxPenetration": 2.0028423364237824e-13,
+      "maxLengthError": 9.418391992136451e-14
+    }
+  ],
+  "abBa": {
+    "legacy": {
+      "steps": 1200,
+      "acceptedPhysicsHz": 49.91182244730726
+    },
+    "separate": {
+      "steps": 1200,
+      "acceptedPhysicsHz": 47.92695931418801
+    }
+  },
+  "consoleErrors": [],
+  "validation": {
+    "experimentalTests": 132,
+    "passed": 132,
+    "log": "001-discovery-probes-regressions.log",
+    "restoredBuild": "001-discovery-probes-restored-build.log"
+  },
+  "nextExperiment": {
+    "direction": "Move the exact solver off the render/UI thread",
+    "requirements": [
+      "Preserve atomic acceptance across both accesses, flow, contrast and shared dt=1/60.",
+      "Worker owns mechanical state and contact geometry; no per-step replay serialization or 64 MB mesh hashing.",
+      "Publish owned positions, material frames, physical certificate and flow probe at the same accepted boundary.",
+      "Reject stale responses after cancellation/reset/epoch changes.",
+      "Compare complete state and shape error <=0.1 mm, then measure actual accepted browser steps with RTG."
+    ],
+    "status": "Not implemented"
+  },
+  "limitations": [
+    "Continuation of captured final crossover state, not the entire manual maneuver.",
+    "No full-browser 60 Hz result.",
+    "Node CPU saving did not predict browser performance."
+  ]
+}

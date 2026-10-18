@@ -1,0 +1,263 @@
+{
+  "reference": "reports/performance-scenarios/003-crossover-full-user-inputs.json.gz",
+  "candidate": "reports/performance-scenarios/028-projective-mesh-candidate.json.gz",
+  "referenceSha256": "bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac",
+  "referenceDecodedSha256": "efe60d05b63ac7cc4323c54701a4fc7db318dcf890b116f5ec5c34a753d90b14",
+  "candidateSha256": "1d25ee14b9e5419b42d50bbccfb3b170e2b81a5a0c0ec82127b3a0facb44907d",
+  "rightAccessTargetPrefixVerified": true,
+  "stepsChecked": 6432,
+  "expectedSteps": 7507,
+  "summary": {
+    "attemptedSteps": 6432,
+    "acceptedSteps": 6431,
+    "targetSteps": 7507,
+    "complete": false,
+    "movingSteps": 2839,
+    "maximumShapeDifferenceMm": 158.61288629254716,
+    "shapeWithinLimit": false,
+    "firstShapeLimitStep": 231,
+    "movingCpuCapacityHz": 60.542601605564144,
+    "movingMedianCpuMs": 13.799999952316284,
+    "movingP95CpuMs": 29.699999809265137,
+    "acceptanceMode": "functional",
+    "shapeComparisonRole": "diagnostic",
+    "shapeDifferenceLimitMm": null,
+    "functionalRoute": {
+      "checkpoints": [
+        {
+          "stage": 0,
+          "passed": true,
+          "wire": {
+            "region": "ipsilateral",
+            "point": [
+              -11.145923059943026,
+              -308.4141841965277,
+              6.817858744341631
+            ],
+            "edgeIndex": 5734,
+            "distanceMm": 2.3531550026241415,
+            "radiusMm": 4.419711112976074
+          },
+          "catheter": {
+            "region": "aorta",
+            "point": [
+              -2.071671107853805,
+              -272.2718136955317,
+              9.0216320247978
+            ],
+            "edgeIndex": 5343,
+            "distanceMm": 1.2822724978542228,
+            "radiusMm": 7.92020845413208
+          }
+        },
+        {
+          "stage": 1,
+          "passed": true,
+          "wire": {
+            "region": "ipsilateral",
+            "point": [
+              -12.506475062910544,
+              -309.3142756885343,
+              6.185200739539361
+            ],
+            "edgeIndex": 5734,
+            "distanceMm": 1.7648143908901752,
+            "radiusMm": 4.419711112976074
+          },
+          "catheter": {
+            "region": "contralateral-common",
+            "point": [
+              0.9224232530172554,
+              -298.4319648796271,
+              0.6682389234957711
+            ],
+            "edgeIndex": 5651,
+            "distanceMm": 1.9275703074826724,
+            "radiusMm": 4.311280727386475
+          }
+        },
+        {
+          "stage": 2,
+          "passed": true,
+          "wire": {
+            "region": "contralateral-external",
+            "point": [
+              27.306852865726853,
+              -334.28284612809546,
+              -14.719505013884323
+            ],
+            "edgeIndex": 6061,
+            "distanceMm": 3.8265487730484384,
+            "radiusMm": 3.0875083255767826
+          },
+          "catheter": {
+            "region": "contralateral-common",
+            "point": [
+              8.334927209260284,
+              -306.301607950904,
+              -3.449057908226319
+            ],
+            "edgeIndex": 5763,
+            "distanceMm": 3.797181179999787,
+            "radiusMm": 4.6237305068969725
+          }
+        },
+        {
+          "stage": 3,
+          "passed": true,
+          "wire": {
+            "region": "contralateral-external",
+            "point": [
+              82.90963509352632,
+              -536.0880020113761,
+              -3.668996071684857
+            ],
+            "edgeIndex": 8762,
+            "distanceMm": 2.5456270464685837,
+            "radiusMm": 2.2371182441711426
+          },
+          "catheter": {
+            "region": "contralateral-external",
+            "point": [
+              65.96345313272437,
+              -470.65076957459394,
+              15.59712900200684
+            ],
+            "edgeIndex": 8247,
+            "distanceMm": 1.1674537907689349,
+            "radiusMm": 2.755270481109619
+          }
+        }
+      ],
+      "routeChecksPassed": false,
+      "fullManeuverVerified": false,
+      "visualReviewRequired": true,
+      "scope": "Coarse tip branch checks at five stages. Does not certify wall containment, pigtail seating, femoral entry, jitter or freedom from blocking."
+    },
+    "goalAchieved": false,
+    "applicationFpsVerified": false,
+    "equilibriumCertified": false
+  },
+  "observedWallThroughputHz": 29.563357801680528,
+  "candidatePolylinesVerified": true,
+  "functionalRoute": {
+    "checkpoints": [
+      {
+        "stage": 0,
+        "passed": true,
+        "wire": {
+          "region": "ipsilateral",
+          "point": [
+            -11.145923059943026,
+            -308.4141841965277,
+            6.817858744341631
+          ],
+          "edgeIndex": 5734,
+          "distanceMm": 2.3531550026241415,
+          "radiusMm": 4.419711112976074
+        },
+        "catheter": {
+          "region": "aorta",
+          "point": [
+            -2.071671107853805,
+            -272.2718136955317,
+            9.0216320247978
+          ],
+          "edgeIndex": 5343,
+          "distanceMm": 1.2822724978542228,
+          "radiusMm": 7.92020845413208
+        }
+      },
+      {
+        "stage": 1,
+        "passed": true,
+        "wire": {
+          "region": "ipsilateral",
+          "point": [
+            -12.506475062910544,
+            -309.3142756885343,
+            6.185200739539361
+          ],
+          "edgeIndex": 5734,
+          "distanceMm": 1.7648143908901752,
+          "radiusMm": 4.419711112976074
+        },
+        "catheter": {
+          "region": "contralateral-common",
+          "point": [
+            0.9224232530172554,
+            -298.4319648796271,
+            0.6682389234957711
+          ],
+          "edgeIndex": 5651,
+          "distanceMm": 1.9275703074826724,
+          "radiusMm": 4.311280727386475
+        }
+      },
+      {
+        "stage": 2,
+        "passed": true,
+        "wire": {
+          "region": "contralateral-external",
+          "point": [
+            27.306852865726853,
+            -334.28284612809546,
+            -14.719505013884323
+          ],
+          "edgeIndex": 6061,
+          "distanceMm": 3.8265487730484384,
+          "radiusMm": 3.0875083255767826
+        },
+        "catheter": {
+          "region": "contralateral-common",
+          "point": [
+            8.334927209260284,
+            -306.301607950904,
+            -3.449057908226319
+          ],
+          "edgeIndex": 5763,
+          "distanceMm": 3.797181179999787,
+          "radiusMm": 4.6237305068969725
+        }
+      },
+      {
+        "stage": 3,
+        "passed": true,
+        "wire": {
+          "region": "contralateral-external",
+          "point": [
+            82.90963509352632,
+            -536.0880020113761,
+            -3.668996071684857
+          ],
+          "edgeIndex": 8762,
+          "distanceMm": 2.5456270464685837,
+          "radiusMm": 2.2371182441711426
+        },
+        "catheter": {
+          "region": "contralateral-external",
+          "point": [
+            65.96345313272437,
+            -470.65076957459394,
+            15.59712900200684
+          ],
+          "edgeIndex": 8247,
+          "distanceMm": 1.1674537907689349,
+          "radiusMm": 2.755270481109619
+        }
+      }
+    ],
+    "routeChecksPassed": false,
+    "fullManeuverVerified": false,
+    "visualReviewRequired": true,
+    "scope": "Coarse tip branch checks at five stages. Does not certify wall containment, pigtail seating, femoral entry, jitter or freedom from blocking."
+  },
+  "physicalForceCertificate": false,
+  "completeCommonStepReplay": false,
+  "goalAchieved": false,
+  "limitations": [
+    "Research harness directly applies recorded right-access targets, not the app input handler or both accesses.",
+    "CPU capacity and the simple browser test are not full-application physics FPS.",
+    "Incomplete/rejected trajectories cannot pass optimization acceptance."
+  ]
+}

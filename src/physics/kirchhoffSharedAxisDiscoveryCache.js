@@ -15,14 +15,26 @@ const validGrid = d => finitePoint(d.a) && finitePoint(d.b) && Number.isInteger(
  * gridToken must identify the same material interval and clipping/sample grid.
  * Lookups retain the original certificate pose, so skipped motions accumulate.
  */
-export function createSharedAxisDiscoveryCache({ capacity = 2048, retainOnAbort = false } = {}) {
+export function createSharedAxisDiscoveryCache(options = {}) {
+    return createCache(options);
+}
+
+function createCache({ capacity = 2048, retainOnAbort = false }, initialEntries = null) {
     if (!Number.isInteger(capacity) || capacity < 1) throw new RangeError('Cache capacity must be a positive integer');
-    const entries = new Map();
+    const entries = new Map(initialEntries);
     const stats = { lookups: 0, clearSkips: 0, insideProofs: 0, pointInsideProofs: 0, certificates: 0, rejectedCertificates: 0, evictions: 0 };
     return {
         stats,
         get size() { return entries.size; },
         clear() { entries.clear(); },
+        // Entries and their endpoint arrays are immutable after commit.
+        // A private map is sufficient for a transactional fork: replacing,
+        // evicting or aborting a trial never changes the accepted certificates.
+        // Serialized replay still uses defensive copies and mesh validation.
+        fork(geometryToken) {
+            const values=geometryToken===undefined?entries:[...entries].filter(([,d])=>d.geometryToken===geometryToken);
+            return createCache({capacity,retainOnAbort},values);
+        },
         // The replay owner validates mesh identity before binding these numeric
         // certificates to a fresh BVH object. Never serialize object tokens.
         capture(geometryToken) {

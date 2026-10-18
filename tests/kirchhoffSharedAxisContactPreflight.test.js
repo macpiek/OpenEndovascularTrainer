@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {BufferGeometry,Float32BufferAttribute} from 'three';
-import {createSharedAxisNative,assembleSharedAxisNative,extendSharedAxisNativeRows,captureSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
+import {createSharedAxisNative,assembleSharedAxisNative,extendSharedAxisNativeRows,captureSharedAxisNative,applySharedAxisNativeIncrement,restoreSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
 import {createSharedAxisConstraintRowPool} from '../src/physics/kirchhoffSharedAxisConstraintRows.js';
 import {createSharedAxisVesselDiscovery} from '../src/physics/kirchhoffSharedAxisVesselWitnesses.js';
 import {prepareSharedAxisDynamicStep} from '../src/physics/kirchhoffSharedAxisDynamics.js';
@@ -95,4 +95,34 @@ test('an early discovery restart invalidates the previous friction certificate b
         assert.deepEqual(f.s.wallFrictionStep.normalForceColumns,[]);
         assert.throws(()=>commitSharedAxisWallFriction(f.s),/converged/);
     }finally{f.geometry.dispose();}
+});
+
+for(const wasmMaterial of [false,true])test(`mechanical scratch owns its matrices across trial overwrite, dynamic steps and restored poses (WASM=${wasmMaterial})`,()=>{
+    const make=()=>createSharedAxisNative({tools:[{id:'wire',insertion:55.2},{id:'catheter',type:'pigtail',insertion:42.7}],
+        samplePosition:x=>[80*Math.sin(x/80),80*(1-Math.cos(x/80)),.03*x]});
+    const actual=make(),reference=make(),options={wasmMaterial,reuseMaterialScratch:true};
+    actual.cacheMechanicalAssembly=reference.cacheMechanicalAssembly=true;
+    const original=captureSharedAxisNative(actual),delta=Float64Array.from({length:actual.layout.dofCount},(_,i)=>.001*Math.sin(i));
+    let owned;
+    for(let turn=0;turn<4;turn++) {
+        for(const s of [actual,reference]) {
+            restoreSharedAxisNative(s,original);
+            applySharedAxisNativeIncrement(s,delta,new Float64Array(s.multipliers.length),turn);
+            prepareSharedAxisDynamicStep(s,turn%2?1/120:1/60);
+            s.loads[s.layout.dofCount-1]=.123+turn*.04;
+        }
+        // Rebuilding reference storage exercises the original fresh-cache
+        // arithmetic, while the actual state refills its owned numeric arrays.
+        reference.mechanicalAssemblyCache=null;
+        assert.deepEqual(measure(actual,assembleSharedAxisNative(actual,options)),measure(reference,assembleSharedAxisNative(reference,options)));
+        const cache=actual.mechanicalAssemblyCache;
+        if(owned)for(const key of ['gradient','hessian','tangent'])assert.equal(cache[key],owned[key]);
+        owned={gradient:cache.gradient,hessian:cache.hessian,tangent:cache.tangent};
+        const saved={gradient:cache.gradient.slice(),hessian:cache.hessian.slice(),tangent:cache.tangent.slice()};
+        for(const s of [actual,reference])assembleSharedAxisNative(s,{...options,withTangent:false});
+        for(const key of Object.keys(saved))assert.deepEqual(cache[key],saved[key],'light trial cannot overwrite cached matrices');
+        actual.chain.gradient.fill(999);actual.chain.hessian.fill(999);actual.chain.tangent.fill(999);
+        assert.deepEqual(measure(actual,assembleSharedAxisNative(actual,options)),measure(reference,assembleSharedAxisNative(reference,options)));
+        for(const key of Object.keys(saved))assert.deepEqual(cache[key],saved[key],'live assembly outputs must not alias cache storage');
+    }
 });

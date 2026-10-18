@@ -1,0 +1,136 @@
+{
+  "recordedAt": "2026-10-14T09:40:12.882Z",
+  "goalAchieved": false,
+  "baseline": "/tmp/oet-contact-stage3-baseline",
+  "changes": [
+    "Reconstruct only elimination ancestors of dependent contacts; reuse normalized prefix coefficients until their exact inputs are invalidated.",
+    "Skip a repeated failed Newton search only after exact comparison of matrix, gradient, fixed mask, contact equations and tolerance. Do not reuse limited searches, retained factors, unknown equation kinds or observer-controlled systems."
+  ],
+  "physics": {
+    "dt": 0.016666666666666666,
+    "forceTolerance": 0.000001,
+    "geometryToleranceMm": 0.00001,
+    "nodes": 207,
+    "maxWorldDifferenceMm": 0,
+    "all200PairedStepsPassed": true
+  },
+  "cpu": {
+    "before": {
+      "steps": 200,
+      "totalMs": 9339.907542000032,
+      "medianMs": 34.470665999999255,
+      "p95Ms": 97.71104099999866,
+      "maxMs": 401.4370420000014,
+      "cpuStepsPerSecond": 21.413488206455238,
+      "withinBudget": 0
+    },
+    "after": {
+      "steps": 200,
+      "totalMs": 9222.426037000007,
+      "medianMs": 34.09349999999904,
+      "p95Ms": 104.3729170000006,
+      "maxMs": 298.31208300000026,
+      "cpuStepsPerSecond": 21.686267712813088,
+      "withinBudget": 0
+    }
+  },
+  "tail": [
+    {
+      "version": "before",
+      "repeat": 0,
+      "cpuMs": 401.4370420000014,
+      "factorizations": 279,
+      "subdivisions": 2
+    },
+    {
+      "version": "after",
+      "repeat": 0,
+      "cpuMs": 294.79783300000054,
+      "factorizations": 195,
+      "subdivisions": 2
+    },
+    {
+      "version": "before",
+      "repeat": 1,
+      "cpuMs": 320.45287499999904,
+      "factorizations": 279,
+      "subdivisions": 2
+    },
+    {
+      "version": "after",
+      "repeat": 1,
+      "cpuMs": 256.3585830000011,
+      "factorizations": 195,
+      "subdivisions": 2
+    }
+  ],
+  "dependencyRepairMicrobenchmark": {
+    "before": {
+      "total": 94.14899799999999,
+      "median": 3.314249999999987
+    },
+    "after": {
+      "total": 31.90604100000006,
+      "median": 1.520542000000006
+    }
+  },
+  "browser": {
+    "acceptedPhysicsHz": 15.866216066010352,
+    "renderFps": 56.642391355656954,
+    "wallSeconds": 6.302700000047683,
+    "stepCpuMs": {
+      "median": 37.40000009536743,
+      "p95": 122.90000009536743,
+      "max": 543.3000009059906
+    },
+    "passed": true,
+    "goalAchieved": false,
+    "report": "001-browser-contact-retry.json",
+    "screenshot": "001-browser-contact-retry.jpg"
+  },
+  "tests": [
+    {
+      "log": "001-contact-basis-validation-tests.log",
+      "passed": 32
+    },
+    {
+      "log": "001-contact-retry-tests.log",
+      "passed": 63
+    }
+  ],
+  "build": {
+    "passed": true,
+    "log": "001-contact-retry-build.log",
+    "warning": "Existing chunk size warning"
+  },
+  "diffCheckPassed": true,
+  "fullRepositorySuiteRun": false,
+  "limitations": [
+    "Overall paired CPU gain is about 1.3%, within run-to-run machine-load variation; the clearest improvement is fewer repeated factorizations and shorter costly recovery steps.",
+    "The browser harness uses the real solver and frame budget but a simplified renderer, without full fluoroscopy or the main app idle catch-up.",
+    "No CPU sample met the 16.67 ms target. The 60 Hz goal remains active.",
+    "The original recorded endpoint is exact; continuation controls are reproducible but are not a timed recording of the entire manual crossover."
+  ],
+  "rejectedProbe": "001-incremental-contact-rejected.json",
+  "nextInvestigation": {
+    "fixture": "001-contact-tail-replay.json.gz",
+    "diagnostic": "001-contact-tail-diagnostic.json",
+    "observation": "Several Newton/Gauss-Newton directions fail original-unit linear residual certification at about 1.2e-6 to 3.4e-6. Two half steps then converge. Investigate conditioning/scaling or more effective certified refinement without weakening the physical acceptance tolerances."
+  },
+  "sourceHashes": {
+    "kirchhoffSharedAxisActiveBasis.js": "71bcc9a80c7b8f7947488302956685f44f34cfb4d3991fc02cdb7bae2d114191",
+    "kirchhoffSharedAxisRejectedLinearization.js": "64f8aaeafe630c4a7dd885d141b1b54e178807eadb3c75a4ecf5c94506e0a270",
+    "kirchhoffSharedAxisConstraintRows.js": "cf42ec9209354db864ee4c2947e0c1e2e8e3460e51603587b55c154e07b64e6b",
+    "kirchhoffSharedAxisDiscoveryCache.js": "9b85bef990efa76112451e74ef3fcc191402c0ef896dc1d72532d28014dba217",
+    "kirchhoffSharedAxisVesselWitnesses.js": "19054c3ccac4354da47d659e4b2122ecd1b5868392a44312360f1ac4f466c9f9",
+    "kirchhoffSharedAxisNative.js": "a66f3f5f58d29bc92c2cc6dbc7f23eb37f90942087e5c04012add5c5a7250c04",
+    "kirchhoffSharedAxisAppSystem.js": "1a64dc529356fc2193f57a25a94433e53e5eb47382e4d0ec44cac6ae3ca64833",
+    "kirchhoffSharedAxisLinear.js": "13124a3e930b200343a2c9819ba7698de7731b9ca77b4fd581c7edca522ea676",
+    "kirchhoffSharedAxisTimeStep.js": "4a632d0edbb49302377f97032521fd87b20d22c544671e2c8cc37f459d91455b",
+    "kirchhoffSharedAxisInactiveContacts.js": "9922a3f09e35127519e37188c6bb35d7918baa556d5793fe2f3c953a01a935e6",
+    "kirchhoffSharedAxisBendLimit.js": "3d944fc8d224c8a8bec60a16d2839c13296f49f701e3ea87b8196387e0deb712",
+    "kirchhoffSharedAxisContacts.js": "391e58c2388b9a64fb40fa6f92f2f0ab22fcec69a1800819e11ce7fd59dbfcdb",
+    "kirchhoffSharedAxisReplay.js": "8ee25a5ef2d063db76762594c4afbd1771f8e1765e6b0df8f469ff4cdb2abe22",
+    "../simulator.js": "bc974f40d8da33717353fc21076f899821745191c8a79dae07660e38dc4cc9e0"
+  }
+}

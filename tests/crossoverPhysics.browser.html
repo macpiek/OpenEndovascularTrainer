@@ -1,0 +1,164 @@
+<!doctype html><html lang="pl"><meta charset="utf-8">
+<title>Crossover — pomiar fizyki</title>
+<style>
+body{margin:24px;background:#101922;color:#e8eef3;font:15px system-ui}h1{font-size:24px}
+p{max-width:1000px;line-height:1.5;color:#b9c9d5}nav{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+button,select{padding:9px;background:#224859;color:white;border:1px solid #537582;border-radius:6px}
+main{display:flex;gap:20px;margin-top:20px}canvas{width:500px;max-width:60vw;height:auto;background:#080e15;border:1px solid #324553}
+#metrics{white-space:pre-line;font-variant-numeric:tabular-nums;line-height:1.8}a{color:#83d6ff}
+pre{max-height:240px;overflow:auto;font-size:11px}#status{font-weight:bold}
+</style>
+<h1>Crossover · rzeczywisty pomiar fizyki w przeglądarce</h1>
+<p>Zapisany prowadnik 981 mm i pigtail 861 mm. Stały krok 1/60 s, pulsacyjny przepływ krwi,
+Utrzymanie pozycji, cofnięcie obu narzędzi o 10 mm, ponowne wsunięcie i uspokojenie ruchu.
+Próby 300 i 600 kroków wydłużają obserwację po zakończeniu manewru.
+Używa tego samego planisty porcji obliczeń co symulator. Można też włączyć pracę w wolnym czasie między klatkami. Podgląd osi jest uproszczony; pomiar nie obejmuje pełnego obrazu RTG.</p>
+<nav><button id="run" disabled>Uruchom 100 kroków</button><button id="stop" disabled>Zatrzymaj</button>
+<label>Budżet fizyki na klatkę <select id="budget"><option value="4">4 ms · jedna porcja</option><option value="12">12 ms · kilka porcji</option><option value="12-idle">12 ms + praca między klatkami</option></select></label>
+<label>Model mechaniki <select id="mechanics"><option value="full">Pełny model</option><option value="reduced">Rzadszy trzon · próba 0,1 mm</option><option value="reduced-recovery">Rzadszy trzon + naprawa kontaktów</option><option value="reduced-wide-contact">Rzadszy trzon · kontakty 20 mm</option></select></label>
+<label>Liczba kroków <select id="step-count"><option value="100">100 · 1,67 s symulacji</option><option value="300">300 · 5 s symulacji</option><option value="600">600 · 10 s symulacji</option></select></label>
+<a id="download" hidden download="crossover-browser-result.json">Zapisz raport</a></nav>
+<p id="model-note">Pełna siatka mechaniczna. Oba warianty zachowują krok czasu i tolerancje rozwiązania.</p>
+<p id="status" role="status">Ładowanie anatomii i zapisanego stanu…</p>
+<main><canvas id="scene" width="600" height="900"></canvas><div id="metrics"></div></main>
+<details><summary>Raport pomiaru</summary><pre id="report"></pre></details>
+<script type="module">
+import {STLLoader} from 'three/examples/jsm/loaders/STLLoader.js';
+import {MeshBVH} from 'three-mesh-bvh';
+import {generateVessel} from '../src/vesselGeometry.js';
+import {transformAortaGeometry} from '../src/aortaTransform.js';
+import {decodeCollisionAsset} from '../src/physics/collision/collisionAssetFormat.js';
+import {VesselContactField} from '../src/physics/collision/vesselContactField.js';
+import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
+import {CROSSOVER_REDUCED_MODEL,CROSSOVER_WIDE_CONTACT_MODEL} from './helpers/crossoverReducedModel.js';
+import {runPhysicsFrameBudget,runPhysicsIdleBudget} from '../src/physics/physicsFrameBudget.js';
+import {captureBloodFlow} from '../src/physics/bloodFlowCoupling.js';
+import {restoreSharedAxisReplay} from './helpers/sharedAxisReplay.js';
+import {createCrossoverFlowFromAsset} from './helpers/crossoverFlowFromAsset.js';
+
+const run=document.querySelector('#run'),stop=document.querySelector('#stop'),budget=document.querySelector('#budget'),mechanics=document.querySelector('#mechanics'),
+    stepCount=document.querySelector('#step-count'),status=document.querySelector('#status'),metrics=document.querySelector('#metrics'),reportNode=document.querySelector('#report'),download=document.querySelector('#download');
+const canvas=document.querySelector('#scene'),ctx=canvas.getContext('2d'),background=document.createElement('canvas');
+background.width=canvas.width;background.height=canvas.height;const bg=background.getContext('2d');
+const project=p=>[canvas.width/2+(p[0]-20)*canvas.height/850,canvas.height/2-(p[1]+640)*canvas.height/850];
+let active=false,pending=null,state,rotations,flow,report,started,last,accumulator,cpuMs=0,downloadUrl=null;
+let idleTimer=null,runEpoch=0;
+const statistics=values=>{const a=values.slice().sort((x,y)=>x-y);return {median:a[Math.floor(a.length/2)]??0,p95:a[Math.max(0,Math.ceil(a.length*.95)-1)]??0,max:a.at(-1)??0};};
+try {
+    const read=async path=>{const r=await fetch(path);if(!r.ok)throw Error(`${path}: ${r.status}`);return r;};
+    const [fixture,assetBytes,meshBytes]=await Promise.all([
+        read('/reports/performance-scenarios/001-stage-05-replay.json.gz').then(r=>r.headers.get('Content-Encoding')==='gzip'?r.json():new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).json()),
+        read('/res/Aorta_infrarenal_aneurysm.collision.bin').then(r=>r.arrayBuffer()),
+        read('/res/Aorta_infrarenal_aneurysm.stl').then(r=>r.arrayBuffer())]);
+    const asset=decodeCollisionAsset(assetBytes),geometry=new STLLoader().parse(meshBytes),{vessel}=generateVessel(140,0);
+    transformAortaGeometry(geometry,vessel);geometry.computeBoundingBox();geometry.boundsTree=new MeshBVH(geometry);
+    const field=new VesselContactField(asset,{fallbackGeometry:geometry,bvhValidationDistance:.02,capsuleBvhValidation:-.1});
+    const request=fixture.stepRequest,dt=request.dt;
+    const options={...request.options,contactCandidateMargin:.01,deferActiveBasis:true,lazyBasisCoefficients:true,wasmBasis:true,reuseFrictionAssembly:true,reuseRejectedWorkingSet:true};
+    const segments=asset.arrays.centerlineSegments;bg.strokeStyle='#273a48';bg.lineWidth=1;bg.beginPath();
+    for(let i=0;i<segments.length;i+=9){bg.moveTo(...project(segments.subarray(i,i+3)));bg.lineTo(...project(segments.subarray(i+3,i+6)));}bg.stroke();
+    const reducedModel=()=>mechanics.value.startsWith('reduced');
+    const recoveryOptions=()=>['reduced-recovery','reduced-wide-contact'].includes(mechanics.value)?{recoverNegativeContact:true}:{};
+    function restore(){state=restoreSharedAxisReplay(fixture,field);if(reducedModel())state.adaptiveMesh=mechanics.value==='reduced-wide-contact'?CROSSOVER_WIDE_CONTACT_MODEL:CROSSOVER_REDUCED_MODEL;
+        rotations=request.rotations;flow=createCrossoverFlowFromAsset(asset);flow.time=request.options.bloodFlow.time;}
+    function draw(){
+        ctx.fillStyle='#080e15';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(background,0,0);
+        for(const id of ['catheter','wire']){
+            const tool=state.materials.find(m=>m.spec.id===id);ctx.strokeStyle=id==='wire'?'#46ded0':'#efa457';ctx.lineWidth=id==='wire'?2:5;ctx.beginPath();let first=true;
+            for(let i=0;i<=tool.last;i++){
+                if(state.coordinates[i]<0)continue;
+                const p=state.positions[i].map((v,k)=>v+state.origin[k]);
+                if(i===tool.last&&tool.endFraction<1)for(let k=0;k<3;k++)p[k]=(1-tool.endFraction)*(state.positions[i-1][k]+state.origin[k])+tool.endFraction*p[k];
+                if(first){ctx.moveTo(...project(p));first=false;}else ctx.lineTo(...project(p));
+            }ctx.stroke();
+        }
+    }
+    function show(now){
+        const wall=(now-started)/1000,steps=report.steps.length,stats=statistics(report.steps.map(s=>s.cpuMs));
+        metrics.textContent=`Zaakceptowane kroki: ${steps}/${report.targetSteps}\nFizyka: ${(steps/Math.max(wall,.001)).toFixed(1)} Hz\nObraz: ${(report.frames/Math.max(wall,.001)).toFixed(1)} FPS\nCzas symulacji: ${(steps*dt).toFixed(3)} s\nCzas rzeczywisty: ${wall.toFixed(3)} s\nTempo symulacji: ${(steps*dt/Math.max(wall,.001)).toFixed(2)}×\nKrok CPU: mediana ${stats.median.toFixed(2)} ms · p95 ${stats.p95.toFixed(2)} ms\nLiczba węzłów: ${state.positions.length}\nLiczba więzów: ${state.definitions.length}`;
+    }
+    function finish(error=null,aborted=false){
+        if(idleTimer!==null){clearTimeout(idleTimer);idleTimer=null;}
+        active=false;pending?.return();pending=null;const now=performance.now();show(now);
+        report.wallSeconds=(now-started)/1000;report.simulationSeconds=report.steps.length*dt;
+        report.acceptedPhysicsHz=report.steps.length/report.wallSeconds;report.renderFps=report.frames/report.wallSeconds;
+        report.stepCpuMs=statistics(report.steps.map(s=>s.cpuMs));report.passed=!error&&!aborted&&report.steps.length===report.targetSteps;
+        const contactStats=field.getStats();
+        report.bvhNeighborhood={winnerHits:contactStats.bvhNeighborhoodWinnerHits,hits:contactStats.bvhNeighborhoodHits,misses:contactStats.bvhNeighborhoodMisses,numericBytes:contactStats.bvhNeighborhoodBytes};
+        report.aborted=aborted;report.error=error?.message??null;report.browserBudgetMet=report.passed&&report.acceptedPhysicsHz>=59.5;
+        report.goalAchieved=false; // The complete app and maneuver need separate verification.
+        status.textContent=error?`FAIL: ${error.message}`:aborted?'Pomiar zatrzymany.':`PASS kontroli fizyki · ${report.acceptedPhysicsHz.toFixed(1)} Hz · cel 60 Hz ${report.browserBudgetMet?'osiągnięty w tym pomiarze':'nieosiągnięty'}`;
+        reportNode.textContent=JSON.stringify(report,null,2);if(downloadUrl)URL.revokeObjectURL(downloadUrl);
+        downloadUrl=URL.createObjectURL(new Blob([reportNode.textContent],{type:'application/json'}));download.href=downloadUrl;download.hidden=false;
+        run.disabled=false;stop.disabled=true;budget.disabled=false;mechanics.disabled=false;stepCount.disabled=false;draw();
+    }
+    function scheduleIdle() {
+        if(!report.idleCatchup||idleTimer!==null||!active||document.visibilityState!=='visible'||accumulator+1e-9<dt)return;
+        const epoch=runEpoch;
+        idleTimer=setTimeout(()=>{
+            idleTimer=null;
+            if(epoch!==runEpoch||!active||document.visibilityState!=='visible')return;
+            try {
+                runPhysicsIdleBudget({deadline:last+1000/60,now:()=>performance.now(),guardMs:.75,maxSliceMs:4,
+                    hasDebt:()=>active&&accumulator+1e-9>=dt,canAttempt:()=>active,canFit:room=>room>=.5,
+                    attempt:budget=>{report.idleSlices++;return advanceSlice(budget,true).accepted;},maxSlices:6});
+            }catch(error){finish(error);}
+        },0);
+    }
+    function advanceSlice(sliceMs,idle=false){
+        const sliceStart=performance.now();
+        do {
+                const start=performance.now();
+                if(!pending){
+                    const i=report.steps.length,offset=i<30?0:i<50?-(i-29)*.5:i<70?-(69-i)*.5:0;
+                    const tools=request.tools.map(t=>({...t,insertion:t.insertion+offset}));
+                    const bloodFlow=captureBloodFlow(state,flow,request.options.bloodFlow.sheathLength,Math.max(...tools.map(t=>t.insertion)));
+                    pending=advanceSharedAxis(state,rotations,dt,tools,{...options,...recoveryOptions(),bloodFlow});cpuMs=0;
+                }
+                const next=pending.next();cpuMs+=performance.now()-start;
+                if(next.done){
+                    const completionStart=performance.now();
+                    const {state:accepted,result:r}=next.value;
+                    if(!accepted||!r.converged||!r.quality.finite||r.certificateBound>1e-6||r.residual.length>1e-5||r.quality.maxPenetration>1e-5||r.quality.bodies.some(b=>b.maxLengthError>=1e-5))throw Error(`Krok ${report.steps.length}: ${r.status} / niedotrzymana dokładność`);
+                    state=accepted;rotations=next.value.rotations;flow.update(dt);pending=null;accumulator-=dt;
+                    cpuMs+=performance.now()-completionStart;
+                    report.steps.push({step:report.steps.length,cpuMs,iterations:r.iterations,factorizations:r.factorizations,certificateBound:r.certificateBound,maxPenetrationMm:r.quality.maxPenetration,rows:state.definitions.length,linearScratch:r.linearScratch,
+                        ...(r.negativeContactRecovery?{negativeContactRecovery:r.negativeContactRecovery}:{})});
+                    if(idle)report.idleSteps++;
+                    if(report.steps.length===report.targetSteps)finish();
+                    return {accepted:true,pending:false};
+                }
+        }while(performance.now()-sliceStart<sliceMs);
+        return {accepted:false,pending:true};
+    }
+    function tick(now){
+        if(!active)return;report.frames++;accumulator+=(now-last)/1000;last=now;const frameStart=performance.now();
+        const room=()=>report.workSliceMs-(performance.now()-frameStart);
+        try {
+            runPhysicsFrameBudget({hasDebt:()=>active&&accumulator>=dt,canAttempt:()=>active,canFit:()=>room()>.5,
+                attempt:()=>advanceSlice(Math.max(.5,Math.min(4,room()))),
+                resumePending:report.workSliceMs>4,maxSteps:2,maxSlices:6});
+            if(active){draw();show(performance.now());scheduleIdle();requestAnimationFrame(tick);}
+        }catch(error){finish(error);}
+    }
+    run.onclick=()=>{
+        runEpoch++;restore();field.resetStats();report={recordedAt:new Date().toISOString(),dt,targetSteps:Number(stepCount.value),workSliceMs:parseFloat(budget.value),scheduler:budget.value==='12-idle'?'runPhysicsFrameBudget + runPhysicsIdleBudget':'runPhysicsFrameBudget',idleCatchup:budget.value==='12-idle',idleSteps:0,idleSlices:0,frames:0,steps:[],
+            mechanicalModel:mechanics.value,adaptiveMesh:state.adaptiveMesh??null,
+            options:{contactCandidateMargin:.01,deferActiveBasis:true,lazyBasisCoefficients:true,wasmBasis:true,reuseFrictionAssembly:true,reuseRejectedWorkingSet:true,...recoveryOptions()},
+            limitations:['Lightweight geometry preview; excludes the full fluoroscopic renderer. Optional inter-frame catch-up uses the same synchronous deadline policy as the app.',`Exact saved final crossover state, followed by ${stepCount.value} prescribed continuation steps.`,
+                ...(reducedModel()?['Experimental coarser shaft mechanics; the separate paired CPU benchmark enforces the user-approved 0.1 mm shape budget. This browser run does not compare trajectory error against the full model.']:[]),
+                ...(recoveryOptions().recoverNegativeContact?['Early contact recovery can change temporal subdivision and trajectory; every accepted outer step retains dt=1/60 and the original force/contact/length tolerances.']:[])]};
+        started=last=performance.now();accumulator=dt;active=true;pending=null;run.disabled=true;stop.disabled=false;budget.disabled=true;mechanics.disabled=true;stepCount.disabled=true;
+        download.hidden=true;status.textContent='Pomiar zaakceptowanych kroków fizyki…';requestAnimationFrame(tick);
+    };
+    stop.onclick=()=>finish(null,true);
+    stepCount.onchange=()=>{run.textContent=`Uruchom ${stepCount.value} kroków`;};
+    mechanics.onchange=()=>{
+        document.querySelector('#model-note').textContent=reducedModel()?
+            'Eksperyment: rzadsza siatka trzonu i oryginalna siatka przy końcówkach. Limit różnicy kształtu 0,1 mm sprawdza osobny test porównawczy. Tutaj mierzymy szybkość; kontrola sił i kolizji pozostaje taka sama.':
+            'Pełna siatka mechaniczna. Oba warianty zachowują krok czasu i tolerancje rozwiązania.';
+        restore();draw();metrics.textContent='';download.hidden=true;reportNode.textContent='';status.textContent='Gotowy · zmieniono model mechaniki';
+    };
+    restore();draw();run.disabled=false;status.textContent='Gotowy · prowadnik 981,2 mm · pigtail 860,7 mm · zapisany crossover';
+}catch(error){status.textContent='FAIL: '+error.message;throw error;}
+</script></html>

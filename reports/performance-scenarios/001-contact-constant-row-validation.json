@@ -1,0 +1,85 @@
+{
+  "recordedAt": "2026-10-14T10:10:40.761Z",
+  "status": "goal-active",
+  "goalAchieved": false,
+  "baseline": "/tmp/oet-contact-stage4-baseline",
+  "changes": [
+    "Reuse local THREE frame-update scratch without changing arithmetic order or published poses.",
+    "Reuse material torque and derivative buffers, with owned promotion snapshots and an unchanged reference path.",
+    "Refill timestep-owned mechanical gradient and matrix caches instead of allocating full matrices per pose.",
+    "Eliminate only exactly feasible, zero-reaction, zero-Jacobian wall equations from each immutable linearization. Retain all nonlinear discovery, deferred witnesses, physical rows and final certificates."
+  ],
+  "referenceComparison": {
+    "report": "001-contact-constant-row-throughput.json",
+    "stepsPerVersion": 200,
+    "maxWorldDifferenceMm": 0,
+    "unchangedNodeCount": 207,
+    "comparisonToleranceMm": 1e-7,
+    "forceTolerance": 0.000001,
+    "geometryToleranceMm": 0.00001,
+    "before": {
+      "steps": 200,
+      "totalMs": 9426.386408999995,
+      "medianMs": 34.43212500000118,
+      "p95Ms": 115.75312499999927,
+      "maxMs": 376.2606250000026,
+      "cpuStepsPerSecond": 21.21703814401739,
+      "withinBudget": 0
+    },
+    "after": {
+      "steps": 200,
+      "totalMs": 8975.170658,
+      "medianMs": 32.02904099999978,
+      "p95Ms": 113.61595900000066,
+      "maxMs": 312.78741699999955,
+      "cpuStepsPerSecond": 22.283698842175266,
+      "withinBudget": 0
+    },
+    "totalReductionPercent": 4.786730900074188,
+    "medianReductionPercent": 6.979191670573092
+  },
+  "browser": {
+    "report": "001-browser-constant-rows.json",
+    "screenshot": "001-browser-constant-rows.jpg",
+    "acceptedPhysicsHz": 14.46842988618841,
+    "renderFps": 54.83534926865408,
+    "wallSeconds": 6.911599999904633,
+    "simulationSeconds": 1.6666666666666667,
+    "stepCpuMs": {
+      "median": 37.700000047683716,
+      "p95": 183.69999957084656,
+      "max": 589.599999666214
+    },
+    "passed": true,
+    "aborted": false,
+    "error": null,
+    "goalAchieved": false
+  },
+  "limitations": [
+    "CPU throughput excludes rendering and frame scheduling. Machine load varied; compare paired versions, not absolute times from different runs.",
+    "The browser harness uses the production solver and frame budget with a simplified renderer, without full fluoroscopy or main app idle catch-up.",
+    "The saved end-state continuation is reproducible; the earlier manual crossover was not captured as a timed input trace.",
+    "The 60 Hz goal is not achieved. Median CPU time is still above the complete 16.67 ms frame budget."
+  ],
+  "nextWork": "Reduce repeated full tangent/contact assemblies and investigate the tail linear-system conditioning with original-unit residual certification. Do not loosen physical tolerances or substitute render FPS for accepted physics Hz.",
+  "tests": [
+    {
+      "log": "001-constant-row-tests.log",
+      "passed": 47,
+      "failed": 0
+    },
+    {
+      "log": "001-scratch-regression-tests.log",
+      "passed": 62,
+      "failed": 0
+    }
+  ],
+  "build": {
+    "log": "001-constant-row-build.log",
+    "passed": true,
+    "existingWarning": "Bundle chunks exceed 500 kB."
+  },
+  "testFixtureRepairs": [
+    "Direct material promotion and lazy trial assembly tests now resolve missing mesh witnesses using the same bounded topology restart as production. Assertions and geometry remain unchanged."
+  ]
+}

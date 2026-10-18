@@ -1,0 +1,80 @@
+{
+  "updatedAt": "2026-10-17T16:12:48.829399+00:00",
+  "classificationOfPreviousGoalTurn": "Progress: 014 added passive XPBD force diagnostics, corrected unilateral merit, measured slow convergence, and removed a failed curvature preconditioner.",
+  "classificationOfThisTurn": "Progress: completed the previously interrupted exact working-set cache experiment with two complete full-app browser replays, independent validation, and point-by-point trajectory comparison.",
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "shapeDifferenceLimitMm": 1,
+  "targetAcceptedPhysicsHz": 60,
+  "reference": "003-crossover-full-user-inputs.json.gz",
+  "referenceUnchanged": true,
+  "tests": {
+    "passed": 19,
+    "logs": [
+      "015-cache-tests.log",
+      "015-rejected-set-tests.log"
+    ],
+    "scope": "Limited-search cache implementation; tests ran before restoring the baseline source. No new production source change or build in this turn."
+  },
+  "runs": [
+    {
+      "version": "cache",
+      "manifest": "015-cache-manifest.json",
+      "report": "015-cache-full.json.gz",
+      "validation": "015-cache-full-validation.json",
+      "screenshot": "015-cache-full.jpg",
+      "acceptedSteps": 7507,
+      "verifiedCheckpoints": 5,
+      "movingSteps": 3645,
+      "movingHz": 42.2271368149514,
+      "longInsertionMovingHz": 32.2717334192105,
+      "longInsertionRightProviderMeanMs": 28.076680673521107,
+      "longInsertionMainMeanMs": 0.798949581234395,
+      "maximumShapeDifferenceMm": 0.909750089299832,
+      "maximumCertificate": 9.950126695912331e-07,
+      "maximumPenetrationMm": 9.943140699686381e-09,
+      "maximumLengthErrorMm": 9.943140699686381e-09,
+      "performanceTargetMet": false
+    },
+    {
+      "version": "baseline",
+      "manifest": "015-baseline-manifest.json",
+      "report": "015-baseline-full.json.gz",
+      "validation": "015-baseline-full-validation.json",
+      "screenshot": "015-baseline-full.jpg",
+      "acceptedSteps": 7507,
+      "verifiedCheckpoints": 5,
+      "movingSteps": 3645,
+      "movingHz": 41.870130228693846,
+      "longInsertionMovingHz": 31.772095289485506,
+      "longInsertionRightProviderMeanMs": 28.4277310939897,
+      "longInsertionMainMeanMs": 0.8385504173631427,
+      "maximumShapeDifferenceMm": 0.909750089299832,
+      "maximumCertificate": 9.950126695912331e-07,
+      "maximumPenetrationMm": 9.943140699686381e-09,
+      "maximumLengthErrorMm": 9.943140699686381e-09,
+      "performanceTargetMet": false
+    }
+  ],
+  "pairComparison": {
+    "report": "015-paired-costs.json",
+    "maximumStoredPolylinePointDifferenceMm": 0,
+    "scope": "Every coordinate of every stored accepted polyline in both completed reports; does not imply equality of unrecorded internal solver states."
+  },
+  "decision": "Do not promote the limited-search cache. Both complete maneuvers pass fidelity and strict quality checks, but neither reaches 60 Hz. One paired browser run shows under 1% aggregate motion throughput difference, too small to establish a useful gain.",
+  "currentTestWorkspace": "/tmp/oet-fluidity-1mm-zb0gv7v4",
+  "currentTestState": "009 baseline with 007 distal adaptive mesh; limited-search cache disabled after measurement. Cached implementation saved separately at /tmp/oet-015-limited-cache.js and in 011 patch.",
+  "currentBestPassingCandidate": "007-distal-remap-passing.patch",
+  "priorExperimentAudit": {
+    "001-modified-conservative-screen.json": "Whole-matrix chord Newton slower: 9478.56 ms vs 7398.21 ms on 200 diagnostic continuation steps.",
+    "001-modified-retained-wasm-screen.json": "Retained WASM whole-matrix chord solve slower: 7698.11 ms vs 6562.21 ms on 200 diagnostic continuation steps.",
+    "001-material-edge-reuse-throughput.json": "Exact material-edge reuse slightly slower: 18441.85 ms vs 18344.12 ms on 600 diagnostic continuation steps.",
+    "001-material-torque-batch-investigation.json": "Longer paired continuation rejected batching, approximately 5% slower. None of these old continuation screens proves full-scenario FPS."
+  },
+  "nextInvestigation": "Investigate selective reuse of elastic material tangents with freshly evaluated forces, contact Jacobians and friction, rather than freezing the complete Newton matrix. First audit 001 material-edge reuse and modified-Newton patches to avoid repeating rejected work; retain full force certification and fallback. Screen against the original inputs, then run all 7507 steps in the app if fidelity passes. This is an untested hypothesis, not a confirmed optimization.",
+  "limitations": [
+    "One sequential cache/baseline pair, no statistical claim of acceleration.",
+    "Neither total-average nor stationary catch-up throughput establishes 60 Hz during tool movement.",
+    "XPBD variants from 012–014 remain rejected; these runs use the original Newton solver with the physically passing adaptive mesh."
+  ]
+}

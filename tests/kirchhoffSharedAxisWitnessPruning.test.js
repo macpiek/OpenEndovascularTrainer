@@ -40,3 +40,19 @@ test('pruning is confined to the private feed candidate; reactions and friction 
     assert.deepEqual(s.definitions,definitions);assert.deepEqual(s.multipliers,multipliers);assert.deepEqual(s.positions,positions);
     assert.deepEqual(next.coordinates,reference.coordinates);
 });
+
+test('narrow candidates retain loaded, tied, friction, unknown and non-vessel contacts',()=>{
+    const {s,rows}=fixture();s.multipliers[s.definitions.indexOf(rows[2])]=2;
+    s.wallFrictionHistory=[{id:`catheter/${rows[3].id}`,elastic:[1,0,0]}];
+    s.acceptedWallGaps.delete(rows[4].id);s.acceptedWallGaps.set(rows[5].id,NaN);
+    const foreign={...rows[6],id:'graft/test'};extendSharedAxisNativeRows(s,[foreign]);s.acceptedWallGaps.set(foreign.id,.2);
+    const before=s.definitions.slice(),next=feedSharedAxisNative(s,{wire:40},{contactCandidateMargin:.01});
+    assert.deepEqual(s.definitions,before);
+    for(const r of [...rows.slice(0,6),foreign])assert.ok(next.definitionIds.has(r.id),r.id);
+    assert.equal(next.definitionIds.has(rows[6].id),false);
+    assert.equal(next.multipliers[next.definitions.findIndex(r=>r.id===rows[2].id)],2);
+    assert.equal(next.wallFrictionHistory,s.wallFrictionHistory);
+    s.wallSamples[0].sharedAxisCompleteDiscovery=false;
+    assert.ok(feedSharedAxisNative(s,{wire:40},{contactCandidateMargin:.01}).definitionIds.has(rows[6].id));
+    for(const margin of [-1,NaN,Infinity,.51])assert.throws(()=>feedSharedAxisNative(s,{wire:40},{contactCandidateMargin:margin}),/margin/);
+});

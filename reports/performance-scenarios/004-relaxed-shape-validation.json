@@ -1,0 +1,51 @@
+{
+  "shapeDifferenceLimitMm": 1,
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "referenceSha256": "bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac",
+  "experiments": [
+    {
+      "report": "004-wide-1mm-rejected.json.gz",
+      "steps": 1614,
+      "totalReferenceSteps": 7507,
+      "complete": false,
+      "accepted": false,
+      "error": "Różnica kształtu 1.1063 mm przekracza 1 mm.",
+      "maximumShapeDifferenceMm": 1.1063300527570217,
+      "duringMotionPhysicsHz": 51.72468337692764,
+      "timingScope": "Incomplete prefix only; not comparable to full-maneuver throughput",
+      "inputsAndToolsMatchReference": true,
+      "physicalGatesPassedForAllPublishedSteps": true,
+      "maximumCertificate": 9.979546575777931e-07
+    },
+    {
+      "report": "004-fluid-mesh-only-rejected.json.gz",
+      "steps": 1689,
+      "totalReferenceSteps": 7507,
+      "complete": false,
+      "accepted": false,
+      "error": "Różnica kształtu 1.0656 mm przekracza 1 mm.",
+      "maximumShapeDifferenceMm": 1.065580224056399,
+      "duringMotionPhysicsHz": 54.59333201019025,
+      "timingScope": "Incomplete prefix only; not comparable to full-maneuver throughput",
+      "inputsAndToolsMatchReference": true,
+      "physicalGatesPassedForAllPublishedSteps": true,
+      "maximumCertificate": 9.948501826784195e-07
+    },
+    {
+      "report": "004-fluid-provider-rejected.json.gz",
+      "steps": 5367,
+      "totalReferenceSteps": 7507,
+      "complete": false,
+      "accepted": false,
+      "error": "Różnica kształtu 2.8948 mm przekracza 1 mm.",
+      "maximumShapeDifferenceMm": 2.8947972314438566,
+      "duringMotionPhysicsHz": 33.84475545205564,
+      "timingScope": "Incomplete prefix only; not comparable to full-maneuver throughput",
+      "inputsAndToolsMatchReference": true,
+      "physicalGatesPassedForAllPublishedSteps": true,
+      "maximumCertificate": 9.950126695912331e-07
+    }
+  ],
+  "conclusion": "Neither unconditional coarsening nor coarsening only long shafts met the 1 mm whole-trajectory bound. No simplification enabled by default. The delayed variant matched the full shape exactly through step 5347; error reached 2.894797 mm at step 5367, greatest near the wire tip at coordinate 365 mm."
+}

@@ -1,0 +1,31 @@
+{
+  "recordedAt": "2026-10-14T14:41:31.397Z",
+  "experiment": "Initialize the private pose from the existing inertia prediction including blood drag.",
+  "accepted": false,
+  "runtimeRestored": true,
+  "reason": "More solver iterations and factorizations; no throughput improvement.",
+  "benchmark": "001-flow-predictor-screen.json",
+  "tests": "001-flow-predictor-tests.log",
+  "patch": "001-flow-predictor-rejected.patch",
+  "cpuIncreasePercent": 8.420564629430416,
+  "physicalCertificateUnchanged": true,
+  "maxWorldDifferenceMm": 9.614689944613608e-7,
+  "work": {
+    "before": {
+      "steps": 200,
+      "cpuMs": 6531.425078999999,
+      "iterations": 926,
+      "factorizations": 2062,
+      "fullAssemblies": 1210,
+      "subdivisions": 202
+    },
+    "after": {
+      "steps": 200,
+      "cpuMs": 7081.40794900002,
+      "iterations": 1012,
+      "factorizations": 2528,
+      "fullAssemblies": 1320,
+      "subdivisions": 202
+    }
+  }
+}

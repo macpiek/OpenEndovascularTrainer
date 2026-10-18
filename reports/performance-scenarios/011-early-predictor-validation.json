@@ -1,0 +1,10 @@
+{
+  "complete": false,
+  "steps": 1608,
+  "maximumShapeDifferenceMm": 1.1766933885965574,
+  "firstDifferentStep": 519,
+  "verifiedTargetPrefix": true,
+  "physicalChecks": 3216,
+  "accepted": false,
+  "goalAchieved": false
+}

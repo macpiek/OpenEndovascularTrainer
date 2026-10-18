@@ -1,0 +1,153 @@
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -93,7 +93,7 @@
+  * Dynamic feed/history transactions are supplied by SharedAxisTimeStep.
+  */
+ export function createSharedAxisNative({ tools, spacing = 5, samplePosition = x => [x, 0, 0],
+-    wallSample = null, wallSamples = wallSample ? [wallSample] : [], startCoordinate = 0, boundaryCoordinates = [], previous = null, minimumEdgeLength=.5, origin=[0,0,0], maxBendAngle=Infinity, rebaseNearTips=false, fractionalTipThreshold=1e-3, spatialKnots=[], adaptiveMesh=null,omitInactiveSampleRows=false }) {
++    wallSample = null, wallSamples = wallSample ? [wallSample] : [], startCoordinate = 0, boundaryCoordinates = [], previous = null, minimumEdgeLength=.5, origin=[0,0,0], maxBendAngle=Infinity, rebaseNearTips=false, fractionalTipThreshold=1e-3, spatialKnots=[], adaptiveMesh=null,omitInactiveSampleRows=false,separateDiscoveryRows=false }) {
+     adaptiveMesh=adaptiveMeshOptions(adaptiveMesh);
+     if (!Array.isArray(tools) || !tools.length || tools.length > 2 || new Set(tools.map(t => t.id)).size !== tools.length)
+         throw new TypeError('One or two uniquely named materials are required');
+@@ -171,7 +171,7 @@
+         const endFraction=(input.insertion-coordinates[last-1])/(coordinates[last]-coordinates[last-1]);
+         return { spec, body, last, endFraction, coordinates:coveredCoordinates };
+     });
+-    const definitions = [];
++    const definitions = [],discoverySamples=[];
+     for (let e = 0; e < edgeTools.length; e++) {
+         const dofs = [layout.positions[e], layout.positions[e + 1]].flatMap(i => [i, i + 1, i + 2]);
+         definitions.push({ kind: 'length', edge: e, dofs });
+@@ -181,6 +181,12 @@
+             // material domain. Retain every partially exposed edge and every
+             // sampler without this explicit contract; no distance culling.
+             if(omitInactiveSampleRows&&range&&(coordinates[e]>=range.max||coordinates[e+1]<=range.min))return;
++            if(separateDiscoveryRows&&sampler.sharedAxisDiscoveryOnly) {
++                // Keep sampling at its original place in the assembly order,
++                // but do not allocate a multiplier for its constant 1 >= 0.
++                discoverySamples.push({before:definitions.length,edge:e,sample});
++                return;
++            }
+             definitions.push({ kind: 'wall', edge: e, dofs, sample });
+             const catheter=materials.find(m=>m.spec.id==='catheter'&&m.last-1===e&&m.endFraction<1);
+             if(sampler.sharedAxisSheath&&catheter)definitions.push({kind:'wall',edge:e,dofs,sample,sampleT:catheter.endFraction});
+@@ -191,7 +197,7 @@
+         id:`bend/${coordinates[e]}/${coordinates[e+1]}/${coordinates[e+2]}`,
+         dofs:[layout.positions[e],layout.positions[e+1],layout.positions[e+2]].flatMap(i=>[i,i+1,i+2]),
+         evaluate:evaluateBendLimit});
+-    const state = { adaptiveMesh,omitInactiveSampleRows, fractionalTipThreshold, rebaseNearTips, geometryKey:Symbol('pose'), maxBendAngle, kind: 'shared-axis-native', spacing, minimumEdgeLength, origin, coordinates, positions, materials, layout, wallSample, wallSamples, startCoordinate, boundaryCoordinates,
++    const state = { adaptiveMesh,omitInactiveSampleRows,separateDiscoveryRows,discoverySamples, fractionalTipThreshold, rebaseNearTips, geometryKey:Symbol('pose'), maxBendAngle, kind: 'shared-axis-native', spacing, minimumEdgeLength, origin, coordinates, positions, materials, layout, wallSample, wallSamples, startCoordinate, boundaryCoordinates,
+         definitions, definitionIds: new Set(definitions.map(row=>row.id)), mixed: createSharedAxisLinear(layout, definitions,{lazy:true}),
+         chain: { layout, hessian: new Float64Array(layout.dofCount * layout.band), gradient: new Float64Array(layout.dofCount), hessianValid: true },
+         multipliers: new Float64Array(definitions.length), fixed: new Uint8Array(layout.dofCount), loads: new Float64Array(layout.dofCount),
+@@ -254,7 +260,7 @@
+  * on the old domain, transports each material's own frame field, and samples
+  * that material's rest profile at its new material labels. The accepted state
+  * is untouched. New topology must pass relaxation/geometry checks separately. */
+-export function feedSharedAxisNative(s, insertionById, {pruneInactiveWitnesses=false,contactCandidateMargin,omitInactiveSampleRows=s.omitInactiveSampleRows??false}={}) {
++export function feedSharedAxisNative(s, insertionById, {pruneInactiveWitnesses=false,contactCandidateMargin,omitInactiveSampleRows=s.omitInactiveSampleRows??false,separateDiscoveryRows=s.separateDiscoveryRows??false}={}) {
+     if(contactCandidateMargin!==undefined&&!(Number.isFinite(contactCandidateMargin)&&contactCandidateMargin>=0&&contactCandidateMargin<=.5))
+         throw new RangeError('Invalid vessel candidate margin');
+     // Resolve a tiny interval between physical tips in a local chart near
+@@ -268,7 +274,7 @@
+     }
+     const candidate = createSharedAxisNative({ tools: s.materials.map(t => ({ ...t.spec,
+         insertion: insertionById[t.spec.id] ?? t.spec.insertion })), spacing: s.spacing, wallSamples: s.wallSamples,
+-        startCoordinate: s.startCoordinate, boundaryCoordinates: s.boundaryCoordinates, previous: s, minimumEdgeLength:s.minimumEdgeLength, origin:s.origin, maxBendAngle:s.maxBendAngle,rebaseNearTips:s.rebaseNearTips,fractionalTipThreshold:s.fractionalTipThreshold,adaptiveMesh:s.adaptiveMesh,omitInactiveSampleRows });
++        startCoordinate: s.startCoordinate, boundaryCoordinates: s.boundaryCoordinates, previous: s, minimumEdgeLength:s.minimumEdgeLength, origin:s.origin, maxBendAngle:s.maxBendAngle,rebaseNearTips:s.rebaseNearTips,fractionalTipThreshold:s.fractionalTipThreshold,adaptiveMesh:s.adaptiveMesh,omitInactiveSampleRows,separateDiscoveryRows });
+     // Exact surviving rows keep their reaction as an initial guess. Adaptive
+     // remeshing also transfers loaded physical wall sites; new sites start
+     // unloaded. Acceptance still checks the complete contact/friction law.
+@@ -644,7 +650,7 @@
+                 if (method !== methods[0] || isGaussNewton) { restoreSharedAxisNative(s, snapshot); base = assemble(isGaussNewton ? 'gauss-newton' : undefined); }
+                 const linearStart = performance.now();
+                 const linearOptions = { [fallbackWorkingSetLease]:fallbackFailures, recoverNegativeContact, reuseRejectedWorkingSet, eliminateConstantRows, batchActivationSize, simultaneousContactRelease, primalCompliantContacts, condenseCompliantContacts:condenseCompliantContacts||primalCompliantContacts, wasmLinearAssembly, lazyBasisCoefficients, wasmBasis, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
+-                    observeLinearSystem,modifiedNewtonContext:method===0?modified:null,incrementalContacts:modified?false:incrementalContacts==='frozen'?!s.wallFrictionStep?.liveNormalLoad:incrementalContacts,trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet:modified?false:reuseWorkingSet,reuseStructure,reuseConstraintWork,reuseMatrixAssembly, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(linearToleranceCap,Math.min(forceTolerance, lengthTolerance) * .01), 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
++                    observeLinearSystem,modifiedNewtonContext:method===0?modified:null,incrementalContacts:modified?false:incrementalContacts==='frozen'?!s.wallFrictionStep?.liveNormalLoad:incrementalContacts,trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet:modified?false:reuseWorkingSet,reuseStructure,reuseConstraintWork,reuseMatrixAssembly, ...(s.discoverySamples?.length?{maxActiveSetAttempts:Math.max(8,(s.definitions.length+s.discoverySamples.length)*2)}:{}), ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(linearToleranceCap,Math.min(forceTolerance, lengthTolerance) * .01), 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
+                 if(method===2&&matchesRejectedSharedAxisLinearization(rejectedNewton,s.chain,linearOptions)) {
+                     // The first search already exhausted these exact equations
+                     // without reaching its limit. A different tangent was tried
+--- a/src/physics/kirchhoffSharedAxisVesselWitnesses.js
++++ b/src/physics/kirchhoffSharedAxisVesselWitnesses.js
+@@ -209,6 +209,8 @@
+         return {gap:1,jacobian:[0,0,0,0,0,0]};
+     };
+     sample.sharedAxisGeometryOnly=true;sample.sharedAxisDiscovery=true;
++    // Its only numeric result is gap=1, J=0; forces come from discovered witnesses.
++    sample.sharedAxisDiscoveryOnly=true;
+     sample.sharedAxisCoordinateRange=Object.freeze({min:sheathLength,max:Infinity});
+     sample.sharedAxisCompleteDiscovery=allSamples;
+     sample.discoveryCache=clearance;
+--- a/src/physics/kirchhoffSharedAxisConstraintRows.js
++++ b/src/physics/kirchhoffSharedAxisConstraintRows.js
+@@ -110,9 +110,27 @@
+     if(prepared?.error&&prepared.index===undefined)throw prepared.error;
+     const g=s.chain.gradient,geometry=sharedAxisConstraintEdgeGeometry(s,storage),rows=prepareOnly?null:(storage?.rows??new Array(s.definitions.length));
+     if(rows)rows.length=s.definitions.length;
+-    for(let index=0;index<s.definitions.length;index++) {
++    let probeIndex=0;
++    for(let index=0;index<=s.definitions.length;index++) {
+         if(prepareOnly)prepareOnly.index=index;
+         if(prepared?.error&&prepared.index===index)throw prepared.error;
++        // Discovery stays in the original interleaved order, including errors
++        // and partial pending witnesses. Preflight has already executed these
++        // probes in this same synchronous assembly; never query them twice.
++        if(!prepared)while(s.discoverySamples?.[probeIndex]?.before===index) {
++            const probe=s.discoverySamples[probeIndex++],e=probe.edge,evaluate=s.wallSamples[probe.sample];
++            if(!evaluate?.sharedAxisDiscoveryOnly)throw new RangeError('Discovery sampler changed; rebuild the shared-axis topology');
++            const cache=(s.cacheMechanicalAssembly||retainWallHessians)?(storage?.contacts??(s.wallGeometryCache??=new Map())):null;
++            let record=cache?.get(probe);
++            if(s.geometryKey!==undefined&&record?.key===s.geometryKey)continue;
++            if(record)record.key=null;
++            const owner=outerMaterialAt(s,e,1);
++            evaluate({state:s,a:s.positions[e],b:s.positions[e+1],edge:e,
++                radius:owner.body.radius,owner:owner.spec.id,needHessian:false,reuseGeometry:reuseConstraintWork,
++                coordinateA:s.coordinates[e],coordinateB:s.coordinates[e+1]});
++            if(cache){if(!record){record={key:null};cache.set(probe,record);}record.key=s.geometryKey;}
++        }
++        if(index===s.definitions.length)break;
+         const def=s.definitions[index],e=def.edge,a=s.positions[e],b=s.positions[e+1],length=geometry.lengths[e];
+         let gap,J,gapHessian=null,row;
+         if(storage&&!prepareOnly) {
+--- a/src/physics/kirchhoffSharedAxisAppSystem.js
++++ b/src/physics/kirchhoffSharedAxisAppSystem.js
+@@ -68,7 +68,7 @@
+     }
+     const diagnostics={continuousSegmentContacts,reuseFrictionAssembly,wasmLinearAssembly,certifiedDiscoverySamples,lazyBasisCoefficients,wasmBasis,deferActiveBasis,earlyPredictorFallback,modifiedNewton,coupledFrictionNewton,predictiveNewton,projectiveDynamics,pruneInactiveWitnesses,contactCandidateMargin,initializations:0,acceptedSteps:0,pendingSlices:0,failedSteps:0,last:null,solver:projectiveDynamics?'shared-axis-projective':adaptiveMesh?'shared-axis-adaptive':'shared-axis',mesh:null};
+     function publish(tools,dt) {
+-        diagnostics.mesh={nodes:state.coordinates.length,dofs:diagnostics.last?.pd?.dofs??state.layout.dofCount,constraintRows:state.definitions.length,
++        diagnostics.mesh={nodes:state.coordinates.length,dofs:diagnostics.last?.pd?.dofs??state.layout.dofCount,constraintRows:state.definitions.length,discoveryProbes:state.discoverySamples?.length??0,
+             minSpacing:Math.min(...state.coordinates.slice(1).map((x,i)=>x-state.coordinates[i])),
+             maxSpacing:Math.max(...state.coordinates.slice(1).map((x,i)=>x-state.coordinates[i])),
+             adaptive:!!state.adaptiveMesh,shapeTolerance:state.adaptiveMesh?.shapeTolerance??0,contactMargin:state.adaptiveMesh?.contactMargin??0,
+@@ -277,7 +277,7 @@
+                     return [t.id,old+fraction*(t.insertion-old)];
+                 }));
+                 const nextRotations=Object.fromEntries(tools.map(t=>[t.id,startingRotations[t.id]+fraction*angleDifference(t.rotation,startingRotations[t.id])]));
+-                const candidate=feedSharedAxisNative(source,feeds,{pruneInactiveWitnesses:physicsOptions.pruneInactiveWitnesses===true,contactCandidateMargin:physicsOptions.contactCandidateMargin,omitInactiveSampleRows:physicsOptions.omitInactiveSampleRows});
++                const candidate=feedSharedAxisNative(source,feeds,{pruneInactiveWitnesses:physicsOptions.pruneInactiveWitnesses===true,contactCandidateMargin:physicsOptions.contactCandidateMargin,omitInactiveSampleRows:physicsOptions.omitInactiveSampleRows,separateDiscoveryRows:physicsOptions.separateDiscoveryRows});
+                 for(const t of tools)rotateSharedAxisNative(candidate,t.id,angleDifference(nextRotations[t.id],currentRotations[t.id]));
+                 const feedById=Object.fromEntries(current.materials.map(m=>[m.spec.id,feeds[m.spec.id]-m.spec.insertion]));
+                 last=yield* (physicsOptions.projectiveDynamics?iterateSharedAxisProjective:iterateSharedAxisTimeStep)(candidate,dt/subdivisions,{...physicsOptions,roundoffStagnation,feedById});
+--- a/src/physics/kirchhoffSharedAxisReplay.js
++++ b/src/physics/kirchhoffSharedAxisReplay.js
+@@ -8,7 +8,7 @@
+     const sampler=s.wallSamples?.find(sample=>sample.graftSurface),graft=graftSurfaceOverride??sampler?.surface;
+     const graftContactSurface=graft?{...captureGraftSurface(graft),hasBaseRows:!!sampler,
+         recovery:graft.revision===s.graftRevision?(s.graftRecovery??null):null,exteriorPatches:sampler?.contactPatches??[]}:null;
+-    return structuredClone({version:1,sheath,...(s.omitInactiveSampleRows?{omitInactiveSampleRows:true}:{}),
++    return structuredClone({version:1,sheath,...(s.separateDiscoveryRows?{separateDiscoveryRows:true}:{}),...(s.omitInactiveSampleRows?{omitInactiveSampleRows:true}:{}),
+         ...(s.wallSamples?.some(sample=>sample.candidateMargin!==undefined&&sample.candidateMargin!==.5)?
+             {contactCandidateMargin:s.wallSamples.find(sample=>sample.candidateMargin!==undefined).candidateMargin}:{}),graftCapture:Object.hasOwn(s,'captureOverride')?s.captureOverride:s.wallSamples?.find(sample=>sample.graftCapture)?.captureLinks??null,graftCaptureBaseRows:!!s.wallSamples?.find(sample=>sample.graftCapture),...(s.wallSamples?.some(sample=>sample.continuousSegmentContacts)?{continuousSegmentContacts:s.wallSamples.find(sample=>sample.continuousSegmentContacts).continuousSegmentContacts}:{}),...(s.wallSamples?.some(sample=>sample.certifiedDiscoverySamples)?{certifiedDiscoverySamples:true}:{}),...(s.wallSamples?.some(sample=>sample.captureDiscoveryState)?{discoveryState:s.wallSamples.find(sample=>sample.captureDiscoveryState)?.captureDiscoveryState()}:{}),...(s.wallSamples?.some(sample=>sample.continuousDiscoverySign)?{continuousDiscoverySign:true,insideContinuation:s.wallSamples.find(sample=>sample.insideProofs)?.insideProofs.capture()}:{}),...(s.wallSamples?.some(sample=>sample.retainDiscoveryCertificates)?{retainDiscoveryCertificates:true}:{}),...(s.adaptiveMesh?{adaptiveMesh:s.adaptiveMesh}:{}),...(s.rebaseNearTips?{rebaseNearTips:true}:{}),...(s.wallFrictionHistory||s.wallFrictionStep?{wallFriction:captureSharedAxisWallFriction(s)}:{}),spacing:s.spacing,...(s.acceptedSolves?{acceptedSolves:s.acceptedSolves}:{}),
+         ...(s.acceptedWallGaps?{acceptedWallGaps:[...s.acceptedWallGaps]}:{}),...(Number.isFinite(s.maxBendAngle)?{maxBendAngle:s.maxBendAngle}:{}),...(s.origin?.some(v=>v!==0)?{origin:s.origin}:{}),...(s.fractionalTipThreshold>0?{fractionalTipThreshold:s.fractionalTipThreshold}:{}),...(s.minimumEdgeLength?{minimumEdgeLength:s.minimumEdgeLength}:{}),tools:s.materials.map(t=>t.spec),coordinates:s.coordinates.slice(),
+--- a/src/physics/kirchhoffSharedAxisRestore.js
++++ b/src/physics/kirchhoffSharedAxisRestore.js
+@@ -48,7 +48,7 @@
+     if(fixture.graftCaptureBaseRows)contacts.wallSamples.push(createCapturePotential(fixture.graftCapture));
+     const s=createSharedAxisNative({...contacts,
+         fractionalTipThreshold:fixture.fractionalTipThreshold??0,rebaseNearTips:fixture.rebaseNearTips??false,spacing:fixture.spacing,tools:fixture.tools,maxBendAngle:fixture.maxBendAngle??Infinity,minimumEdgeLength:fixture.minimumEdgeLength??0,
+-        spatialKnots:fixture.coordinates,adaptiveMesh:fixture.adaptiveMesh,omitInactiveSampleRows:fixture.omitInactiveSampleRows??false});
++        spatialKnots:fixture.coordinates,adaptiveMesh:fixture.adaptiveMesh,omitInactiveSampleRows:fixture.omitInactiveSampleRows??false,separateDiscoveryRows:fixture.separateDiscoveryRows??false});
+     if(fixture.discoveryState)s.wallSamples.find(sample=>sample.restoreDiscoveryState)?.restoreDiscoveryState(fixture.discoveryState);
+     if(fixture.insideContinuation)s.wallSamples.find(sample=>sample.insideProofs)?.insideProofs.restore(fixture.insideContinuation);
+     if(fixture.origin)s.origin=fixture.origin.slice();

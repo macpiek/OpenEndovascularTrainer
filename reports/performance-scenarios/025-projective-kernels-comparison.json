@@ -1,0 +1,42 @@
+{
+  "allPosesAndQualityIdentical": true,
+  "control": {
+    "count": 952,
+    "meanCpuMs": 47.57468487084413,
+    "timings": {
+      "constraintMs": 15.3585084155828,
+      "linearMs": 6.703046220691264,
+      "assemblyMs": 9.23361345123844,
+      "rotationMs": 4.74222689591536,
+      "projectionMs": 12.942226888752785,
+      "closureSolveMs": 10.052731093989701
+    }
+  },
+  "candidate": {
+    "count": 952,
+    "meanCpuMs": 43.793907562724684,
+    "timings": {
+      "constraintMs": 13.828151272875923,
+      "linearMs": 4.599054619795134,
+      "assemblyMs": 9.67899158947608,
+      "rotationMs": 4.920693295092142,
+      "projectionMs": 11.806407561071781,
+      "closureSolveMs": 8.954201674761892
+    }
+  },
+  "options": {
+    "iterations": 16,
+    "maxLengthError": 1e-05,
+    "maxPenetration": 1e-05,
+    "maxShear": 1e-05,
+    "hardClosure": true,
+    "profile": true,
+    "reuseGeometry": true,
+    "fastRotations": false,
+    "scratchRotations": true,
+    "reuseContactRows": false,
+    "vectorSolve": true,
+    "triangleKernel": true,
+    "reuseProjectionWork": true
+  }
+}

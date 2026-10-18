@@ -1,0 +1,202 @@
+{
+  "recordedAt": "2026-10-14T13:15:32.769Z",
+  "goalAchieved": false,
+  "change": "Reuse owned fixed-working-set KKT outputs across fallback searches only after exact validation of the tangent, RHS, fixed mask, all contact coefficients and numerical options. Each strategy still executes its own pivots and complementarity checks. The private lease retains at most four linearizations, with up to 32 working sets each, and clears on completion or cancellation.",
+  "scope": "Enabled by default for reuseConstraintWork with ordinary working-set caching. Observer hooks, retained/condensed strategies and the factor-count-dependent earlyPredictorFallback experiment retain their original retries.",
+  "pairedBenchmark": {
+    "file": "001-fallback-working-set-verified-throughput.json",
+    "passed": true,
+    "stepsPerVersion": 600,
+    "runs": [
+      {
+        "version": "before",
+        "repeat": 0,
+        "summary": {
+          "steps": 300,
+          "totalMs": 10066.047757000017,
+          "medianMs": 24.082208000003448,
+          "p95Ms": 79.68620799999917,
+          "maxMs": 382.24579200000153,
+          "cpuStepsPerSecond": 29.803156833959726,
+          "withinBudget": 14
+        },
+        "factorizations": 3584,
+        "fallbackLinearizationReuses": 0,
+        "maxWorldDifferenceMm": 0
+      },
+      {
+        "version": "after",
+        "repeat": 0,
+        "summary": {
+          "steps": 300,
+          "totalMs": 9914.864555999971,
+          "medianMs": 23.926374999999098,
+          "p95Ms": 79.68579200000022,
+          "maxMs": 345.89154099999723,
+          "cpuStepsPerSecond": 30.25759941606618,
+          "withinBudget": 13
+        },
+        "factorizations": 3062,
+        "fallbackLinearizationReuses": 74,
+        "maxWorldDifferenceMm": 0
+      },
+      {
+        "version": "before",
+        "repeat": 1,
+        "summary": {
+          "steps": 300,
+          "totalMs": 9720.712919000023,
+          "medianMs": 23.00154200000179,
+          "p95Ms": 77.30945799999972,
+          "maxMs": 383.02954200000386,
+          "cpuStepsPerSecond": 30.861933944538425,
+          "withinBudget": 18
+        },
+        "factorizations": 3584,
+        "fallbackLinearizationReuses": 0,
+        "maxWorldDifferenceMm": 0
+      },
+      {
+        "version": "after",
+        "repeat": 1,
+        "summary": {
+          "steps": 300,
+          "totalMs": 9576.336335999997,
+          "medianMs": 22.24974999999904,
+          "p95Ms": 71.13920900000085,
+          "maxMs": 380.4953339999993,
+          "cpuStepsPerSecond": 31.327220502084934,
+          "withinBudget": 10
+        },
+        "factorizations": 3062,
+        "fallbackLinearizationReuses": 74,
+        "maxWorldDifferenceMm": 0
+      }
+    ],
+    "cpuReductionPercent": 1.4937249650901485,
+    "factorReductionPercent": 14.564732142857139,
+    "maxWorldDifferenceMm": 0,
+    "sourceHashesMatchCurrent": true,
+    "cpuBudgetMet": false
+  },
+  "earlierComparisons": [
+    "001-fallback-working-set-experiment.json",
+    "001-fallback-working-set-final-throughput.json"
+  ],
+  "validation": {
+    "tests": "001-fallback-working-set-verified-tests.log",
+    "passed": 64,
+    "failed": 0,
+    "build": "001-fallback-working-set-build.log",
+    "buildPassed": true,
+    "diffCheckPassed": true,
+    "testAdjustment": "NegativeReactionReplay now compares factor counts with observer callbacks on both paths, because observed calls intentionally bypass cross-fallback caching. Physical acceptance assertions and the +50 recovery-work bound remain unchanged."
+  },
+  "browser": {
+    "report": "001-browser-fallback-working-set.json",
+    "screenshot": "001-browser-fallback-working-set.jpg",
+    "passed": true,
+    "acceptedPhysicsHz": 24.198036732526692,
+    "renderFps": 59.123869749806886,
+    "wallSeconds": 12.397700000047683,
+    "simulationSeconds": 5,
+    "targetSteps": 300,
+    "stepCpuMs": {
+      "median": 25.300000190734863,
+      "p95": 65.79999995231628,
+      "max": 358.6000003814697
+    },
+    "consoleErrors": 0,
+    "goalAchieved": false
+  },
+  "precisionDiagnostic": {
+    "script": "scripts/diagnose-crossover-precision.mjs",
+    "report": "001-precision-99-16-8.json",
+    "replay": "001-precision-99-16-8-replay.json.gz",
+    "complete": true,
+    "converged": false,
+    "iterations": 1958,
+    "factorizations": 3104,
+    "fullBudgetSolves": 12,
+    "examples": [
+      {
+        "dt": 0.00013020833333333333,
+        "last": {
+          "iteration": 159,
+          "force": 0.000009100745955947787,
+          "torque": 2.4614404736666984e-8,
+          "constraint": 9.980904991380157e-14,
+          "rows": 953,
+          "worst": {
+            "node": 36,
+            "axis": 1,
+            "dof": 181,
+            "position": 583.9523306265554,
+            "residual": -0.000009100745955947787,
+            "coordinateUlpMm": 1.1368683772161603e-13,
+            "inertiaForcePerUlp": 0.000018440251573004036,
+            "inertiaWeight": 162202168.1890609,
+            "inertiaResidual": 5.410498893280395
+          }
+        },
+        "direction": {
+          "iteration": 159,
+          "method": 0,
+          "converged": true,
+          "factorizations": 1,
+          "maxPositionCorrectionMm": 3.192562660794538e-13,
+          "nonzero": 615,
+          "roundedAway": 420,
+          "worstForceCorrectionMm": 5.903093914268616e-14,
+          "worstForceCorrectionUlps": 0.5192416318873668,
+          "worstForcePositionUnchanged": false
+        }
+      },
+      {
+        "dt": 0.00013020833333333333,
+        "last": {
+          "iteration": 159,
+          "force": 0.0000097090050985571,
+          "torque": 2.9498551157303154e-8,
+          "constraint": 6.927791673660977e-14,
+          "rows": 953,
+          "worst": {
+            "node": 47,
+            "axis": 1,
+            "dof": 236,
+            "position": 619.6801148548033,
+            "residual": 0.0000097090050985571,
+            "coordinateUlpMm": 1.1368683772161603e-13,
+            "inertiaForcePerUlp": 0.0000184405337570902,
+            "inertiaWeight": 162204650.30653217,
+            "inertiaResidual": 58.34013224196869
+          }
+        },
+        "direction": {
+          "iteration": 159,
+          "method": 0,
+          "converged": true,
+          "factorizations": 1,
+          "maxPositionCorrectionMm": 3.5460133017026827e-13,
+          "nonzero": 615,
+          "roundedAway": 443,
+          "worstForceCorrectionMm": -5.381621979587044e-14,
+          "worstForceCorrectionUlps": -0.47337247542806804,
+          "worstForcePositionUnchanged": true
+        }
+      }
+    ],
+    "finding": "At dt=1/7680, hundreds of nonzero positional Newton corrections round away. One coordinate ulp changes the inertia force by about 1.84e-5, while the requested force tolerance is 1e-6. This supports a precision-floor diagnosis but is not a full residual error bound. No acceptance tolerance was loosened."
+  },
+  "rejectedPrototype": {
+    "report": "001-fallback-direction-cache-experiment.json",
+    "missDiagnostic": "001-fallback-direction-cache-misses.log",
+    "decision": "Whole-direction reuse was replaced: strategy flags differ between fallbacks, so exact full-search matching produced zero hits. Reuse now occurs within fixed working sets and leaves strategy-specific search intact."
+  },
+  "limitations": [
+    "Current browser result is about 24.2 Hz, not 60 Hz. Earlier standalone browser runs are not paired timing comparisons.",
+    "Browser benchmark uses the actual timestep scheduler and full mechanical grid, but simplified rendering without full RTG or extra application work.",
+    "The reproducible continuation covers hold, withdrawal, advancement and settling from stage 05; it does not replay the entire manual crossover."
+  ],
+  "nextWork": "Profile remaining contact assembly cost; investigate local displacement/precision for the captured tiny-timestep failure without weakening the force certificate."
+}

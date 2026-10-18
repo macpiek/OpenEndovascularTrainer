@@ -1,6 +1,7 @@
 import {applyBloodFlowToPrediction} from './bloodFlowCoupling.js';
 import { Quaternion } from 'three';
 import { quaternionExp } from './discreteKirchhoffRod.js';
+import {sharedAxisMaterialInertiaWorkspace} from './kirchhoffSharedAxisMaterialKernel.js';
 
 
 const q=(b,e)=>new Quaternion(b.orientationX[e],b.orientationY[e],b.orientationZ[e],b.orientationW[e]);
@@ -61,10 +62,12 @@ export function prepareSharedAxisDynamicStep(s,dt,bloodFlow=null) {
 
 /** Implicit kinetic potential, on the SAME shared positions and independent
  * material frames. Its gradient participates in the physical residual. */
-export function assembleSharedAxisInertia(s,withTangent=true) {
+export function assembleSharedAxisInertia(s,withTangent=true,wasmInertia=false) {
     if(!s.dynamicStep)return 0;
     const {dt,predicted,frames,masses}=s.dynamicStep,{layout,chain}=s,half=layout.band-1,width=2*half+1;
     const H=chain.tangent??chain.hessian,g=chain.gradient,full=!!chain.tangent;
+    const kernel=withTangent&&wasmInertia?sharedAxisMaterialInertiaWorkspace(chain):null;
+    let packedEdges=0;
     const add=(i,j,value)=>{
         if(!withTangent)return;
         if(full)H[i*width+j-i+half]+=value;
@@ -98,6 +101,15 @@ export function assembleSharedAxisInertia(s,withTangent=true) {
             }
             dofs[6]=spins[e];g[dofs[6]]+=torque[2];
             if(!withTangent)continue;
+            if(kernel) {
+                const packed=kernel.records[packedEdges++],data=packed.data;
+                packed.dofs.set(dofs);
+                data[0]=orientation.x;data[1]=orientation.y;data[2]=orientation.z;data[3]=orientation.w;
+                data.set(d1,4);data.set(d2,7);data.set(force,10);
+                data[13]=tx;data[14]=ty;data[15]=tz;data[16]=length;
+                data.set(torque,17);data.set(jacobian,20);
+                continue;
+            }
             for(let col=0;col<7;col++) {
                 const sign=col<3?-1:col<6?1:0,dx=col%3===0?sign:0,dy=col%3===1?sign:0,dz=col%3===2?sign:0;
                 const a0=-(d2[0]*dx+d2[1]*dy+d2[2]*dz)/length,a1=(d1[0]*dx+d1[1]*dy+d1[2]*dz)/length,a2=col===6?1:0;
@@ -114,6 +126,7 @@ export function assembleSharedAxisInertia(s,withTangent=true) {
             }
         }
     }
+    kernel?.assembleInertia(packedEdges);
     return energy;
 }
 

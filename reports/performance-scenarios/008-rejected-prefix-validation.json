@@ -1,0 +1,51 @@
+{
+  "reference": "003-crossover-full-user-inputs.json.gz",
+  "scope": "Incomplete rejected prefixes only; this is not full-maneuver acceptance.",
+  "inputPrefixesVerified": true,
+  "shapeMetricIndependentlyVerified": true,
+  "physicalGatesVerifiedForBothAccesses": true,
+  "results": [
+    {
+      "name": "008-tail32-rejected.json.gz",
+      "steps": 1592,
+      "complete": false,
+      "firstDifference": 314,
+      "maxDifference": 1.2158248208608562,
+      "maxCertificate": 9.94819693289628e-7,
+      "maxPenetration": 2.7838390481704778e-9,
+      "maxLength": 2.7838390481704778e-9,
+      "motionHz": 59.86619596542458,
+      "lastStageMotionHz": null,
+      "error": "Różnica kształtu 1.2158 mm przekracza 1 mm.",
+      "accepted": false
+    },
+    {
+      "name": "008-tail32-long-rejected.json.gz",
+      "steps": 7176,
+      "complete": false,
+      "firstDifference": 6128,
+      "maxDifference": 1.0698414081766212,
+      "maxCertificate": 9.982418589515873e-7,
+      "maxPenetration": 9.924170485398065e-9,
+      "maxLength": 9.924170485398065e-9,
+      "motionHz": 42.33419108527285,
+      "lastStageMotionHz": 36.83715023835937,
+      "error": "Różnica kształtu 1.0698 mm przekracza 1 mm.",
+      "accepted": false
+    },
+    {
+      "name": "008-global-protected-rejected.json.gz",
+      "steps": 1608,
+      "complete": false,
+      "firstDifference": 544,
+      "maxDifference": 1.3793285906969217,
+      "maxCertificate": 9.94819693289628e-7,
+      "maxPenetration": 1.0409220291274224e-9,
+      "maxLength": 1.0409220291274224e-9,
+      "motionHz": 59.72555557469447,
+      "lastStageMotionHz": null,
+      "error": "Różnica kształtu 1.3793 mm przekracza 1 mm.",
+      "accepted": false
+    }
+  ]
+}

@@ -1,0 +1,217 @@
+{
+  "input": "reports/performance-scenarios/026-projective-deferred-paired.json.gz",
+  "sha256": "d7694db4f1889c26e2a72c836d550e481d88451939ecc822129e9fbd3f9e3607",
+  "steps": 7507,
+  "allPosesAndQualityIdentical": true,
+  "profiles": {
+    "candidate": {
+      "moving": {
+        "steps": 3645,
+        "meanCpuMs": 26.2012071294222,
+        "cpuCapacityHz": 38.16618047635931,
+        "timings": {
+          "constraintMs": 8.379122089718267,
+          "linearMs": 2.3402743385979505,
+          "assemblyMs": 6.740246903781864,
+          "rotationMs": 3.100548683174353,
+          "projectionMs": 6.115061728486635,
+          "closureSolveMs": 4.270534984630485
+        }
+      },
+      "longMoving": {
+        "steps": 952,
+        "meanCpuMs": 55.46523108827967,
+        "cpuCapacityHz": 18.0293127853083,
+        "timings": {
+          "constraintMs": 18.802205893672816,
+          "linearMs": 5.119327729740062,
+          "assemblyMs": 13.127731094590755,
+          "rotationMs": 5.5861344415099685,
+          "projectionMs": 14.630147064182939,
+          "closureSolveMs": 10.70766807428929
+        }
+      },
+      "stages": [
+        {
+          "steps": 872,
+          "meanCpuMs": 9.293348618877044,
+          "cpuCapacityHz": 107.60384023136264,
+          "timings": {
+            "constraintMs": 2.504128439163943,
+            "linearMs": 0.6646788913175601,
+            "assemblyMs": 2.8979357732545346,
+            "rotationMs": 1.3480504475055484,
+            "projectionMs": 1.584174307387903,
+            "closureSolveMs": 0.982454131502624
+          }
+        },
+        {
+          "steps": 127,
+          "meanCpuMs": 10.850393693278155,
+          "cpuCapacityHz": 92.16255449048843,
+          "timings": {
+            "constraintMs": 3.0661417311570776,
+            "linearMs": 0.9999999812268835,
+            "assemblyMs": 3.1732283164197064,
+            "rotationMs": 1.7464566456051323,
+            "projectionMs": 1.7354330697397546,
+            "closureSolveMs": 1.0551181196227788
+          }
+        },
+        {
+          "steps": 115,
+          "meanCpuMs": 11.560869561070982,
+          "cpuCapacityHz": 86.49868374670612,
+          "timings": {
+            "constraintMs": 2.9869565092999,
+            "linearMs": 1.0226086678712265,
+            "assemblyMs": 3.6756521971329397,
+            "rotationMs": 1.893043505627176,
+            "projectionMs": 1.699999997926795,
+            "closureSolveMs": 1.0060869755952255
+          }
+        },
+        {
+          "steps": 1579,
+          "meanCpuMs": 20.195820137093985,
+          "cpuCapacityHz": 49.515196372901144,
+          "timings": {
+            "constraintMs": 6.159404692127404,
+            "linearMs": 1.7938568573952325,
+            "assemblyMs": 5.521152608676981,
+            "rotationMs": 2.766624429695511,
+            "projectionMs": 4.157188093458421,
+            "closureSolveMs": 2.7017099469277284
+          }
+        },
+        {
+          "steps": 952,
+          "meanCpuMs": 55.46523108827967,
+          "cpuCapacityHz": 18.0293127853083,
+          "timings": {
+            "constraintMs": 18.802205893672816,
+            "linearMs": 5.119327729740062,
+            "assemblyMs": 13.127731094590755,
+            "rotationMs": 5.5861344415099685,
+            "projectionMs": 14.630147064182939,
+            "closureSolveMs": 10.70766807428929
+          }
+        }
+      ]
+    },
+    "control": {
+      "moving": {
+        "steps": 3645,
+        "meanCpuMs": 25.102935528657074,
+        "cpuCapacityHz": 39.83597849974229,
+        "timings": {
+          "constraintMs": 7.683923177038855,
+          "linearMs": 2.31772290388089,
+          "assemblyMs": 6.2898765536492744,
+          "rotationMs": 3.080521267562573,
+          "projectionMs": 5.848641974445233,
+          "closureSolveMs": 4.168532236122791
+        }
+      },
+      "longMoving": {
+        "steps": 952,
+        "meanCpuMs": 52.556197481996875,
+        "cpuCapacityHz": 19.027251740245287,
+        "timings": {
+          "constraintMs": 17.033718476525877,
+          "linearMs": 5.097268889932072,
+          "assemblyMs": 11.882457990606293,
+          "rotationMs": 5.533193286226577,
+          "projectionMs": 14.003886553670178,
+          "closureSolveMs": 10.46102940585433
+        }
+      },
+      "stages": [
+        {
+          "steps": 872,
+          "meanCpuMs": 9.28130733802778,
+          "cpuCapacityHz": 107.74344212293845,
+          "timings": {
+            "constraintMs": 2.369724781961616,
+            "linearMs": 0.6685779805577129,
+            "assemblyMs": 2.884288993177064,
+            "rotationMs": 1.3611238505862175,
+            "projectionMs": 1.5469036690138895,
+            "closureSolveMs": 0.9846330276869852
+          }
+        },
+        {
+          "steps": 127,
+          "meanCpuMs": 10.637795279345175,
+          "cpuCapacityHz": 94.00444112152122,
+          "timings": {
+            "constraintMs": 2.933070828595499,
+            "linearMs": 0.9204724285546251,
+            "assemblyMs": 3.1031496506037675,
+            "rotationMs": 1.713385893603948,
+            "projectionMs": 1.6362204608016127,
+            "closureSolveMs": 0.9984252077388013
+          }
+        },
+        {
+          "steps": 115,
+          "meanCpuMs": 11.02956521614738,
+          "cpuCapacityHz": 90.66540524516698,
+          "timings": {
+            "constraintMs": 2.7260869523753293,
+            "linearMs": 0.9356521855229917,
+            "assemblyMs": 3.441739136239757,
+            "rotationMs": 1.8773913155431332,
+            "projectionMs": 1.5426086944082509,
+            "closureSolveMs": 0.9486956617106562
+          }
+        },
+        {
+          "steps": 1579,
+          "meanCpuMs": 19.476884103863206,
+          "cpuCapacityHz": 51.34291474279768,
+          "timings": {
+            "constraintMs": 5.72476249906819,
+            "linearMs": 1.7656744791783434,
+            "assemblyMs": 5.26250793074716,
+            "rotationMs": 2.7488917063277607,
+            "projectionMs": 3.9597846738442053,
+            "closureSolveMs": 2.622482586239168
+          }
+        },
+        {
+          "steps": 952,
+          "meanCpuMs": 52.556197481996875,
+          "cpuCapacityHz": 19.027251740245287,
+          "timings": {
+            "constraintMs": 17.033718476525877,
+            "linearMs": 5.097268889932072,
+            "assemblyMs": 11.882457990606293,
+            "rotationMs": 5.533193286226577,
+            "projectionMs": 14.003886553670178,
+            "closureSolveMs": 10.46102940585433
+          }
+        }
+      ]
+    }
+  },
+  "longStageCostReductionPercent": -5.535091474757636,
+  "orderGroups": [
+    {
+      "first": "control",
+      "steps": 477,
+      "candidateMs": 54.254297692820714,
+      "controlMs": 54.198322854451916
+    },
+    {
+      "first": "candidate",
+      "steps": 475,
+      "candidateMs": 56.68126315066689,
+      "controlMs": 50.907157897447284
+    }
+  ],
+  "scope": "Two independent complete trajectories; solver order alternates per input step; both run on the same browser thread.",
+  "applicationFpsVerified": false,
+  "goalAchieved": false,
+  "caveat": "Both independent trajectories run on one thread. Alternating order reduces time/order bias but shared browser caches and scheduling remain. Full app and two-access/common-clock validation are still required."
+}

@@ -7,12 +7,19 @@ export const DEFAULT_ADAPTIVE_MESH = Object.freeze({
     maxSpacing: 20, shapeTolerance: .15, maxArcLoss: .002,
     maxTurn: Math.PI / 15, contactMargin: 1, tipLength: 30
 });
+// Opt-in research preset for the captured long-tool crossover. Keep fine
+// mechanics at wall contacts and ahead of moving tips. This changes spatial
+// accuracy, not force/length tolerances; no application factory enables it.
+export const CONTACT_PROTECTED_MESH = Object.freeze({
+    maxSpacing:20, shapeTolerance:.03, maxArcLoss:.0002,
+    maxTurn:.08, contactMargin:.01, tipLength:40, tipRefinementAhead:40
+});
 export const ADAPTIVE_SOLVE_OPTIONS = Object.freeze({forceTolerance: 1e-4, lengthTolerance: 1e-3});
 
 export function adaptiveMeshOptions(value) {
     if (!value) return null;
     const options = {...DEFAULT_ADAPTIVE_MESH, ...(value === true ? {} : value)};
-    if (!Object.entries(options).every(([key,v]) => Number.isFinite(v) && (key === 'contactMargin' || key === 'maxArcLoss' || key === 'tipRefinementAhead' ? v >= 0 : v > 0)) || options.maxTurn >= Math.PI || options.maxArcLoss >= 1)
+    if (!Object.entries(options).every(([key,v]) => Number.isFinite(v) && (key === 'contactMargin' || key === 'maxArcLoss' || key === 'tipRefinementAhead' || key === 'finePrefixLength' ? v >= 0 : v > 0)) || options.maxTurn >= Math.PI || options.maxArcLoss >= 1)
         throw new RangeError('Invalid adaptive mesh budget');
     return options;
 }
@@ -46,8 +53,9 @@ export function adaptiveContactKnots(previous, options) {
     return knots;
 }
 
-export function retainAdaptiveShapeSamples(coordinates, positions, previous, options) {
+export function retainAdaptiveShapeSamples(coordinates, positions, previous, options, {tools=[]}={}) {
     if (!previous) return;
+    const fineTips=tools.map(tool=>({start:tool.insertion-tipLength(tool,options),end:tool.insertion+(options.tipRefinementAhead??0)}));
     // Penalty cloth contacts have no active KKT rows. Preserve their actual
     // bends before resampling, but discard collinear moving-tip knots.
     const contacts = new Set((previous.wallSamples ?? []).flatMap(sample =>
@@ -56,6 +64,9 @@ export function retainAdaptiveShapeSamples(coordinates, positions, previous, opt
     for (let n = 0; n < previous.coordinates.length; n++) {
         const x = previous.coordinates[n];
         if (x <= coordinates[0] || x >= coordinates.at(-1)) continue;
+        // An explicitly protected prefix uses the original regular fine grid.
+        // Do not accumulate obsolete moving-tip knots inside that region.
+        const inFinePrefix=x<=(options.finePrefixLength??-Infinity)+(previous.spacing??0);
         while (edge + 1 < coordinates.length - 1 && coordinates[edge + 1] < x) edge++;
         const t = (x - coordinates[edge]) / (coordinates[edge + 1] - coordinates[edge]);
         const p = previous.positions[n];
@@ -63,7 +74,11 @@ export function retainAdaptiveShapeSamples(coordinates, positions, previous, opt
         const clothBend = contacts.has(x) && error > 1e-8 &&
             (error > .01 || (previous.wallSamples ?? []).some(sample =>
                 sample.meshChordCrosses?.(positions[edge], positions[edge+1])));
-        if ((error > options.shapeTolerance || clothBend) && t > 1e-9 && t < 1-1e-9) {
+        // Tips already use the reference fine grid. Retaining discarded moving
+        // endpoints here creates extra short elements and changes tip stiffness.
+        // Physical cloth bends still retain their required geometry.
+        const inFineTip=fineTips.some(tip=>x>=tip.start&&x<=tip.end);
+        if ((error > options.shapeTolerance && !inFineTip && !inFinePrefix || clothBend) && t > 1e-9 && t < 1-1e-9) {
             coordinates.splice(edge+1,0,x); positions.splice(edge+1,0,p.slice()); edge++;
         }
     }
@@ -84,7 +99,7 @@ export function coarsenSharedAxisMesh(coordinates, positions, {tools, boundaries
     // application factory enables this coarser contact neighbourhood yet.
     const relaxContactMesh=(options.contactMaxSpacing??spacing)>spacing;
     const tips = tools.map(tool => ({end: tool.insertion+(options.tipRefinementAhead??0), start: tool.insertion - tipLength(tool, options)}));
-    const protectedNode = coordinates.map((x, i) => i < 2 || i === coordinates.length - 1 ||
+    const protectedNode = coordinates.map((x, i) => x<=(options.finePrefixLength??-Infinity)+spacing || i < 2 || i === coordinates.length - 1 ||
         boundaries.includes(x) || (!relaxContactMesh&&(contacts.has(x) || contactSpans.some(([a,b])=>x>=a&&x<=b))) || tips.some(t => x >= t.start && x <= t.end) ||
         boundaries.some(b => Math.abs(b - x) <= spacing));
     const distance = (a, b) => Math.hypot(...a.map((v, k) => v - b[k]));

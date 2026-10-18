@@ -1,0 +1,152 @@
+--- /dev/null
++++ b/src/physics/kirchhoffBandPrefixProfile.js
+@@ -0,0 +1,34 @@
++// Diagnostic only. A synchronous generator slice owns the collector; neither
++// suspension nor cancellation may leave it installed for another solver.
++let current=null;
++export const bandPrefixProfileLease=Symbol('band-prefix-profile');
++export function createBandPrefixProfile() {
++    return {previous:null,report:{calls:0,sameStrideCalls:0,columns:0,safePrefixColumns:0,
++        buckets:{32:0,64:0,128:0,256:0,512:0},maxPrefixColumns:0}};
++}
++export function withBandPrefixProfile(profile,run) {
++    const old=current;current=profile;
++    try{return run();}finally{current=old;}
++}
++export function recordPreparedBandPrefix(factor,rhs,right,count,stride,kl,ku) {
++    if(!current)return;
++    const d=current.report,p=current.previous;d.calls++;d.columns+=count;
++    let safe=0;
++    if(p&&p.stride===stride&&p.kl===kl&&p.ku===ku) {
++        d.sameStrideCalls++;let row=0;
++        outer:for(;row<Math.min(p.count,count);row++) {
++            if(!Object.is(p.rhs[row],rhs[row])||p.right[row]!==right[row])break;
++            for(let j=row*stride,end=j+stride;j<end;j++)if(!Object.is(p.factor[j],factor[j]))break outer;
++        }
++        // A pivot in column k may use rows up to k+kl. Comparing fewer rows
++        // could reuse a prefix whose pivot or elimination has changed.
++        safe=Math.max(0,row-kl);d.safePrefixColumns+=safe;
++        d.maxPrefixColumns=Math.max(d.maxPrefixColumns,safe);
++    }
++    for(const limit of [32,64,128,256,512])if(safe>=limit)d.buckets[limit]++;
++    let next=p;
++    if(!next||next.factor.length<factor.length||next.rhs.length<count)
++        next={factor:new Float64Array(factor.length),rhs:new Float64Array(count),right:new Int32Array(count)};
++    next.factor.set(factor);next.rhs.set(rhs);next.right.set(right);
++    Object.assign(next,{count,stride,kl,ku});current.previous=next;
++}
+--- a/src/physics/kirchhoffCoulombBandLU.js
++++ b/src/physics/kirchhoffCoulombBandLU.js
+@@ -1,3 +1,4 @@
++import {recordPreparedBandPrefix} from './kirchhoffBandPrefixProfile.js';
+ import { createKirchhoffLinearKernel } from './kirchhoffLinearKernel.js';
+ 
+ /** Shared temporary factor storage for sequential synchronous solves. A LU
+@@ -152,6 +153,7 @@
+                 for (let j = starts[i]; j <= ends[i]; j++) originalMaximum = Math.max(originalMaximum, Math.abs(factor[target + j]));
+             }
+             }
++            recordPreparedBandPrefix(factor,rhs,right,count,stride,kl,ku);
+             const swaps = kernel.solveGeneralBandLU(factor.byteOffset, rhs.byteOffset, right.byteOffset, count, kl, ku);
+             if (swaps < 0) return false;
+             diagnostics.rowSwaps += swaps;
+--- a/src/physics/kirchhoffSharedAxisAppSystem.js
++++ b/src/physics/kirchhoffSharedAxisAppSystem.js
+@@ -1,3 +1,4 @@
++import {createBandPrefixProfile,withBandPrefixProfile,bandPrefixProfileLease} from './kirchhoffBandPrefixProfile.js';
+ import {directionProfileLease} from './kirchhoffSharedAxisDirectionProfile.js';
+ import {captureBloodFlow} from './bloodFlowCoupling.js';
+ import {createCapturePotential} from '../devices/stentGraftCapture.js';
+@@ -259,6 +260,23 @@
+ 
+ /** Feed and rotation subdivision is identical in the UI and anatomy replay. */
+ export function* advanceSharedAxis(starting,startingRotations,dt,tools,physicsOptions={}) {
++    if(physicsOptions.profileBandPrefix&&!physicsOptions[bandPrefixProfileLease]) {
++        const profile=createBandPrefixProfile();
++        const iterator=advanceSharedAxis(starting,startingRotations,dt,tools,{...physicsOptions,[bandPrefixProfileLease]:true});
++        let completed=false;
++        try {
++            while(true) {
++                const next=withBandPrefixProfile(profile,()=>iterator.next());
++                if(next.done) {
++                    completed=true;
++                    return {...next.value,result:{...next.value.result,bandPrefixProfile:profile.report}};
++                }
++                yield next.value;
++            }
++        } finally {
++            if(!completed)withBandPrefixProfile(profile,()=>iterator.return());
++        }
++    }
+     if(physicsOptions.profileDirections&&!physicsOptions[directionProfileLease]) {
+         const directionProfile={};
+         const next=yield* advanceSharedAxis(starting,startingRotations,dt,tools,{...physicsOptions,[directionProfileLease]:directionProfile});
+--- a/src/benchmark/crossoverScenarioRecording.js
++++ b/src/benchmark/crossoverScenarioRecording.js
+@@ -15,7 +15,7 @@
+ const validQuality=(quality,dt)=>Array.isArray(quality)&&quality.length===2&&quality.every(q=>crossoverPhysicalGate(dt,q));
+ const captureQuality=d=>({converged:d.last.converged,certificateBound:d.last.certificateBound,residual:{length:d.last.residual.length},
+     quality:{finite:d.last.quality.finite,maxPenetration:d.last.quality.maxPenetration,bodies:d.last.quality.bodies.map(b=>({maxLengthError:b.maxLengthError}))}});
+-const captureWork=d=>({mesh:{...d.mesh},...(d.last?.directionProfile?{directionProfile:structuredClone(d.last.directionProfile)}:{}),...Object.fromEntries([
++const captureWork=d=>({mesh:{...d.mesh},...(d.last?.bandPrefixProfile?{bandPrefixProfile:structuredClone(d.last.bandPrefixProfile)}:{}),...(d.last?.directionProfile?{directionProfile:structuredClone(d.last.directionProfile)}:{}),...Object.fromEntries([
+     'iterations','factorizations','backtracks','geometryRestarts','frictionIterations','substepAttempts','subdivisions',
+     'predictorFallbacks','coupledFrictionFallbacks','wallNormalFallbacks','replayCaptureMs',
+     'workerWallMs','workerDispatchDelayMs','workerResponseMs','workerPublicationDelayMs'
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -229,6 +229,7 @@
+             pruneInactiveWitnesses:false,projectiveDynamics:false,
+             physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,forceTolerance:1e-6,lengthTolerance:1e-5,
+                 ...(new URLSearchParams(window.location.search).get('crossoverProfileDirections')==='1'?{profileDirections:true}:{}),
++                ...(new URLSearchParams(window.location.search).get('crossoverProfileBandPrefix')==='1'?{profileBandPrefix:true}:{}),
+                 ...(crossoverBenchmarkMode==='wide'?{recoverNegativeContact:true}:{})}
+         }:{}),
+         onReady:()=>runIdlePhysicsCatchup(synchronizedStep.epoch,false),
+--- a/tests/kirchhoffSharedAxisAppSystem.test.js
++++ b/tests/kirchhoffSharedAxisAppSystem.test.js
+@@ -680,7 +680,7 @@
+ 
+ test('whole-step direction profiling preserves solver work and owns per-step counters',()=>{
+     const full=fixture({workSliceMs:Infinity}),instrumented=fixture({workSliceMs:Infinity,
+-        physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,profileDirections:true}});
++        physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,profileDirections:true,profileBandPrefix:true}});
+     let previous=null,saved=null;
+     for(let step=0;step<12;step++) {
+         for(const f of [full,instrumented]) {
+@@ -691,6 +691,8 @@
+         assert.deepEqual(instrumented.tools.map(t=>positions(t.body)),full.tools.map(t=>positions(t.body)));
+         for(const key of ['factorizations','iterations','certificateBound','fallbackLinearizationReuses'])assert.equal(b[key],a[key]);
+         assert.equal(Object.values(b.directionProfile).reduce((n,d)=>n+d.factorizations,0),b.factorizations);
++        assert.equal(b.bandPrefixProfile.calls,b.factorizations);
++        assert.ok(b.bandPrefixProfile.safePrefixColumns<=b.bandPrefixProfile.columns);
+         if(previous){assert.deepEqual(previous,saved);assert.notEqual(b.directionProfile,previous);}
+         previous=b.directionProfile;saved=structuredClone(previous);
+     }
+--- /dev/null
++++ b/tests/kirchhoffBandPrefixProfile.test.js
+@@ -0,0 +1,25 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {createBandPrefixProfile,withBandPrefixProfile,recordPreparedBandPrefix} from '../src/physics/kirchhoffBandPrefixProfile.js';
++const data=()=>({factor:new Float64Array(600*7).fill(2),rhs:new Float64Array(600).fill(1),right:Int32Array.from({length:600},(_,i)=>Math.min(599,i+2))});
++const record=d=>recordPreparedBandPrefix(d.factor,d.rhs,d.right,600,7,2,2);
++test('prefix eligibility includes the RHS, signed zero, row bounds and full pivot reach',()=>{
++    const p=createBandPrefixProfile(),d=data();withBandPrefixProfile(p,()=>{
++        record(d);d.rhs[400]=3;record(d);
++        assert.equal(p.report.safePrefixColumns,398);
++        d.factor[300*7]=-0;record(d);
++        assert.equal(p.report.safePrefixColumns,398+298);
++        d.factor[300*7]=0;record(d);
++        assert.equal(p.report.safePrefixColumns,398+298*2);
++        d.right[200]++;record(d);
++        assert.equal(p.report.safePrefixColumns,398+298*2+198);
++    });assert.equal(p.report.calls,5);
++});
++test('profile scopes restore on nested calls, suspension and throw; numerical input remains owned by the caller',()=>{
++    const a=createBandPrefixProfile(),b=createBandPrefixProfile(),d=data(),saved=structuredClone(d);
++    withBandPrefixProfile(a,()=>{record(d);withBandPrefixProfile(b,()=>record(d));record(d);});
++    record(d);assert.equal(a.report.calls,2);assert.equal(b.report.calls,1);
++    assert.throws(()=>withBandPrefixProfile(a,()=>{throw new Error('cancel');}));record(d);
++    assert.equal(a.report.calls,2);assert.deepEqual(d,saved);
++    d.rhs.fill(4);assert.equal(a.previous.rhs[0],1);assert.equal(b.previous.rhs[0],1);
++});

@@ -1,0 +1,39 @@
+{
+  "updatedAt": "2026-10-15T17:22:58.952Z",
+  "goalAchieved": false,
+  "fullManeuverAvailable": false,
+  "previousTurnClassification": "progress: continuous input recorder and measured correction of stationary-biased throughput",
+  "currentProgress": [
+    "Live recorder statistics no longer traverse the full history.",
+    "Both solver quality certificates persist at every step.",
+    "Replay checks insertion, rotation and whole-shape tolerance.",
+    "Input validation runs before resetting tools.",
+    "Recording is disabled until local storage initialization completes.",
+    "Queued storage writes drain during runtime disposal."
+  ],
+  "validation": {
+    "testLog": "002-recorder-integrity-tests.log",
+    "passed": 45,
+    "failed": 0,
+    "buildLog": "002-recorder-integrity-build.log",
+    "buildPassed": true,
+    "browser": {
+      "steps": 754,
+      "restoredAfterReload": true,
+      "qualityProofs": 1508,
+      "identicalInputCommands": true,
+      "maxShapeDifferenceMm": 0,
+      "allStagesMarked": false,
+      "fullManeuverVerified": false,
+      "inputSequenceVerified": true,
+      "finalTools": {
+        "wire": 90.20000000000009,
+        "catheter": 84.9333333333332,
+        "wireRotation": 0,
+        "catheterRotation": 1.0838494654884783
+      },
+      "scope": "Short recorder smoke test; not evidence of 60 Hz for long insertion or the complete crossover."
+    }
+  },
+  "nextRequiredEvidence": "The complete user maneuver needs a continuous input recording; original evidence contains five checkpoints and a final-state fixture, not the intervening commands."
+}

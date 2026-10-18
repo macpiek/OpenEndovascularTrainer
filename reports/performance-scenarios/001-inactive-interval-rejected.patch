@@ -1,0 +1,59 @@
+--- before/src/physics/kirchhoffSharedAxisContacts.js
++++ experiment/src/physics/kirchhoffSharedAxisContacts.js
+@@ -35,6 +35,12 @@
+     wallSamples[0].sharedAxisGeometryOnly=true;
+     wallSamples[0].sharedAxisSheath=true;
+     wallSamples[0].contactOutputOwned=true;
++    // This interval is outside the introducer in material coordinates for
++    // every spatial pose. Its equation is exactly gap=1, J=0; no wall/radius
++    // evaluation is required. A fractional sample at the outlet is excluded
++    // by the same predicate used in the evaluator above.
++    wallSamples[0].inactiveMaterialInterval=(a,b,t)=>a>=length||
++        (t!==undefined&&t>=Math.min(1,(length-a)/(b-a)));
+     if(contactField) wallSamples.push(createSharedAxisVesselDiscovery(contactField,length,{retainDiscoveryCertificates,continuousDiscoverySign,certifiedDiscoverySamples,continuousSegmentContacts,candidateMargin:contactCandidateMargin}));
+     return {rebaseNearTips:localCoordinates,startCoordinate:-extension,boundaryCoordinates:[0,length],wallSamples,length,origin,
+         samplePosition:coordinate=>start.map((v,i)=>v+coordinate*axis[i])};
+--- before/src/physics/kirchhoffSharedAxisVesselWitnesses.js
++++ experiment/src/physics/kirchhoffSharedAxisVesselWitnesses.js
+@@ -208,6 +208,7 @@
+         return {gap:1,jacobian:[0,0,0,0,0,0]};
+     };
+     sample.sharedAxisGeometryOnly=true;sample.sharedAxisDiscovery=true;
++    sample.inactiveMaterialInterval=(a,b)=>b<=sheathLength;
+     sample.sharedAxisCompleteDiscovery=allSamples;
+     sample.discoveryCache=clearance;
+     sample.captureDiscoveryState=()=>({meshIdentity:sharedAxisGeometryIdentity(field.fallbackGeometry),
+--- before/src/physics/kirchhoffSharedAxisConstraintRows.js
++++ experiment/src/physics/kirchhoffSharedAxisConstraintRows.js
+@@ -2,6 +2,7 @@
+ // Geometry is immutable for a pose token. It contains no reactions: multiplier
+ // updates at an unchanged pose must still assemble fresh forces and tangents.
+ const poseGeometry = new WeakMap(), positionMasks = new WeakMap();
++const inactiveMaterialContact=Object.freeze({gap:1,jacobian:Object.freeze([0,0,0,0,0,0])});
+ 
+ export function sharedAxisPositionDofMask(layout) {
+     let mask=positionMasks.get(layout);
+@@ -103,6 +104,9 @@
+         if(prepareOnly)prepareOnly.index=index;
+         if(prepared?.error&&prepared.index===index)throw prepared.error;
+         const def=s.definitions[index],e=def.edge,a=s.positions[e],b=s.positions[e+1],length=geometry.lengths[e];
++        const evaluator=def.kind==='wall'?(def.evaluate??s.wallSamples[def.sample]):null;
++        const constantInactive=reuseConstraintWork&&!def.witness&&def.dofs.length===6&&
++            evaluator?.inactiveMaterialInterval?.(s.coordinates[e],s.coordinates[e+1],def.sampleT);
+         let gap,J,gapHessian=null,row;
+         if(storage&&!prepareOnly) {
+             row=rows[index]??storage.rowBuffers?.[index];
+@@ -128,6 +132,13 @@
+ 
+         if(def.kind==='length') {
+             gap=length-(s.coordinates[e+1]-s.coordinates[e]);J=geometry.jacobians[e];
++        } else if(constantInactive) {
++            // Native samplers certify this material interval independently of
++            // spatial pose, radius, reactions and Hessian requests. Keep the
++            // exact row/order/reaction in the public measure; skip only the
++            // owner lookup, geometry cache and allocation of a zero Jacobian.
++            if(prepareOnly)prepareOnly.contacts[index]=inactiveMaterialContact;
++            gap=1;J=inactiveMaterialContact.jacobian;
+         } else if(prepared?.contacts) {
+             const contact=prepared.contacts[index];
+             gap=contact.gap;J=contact.jacobian;gapHessian=contact.hessian??null;

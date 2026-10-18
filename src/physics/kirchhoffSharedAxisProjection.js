@@ -5,7 +5,7 @@ import {createSharedAxisLinear,iterateSharedAxisLinear} from './kirchhoffSharedA
 // only the band actually required by its constraint Jacobians. In reduced
 // mode eliminate uncoupled spin variables exactly (their correction is zero);
 // retain all positional unknowns and solve their reactions globally.
-export function* iterateSharedAxisProjection(s,base,{reuseStructure=true,mode='reduced',reuseConstraintWork=false,reuseMatrixAssembly=false}={}) {
+export function* iterateSharedAxisProjection(s,base,{reuseStructure=true,mode='reduced',reuseConstraintWork=false,reuseMatrixAssembly=false,trace=null}={}) {
     let cache=s.projectionWorkspace;
     if(!cache||cache.layout!==s.layout||cache.definitions!==s.definitions||cache.zeroReactions.length!==s.definitions.length||cache.mode!==mode) {
         const positionOnly=mode==='reduced';
@@ -40,7 +40,10 @@ export function* iterateSharedAxisProjection(s,base,{reuseStructure=true,mode='r
     }
     if(cache.originalDofs)cache.originalDofs.forEach((p,i)=>{cache.fixed[i]=s.fixed[p];});
     const result=yield* iterateSharedAxisLinear(cache.mixed,cache.chain,
-        {fixed:cache.fixed,gradient:cache.gradient,rows,tolerance:1e-10,reuseStructure,reuseConstraintWork,reuseMatrixAssembly,identityProjection:mode,basisWorkspaceKey:s.fixed});
+        {fixed:cache.fixed,gradient:cache.gradient,rows,tolerance:1e-10,reuseStructure,reuseConstraintWork,reuseMatrixAssembly,identityProjection:mode,basisWorkspaceKey:s.fixed,trace});
+    // An isolated identity row can return -0 when its trailing zero columns
+    // are omitted. Match the exact zero correction of eliminated spin DOFs.
+    if(result.increment)for(let i=0;i<result.increment.length;i++)if(result.increment[i]===0)result.increment[i]=0;
     if(cache.originalDofs)cache.originalDofs.forEach((p,i)=>{cache.increment[p]=result.increment?.[i]??0;});
     return {...result,increment:cache.increment??result.increment,zeroReactions:cache.zeroReactions};
 }

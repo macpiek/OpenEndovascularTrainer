@@ -1,0 +1,169 @@
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -300,7 +300,7 @@
+ /** Pull back the EXISTING native material rows, including each material's
+  * intrinsic curvature. All world position variables belong to the chain;
+  * only the spin about each material director remains independent. */
+-export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ?? 'newton', withTangent=true, promotion=null, wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,rowStorage=null,cullInactiveContacts=false,earlyContactPreflight=false,retainFrictionBase=false } = {}) {
++export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ?? 'newton', withTangent=true, promotion=null, wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,rowStorage=null,cullInactiveContacts=false,earlyContactPreflight=false,retainFrictionBase=false,reuseFallbackAssembly=false } = {}) {
+     const { layout, chain } = s, { hessian: H, gradient: g } = chain;
+     H.fill(0); g.set(s.loads, 0); for (let i = 0; i < g.length; i++) g[i] = -g[i];
+     let energy = 0;
+@@ -314,6 +314,15 @@
+ 
+     const rowOptions={withTangent:withTangent&&!(reuseConstraintWork&&tangentMode==='gauss-newton'),outerMaterialAt:sharedAxisOuterMaterialAt,reuseConstraintWork,storage:rowStorage,cullInactiveContacts,
+         retainWallHessians:!!promotion&&!(reuseConstraintWork&&tangentMode==='gauss-newton')};
++    // Newton -> Gauss-Newton -> Newton retries can revisit the same physical
++    // pose and inertia target. Keep at most the two tangent variants. External
++    // potentials retain their original callback order and single-cache path.
++    const dualCache=reuseFallbackAssembly&&s.cacheMechanicalAssembly&&withTangent&&!s.wallSamples.some(sample=>sample.addPotential);
++    let switchedCache=false;
++    if(dualCache&&s.mechanicalAssemblyCache&&s.mechanicalAssemblyCache.tangentMode!==tangentMode) {
++        const old=s.mechanicalAssemblyCache,next=old.alternate??{};
++        old.alternate=undefined;next.alternate=old;s.mechanicalAssemblyCache=next;switchedCache=true;
++    }
+     let prepared=null;
+     // Only declared geometry-only evaluators may run before material/friction.
+     // Use the same row order and the same cache as ordinary assembly. A failed
+@@ -334,7 +343,7 @@
+             if(friction){friction.certified=false;friction.certificate=null;if(friction.liveNormalLoad)friction.normalForceColumns=[];}
+             if(s.cacheMechanicalAssembly&&withTangent) {
+                 const cached=s.mechanicalAssemblyCache;
+-                if(!cached||cached.key!==s.geometryKey||cached.dynamicStep!==s.dynamicStep||cached.tangentMode!==tangentMode)
++                if(switchedCache||!cached||cached.key!==s.geometryKey||cached.dynamicStep!==s.dynamicStep||cached.tangentMode!==tangentMode)
+                     s.mechanicalAssemblyCache=Object.assign(cached??{},{key:s.geometryKey,dynamicStep:s.dynamicStep,tangentMode,deferred:true});
+             }
+             chain.hessianValid=false;
+@@ -357,9 +366,15 @@
+ 
+     const cache=s.cacheMechanicalAssembly&&s.mechanicalAssemblyCache;
+     const mechanicalMatches=cache&&withTangent&&cache.key===s.geometryKey&&cache.dynamicStep===s.dynamicStep&&cache.tangentMode===tangentMode;
+-    const mechanicalReused=mechanicalMatches&&!cache.deferred;
++    const mechanicalReused=mechanicalMatches&&!cache.deferred&&(!switchedCache||cache.freshValid&&
++        cache.freshLoads.length===s.loads.length&&cache.freshLoads.every((v,i)=>Object.is(v,s.loads[i])));
+     if(mechanicalReused) {
+-        energy=cache.energy;for(let i=0;i<g.length;i++)g[i]=cache.gradient[i]-s.loads[i];
++        energy=cache.energy;
++        // Returning from another tangent originally rebuilt this gradient.
++        // Restore its fresh arithmetic, not the rounded load add/subtract of
++        // an ordinary same-mode cache hit. The loads must match exactly.
++        if(switchedCache)g.set(cache.freshGradient);
++        else for(let i=0;i<g.length;i++)g[i]=cache.gradient[i]-s.loads[i];
+         H.set(cache.hessian);
+         if(cache.tangent) {
+             if(chain.tangent?.length!==cache.tangent.length||chain.tangent===cache.tangent)chain.tangent=new Float64Array(cache.tangent.length);
+@@ -379,6 +394,11 @@
+         // friction and the next trial are allowed to overwrite those buffers.
+         const next=cache??{};
+         const wasDeferred=mechanicalMatches&&cache.deferred;
++        next.freshValid=false;
++        if(dualCache) {
++            if(next.freshGradient?.length!==g.length){next.freshGradient=new Float64Array(g.length);next.freshLoads=new Float64Array(g.length);}
++            next.freshGradient.set(g);next.freshLoads.set(s.loads);next.freshValid=true;
++        }
+         if(next.gradient?.length!==g.length)next.gradient=new Float64Array(g.length);
+         for(let i=0;i<g.length;i++)next.gradient[i]=g[i]+s.loads[i];
+         if(next.hessian?.length!==H.length)next.hessian=new Float64Array(H.length);
+@@ -509,7 +529,7 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, condenseCompliantContacts=false, primalCompliantContacts=false, stagnationResidualSearch=false, localContactRestarts = true, reuseWorkingSet = true,reuseRejectedWorkingSet=true,recoverNegativeContact=false,eliminateConstantRows=true,reuseRejectedNewton=true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,wasmBasis=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false,roundoffStagnation=false } = {}) {
++export function* iterateSharedAxisNative(s, { maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, condenseCompliantContacts=false, primalCompliantContacts=false, stagnationResidualSearch=false, localContactRestarts = true, reuseWorkingSet = true,reuseRejectedWorkingSet=true,recoverNegativeContact=false,eliminateConstantRows=true,reuseRejectedNewton=true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,wasmBasis=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false,reuseFallbackAssembly=false,roundoffStagnation=false } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+@@ -538,7 +558,7 @@
+     const observed=m=>rowPool?snapshotSharedAxisConstraintMeasure(m):m;
+     const assemble = (tangentMode,withTangent=true) => {
+         const start = performance.now();
+-        try{return assembleSharedAxisNative(s,{retainFrictionBase:reuseFrictionAssembly,tangentMode,withTangent,promotion,wasmMaterial,reuseMaterialScratch,reuseConstraintWork,earlyContactPreflight,cullInactiveContacts:cullInactiveContacts&&!modifiedNewton&&!incrementalContacts,rowStorage:rowPool?.acquire([base?.rows,protectedTrial?.rows])});}
++        try{return assembleSharedAxisNative(s,{retainFrictionBase:reuseFrictionAssembly,tangentMode,withTangent,promotion,wasmMaterial,reuseMaterialScratch,reuseConstraintWork,reuseFallbackAssembly,earlyContactPreflight,cullInactiveContacts:cullInactiveContacts&&!modifiedNewton&&!incrementalContacts,rowStorage:rowPool?.acquire([base?.rows,protectedTrial?.rows])});}
+         finally{const elapsed=performance.now()-start;timings.assemblyMs+=elapsed;
+             timings[withTangent?'tangentAssemblyMs':'residualAssemblyMs']+=elapsed;
+             if(withTangent)fullAssemblies++;else residualAssemblies++;}
+--- /dev/null
++++ b/tests/kirchhoffSharedAxisFallbackAssembly.test.js
+@@ -0,0 +1,82 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {createSharedAxisNative,assembleSharedAxisNative,applySharedAxisNativeIncrement} from '../src/physics/kirchhoffSharedAxisNative.js';
++import {prepareSharedAxisDynamicStep} from '../src/physics/kirchhoffSharedAxisDynamics.js';
++import {createSharedAxisConstraintRowPool} from '../src/physics/kirchhoffSharedAxisConstraintRows.js';
++
++function fixture(wallSamples=[]) {
++    const state=createSharedAxisNative({tools:[{id:'wire',insertion:55.2},{id:'catheter',type:'pigtail',insertion:42.7}],
++        wallSamples,samplePosition:x=>[80*Math.sin(x/80),80*(1-Math.cos(x/80)),.03*x]});
++    state.cacheMechanicalAssembly=true;state.loads[state.layout.dofCount-1]=.123;
++    let reads=0;
++    const body=state.materials[0].body,rest=body.restRotation1;
++    Object.defineProperty(body,'restRotation1',{get(){reads++;return rest;}});
++    return {state,pool:createSharedAxisConstraintRowPool(),reads:()=>reads};
++}
++function measure(f,reuseFallbackAssembly,options={}) {
++    const s=f.state,m=assembleSharedAxisNative(s,{reuseFallbackAssembly,rowStorage:f.pool.acquire(),reuseConstraintWork:true,...options});
++    return {energy:m.energy,force:m.force,torque:m.torque,constraint:m.constraint,
++        gradient:s.chain.gradient.slice(),hessian:s.chain.hessian.slice(),tangent:s.chain.tangent?.slice(),
++        rows:m.rows.map(r=>({gap:r.gap,multiplier:r.multiplier,jacobian:r.jacobian.slice(),hessian:r.geometricHessian?.slice()}))};
++}
++for(const wasmMaterial of [false,true])test(`two tangent caches retain fresh-versus-reused arithmetic and exact physical rows (WASM=${wasmMaterial})`,()=>{
++    const reference=fixture(),actual=fixture();
++    const compare=options=>assert.deepEqual(measure(actual,true,{wasmMaterial,...options}),measure(reference,false,{wasmMaterial,...options}));
++    for(const f of [reference,actual])prepareSharedAxisDynamicStep(f.state,1/60);
++    compare({tangentMode:'newton'});compare({tangentMode:'gauss-newton'});
++    const before=actual.reads(),refBefore=reference.reads();
++    compare({tangentMode:'newton'});
++    assert.equal(actual.reads(),before,'Returning to the same Newton pose must reuse material work');
++    assert.ok(reference.reads()>refBefore);
++    compare({tangentMode:'gauss-newton'});
++    for(const f of [reference,actual])f.state.loads[f.state.loads.length-1]=-.031;
++    const beforeLoadChange=actual.reads();
++    compare({tangentMode:'newton'});
++    assert.ok(actual.reads()>beforeLoadChange,'A fresh gradient for different loads cannot be reused');
++    const owned=new Set([actual.state.mechanicalAssemblyCache,actual.state.mechanicalAssemblyCache.alternate]);
++    for(let turn=0;turn<8;turn++) {
++        for(const f of [reference,actual])f.state.multipliers.fill(turn*.1);
++        compare({tangentMode:turn%2?'newton':'gauss-newton'});compare({tangentMode:turn%2?'newton':'gauss-newton'});
++        assert.ok(owned.has(actual.state.mechanicalAssemblyCache));
++        assert.ok(owned.has(actual.state.mechanicalAssemblyCache.alternate));
++        assert.equal(actual.state.mechanicalAssemblyCache.alternate.alternate,undefined,'Only two records may be retained');
++    }
++    // Changed loads, inertia targets and physical pose cannot reuse an older
++    // fresh gradient, even when it belongs to the requested tangent variant.
++    for(let turn=0;turn<3;turn++) {
++        for(const f of [reference,actual]) {
++            const s=f.state;s.loads[s.loads.length-1]=turn%2?-.013:0;s.loads[0]=-0;
++            prepareSharedAxisDynamicStep(s,turn%2?1/120:1/60);
++            applySharedAxisNativeIncrement(s,Float64Array.from({length:s.layout.dofCount},(_,i)=>.0001*Math.sin(i+turn)),new Float64Array(s.multipliers.length));
++        }
++        compare({tangentMode:'gauss-newton'});compare({tangentMode:'newton'});
++        compare({tangentMode:'newton',withTangent:false});compare({tangentMode:'gauss-newton'});compare({tangentMode:'newton'});
++    }
++});
++
++test('a topology restart preserves deferred cache rounding when revisiting another tangent',()=>{
++    const sample=()=>({gap:1,jacobian:[0,0,0,0,0,0]});
++    sample.sharedAxisGeometryOnly=true;sample.sharedAxisDiscovery=true;
++    const reference=fixture([sample]),actual=fixture([sample]);
++    const compare=tangentMode=>assert.deepEqual(measure(actual,true,{tangentMode,earlyContactPreflight:true}),measure(reference,false,{tangentMode,earlyContactPreflight:true}));
++    compare('newton');compare('gauss-newton');
++    for(const [f,enabled] of [[actual,true],[reference,false]]) {
++        f.state.pendingVesselRows=new Map([['pending',{}]]);
++        assert.throws(()=>measure(f,enabled,{tangentMode:'newton',earlyContactPreflight:true}),/shared-axis-wall-discovery/);
++        assert.equal(f.state.mechanicalAssemblyCache.deferred,true);
++        f.state.pendingVesselRows.clear();
++    }
++    compare('newton');compare('gauss-newton');compare('newton');
++});
++
++test('external potentials retain their original callback order and single-cache semantics',()=>{
++    const make=()=>{let calls=0;const sample=()=>({gap:1,jacobian:[0,0,0,0,0,0]});
++        sample.addPotential=s=>{calls++;s.chain.gradient[s.layout.dofCount-1]+=.001;return .002;};
++        return {...fixture([sample]),calls:()=>calls};};
++    const actual=make(),reference=make();
++    for(const tangentMode of ['newton','gauss-newton','newton','newton','gauss-newton']) {
++        assert.deepEqual(measure(actual,true,{tangentMode}),measure(reference,false,{tangentMode}));
++        assert.equal(actual.calls(),reference.calls());
++        assert.equal(actual.state.mechanicalAssemblyCache.alternate,undefined);
++    }
++});

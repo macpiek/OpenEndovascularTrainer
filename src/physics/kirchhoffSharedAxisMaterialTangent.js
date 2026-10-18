@@ -20,37 +20,74 @@ function matrix(q,out=new Float64Array(9),offset=0) {
     return out;
 }
 const readQ=(b,e)=>({x:b.orientationX[e],y:b.orientationY[e],z:b.orientationZ[e],w:b.orientationW[e]});
-function coefficient(x) {
-    if(x<.0625)return [1/12+x/720+x*x/30240+x**3/1209600+x**4/47900160,
-        1/720+2*x/30240+3*x*x/1209600+4*x**3/47900160];
+function coefficient(x,out=new Array(2)) {
+    if(x<.0625){out[0]=1/12+x/720+x*x/30240+x**3/1209600+x**4/47900160;
+        out[1]=1/720+2*x/30240+3*x*x/1209600+4*x**3/47900160;return out;}
     const theta=Math.sqrt(x),h=theta/2,cot=Math.cos(h)/Math.sin(h),n=1-h*cot;
-    return [n/x,(-cot/(4*theta)+1/(8*Math.sin(h)**2))/x-n/(x*x)];
+    out[0]=n/x;out[1]=(-cot/(4*theta)+1/(8*Math.sin(h)**2))/x-n/(x*x);return out;
+}
+
+function createTorqueWork() {
+    return {phi:new Array(3),R:new Float64Array(9),p:new Array(3),u:new Array(3),torque:new Array(6),
+        restR:new Float64Array(9),restQuaternion:{},restX:NaN,restY:NaN,restZ:NaN,
+        result:{energy:0,torque:null},tangentResult:{energy:0,torque:null,jacobian:null},coefficients:new Array(2),
+        jacobian:new Float64Array(36),dphi:new Float64Array(3),dp:new Float64Array(3),
+        dJ:new Float64Array(9),dA:new Float64Array(9),du:new Float64Array(3),spun:new Float64Array(3)};
+}
+function copyValues(out,value) {for(let i=0;i<value.length;i++)out[i]=value[i];}
+function transposedMultiplyInto(A,v,out,offset=0) {
+    out[offset]=A[0]*v[0]+A[3]*v[1]+A[6]*v[2];
+    out[offset+1]=A[1]*v[0]+A[4]*v[1]+A[7]*v[2];
+    out[offset+2]=A[2]*v[0]+A[5]*v[1]+A[8]*v[2];
 }
 
 /** Analytic derivative of native local material torques. Unlike J^T K J,
  * includes the derivative of the logarithm Jacobian and moving local frames.
  * This differentiates the existing native constitutive law, not a new energy.
  */
-export function nativeHingeTorqueTangent(q0,q1,rest,compliance,withTangent=true,preparation=null,kernelRecord=null,evaluationScratch=null) {
+export function nativeHingeTorqueTangent(q0,q1,rest,compliance,withTangent=true,preparation=null,kernelRecord=null,evaluationScratch=null,work=null) {
     const cached=preparation?.reuse;
     const state=cached?null:evaluateBendTwistLocalConstraintNormalized(q0,q1,rest,evaluationScratch??{});
-    const phi=cached?.phi??[state.strain.x,state.strain.y,state.strain.z],A=cached?.A??state.localGradient,R=cached?.R??matrix(state.relative);
-    const p=cached?.p??phi.map((v,i)=>v/compliance[i]),u=cached?.u??tmul(A,p);
-    const torque=cached?.torque??[-u[0],-u[1],-u[2],...tmul(R,u)];
+    const phi=cached?.phi??work?.phi??[state.strain.x,state.strain.y,state.strain.z],A=cached?.A??state.localGradient;
+    if(!cached&&work){phi[0]=state.strain.x;phi[1]=state.strain.y;phi[2]=state.strain.z;}
+    const R=cached?.R??matrix(state.relative,work?.R);
+    const p=cached?.p??work?.p??phi.map((v,i)=>v/compliance[i]),u=cached?.u??work?.u??tmul(A,p);
+    const torque=cached?.torque??work?.torque??[-u[0],-u[1],-u[2],...tmul(R,u)];
+    if(!cached&&work) {
+        for(let i=0;i<3;i++)p[i]=phi[i]/compliance[i];
+        transposedMultiplyInto(A,p,u);
+        torque[0]=-u[0];torque[1]=-u[1];torque[2]=-u[2];transposedMultiplyInto(R,u,torque,3);
+    }
     // Promotion may outlive another evaluation at a rejected/restored pose.
     // Own the gradient snapshot instead of aliasing the mutable evaluator.
-    if(preparation?.store)preparation.value={phi,A:evaluationScratch?A.slice():A,R,p,u,torque};
-    if(!withTangent)return {energy:.5*dot(phi,p),torque};
-    const restR=matrix(quaternionExp(rest));
-    const x=dot(phi,phi),[a,ap]=coefficient(x);
+    if(preparation?.store) {
+        const target=preparation.target;
+        if(target) {
+            copyValues(target.phi,phi);copyValues(target.A,A);copyValues(target.R,R);
+            copyValues(target.p,p);copyValues(target.u,u);copyValues(target.torque,torque);
+            preparation.value=target;
+        } else preparation.value={phi:work?phi.slice():phi,A:evaluationScratch||work?A.slice():A,
+            R:work?R.slice():R,p:work?p.slice():p,u:work?u.slice():u,torque:work?torque.slice():torque};
+    }
+    const result=(withTangent&&!kernelRecord?work?.tangentResult:work?.result)??{};result.energy=.5*dot(phi,p);result.torque=torque;
+    if(!withTangent)return result;
+    let restR;
+    if(work) {
+        if(!Object.is(work.restX,rest.x)||!Object.is(work.restY,rest.y)||!Object.is(work.restZ,rest.z)) {
+            matrix(quaternionExp(rest,work.restQuaternion),work.restR);
+            work.restX=rest.x;work.restY=rest.y;work.restZ=rest.z;
+        }
+        restR=work.restR;
+    } else restR=matrix(quaternionExp(rest));
+    const x=dot(phi,phi),[a,ap]=coefficient(x,work?.coefficients);
     if(kernelRecord) {
         kernelRecord.set(phi,44);kernelRecord.set(A,47);kernelRecord.set(R,56);
         kernelRecord.set(p,65);kernelRecord.set(u,68);kernelRecord.set(torque,71);
         kernelRecord.set(restR,77);kernelRecord.set(compliance,86);kernelRecord[89]=a;kernelRecord[90]=ap;
-        return {energy:.5*dot(phi,p),torque};
+        return result;
     }
-    const jacobian=new Float64Array(36);
-    const dphi=new Float64Array(3),dp=new Float64Array(3),dJ=new Float64Array(9),dA=new Float64Array(9),du=new Float64Array(3),spun=new Float64Array(3);
+    const jacobian=work?.jacobian??new Float64Array(36);
+    const dphi=work?.dphi??new Float64Array(3),dp=work?.dp??new Float64Array(3),dJ=work?.dJ??new Float64Array(9),dA=work?.dA??new Float64Array(9),du=work?.du??new Float64Array(3),spun=work?.spun??new Float64Array(3);
     for(let col=0;col<6;col++) {
         const axis=col%3,dx=col<3?(axis===0?-1:0):R[axis],dy=col<3?(axis===1?-1:0):R[3+axis],dz=col<3?(axis===2?-1:0):R[6+axis];
         for(let i=0;i<3;i++){dphi[i]=A[i*3]*dx+A[i*3+1]*dy+A[i*3+2]*dz;dp[i]=dphi[i]/compliance[i];}
@@ -73,7 +110,7 @@ export function nativeHingeTorqueTangent(q0,q1,rest,compliance,withTangent=true,
             jacobian[i*6+col]=-du[i];jacobian[(i+3)*6+col]=R[i]*spun[0]+R[3+i]*spun[1]+R[6+i]*spun[2]-spin;
         }
     }
-    return {energy:.5*dot(phi,p),torque,jacobian};
+    result.jacobian=jacobian;return result;
 }
 
 /** Scatter the exact material residual derivative into the shared spatial
@@ -93,6 +130,9 @@ export function assembleSharedAxisMaterialTangent(s,withTangent=true,promotion=n
     const lengths=new Float64Array(2),tangents=new Float64Array(6),forces=new Float64Array(6);
     const angular=withTangent&&!kernel?new Float64Array(66):null,dLengths=withTangent&&!kernel?new Float64Array(22):null;
     const dTorque=withTangent&&!kernel?new Float64Array(6):null,column=withTangent&&!kernel?new Float64Array(11):null;
+    // Borrowed results are consumed synchronously by this assembly. Promotion
+    // keeps separate owned arrays, so later hinges/trials cannot overwrite it.
+    const torqueWork=reuseMaterialScratch?createTorqueWork():null;
     let energy=0,hinge=0;
     for(const {body,spec,last} of s.materials) {
         const spins=layout.spins.get(spec.id),scratch=reuseMaterialScratch?hingeScratch(body):null;
@@ -112,10 +152,11 @@ export function assembleSharedAxisMaterialTangent(s,withTangent=true,promotion=n
                     for(let k=0;k<3;k++){d1[at+k]=frames[m+3*k];d2[at+k]=frames[m+3*k+1];}
                 }
             }
-            const preparation=saved?{reuse:saved.material}:promotion?.capture?{store:true}:null;
+            const capture=promotion?.capture?(promotion.capture[hinge]??={geometry:new Float64Array(44)}):null;
+            const preparation=saved?{reuse:saved.material}:capture?{store:true,target:torqueWork?capture.material:null}:null;
             const packed=kernel?.records[hinge];
             const material=nativeHingeTorqueTangent(q0,q1,{x:body.restRotation1[e],y:body.restRotation2[e],z:body.restRotation3[e]},
-                [body.kirchhoffBendCompliance1[e],body.kirchhoffBendCompliance2[e],body.kirchhoffTwistCompliance[e]],withTangent,preparation,packed?.data,scratch?(scratch[e]??={}):null);
+                [body.kirchhoffBendCompliance1[e],body.kirchhoffBendCompliance2[e],body.kirchhoffTwistCompliance[e]],withTangent,preparation,packed?.data,scratch?(scratch[e]??={}):null,torqueWork);
             energy+=material.energy;
             for(let j=0;j<2;j++) {
                 const at=3*j;
@@ -125,8 +166,8 @@ export function assembleSharedAxisMaterialTangent(s,withTangent=true,promotion=n
                 }
                 g[dofs[9+j]]+=material.torque[at+2];
             }
-            if(promotion?.capture) {
-                const entry=promotion.capture[hinge]??={geometry:new Float64Array(44)};
+            if(capture) {
+                const entry=capture;
                 entry.geometry.set(frames,0);entry.geometry.set(d1,18);entry.geometry.set(d2,24);
                 entry.geometry.set(lengths,30);entry.geometry.set(tangents,32);entry.geometry.set(forces,38);entry.material=preparation.value;
             }

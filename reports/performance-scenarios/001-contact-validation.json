@@ -1,0 +1,51 @@
+{
+  "recordedAt": "2026-10-14T08:37:07.134649+00:00",
+  "goalAchieved": false,
+  "targetAcceptedHz": 60,
+  "physicsDt": 0.016666666666666666,
+  "checks": [
+    {
+      "tests": 75,
+      "passed": 75,
+      "log": "001-contact-validation.log"
+    },
+    {
+      "tests": 55,
+      "passed": 55,
+      "log": "001-contact-replay-validation.log"
+    },
+    {
+      "tests": 5,
+      "passed": 5,
+      "log": "001-contact-final-unit.log"
+    }
+  ],
+  "build": "passed; existing large bundle warning",
+  "diffCheck": "passed",
+  "browser": {
+    "mainApp": "loaded; no JavaScript error logs",
+    "currentInsertionMm": 0,
+    "longScenarioMeasuredInBrowser": false
+  },
+  "changes": [
+    "Reusable exclusively leased row buffers, including cancellation/interleaved solves and release of geometry references.",
+    "Reuse numerical basis-comparison buffers; avoid zero-reaction force work and unused bend Hessian preparation.",
+    "Vessel candidate margin 0.01 mm with unchanged complete sample-grid collision checks, all nonzero reactions and friction memory retained.",
+    "Ordinary shared-axis simulator enables deferred rank repair and lazy coefficient recovery with the existing full rank fallback."
+  ],
+  "accuracy": {
+    "forceTolerance": 1e-06,
+    "lengthAndContactToleranceMm": 1e-05,
+    "benchmarkMaxWorldDifferenceMm": 4.520928224996681e-05,
+    "historicalReplayPositionBudgetMm": 0.001,
+    "historicalReplayMaxObservedDifferenceMm": 0.0001654655536843237,
+    "removedReferenceWallInequalitiesAudited": true
+  },
+  "limitations": [
+    "Full repository test suite not run in this stage. Selected runs overlap in some tests.",
+    "The benchmark captures accepted-step elapsed CPU work, excludes rendering and application frame scheduling, and includes other machine load.",
+    "60 Hz physics remains unachieved. Long insertion has not yet been measured in the live browser in this stage."
+  ],
+  "benchmark": "001-contact-optimization-result.json",
+  "baselinePath": "/tmp/oet-contact-baseline-20261014"
+}

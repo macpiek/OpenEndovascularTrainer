@@ -1,0 +1,35 @@
+{
+  "target": "60 accepted physics steps per second at dt=1/60",
+  "targetReached": false,
+  "physicalTolerances": {
+    "force": 1e-06,
+    "lengthMm": 1e-05,
+    "penetrationMm": 1e-05
+  },
+  "comparisonSteps": 400,
+  "maxWorldDifferenceMm": 0,
+  "regressionTests": {
+    "total": 119,
+    "passed": 118,
+    "failed": 1
+  },
+  "finalCacheAndBasisTests": {
+    "total": 22,
+    "passed": 22
+  },
+  "existingFailure": {
+    "test": "tests/kirchhoffSharedAxisProjection.test.js",
+    "fixture": "anatomy-berenstein-feed-312.87-projection",
+    "assertion": "This fixture must exercise nonlinear trial corrections",
+    "reproducedBeforeCurrentOptimization": true,
+    "note": "Direction, accepted state and physical comparisons pass; the historical fixture does not invoke the projection path."
+  },
+  "fullSharedAxisSuiteRun": false,
+  "notes": [
+    "The recorded stage-05 state is replayed exactly; the original manual crossover was not recorded as timed input.",
+    "CPU workload elapsed times exclude rendering and browser scheduling; they are not live browser FPS.",
+    "No coarser spatial mesh, loosened tolerances or slower simulation clock was enabled."
+  ],
+  "build": "passed",
+  "diffCheck": "passed"
+}

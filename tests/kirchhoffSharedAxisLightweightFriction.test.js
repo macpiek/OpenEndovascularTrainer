@@ -66,3 +66,18 @@ test('published live-load columns survive a later buffered contact and force-onl
     assert.deepEqual(columns,saved,'Published columns must own their dofs and force derivatives');
     assert.deepEqual(s.wallFrictionStep.normalForceColumns,[]);
 });
+
+test('interleaved simulations preserve full friction tangents across changes in pose, mode and assembly type',()=>{
+    const states=[fixture(false,true,.1),fixture(true,true,.1)],other=fixture(true,false,.002);
+    for(let step=0;step<12;step++) {
+        for(const s of states) {
+            const dx=Float64Array.from({length:s.layout.dofCount},(_,i)=>(step%3===0?.002:.0002)*Math.cos(i*3+step));
+            applySharedAxisNativeIncrement(s,dx,new Float64Array(s.multipliers.length));
+        }
+        assert.deepEqual(refreshSharedAxisWallFriction(states[1]),refreshSharedAxisWallFriction(states[0]));
+        const expected=sample(states[0],true,step%2===0),actual=sample(states[1],true,step%2===0);
+        sample(other,step%2===0,step%3===0);
+        assert.deepEqual(actual,expected,'Published matrices and normal columns own their storage');
+        assert.deepEqual(sample(states[1],true,step%2===0),expected,'Scratch from another simulation must be fully overwritten');
+    }
+});

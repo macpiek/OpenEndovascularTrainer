@@ -1,0 +1,2696 @@
+{
+  "recordedAt": "2026-10-14T10:34:13.756Z",
+  "node": "v24.6.0",
+  "fixtureSha256": "8511f5372df78240da9376f29efe2be77ab179f18b209633d05def97971572ac",
+  "dt": 0.016666666666666666,
+  "afterOptions": {
+    "contactCandidateMargin": 0.01,
+    "lazyBasisCoefficients": true,
+    "deferActiveBasis": true
+  },
+  "beforeOptions": {
+    "contactCandidateMargin": 0.01,
+    "lazyBasisCoefficients": true,
+    "deferActiveBasis": true
+  },
+  "trajectoryToleranceMm": 1e-7,
+  "rendering": false,
+  "acceptedStepTargetMs": 16.666666666666668,
+  "sourceHashes": {
+    "before": {
+      "kirchhoffSharedAxisMaterialTangent.js": "9d78bdc2fc73c86bad46e65ef443f2a17f7dfc1881b9a906c6a8c55c3a85cfef",
+      "kirchhoffSharedAxisActiveBasis.js": "71bcc9a80c7b8f7947488302956685f44f34cfb4d3991fc02cdb7bae2d114191",
+      "kirchhoffSharedAxisRejectedLinearization.js": "64f8aaeafe630c4a7dd885d141b1b54e178807eadb3c75a4ecf5c94506e0a270",
+      "kirchhoffSharedAxisConstraintRows.js": "cf42ec9209354db864ee4c2947e0c1e2e8e3460e51603587b55c154e07b64e6b",
+      "kirchhoffSharedAxisDiscoveryCache.js": "9b85bef990efa76112451e74ef3fcc191402c0ef896dc1d72532d28014dba217",
+      "kirchhoffSharedAxisVesselWitnesses.js": "19054c3ccac4354da47d659e4b2122ecd1b5868392a44312360f1ac4f466c9f9",
+      "kirchhoffSharedAxisNative.js": "65a004a28b38130d325c9bb1e9fb93f765dbaa87d7476188200bd46aaaa9cd93",
+      "kirchhoffSharedAxisAppSystem.js": "1a64dc529356fc2193f57a25a94433e53e5eb47382e4d0ec44cac6ae3ca64833",
+      "kirchhoffSharedAxisLinear.js": "f2fd6b4e07c648bdf1fc1de24a3dc1cb9a2070e72996f77074a7e5f844bb96f6",
+      "kirchhoffSharedAxisTimeStep.js": "4a632d0edbb49302377f97032521fd87b20d22c544671e2c8cc37f459d91455b",
+      "kirchhoffSharedAxisInactiveContacts.js": "937ae30e5733933b080df49e9c2ed079e33009b61a0bfeccede15a98a085feae",
+      "kirchhoffSharedAxisBendLimit.js": "3d944fc8d224c8a8bec60a16d2839c13296f49f701e3ea87b8196387e0deb712",
+      "kirchhoffSharedAxisContacts.js": "391e58c2388b9a64fb40fa6f92f2f0ab22fcec69a1800819e11ce7fd59dbfcdb",
+      "kirchhoffSharedAxisReplay.js": "8ee25a5ef2d063db76762594c4afbd1771f8e1765e6b0df8f469ff4cdb2abe22",
+      "../simulator.js": "bc974f40d8da33717353fc21076f899821745191c8a79dae07660e38dc4cc9e0"
+    },
+    "after": {
+      "kirchhoffSharedAxisMaterialTangent.js": "9d78bdc2fc73c86bad46e65ef443f2a17f7dfc1881b9a906c6a8c55c3a85cfef",
+      "kirchhoffSharedAxisActiveBasis.js": "71bcc9a80c7b8f7947488302956685f44f34cfb4d3991fc02cdb7bae2d114191",
+      "kirchhoffSharedAxisRejectedLinearization.js": "64f8aaeafe630c4a7dd885d141b1b54e178807eadb3c75a4ecf5c94506e0a270",
+      "kirchhoffSharedAxisConstraintRows.js": "cf42ec9209354db864ee4c2947e0c1e2e8e3460e51603587b55c154e07b64e6b",
+      "kirchhoffSharedAxisDiscoveryCache.js": "9b85bef990efa76112451e74ef3fcc191402c0ef896dc1d72532d28014dba217",
+      "kirchhoffSharedAxisVesselWitnesses.js": "19054c3ccac4354da47d659e4b2122ecd1b5868392a44312360f1ac4f466c9f9",
+      "kirchhoffSharedAxisNative.js": "e372c4f857aad2c3a55c4de33f1db126b6afde866a1b9955823f96330ce5e57c",
+      "kirchhoffSharedAxisAppSystem.js": "1a64dc529356fc2193f57a25a94433e53e5eb47382e4d0ec44cac6ae3ca64833",
+      "kirchhoffSharedAxisLinear.js": "02798be5c83d07d19261a1eb7473bd2cdbe2295c928fe86c1dddab3f6803d114",
+      "kirchhoffSharedAxisTimeStep.js": "4a632d0edbb49302377f97032521fd87b20d22c544671e2c8cc37f459d91455b",
+      "kirchhoffSharedAxisInactiveContacts.js": "937ae30e5733933b080df49e9c2ed079e33009b61a0bfeccede15a98a085feae",
+      "kirchhoffSharedAxisBendLimit.js": "3d944fc8d224c8a8bec60a16d2839c13296f49f701e3ea87b8196387e0deb712",
+      "kirchhoffSharedAxisContacts.js": "391e58c2388b9a64fb40fa6f92f2f0ab22fcec69a1800819e11ce7fd59dbfcdb",
+      "kirchhoffSharedAxisReplay.js": "8ee25a5ef2d063db76762594c4afbd1771f8e1765e6b0df8f469ff4cdb2abe22",
+      "../simulator.js": "bc974f40d8da33717353fc21076f899821745191c8a79dae07660e38dc4cc9e0"
+    }
+  },
+  "runs": [
+    {
+      "version": "before",
+      "repeat": 0,
+      "steps": [
+        {
+          "step": 0,
+          "phase": "hold",
+          "cpuMs": 234.87045799999987,
+          "processCpuMs": 663.821,
+          "iterations": 16,
+          "factorizations": 18,
+          "certificateBound": 4.642379280994646e-8,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 2,
+            "requests": 34,
+            "compactLayouts": 5,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 124.07254700000067,
+            "linearMs": 57.72041299999955,
+            "frictionMs": 10.70108300000038,
+            "tangentAssemblyMs": 72.38308599999982,
+            "residualAssemblyMs": 51.68946100000085,
+            "projectionMs": 21.36104299999988
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "roundoff-stagnation",
+              "error": null,
+              "converged": false,
+              "residual": {
+                "force": 0.000001466003482164524,
+                "torque": 9.796126576588904e-9,
+                "length": 9.237055564881302e-14
+              },
+              "detectedRoundoffStagnation": {
+                "corrections": 8,
+                "relativeStep": 9.032266557800933e-14,
+                "merit": 1.466003482164524
+              },
+              "iterations": 12,
+              "factorizations": 14
+            },
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.642379280994646e-8,
+                "torque": 1.9958821123600146e-9,
+                "length": 8.881784197001252e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 18
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 8.093525849517391e-14,
+          "nodes": 207,
+          "rows": 900
+        },
+        {
+          "step": 1,
+          "phase": "hold",
+          "cpuMs": 42.08312500000011,
+          "processCpuMs": 105.267,
+          "iterations": 5,
+          "factorizations": 5,
+          "certificateBound": 3.4857066566473804e-8,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 2,
+            "requests": 44,
+            "compactLayouts": 7,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 20.32070800000065,
+            "linearMs": 7.364709000000403,
+            "frictionMs": 2.671081999999842,
+            "tangentAssemblyMs": 9.888001000000259,
+            "residualAssemblyMs": 10.432707000000391,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 3.4857066566473804e-8,
+                "torque": 1.300009294658011e-9,
+                "length": 7.72715225139109e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 21
+              },
+              "iterations": 5,
+              "factorizations": 5
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 8.58202398035246e-14,
+          "nodes": 207,
+          "rows": 898
+        },
+        {
+          "step": 2,
+          "phase": "hold",
+          "cpuMs": 54.83295799999996,
+          "processCpuMs": 180.942,
+          "iterations": 5,
+          "factorizations": 5,
+          "certificateBound": 1.2261057236173656e-7,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 2,
+            "requests": 54,
+            "compactLayouts": 8,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 34.92970499999956,
+            "linearMs": 7.947545000000446,
+            "frictionMs": 3.231832000000395,
+            "tangentAssemblyMs": 21.58383099999992,
+            "residualAssemblyMs": 13.34587399999964,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 1.2261057236173656e-7,
+                "torque": 1.992583500975975e-9,
+                "length": 7.460698725481052e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 21
+              },
+              "iterations": 5,
+              "factorizations": 5
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 6.616929226765933e-14,
+          "nodes": 207,
+          "rows": 899
+        },
+        {
+          "step": 3,
+          "phase": "hold",
+          "cpuMs": 25.37124999999969,
+          "processCpuMs": 32.793,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 4.2304236558265984e-8,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 2,
+            "requests": 62,
+            "compactLayouts": 10,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 12.441417999999885,
+            "linearMs": 4.0195019999996475,
+            "frictionMs": 2.419332999999824,
+            "tangentAssemblyMs": 6.956750999999713,
+            "residualAssemblyMs": 5.484667000000172,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.2304236558265984e-8,
+                "torque": 2.2581943676103222e-9,
+                "length": 8.348877145181177e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 24
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 9.298117831235686e-14,
+          "nodes": 207,
+          "rows": 899
+        },
+        {
+          "step": 4,
+          "phase": "hold",
+          "cpuMs": 25.39691700000003,
+          "processCpuMs": 46.341,
+          "iterations": 3,
+          "factorizations": 4,
+          "certificateBound": 1.1111933417851105e-7,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 3,
+            "requests": 70,
+            "compactLayouts": 13,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 11.954457999999704,
+            "linearMs": 3.969043000000056,
+            "frictionMs": 3.1940819999995256,
+            "tangentAssemblyMs": 6.712415999999848,
+            "residualAssemblyMs": 5.242041999999856,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 1.1111933417851105e-7,
+                "torque": 7.194634399354527e-8,
+                "length": 1.2656542480726785e-13
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 37,
+                "sliding": 26
+              },
+              "iterations": 3,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 1.2656542480726785e-13,
+          "nodes": 207,
+          "rows": 899
+        },
+        {
+          "step": 5,
+          "phase": "hold",
+          "cpuMs": 30.421875,
+          "processCpuMs": 76.213,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 1.4150907645671396e-7,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 3,
+            "requests": 78,
+            "compactLayouts": 14,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 13.067208000000392,
+            "linearMs": 5.206957000000784,
+            "frictionMs": 2.140665999999783,
+            "tangentAssemblyMs": 6.578583000000435,
+            "residualAssemblyMs": 6.488624999999956,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 1.4150907645671396e-7,
+                "torque": 2.3905547584870956e-9,
+                "length": 9.059419880941277e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 37,
+                "sliding": 26
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 8.848477506262498e-14,
+          "nodes": 207,
+          "rows": 899
+        },
+        {
+          "step": 6,
+          "phase": "hold",
+          "cpuMs": 30.875750000000153,
+          "processCpuMs": 65.549,
+          "iterations": 4,
+          "factorizations": 5,
+          "certificateBound": 3.309105522930622e-8,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 3,
+            "requests": 88,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 14.273209000000861,
+            "linearMs": 5.548084999998991,
+            "frictionMs": 2.050666000000092,
+            "tangentAssemblyMs": 6.470375000000331,
+            "residualAssemblyMs": 7.80283400000053,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 3.309105522930622e-8,
+                "torque": 2.7670004620894417e-9,
+                "length": 9.325873406851315e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 25
+              },
+              "iterations": 4,
+              "factorizations": 5
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 5.806466418789569e-14,
+          "nodes": 207,
+          "rows": 899
+        },
+        {
+          "step": 7,
+          "phase": "hold",
+          "cpuMs": 34.248083999999835,
+          "processCpuMs": 51.901,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 4.5826084260625066e-7,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 3,
+            "requests": 96,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 21.169252000000597,
+            "linearMs": 5.523878000001332,
+            "frictionMs": 1.8602910000004158,
+            "tangentAssemblyMs": 11.866835000000265,
+            "residualAssemblyMs": 9.302417000000332,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.5826084260625066e-7,
+                "torque": 1.5611063136633518e-9,
+                "length": 8.970602038971265e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 26
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 8.770761894538737e-14,
+          "nodes": 207,
+          "rows": 900
+        },
+        {
+          "step": 8,
+          "phase": "hold",
+          "cpuMs": 216.68058299999984,
+          "processCpuMs": 609.729,
+          "iterations": 11,
+          "factorizations": 24,
+          "certificateBound": 9.701049918930948e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 6,
+            "requests": 143,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 11,
+            "compactNumericBytes": 521472
+          },
+          "timings": {
+            "assemblyMs": 73.24816600000167,
+            "linearMs": 110.40896000000066,
+            "frictionMs": 8.681042000000161,
+            "tangentAssemblyMs": 53.02083200000152,
+            "residualAssemblyMs": 20.227334000000155,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 6.175787348183803e-8,
+                "torque": 2.224653100624252e-9,
+                "length": 7.283063041541027e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 3.525262570747145e-8,
+                "contacts": 36,
+                "sliding": 26
+              },
+              "wallNormalFallback": {
+                "attempted": true,
+                "liveFailure": "linear-solve",
+                "converged": true
+              },
+              "iterations": 11,
+              "factorizations": 24
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 5.728750807065808e-14,
+          "nodes": 207,
+          "rows": 901
+        },
+        {
+          "step": 9,
+          "phase": "hold",
+          "cpuMs": 59.86104200000045,
+          "processCpuMs": 88.409,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 7.866349278629059e-7,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 6,
+            "requests": 151,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 11,
+            "compactNumericBytes": 521472
+          },
+          "timings": {
+            "assemblyMs": 22.464624000001095,
+            "linearMs": 6.993166000001111,
+            "frictionMs": 6.147792000000663,
+            "tangentAssemblyMs": 12.594625000001543,
+            "residualAssemblyMs": 9.869998999999552,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 7.866349278629059e-7,
+                "torque": 2.733543225108548e-9,
+                "length": 8.171241461241152e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 27
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 8.171241461241152e-14,
+          "nodes": 207,
+          "rows": 901
+        },
+        {
+          "step": 10,
+          "phase": "hold",
+          "cpuMs": 49.32787499999995,
+          "processCpuMs": 60.08,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 6.524851414724253e-7,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 6,
+            "requests": 159,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 11,
+            "compactNumericBytes": 521472
+          },
+          "timings": {
+            "assemblyMs": 21.988500000000386,
+            "linearMs": 4.404167999998208,
+            "frictionMs": 13.561874999999418,
+            "tangentAssemblyMs": 11.483084000000417,
+            "residualAssemblyMs": 10.505415999999968,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 6.524851414724253e-7,
+                "torque": 1.7918678624218032e-9,
+                "length": 8.615330671091215e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 27
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 1.2001510896197942e-13,
+          "nodes": 207,
+          "rows": 901
+        },
+        {
+          "step": 11,
+          "phase": "hold",
+          "cpuMs": 76.39866600000005,
+          "processCpuMs": 230.154,
+          "iterations": 4,
+          "factorizations": 11,
+          "certificateBound": 6.989012035774067e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 10,
+            "requests": 180,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 11,
+            "compactNumericBytes": 521472
+          },
+          "timings": {
+            "assemblyMs": 17.091873999999734,
+            "linearMs": 47.72929000000113,
+            "frictionMs": 2.220542000000023,
+            "tangentAssemblyMs": 7.568832999999358,
+            "residualAssemblyMs": 9.523041000000376,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 6.989012035774067e-8,
+                "torque": 2.7481722036926115e-9,
+                "length": 2.2737367544323206e-13
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 38,
+                "sliding": 27
+              },
+              "iterations": 4,
+              "factorizations": 11
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 4.674038933671909e-14,
+          "nodes": 207,
+          "rows": 920
+        },
+        {
+          "step": 12,
+          "phase": "hold",
+          "cpuMs": 107.27941699999974,
+          "processCpuMs": 315.993,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 5.9464582591317594e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 10,
+            "requests": 188,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 11,
+            "compactNumericBytes": 521472
+          },
+          "timings": {
+            "assemblyMs": 89.61275099999875,
+            "linearMs": 4.723165999997946,
+            "frictionMs": 3.726835000000392,
+            "tangentAssemblyMs": 62.432042999998885,
+            "residualAssemblyMs": 27.180707999999868,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 5.9464582591317594e-8,
+                "torque": 2.189810884706267e-9,
+                "length": 8.704148513061227e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 38,
+                "sliding": 24
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 5.850875339774575e-14,
+          "nodes": 207,
+          "rows": 929
+        },
+        {
+          "step": 13,
+          "phase": "hold",
+          "cpuMs": 42.46608300000025,
+          "processCpuMs": 78.649,
+          "iterations": 4,
+          "factorizations": 9,
+          "certificateBound": 4.3413456296548247e-7,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 12,
+            "requests": 205,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 14.793167999999241,
+            "linearMs": 15.264539999999215,
+            "frictionMs": 2.157583000000159,
+            "tangentAssemblyMs": 6.581625999999233,
+            "residualAssemblyMs": 8.211542000000009,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.3413456296548247e-7,
+                "torque": 7.189325579304295e-9,
+                "length": 9.85878045867139e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 22
+              },
+              "iterations": 4,
+              "factorizations": 9
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 1.1124434706744069e-13,
+          "nodes": 207,
+          "rows": 925
+        },
+        {
+          "step": 14,
+          "phase": "hold",
+          "cpuMs": 37.10616700000082,
+          "processCpuMs": 48.191,
+          "iterations": 5,
+          "factorizations": 6,
+          "certificateBound": 1.78405912265589e-7,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 12,
+            "requests": 217,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 17.41120800000226,
+            "linearMs": 6.657502999998542,
+            "frictionMs": 3.3127489999997124,
+            "tangentAssemblyMs": 8.590875000001688,
+            "residualAssemblyMs": 8.820333000000574,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 1.78405912265589e-7,
+                "torque": 3.287717466327056e-9,
+                "length": 8.260059303211165e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 38,
+                "sliding": 22
+              },
+              "iterations": 5,
+              "factorizations": 6
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 1.341149413747189e-13,
+          "nodes": 207,
+          "rows": 925
+        },
+        {
+          "step": 15,
+          "phase": "hold",
+          "cpuMs": 36.62170800000058,
+          "processCpuMs": 52.345,
+          "iterations": 5,
+          "factorizations": 6,
+          "certificateBound": 1.286842916670139e-7,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 12,
+            "requests": 229,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 15.818874999998116,
+            "linearMs": 7.93199999999797,
+            "frictionMs": 3.1095420000010563,
+            "tangentAssemblyMs": 7.696416999998291,
+            "residualAssemblyMs": 8.122457999999824,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 1.286842916670139e-7,
+                "torque": 2.000721553707674e-9,
+                "length": 1.52433621281034e-13
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 23
+              },
+              "iterations": 5,
+              "factorizations": 6
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 1.52433621281034e-13,
+          "nodes": 207,
+          "rows": 925
+        },
+        {
+          "step": 16,
+          "phase": "hold",
+          "cpuMs": 31.017958000000363,
+          "processCpuMs": 56.491,
+          "iterations": 5,
+          "factorizations": 5,
+          "certificateBound": 5.6188582675531507e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 12,
+            "requests": 239,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 16.649584000000687,
+            "linearMs": 5.450668000000405,
+            "frictionMs": 1.9622079999999187,
+            "tangentAssemblyMs": 8.700792000000547,
+            "residualAssemblyMs": 7.9487920000001395,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 5.6188582675531507e-8,
+                "torque": 2.6363999386380677e-9,
+                "length": 8.348877145181177e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 22
+              },
+              "iterations": 5,
+              "factorizations": 5
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 1.2012613126444194e-13,
+          "nodes": 207,
+          "rows": 916
+        },
+        {
+          "step": 17,
+          "phase": "hold",
+          "cpuMs": 28.252541999999266,
+          "processCpuMs": 32.421,
+          "iterations": 4,
+          "factorizations": 6,
+          "certificateBound": 2.530791789467912e-7,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 13,
+            "requests": 251,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 12.578126000001248,
+            "linearMs": 8.04703999999947,
+            "frictionMs": 1.7308340000008684,
+            "tangentAssemblyMs": 6.179792000000816,
+            "residualAssemblyMs": 6.398334000000432,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 2.530791789467912e-7,
+                "torque": 1.9699514175464117e-7,
+                "length": 6.838973831690964e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 21
+              },
+              "iterations": 4,
+              "factorizations": 6
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 5.084821452783217e-14,
+          "nodes": 207,
+          "rows": 911
+        },
+        {
+          "step": 18,
+          "phase": "hold",
+          "cpuMs": 25.171291999999994,
+          "processCpuMs": 29.231,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 3.132754500256851e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 13,
+            "requests": 259,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 13.128748999998606,
+            "linearMs": 3.882458999998562,
+            "frictionMs": 1.8482059999987541,
+            "tangentAssemblyMs": 7.8096239999977115,
+            "residualAssemblyMs": 5.319125000000895,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 3.132754500256851e-8,
+                "torque": 1.970072124207224e-9,
+                "length": 8.704148513061227e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 23
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 9.547918011776346e-14,
+          "nodes": 207,
+          "rows": 911
+        },
+        {
+          "step": 19,
+          "phase": "hold",
+          "cpuMs": 73.1600840000001,
+          "processCpuMs": 126.675,
+          "iterations": 6,
+          "factorizations": 24,
+          "certificateBound": 4.380308382678777e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 14,
+            "requests": 305,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 21.737334000001283,
+            "linearMs": 38.898457999996936,
+            "frictionMs": 2.3181230000009236,
+            "tangentAssemblyMs": 10.514709000000039,
+            "residualAssemblyMs": 11.222625000001244,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.380308382678777e-8,
+                "torque": 2.4658700671642553e-9,
+                "length": 8.526512829121202e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 23
+              },
+              "iterations": 6,
+              "factorizations": 24
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 2,
+          "maxPenetrationMm": 6.628031457012185e-14,
+          "nodes": 207,
+          "rows": 921
+        },
+        {
+          "step": 20,
+          "phase": "hold",
+          "cpuMs": 31.474207999999635,
+          "processCpuMs": 53.237,
+          "iterations": 4,
+          "factorizations": 8,
+          "certificateBound": 4.773062300955644e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 15,
+            "requests": 320,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 13.148874000001342,
+            "linearMs": 10.442459000000781,
+            "frictionMs": 1.739249999999629,
+            "tangentAssemblyMs": 7.230083000001287,
+            "residualAssemblyMs": 5.918791000000056,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.773062300955644e-8,
+                "torque": 2.0168816838861403e-8,
+                "length": 1.1368683772161603e-13
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 24
+              },
+              "iterations": 4,
+              "factorizations": 8
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 6.006306563222097e-14,
+          "nodes": 207,
+          "rows": 924
+        },
+        {
+          "step": 21,
+          "phase": "hold",
+          "cpuMs": 36.307166999999936,
+          "processCpuMs": 51.382,
+          "iterations": 4,
+          "factorizations": 12,
+          "certificateBound": 4.3564341467572376e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 16,
+            "requests": 343,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 14.990958999998838,
+            "linearMs": 12.489960999998402,
+            "frictionMs": 1.9066250000014406,
+            "tangentAssemblyMs": 9.189707999999882,
+            "residualAssemblyMs": 5.801250999998956,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.3564341467572376e-8,
+                "torque": 1.9445913698734607e-9,
+                "length": 9.14823772291129e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 25
+              },
+              "iterations": 4,
+              "factorizations": 12
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 9.414691248821327e-14,
+          "nodes": 207,
+          "rows": 923
+        },
+        {
+          "step": 22,
+          "phase": "hold",
+          "cpuMs": 60.00120900000002,
+          "processCpuMs": 83.238,
+          "iterations": 5,
+          "factorizations": 29,
+          "certificateBound": 4.2013653001049533e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 17,
+            "requests": 399,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 17.842666999999892,
+            "linearMs": 31.51033500000176,
+            "frictionMs": 1.9672920000002705,
+            "tangentAssemblyMs": 9.84308399999918,
+            "residualAssemblyMs": 7.999583000000712,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.2013653001049533e-8,
+                "torque": 7.56555129655112e-9,
+                "length": 8.526512829121202e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 40,
+                "sliding": 28
+              },
+              "iterations": 5,
+              "factorizations": 29
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 2,
+          "maxPenetrationMm": 7.69939667577546e-14,
+          "nodes": 207,
+          "rows": 943
+        }
+      ],
+      "maxWorldDifferenceMm": 0
+    },
+    {
+      "version": "after",
+      "repeat": 0,
+      "steps": [
+        {
+          "step": 0,
+          "phase": "hold",
+          "cpuMs": 219.2762499999999,
+          "processCpuMs": 676.439,
+          "iterations": 16,
+          "factorizations": 18,
+          "certificateBound": 4.642379280994646e-8,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 2,
+            "requests": 34,
+            "compactLayouts": 5,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 108.77770999999939,
+            "linearMs": 53.55208700000003,
+            "frictionMs": 15.974540999998226,
+            "tangentAssemblyMs": 51.55225200000086,
+            "residualAssemblyMs": 57.225457999998525,
+            "projectionMs": 21.203125999999884
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "roundoff-stagnation",
+              "error": null,
+              "converged": false,
+              "residual": {
+                "force": 0.000001466003482164524,
+                "torque": 9.796126576588904e-9,
+                "length": 9.237055564881302e-14
+              },
+              "detectedRoundoffStagnation": {
+                "corrections": 8,
+                "relativeStep": 9.032266557800933e-14,
+                "merit": 1.466003482164524
+              },
+              "iterations": 12,
+              "factorizations": 14
+            },
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.642379280994646e-8,
+                "torque": 1.9958821123600146e-9,
+                "length": 8.881784197001252e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 18
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 8.093525849517391e-14,
+          "nodes": 207,
+          "rows": 900
+        },
+        {
+          "step": 1,
+          "phase": "hold",
+          "cpuMs": 36.06483299999991,
+          "processCpuMs": 76.08,
+          "iterations": 5,
+          "factorizations": 5,
+          "certificateBound": 3.4857066566473804e-8,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 2,
+            "requests": 44,
+            "compactLayouts": 7,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 16.990417999999863,
+            "linearMs": 5.934167000000343,
+            "frictionMs": 2.4475839999995515,
+            "tangentAssemblyMs": 9.638042000000041,
+            "residualAssemblyMs": 7.352375999999822,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 3.4857066566473804e-8,
+                "torque": 1.300009294658011e-9,
+                "length": 7.72715225139109e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 21
+              },
+              "iterations": 5,
+              "factorizations": 5
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 8.58202398035246e-14,
+          "nodes": 207,
+          "rows": 898
+        },
+        {
+          "step": 2,
+          "phase": "hold",
+          "cpuMs": 51.18220800000017,
+          "processCpuMs": 165.922,
+          "iterations": 5,
+          "factorizations": 5,
+          "certificateBound": 1.2261057236173656e-7,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 2,
+            "requests": 54,
+            "compactLayouts": 8,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 31.596456999999646,
+            "linearMs": 8.086080999999922,
+            "frictionMs": 2.7567920000001322,
+            "tangentAssemblyMs": 17.963165000000117,
+            "residualAssemblyMs": 13.633291999999528,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 1.2261057236173656e-7,
+                "torque": 1.992583500975975e-9,
+                "length": 7.460698725481052e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 21
+              },
+              "iterations": 5,
+              "factorizations": 5
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 6.616929226765933e-14,
+          "nodes": 207,
+          "rows": 899
+        },
+        {
+          "step": 3,
+          "phase": "hold",
+          "cpuMs": 30.97083300000031,
+          "processCpuMs": 67.486,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 4.2304236558265984e-8,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 2,
+            "requests": 62,
+            "compactLayouts": 10,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 14.335082000000057,
+            "linearMs": 4.888334000001578,
+            "frictionMs": 1.7405009999997674,
+            "tangentAssemblyMs": 7.3289990000002945,
+            "residualAssemblyMs": 7.006082999999762,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.2304236558265984e-8,
+                "torque": 2.2581943676103222e-9,
+                "length": 8.348877145181177e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 24
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 9.298117831235686e-14,
+          "nodes": 207,
+          "rows": 899
+        },
+        {
+          "step": 4,
+          "phase": "hold",
+          "cpuMs": 25.044374999999945,
+          "processCpuMs": 55.486,
+          "iterations": 3,
+          "factorizations": 4,
+          "certificateBound": 1.1111933417851105e-7,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 3,
+            "requests": 70,
+            "compactLayouts": 13,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 10.889460000000781,
+            "linearMs": 4.260585000000901,
+            "frictionMs": 2.741250000000946,
+            "tangentAssemblyMs": 6.511417000000165,
+            "residualAssemblyMs": 4.378043000000616,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 1.1111933417851105e-7,
+                "torque": 7.194634399354527e-8,
+                "length": 1.2656542480726785e-13
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 37,
+                "sliding": 26
+              },
+              "iterations": 3,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 1.2656542480726785e-13,
+          "nodes": 207,
+          "rows": 899
+        },
+        {
+          "step": 5,
+          "phase": "hold",
+          "cpuMs": 28.58483299999989,
+          "processCpuMs": 72.197,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 1.4150907645671396e-7,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 3,
+            "requests": 78,
+            "compactLayouts": 14,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 12.416457999999693,
+            "linearMs": 4.695666000000074,
+            "frictionMs": 2.2317509999998038,
+            "tangentAssemblyMs": 6.084875000000011,
+            "residualAssemblyMs": 6.331582999999682,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 1.4150907645671396e-7,
+                "torque": 2.3905547584870956e-9,
+                "length": 9.059419880941277e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 37,
+                "sliding": 26
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 8.848477506262498e-14,
+          "nodes": 207,
+          "rows": 899
+        },
+        {
+          "step": 6,
+          "phase": "hold",
+          "cpuMs": 35.75187499999993,
+          "processCpuMs": 79.216,
+          "iterations": 4,
+          "factorizations": 5,
+          "certificateBound": 3.309105522930622e-8,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 3,
+            "requests": 88,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 16.75304099999994,
+            "linearMs": 9.020750999999564,
+            "frictionMs": 2.15691599999991,
+            "tangentAssemblyMs": 8.712332999999944,
+            "residualAssemblyMs": 8.040707999999995,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 3.309105522930622e-8,
+                "torque": 2.7670004620894417e-9,
+                "length": 9.325873406851315e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 25
+              },
+              "iterations": 4,
+              "factorizations": 5
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 5.806466418789569e-14,
+          "nodes": 207,
+          "rows": 899
+        },
+        {
+          "step": 7,
+          "phase": "hold",
+          "cpuMs": 27.583040999999866,
+          "processCpuMs": 41.329,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 4.5826084260625066e-7,
+          "linearScratch": {
+            "allocations": 1,
+            "capacityBytes": 1048576,
+            "grows": 0,
+            "viewBuilds": 3,
+            "requests": 96,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 9,
+            "compactNumericBytes": 455936
+          },
+          "timings": {
+            "assemblyMs": 13.73866500000031,
+            "linearMs": 5.061709000000064,
+            "frictionMs": 2.811333999999988,
+            "tangentAssemblyMs": 8.21383200000082,
+            "residualAssemblyMs": 5.524832999999489,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.5826084260625066e-7,
+                "torque": 1.5611063136633518e-9,
+                "length": 8.970602038971265e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 26
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 8.770761894538737e-14,
+          "nodes": 207,
+          "rows": 900
+        },
+        {
+          "step": 8,
+          "phase": "hold",
+          "cpuMs": 334.7017500000002,
+          "processCpuMs": 737.974,
+          "iterations": 11,
+          "factorizations": 24,
+          "certificateBound": 9.701049918930948e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 6,
+            "requests": 143,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 11,
+            "compactNumericBytes": 521472
+          },
+          "timings": {
+            "assemblyMs": 116.9865430000018,
+            "linearMs": 164.93970900000022,
+            "frictionMs": 15.543791000000056,
+            "tangentAssemblyMs": 68.356041,
+            "residualAssemblyMs": 48.6305020000018,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 6.175787348183803e-8,
+                "torque": 2.224653100624252e-9,
+                "length": 7.283063041541027e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 3.525262570747145e-8,
+                "contacts": 36,
+                "sliding": 26
+              },
+              "wallNormalFallback": {
+                "attempted": true,
+                "liveFailure": "linear-solve",
+                "converged": true
+              },
+              "iterations": 11,
+              "factorizations": 24
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 5.728750807065808e-14,
+          "nodes": 207,
+          "rows": 901
+        },
+        {
+          "step": 9,
+          "phase": "hold",
+          "cpuMs": 52.926791999999296,
+          "processCpuMs": 92.686,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 7.866349278629059e-7,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 6,
+            "requests": 151,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 11,
+            "compactNumericBytes": 521472
+          },
+          "timings": {
+            "assemblyMs": 19.587289999999484,
+            "linearMs": 9.84454199999982,
+            "frictionMs": 3.1052090000002863,
+            "tangentAssemblyMs": 9.895748999998432,
+            "residualAssemblyMs": 9.691541000001052,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 7.866349278629059e-7,
+                "torque": 2.733543225108548e-9,
+                "length": 8.171241461241152e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 27
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 8.171241461241152e-14,
+          "nodes": 207,
+          "rows": 901
+        },
+        {
+          "step": 10,
+          "phase": "hold",
+          "cpuMs": 37.596583000000464,
+          "processCpuMs": 38.8,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 6.524851414724253e-7,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 6,
+            "requests": 159,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 11,
+            "compactNumericBytes": 521472
+          },
+          "timings": {
+            "assemblyMs": 16.295584999998937,
+            "linearMs": 3.884875999997348,
+            "frictionMs": 2.190874000000804,
+            "tangentAssemblyMs": 9.855917999999292,
+            "residualAssemblyMs": 6.439666999999645,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 6.524851414724253e-7,
+                "torque": 1.7918678624218032e-9,
+                "length": 8.615330671091215e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 36,
+                "sliding": 27
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 1.2001510896197942e-13,
+          "nodes": 207,
+          "rows": 901
+        },
+        {
+          "step": 11,
+          "phase": "hold",
+          "cpuMs": 60.30816700000014,
+          "processCpuMs": 155.574,
+          "iterations": 4,
+          "factorizations": 11,
+          "certificateBound": 6.989012035774067e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 10,
+            "requests": 180,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 11,
+            "compactNumericBytes": 521472
+          },
+          "timings": {
+            "assemblyMs": 17.973039999998946,
+            "linearMs": 32.725289000000885,
+            "frictionMs": 3.472126000001481,
+            "tangentAssemblyMs": 9.552832999999737,
+            "residualAssemblyMs": 8.420206999999209,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 6.989012035774067e-8,
+                "torque": 2.7481722036926115e-9,
+                "length": 2.2737367544323206e-13
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 38,
+                "sliding": 27
+              },
+              "iterations": 4,
+              "factorizations": 11
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 4.674038933671909e-14,
+          "nodes": 207,
+          "rows": 920
+        },
+        {
+          "step": 12,
+          "phase": "hold",
+          "cpuMs": 31.90391600000021,
+          "processCpuMs": 60.413,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 5.9464582591317594e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 10,
+            "requests": 188,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 11,
+            "compactNumericBytes": 521472
+          },
+          "timings": {
+            "assemblyMs": 14.455915999998979,
+            "linearMs": 4.60229100000015,
+            "frictionMs": 4.114333999999872,
+            "tangentAssemblyMs": 8.070291999999426,
+            "residualAssemblyMs": 6.385623999999552,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 5.9464582591317594e-8,
+                "torque": 2.189810884706267e-9,
+                "length": 8.704148513061227e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 38,
+                "sliding": 24
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 5.850875339774575e-14,
+          "nodes": 207,
+          "rows": 929
+        },
+        {
+          "step": 13,
+          "phase": "hold",
+          "cpuMs": 51.16491700000006,
+          "processCpuMs": 78.17,
+          "iterations": 4,
+          "factorizations": 18,
+          "certificateBound": 4.3413456296548247e-7,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 14,
+            "requests": 223,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 13.580999000000702,
+            "linearMs": 27.338831000000937,
+            "frictionMs": 3.2146660000007614,
+            "tangentAssemblyMs": 6.087749000001168,
+            "residualAssemblyMs": 7.493249999999534,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.3413456296548247e-7,
+                "torque": 7.189325579304295e-9,
+                "length": 9.85878045867139e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 22
+              },
+              "iterations": 4,
+              "factorizations": 18
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 1.1124434706744069e-13,
+          "nodes": 207,
+          "rows": 925
+        },
+        {
+          "step": 14,
+          "phase": "hold",
+          "cpuMs": 33.40379099999973,
+          "processCpuMs": 39.732,
+          "iterations": 5,
+          "factorizations": 6,
+          "certificateBound": 1.78405912265589e-7,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 14,
+            "requests": 235,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 15.216169000000264,
+            "linearMs": 6.837166999999681,
+            "frictionMs": 2.472501000000193,
+            "tangentAssemblyMs": 7.178667999999561,
+            "residualAssemblyMs": 8.037501000000702,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 1.78405912265589e-7,
+                "torque": 3.287717466327056e-9,
+                "length": 8.260059303211165e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 38,
+                "sliding": 22
+              },
+              "iterations": 5,
+              "factorizations": 6
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 1.341149413747189e-13,
+          "nodes": 207,
+          "rows": 925
+        },
+        {
+          "step": 15,
+          "phase": "hold",
+          "cpuMs": 29.90320900000006,
+          "processCpuMs": 43.81,
+          "iterations": 5,
+          "factorizations": 6,
+          "certificateBound": 1.286842916670139e-7,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 14,
+            "requests": 247,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 15.015289999999368,
+            "linearMs": 5.860124999999243,
+            "frictionMs": 1.9892079999999623,
+            "tangentAssemblyMs": 7.538582999998653,
+            "residualAssemblyMs": 7.476707000000715,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 1.286842916670139e-7,
+                "torque": 2.000721553707674e-9,
+                "length": 1.52433621281034e-13
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 23
+              },
+              "iterations": 5,
+              "factorizations": 6
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 1.52433621281034e-13,
+          "nodes": 207,
+          "rows": 925
+        },
+        {
+          "step": 16,
+          "phase": "hold",
+          "cpuMs": 34.00841700000001,
+          "processCpuMs": 64.587,
+          "iterations": 5,
+          "factorizations": 5,
+          "certificateBound": 5.6188582675531507e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 14,
+            "requests": 257,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 17.39087500000096,
+            "linearMs": 5.3577920000007,
+            "frictionMs": 2.370748000000276,
+            "tangentAssemblyMs": 7.4713750000009895,
+            "residualAssemblyMs": 9.919499999999971,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 5.6188582675531507e-8,
+                "torque": 2.6363999386380677e-9,
+                "length": 8.348877145181177e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 22
+              },
+              "iterations": 5,
+              "factorizations": 5
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 1.2012613126444194e-13,
+          "nodes": 207,
+          "rows": 916
+        },
+        {
+          "step": 17,
+          "phase": "hold",
+          "cpuMs": 27.212083999999777,
+          "processCpuMs": 28.28,
+          "iterations": 4,
+          "factorizations": 6,
+          "certificateBound": 2.530791789467912e-7,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 14,
+            "requests": 269,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 12.664625000001251,
+            "linearMs": 5.637792999999874,
+            "frictionMs": 1.622624999999971,
+            "tangentAssemblyMs": 6.758167000000867,
+            "residualAssemblyMs": 5.906458000000384,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 2.530791789467912e-7,
+                "torque": 1.9699514175464117e-7,
+                "length": 6.838973831690964e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 21
+              },
+              "iterations": 4,
+              "factorizations": 6
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 0,
+          "maxPenetrationMm": 5.084821452783217e-14,
+          "nodes": 207,
+          "rows": 911
+        },
+        {
+          "step": 18,
+          "phase": "hold",
+          "cpuMs": 28.75133300000016,
+          "processCpuMs": 32.088,
+          "iterations": 4,
+          "factorizations": 4,
+          "certificateBound": 3.132754500256851e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 14,
+            "requests": 277,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 12.911624999998821,
+            "linearMs": 3.996333000000959,
+            "frictionMs": 1.7652919999991354,
+            "tangentAssemblyMs": 7.036332999999104,
+            "residualAssemblyMs": 5.8752919999997175,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 3.132754500256851e-8,
+                "torque": 1.970072124207224e-9,
+                "length": 8.704148513061227e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 23
+              },
+              "iterations": 4,
+              "factorizations": 4
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 9.547918011776346e-14,
+          "nodes": 207,
+          "rows": 911
+        },
+        {
+          "step": 19,
+          "phase": "hold",
+          "cpuMs": 75.63824999999997,
+          "processCpuMs": 140.014,
+          "iterations": 6,
+          "factorizations": 24,
+          "certificateBound": 4.380308382678777e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 15,
+            "requests": 323,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 21.290289999999914,
+            "linearMs": 43.96620999999868,
+            "frictionMs": 2.550999999999476,
+            "tangentAssemblyMs": 11.447123999999349,
+            "residualAssemblyMs": 9.843166000000565,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.380308382678777e-8,
+                "torque": 2.4658700671642553e-9,
+                "length": 8.526512829121202e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 23
+              },
+              "iterations": 6,
+              "factorizations": 24
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 2,
+          "maxPenetrationMm": 6.628031457012185e-14,
+          "nodes": 207,
+          "rows": 921
+        },
+        {
+          "step": 20,
+          "phase": "hold",
+          "cpuMs": 34.87333299999955,
+          "processCpuMs": 47.189,
+          "iterations": 4,
+          "factorizations": 8,
+          "certificateBound": 4.773062300955644e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 16,
+            "requests": 338,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 13.568666000000121,
+            "linearMs": 12.07212299999901,
+            "frictionMs": 2.3222080000005008,
+            "tangentAssemblyMs": 6.790666999999303,
+            "residualAssemblyMs": 6.777999000000818,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.773062300955644e-8,
+                "torque": 2.0168816838861403e-8,
+                "length": 1.1368683772161603e-13
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 24
+              },
+              "iterations": 4,
+              "factorizations": 8
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 6.006306563222097e-14,
+          "nodes": 207,
+          "rows": 924
+        },
+        {
+          "step": 21,
+          "phase": "hold",
+          "cpuMs": 36.44220899999982,
+          "processCpuMs": 62.747,
+          "iterations": 4,
+          "factorizations": 12,
+          "certificateBound": 4.3564341467572376e-8,
+          "linearScratch": {
+            "allocations": 2,
+            "capacityBytes": 2097152,
+            "grows": 1,
+            "viewBuilds": 17,
+            "requests": 361,
+            "compactLayouts": 16,
+            "compactNumericAllocations": 12,
+            "compactNumericBytes": 522496
+          },
+          "timings": {
+            "assemblyMs": 12.855250999999043,
+            "linearMs": 14.543376000001444,
+            "frictionMs": 2.2460409999994226,
+            "tangentAssemblyMs": 6.379500999999436,
+            "residualAssemblyMs": 6.475749999999607,
+            "projectionMs": 0
+          },
+          "attempts": [
+            {
+              "subdivisions": 1,
+              "index": 1,
+              "roundoffStagnation": true,
+              "dt": 0.016666666666666666,
+              "status": "converged",
+              "error": null,
+              "converged": true,
+              "residual": {
+                "force": 4.3564341467572376e-8,
+                "torque": 1.9445913698734607e-9,
+                "length": 9.14823772291129e-14
+              },
+              "friction": {
+                "converged": true,
+                "forceChange": 0,
+                "contacts": 39,
+                "sliding": 25
+              },
+              "iterations": 4,
+              "factorizations": 12
+            }
+          ],
+          "subdivisions": 1,
+          "backtracks": 0,
+          "geometryRestarts": 1,
+          "maxPenetrationMm": 9.414691248821327e-14,
+          "nodes": 207,
+          "rows": 923
+        }
+      ],
+      "maxWorldDifferenceMm": 3.08183389612254e-7
+    }
+  ],
+  "passed": false,
+  "referenceVersion": "before",
+  "pairing": "alternating accepted steps, reversed order each step and repeat",
+  "limitations": [
+    "CPU throughput is not browser FPS; rendering and the frame scheduler add work.",
+    "Exact captured stage-05 state; continuation controls exercise hold, withdrawal, advancement and settling, not the entire manual crossover."
+  ],
+  "error": "AssertionError [ERR_ASSERTION]: Optimization exceeded the trajectory comparison budget\n    at file:///Users/macpiek/.codex/worktrees/33ba/OpenEndovascularTrainer/scripts/benchmark-crossover-throughput.mjs:69:24"
+}

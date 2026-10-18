@@ -1,0 +1,53 @@
+{
+  "artifacts": {
+    "reference": "003-crossover-full-user-inputs.json.gz",
+    "browser": "017-browser-inputs.json.gz",
+    "node": "017-node-worker-inputs.json.gz",
+    "browserMath": "017-browser-math.json.gz",
+    "nodeMath": "017-node-math.json.gz",
+    "oracle": "017-node-math-oracle.json.gz"
+  },
+  "sha256": {
+    "reference": "bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac",
+    "browser": "13b04c7c467832c29feba3e96fc53b1fbe33550a071b8d78c23170f312a5566a",
+    "node": "01a9187d5a53644b3d404e5a32137c7191b8f9ce3d72e0bbfd31ce9c415e433a",
+    "browserMath": "95c76b8b9e467bf5191169a236e59f619b1ec8fa11f030f4f9e23820f76a73d5",
+    "nodeMath": "1c0c1678d42e3052b01c4a1e7d630fe88947f67d48dde64c6ddb5dfc5847dcea",
+    "oracle": "f1ce015fcc9cda81e11ab94d303755bf3e7bcd47ca24cb37969b8e294b6008a9"
+  },
+  "goalAchieved": false,
+  "completeManeuver": false,
+  "browserCapture": {
+    "steps": 659,
+    "workerRequests": 600,
+    "originalShapesUnchanged": true
+  },
+  "exactRequestNodeReplay": {
+    "steps": 659,
+    "firstDifferentStep": 2,
+    "maximumShapeDifferenceMm": 0.02683375229512522
+  },
+  "firstArithmeticDifference": {
+    "step": 1,
+    "callIndex": 1635,
+    "function": "atan2",
+    "args": [
+      0.3566694982748345,
+      0.9342306294488412
+    ],
+    "browserResult": 0.3647004891562426,
+    "nodeResult": 0.36470048915624254
+  },
+  "mathOracle": {
+    "steps": 2,
+    "validatedCalls": 6710,
+    "exactBrowserShapes": true
+  },
+  "conclusion": "Identical requests are insufficient for bitwise Node/browser parity. The first observed arithmetic difference is a function return for identical arguments. Replaying the browser arithmetic trace recovers both audited poses exactly.",
+  "limitations": [
+    "The oracle is diagnostic only and cannot run a new maneuver or qualify a physics solver.",
+    "Only two steps have arithmetic tracing; this does not prove all later divergence has the same cause.",
+    "The 659-step request audit is a prefix, not a performance or full-maneuver test.",
+    "Node comparisons require a same-runtime baseline for attribution; the original full browser replay remains authoritative."
+  ]
+}

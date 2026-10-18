@@ -1,0 +1,10 @@
+{
+  "enabled": false,
+  "decision": "Do not enable acceleration prediction. Shape and physical certificates pass, but work rises from 2372 iterations / 3416 factorizations for mesh plus contact recovery to 2402 / 3436. The added history has no demonstrated benefit.",
+  "sourcePatch": "001-acceleration-predictor-research.patch",
+  "report": "001-authorized-acceleration-half.json",
+  "shapeBudgetMm": 0.1,
+  "maxShapeDifferenceMm": 0.04935269260368522,
+  "comparedToFullModelSavedCpuPercent": 19.753483374018177,
+  "pairedComparisonWithNoAcceleration": "Not yet measured; the comparison above uses the full model. No speed advantage over the existing candidate is claimed."
+}

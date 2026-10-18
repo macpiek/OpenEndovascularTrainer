@@ -1,0 +1,240 @@
+--- /dev/null
++++ b/src/physics/kirchhoffBandPrefixReuse.js
+@@ -0,0 +1,43 @@
++// One bounded numerical cache per execution thread. No solver state or array
++// owner survives a call. All input bits, RHS and pivot bounds in the prefix
++// must match; a cache hit skips the SAME ordered elimination, not an update
++// formula or approximate factor. Other workspaces/cancelled calls are safe.
++let saved=null;
++const stats={calls:0,hits:0,columnsSkipped:0,eligibleCalls:0};
++export const getBandPrefixReuseStats=()=>({...stats});
++export function solveBandWithPrefix(kernel,factor,rhs,right,count,kl,ku) {
++    stats.calls++;
++    const cut=count>=768?512:count>=384?256:count>=192?128:0;
++    if(!cut||cut+kl>=count||!kernel.solveGeneralBandLUPart||!kernel.prefixStorage)
++        return kernel.solveGeneralBandLU(factor.byteOffset,rhs.byteOffset,right.byteOffset,count,kl,ku);
++    stats.eligibleCalls++;
++    const stride=2*kl+ku+1,rows=cut+kl,entries=rows*stride;
++    let p=saved;
++    const matches=p?.valid&&p.buffer===factor.buffer&&p.cut===cut&&p.kl===kl&&p.ku===ku&&
++        kernel.sameMemoryBits(p.inputFactor.byteOffset,factor.byteOffset,entries*8)&&
++        kernel.sameMemoryBits(p.inputRhs.byteOffset,rhs.byteOffset,rows*8)&&
++        kernel.sameMemoryBits(p.inputRight.byteOffset,right.byteOffset,rows*4);
++    let prefixSwaps;
++    if(matches) {
++        factor.set(p.factor);rhs.set(p.rhs);right.set(p.right);prefixSwaps=p.swaps;
++        stats.hits++;stats.columnsSkipped+=cut;
++    } else {
++        if(!p||p.buffer!==factor.buffer||p.cut!==cut||p.kl!==kl||p.ku!==ku) {
++            let offset=kernel.prefixStorage.offset;
++            const take=(Type,n)=>{offset=Math.ceil(offset/8)*8;const a=new Type(factor.buffer,offset,n);offset+=a.byteLength;return a;};
++            const required=16*entries+40*rows+32;
++            if(required>kernel.prefixStorage.bytes)throw new RangeError('Prefix arena capacity');
++            p=saved={cut,kl,ku,buffer:factor.buffer,inputFactor:take(Float64Array,entries),inputRhs:take(Float64Array,rows),
++                inputRight:take(Int32Array,rows),factor:take(Float64Array,entries),rhs:take(Float64Array,rows),right:take(Int32Array,rows)};
++            stats.storageBytes=kernel.prefixStorage.bytes;
++        }
++        p.valid=false;
++        p.inputFactor.set(factor.subarray(0,entries));p.inputRhs.set(rhs.subarray(0,rows));p.inputRight.set(right.subarray(0,rows));
++        prefixSwaps=kernel.solveGeneralBandLUPart(factor.byteOffset,rhs.byteOffset,right.byteOffset,0,cut,0,count,kl,ku);
++        if(prefixSwaps<0)return prefixSwaps;
++        p.factor.set(factor.subarray(0,entries));p.rhs.set(rhs.subarray(0,rows));p.right.set(right.subarray(0,rows));
++        p.swaps=prefixSwaps;p.valid=true;
++    }
++    const rest=kernel.solveGeneralBandLUPart(factor.byteOffset,rhs.byteOffset,right.byteOffset,cut,count,1,count,kl,ku);
++    return rest<0?rest:prefixSwaps+rest;
++}
+--- a/src/physics/kirchhoffCoulombBandLU.js
++++ b/src/physics/kirchhoffCoulombBandLU.js
+@@ -1,3 +1,4 @@
++import {solveBandWithPrefix} from './kirchhoffBandPrefixReuse.js';
+ import { createKirchhoffLinearKernel } from './kirchhoffLinearKernel.js';
+ 
+ /** Shared temporary factor storage for sequential synchronous solves. A LU
+@@ -6,7 +7,7 @@
+  * them. Growth replaces the current kernel geometrically; old shape views
+  * are discarded and LU instances acquire fresh views on their next solve.
+  */
+-export function createCoulombBandLUArena() {
++export function createCoulombBandLUArena({prefixReuse=false}={}) {
+     let kernel=null,buffer=null,capacityBytes=0,allocations=0,grows=0,viewBuilds=0,requests=0;
+     const shapes=new Map();
+     const diagnostics=Object.freeze({
+@@ -24,7 +25,9 @@
+             requests++;
+             if(required>capacityBytes) {
+                 let nextCapacity=65536;while(nextCapacity<required)nextCapacity*=2;
+-                const nextKernel=createKirchhoffLinearKernel(nextCapacity);
++                const prefixBytes=prefixReuse?2*nextCapacity:0;
++                const nextKernel=createKirchhoffLinearKernel(nextCapacity+prefixBytes);
++                if(prefixReuse)nextKernel.prefixStorage={offset:nextCapacity,bytes:prefixBytes};
+                 const nextBuffer=nextKernel.alloc(Uint8Array,nextCapacity).buffer;
+                 if(kernel)grows++;
+                 kernel=nextKernel;buffer=nextBuffer;capacityBytes=nextCapacity;allocations++;shapes.clear();
+@@ -107,7 +110,7 @@
+  * it never needs to swap previously stored L entries outside this band.
+  * No positive-definiteness assumption or diagonal pivot replacement is used.
+  */
+-export function createCoulombBandLU(layout, count, {arena,wasmAssembly=false}={}) {
++export function createCoulombBandLU(layout, count, {arena,wasmAssembly=false,reusePrefix=false}={}) {
+     const { starts, ends, offsets, kl, ku } = layout, stride = 2 * kl + ku + 1;
+     const ownedKernel=arena||wasmAssembly?null:createKirchhoffLinearKernel(8*count*stride+16*count+128);
+     const owned=ownedKernel?{kernel:ownedKernel,factor:ownedKernel.alloc(Float64Array,count*stride),
+@@ -152,7 +155,7 @@
+                 for (let j = starts[i]; j <= ends[i]; j++) originalMaximum = Math.max(originalMaximum, Math.abs(factor[target + j]));
+             }
+             }
+-            const swaps = kernel.solveGeneralBandLU(factor.byteOffset, rhs.byteOffset, right.byteOffset, count, kl, ku);
++            const swaps = reusePrefix?solveBandWithPrefix(kernel,factor,rhs,right,count,kl,ku):kernel.solveGeneralBandLU(factor.byteOffset, rhs.byteOffset, right.byteOffset, count, kl, ku);
+             if (swaps < 0) return false;
+             diagnostics.rowSwaps += swaps;
+             let residualNorm = 0, matrixNorm = 0, rhsNorm = 0, solutionNorm = 0, factorMaximum = 0;
+--- a/src/physics/kirchhoffSharedAxisLinear.js
++++ b/src/physics/kirchhoffSharedAxisLinear.js
+@@ -1,3 +1,4 @@
++import {getBandPrefixReuseStats} from './kirchhoffBandPrefixReuse.js';
+ import {fallbackWorkingSetLease} from './kirchhoffSharedAxisRejectedLinearization.js';
+ import {sharedAxisEffectiveGap} from './kirchhoffSharedAxisCompliance.js';
+ import {canCondenseSharedAxisContact,assembleCondensedSharedAxisContacts,recoverCondensedSharedAxisReaction,measureUncondensedSharedAxisResidual} from './kirchhoffSharedAxisCondensation.js';
+@@ -12,7 +13,7 @@
+ // Band elimination is synchronous and overwrites its entire factor/RHS. All
+ // shared-axis workspaces can use one arena; retaining a different WASM memory
+ // for every active-set layout causes unnecessary browser allocation/GC work.
+-const sharedLinearScratchArena=createCoulombBandLUArena();
++const sharedLinearScratchArena=createCoulombBandLUArena({prefixReuse:true});
+ // Compact factorizations are synchronous and their outputs are copied into
+ // the caller's private workspace before yielding. Reuse bounded structural
+ // maps across callers and lend one numeric arena to changing layouts. The
+@@ -38,7 +39,7 @@
+     }
+ }
+ const noCondensedRows=Object.freeze([]);
+-export const getSharedAxisLinearScratchStats=()=>({...sharedLinearScratchArena.diagnostics,
++export const getSharedAxisLinearScratchStats=()=>({...sharedLinearScratchArena.diagnostics,prefix:getBandPrefixReuseStats(),
+     compactLayouts:sharedCompactWorkspaces.size,compactNumericAllocations,
+     compactNumericBytes:Object.values(sharedCompactNumbers).reduce((n,v)=>n+v.byteLength,0)});
+ 
+@@ -155,7 +156,7 @@
+         kl=Math.max(kl,i-starts[i]);ku=Math.max(ku,ends[i]-i);
+     }
+     const band = { starts, ends, offsets, entries, kl, ku };
+-    const workspace={primal,dual,count,band,lu:createCoulombBandLU(band,count,{arena:sharedLinearScratchArena})};
++    const workspace={primal,dual,count,band,lu:createCoulombBandLU(band,count,{arena:sharedLinearScratchArena,reusePrefix:true})};
+     numericBuffers(workspace,numericArena);return workspace;
+ }
+ 
+@@ -238,7 +239,7 @@
+     // Experimental factors belong to one immutable linearization. Their
+     // memory stays exclusive while yielded; the ordinary arena is overwritten
+     // by other solvers. Compact mode uses this LU as its border-update base.
+-    let lu=wasmLinear?(w.wasmLU??=createCoulombBandLU(w.band,w.count,{arena:sharedLinearScratchArena,wasmAssembly:true})):w.lu;
++    let lu=wasmLinear?(w.wasmLU??=createCoulombBandLU(w.band,w.count,{arena:sharedLinearScratchArena,wasmAssembly:true,reusePrefix:true})):w.lu;
+     if(incrementalContext) {
+         lu=incrementalContext.workspaces.get(w);
+         if(!lu){lu=createIncrementalContactLU(w.band,w.count,{maxRank:incrementalContext.maxRank});incrementalContext.workspaces.set(w,lu);incrementalContext.allDiagnostics.push(lu.diagnostics);}
+--- a/src/physics/kirchhoffBandSimdKernelBytes.js
++++ b/src/physics/kirchhoffBandSimdKernelBytes.js
+@@ -1,2 +1,2 @@
+ // Generated by scripts/physics/build-band-simd-kernel.mjs. Do not edit.
+-export const bandSimdKernelBytes=new Uint8Array([0,97,115,109,1,0,0,0,1,11,1,96,6,127,127,127,127,127,127,1,127,2,15,1,3,101,110,118,6,109,101,109,111,114,121,2,0,1,3,2,1,0,7,22,1,18,115,111,108,118,101,71,101,110,101,114,97,108,66,97,110,100,76,85,0,0,10,150,7,1,147,7,3,15,127,2,123,5,124,32,4,65,2,108,32,5,106,33,6,2,64,3,64,32,7,32,3,78,13,1,32,0,32,7,32,6,108,32,4,106,65,8,108,106,33,16,32,7,33,11,32,16,32,7,65,8,108,106,43,3,0,153,33,23,32,7,32,4,106,33,10,32,10,32,3,78,4,64,32,3,65,1,107,33,10,11,32,7,65,1,106,33,8,2,64,3,64,32,8,32,10,74,13,1,32,0,32,8,32,6,108,32,4,106,65,8,108,106,33,17,32,17,32,7,65,8,108,106,43,3,0,153,33,24,32,24,32,23,100,4,64,32,24,33,23,32,8,33,11,11,32,8,65,1,106,33,8,12,0,11,11,32,23,68,22,86,231,158,175,3,210,60,100,69,4,64,65,127,15,11,32,2,32,7,65,4,108,106,40,2,0,33,14,32,11,32,7,71,4,64,32,0,32,11,32,6,108,32,4,106,65,8,108,106,33,18,32,2,32,11,65,4,108,106,40,2,0,33,15,32,14,32,15,74,4,127,32,14,5,32,15,11,33,13,32,7,33,9,2,64,3,64,32,9,32,13,78,13,1,32,16,32,9,65,8,108,106,33,19,32,18,32,9,65,8,108,106,33,20,32,19,253,0,4,0,33,21,32,19,32,20,253,0,4,0,253,11,4,0,32,20,32,21,253,11,4,0,32,9,65,2,106,33,9,12,0,11,11,2,64,3,64,32,9,32,13,74,13,1,32,16,32,9,65,8,108,106,33,19,32,18,32,9,65,8,108,106,33,20,32,19,43,3,0,33,25,32,19,32,20,43,3,0,57,3,0,32,20,32,25,57,3,0,32,9,65,1,106,33,9,12,0,11,11,32,2,32,7,65,4,108,106,32,15,54,2,0,32,2,32,11,65,4,108,106,32,14,54,2,0,32,15,33,14,32,1,32,7,65,8,108,106,33,19,32,1,32,11,65,8,108,106,33,20,32,19,43,3,0,33,25,32,19,32,20,43,3,0,57,3,0,32,20,32,25,57,3,0,32,12,65,1,106,33,12,11,32,16,32,7,65,8,108,106,43,3,0,33,27,32,7,65,1,106,33,8,2,64,3,64,32,8,32,10,74,13,1,32,0,32,8,32,6,108,32,4,106,65,8,108,106,33,17,32,17,32,7,65,8,108,106,43,3,0,32,27,163,33,26,32,26,68,0,0,0,0,0,0,0,0,98,4,64,32,7,65,1,106,33,9,32,26,253,20,33,22,2,64,3,64,32,9,32,14,78,13,1,32,17,32,9,65,8,108,106,33,19,32,19,32,19,253,0,4,0,32,22,32,16,32,9,65,8,108,106,253,0,4,0,253,242,1,253,241,1,253,11,4,0,32,9,65,2,106,33,9,12,0,11,11,2,64,3,64,32,9,32,14,74,13,1,32,17,32,9,65,8,108,106,33,19,32,19,32,19,43,3,0,32,26,32,16,32,9,65,8,108,106,43,3,0,162,161,57,3,0,32,9,65,1,106,33,9,12,0,11,11,32,2,32,8,65,4,108,106,33,19,32,14,32,19,40,2,0,74,4,64,32,19,32,14,54,2,0,11,32,1,32,8,65,8,108,106,33,19,32,19,32,19,43,3,0,32,26,32,1,32,7,65,8,108,106,43,3,0,162,161,57,3,0,11,32,8,65,1,106,33,8,12,0,11,11,32,7,65,1,106,33,7,12,0,11,11,32,3,65,1,107,33,8,2,64,3,64,32,8,65,0,72,13,1,32,0,32,8,32,6,108,32,4,106,65,8,108,106,33,17,32,1,32,8,65,8,108,106,33,19,32,19,43,3,0,33,24,32,2,32,8,65,4,108,106,40,2,0,33,13,32,8,65,1,106,33,9,2,64,3,64,32,9,32,13,74,13,1,32,24,32,17,32,9,65,8,108,106,43,3,0,32,1,32,9,65,8,108,106,43,3,0,162,161,33,24,32,9,65,1,106,33,9,12,0,11,11,32,19,32,24,32,17,32,8,65,8,108,106,43,3,0,163,57,3,0,32,8,65,1,107,33,8,12,0,11,11,32,12,11]);
++export const bandSimdKernelBytes=new Uint8Array([0,97,115,109,1,0,0,0,1,31,3,96,6,127,127,127,127,127,127,1,127,96,9,127,127,127,127,127,127,127,127,127,1,127,96,3,127,127,127,1,127,2,15,1,3,101,110,118,6,109,101,109,111,114,121,2,0,1,3,4,3,0,1,2,7,64,3,18,115,111,108,118,101,71,101,110,101,114,97,108,66,97,110,100,76,85,0,0,22,115,111,108,118,101,71,101,110,101,114,97,108,66,97,110,100,76,85,80,97,114,116,0,1,14,115,97,109,101,77,101,109,111,114,121,66,105,116,115,0,2,10,162,15,3,147,7,3,15,127,2,123,5,124,32,4,65,2,108,32,5,106,33,6,2,64,3,64,32,7,32,3,78,13,1,32,0,32,7,32,6,108,32,4,106,65,8,108,106,33,16,32,7,33,11,32,16,32,7,65,8,108,106,43,3,0,153,33,23,32,7,32,4,106,33,10,32,10,32,3,78,4,64,32,3,65,1,107,33,10,11,32,7,65,1,106,33,8,2,64,3,64,32,8,32,10,74,13,1,32,0,32,8,32,6,108,32,4,106,65,8,108,106,33,17,32,17,32,7,65,8,108,106,43,3,0,153,33,24,32,24,32,23,100,4,64,32,24,33,23,32,8,33,11,11,32,8,65,1,106,33,8,12,0,11,11,32,23,68,22,86,231,158,175,3,210,60,100,69,4,64,65,127,15,11,32,2,32,7,65,4,108,106,40,2,0,33,14,32,11,32,7,71,4,64,32,0,32,11,32,6,108,32,4,106,65,8,108,106,33,18,32,2,32,11,65,4,108,106,40,2,0,33,15,32,14,32,15,74,4,127,32,14,5,32,15,11,33,13,32,7,33,9,2,64,3,64,32,9,32,13,78,13,1,32,16,32,9,65,8,108,106,33,19,32,18,32,9,65,8,108,106,33,20,32,19,253,0,4,0,33,21,32,19,32,20,253,0,4,0,253,11,4,0,32,20,32,21,253,11,4,0,32,9,65,2,106,33,9,12,0,11,11,2,64,3,64,32,9,32,13,74,13,1,32,16,32,9,65,8,108,106,33,19,32,18,32,9,65,8,108,106,33,20,32,19,43,3,0,33,25,32,19,32,20,43,3,0,57,3,0,32,20,32,25,57,3,0,32,9,65,1,106,33,9,12,0,11,11,32,2,32,7,65,4,108,106,32,15,54,2,0,32,2,32,11,65,4,108,106,32,14,54,2,0,32,15,33,14,32,1,32,7,65,8,108,106,33,19,32,1,32,11,65,8,108,106,33,20,32,19,43,3,0,33,25,32,19,32,20,43,3,0,57,3,0,32,20,32,25,57,3,0,32,12,65,1,106,33,12,11,32,16,32,7,65,8,108,106,43,3,0,33,27,32,7,65,1,106,33,8,2,64,3,64,32,8,32,10,74,13,1,32,0,32,8,32,6,108,32,4,106,65,8,108,106,33,17,32,17,32,7,65,8,108,106,43,3,0,32,27,163,33,26,32,26,68,0,0,0,0,0,0,0,0,98,4,64,32,7,65,1,106,33,9,32,26,253,20,33,22,2,64,3,64,32,9,32,14,78,13,1,32,17,32,9,65,8,108,106,33,19,32,19,32,19,253,0,4,0,32,22,32,16,32,9,65,8,108,106,253,0,4,0,253,242,1,253,241,1,253,11,4,0,32,9,65,2,106,33,9,12,0,11,11,2,64,3,64,32,9,32,14,74,13,1,32,17,32,9,65,8,108,106,33,19,32,19,32,19,43,3,0,32,26,32,16,32,9,65,8,108,106,43,3,0,162,161,57,3,0,32,9,65,1,106,33,9,12,0,11,11,32,2,32,8,65,4,108,106,33,19,32,14,32,19,40,2,0,74,4,64,32,19,32,14,54,2,0,11,32,1,32,8,65,8,108,106,33,19,32,19,32,19,43,3,0,32,26,32,1,32,7,65,8,108,106,43,3,0,162,161,57,3,0,11,32,8,65,1,106,33,8,12,0,11,11,32,7,65,1,106,33,7,12,0,11,11,32,3,65,1,107,33,8,2,64,3,64,32,8,65,0,72,13,1,32,0,32,8,32,6,108,32,4,106,65,8,108,106,33,17,32,1,32,8,65,8,108,106,33,19,32,19,43,3,0,33,24,32,2,32,8,65,4,108,106,40,2,0,33,13,32,8,65,1,106,33,9,2,64,3,64,32,9,32,13,74,13,1,32,24,32,17,32,9,65,8,108,106,43,3,0,32,1,32,9,65,8,108,106,43,3,0,162,161,33,24,32,9,65,1,106,33,9,12,0,11,11,32,19,32,24,32,17,32,8,65,8,108,106,43,3,0,163,57,3,0,32,8,65,1,107,33,8,12,0,11,11,32,12,11,160,7,3,15,127,2,123,5,124,32,7,65,2,108,32,8,106,33,9,32,3,33,10,2,64,3,64,32,10,32,4,78,13,1,32,0,32,10,32,9,108,32,7,106,65,8,108,106,33,19,32,10,33,14,32,19,32,10,65,8,108,106,43,3,0,153,33,26,32,10,32,7,106,33,13,32,13,32,6,78,4,64,32,6,65,1,107,33,13,11,32,10,65,1,106,33,11,2,64,3,64,32,11,32,13,74,13,1,32,0,32,11,32,9,108,32,7,106,65,8,108,106,33,20,32,20,32,10,65,8,108,106,43,3,0,153,33,27,32,27,32,26,100,4,64,32,27,33,26,32,11,33,14,11,32,11,65,1,106,33,11,12,0,11,11,32,26,68,22,86,231,158,175,3,210,60,100,69,4,64,65,127,15,11,32,2,32,10,65,4,108,106,40,2,0,33,17,32,14,32,10,71,4,64,32,0,32,14,32,9,108,32,7,106,65,8,108,106,33,21,32,2,32,14,65,4,108,106,40,2,0,33,18,32,17,32,18,74,4,127,32,17,5,32,18,11,33,16,32,10,33,12,2,64,3,64,32,12,32,16,78,13,1,32,19,32,12,65,8,108,106,33,22,32,21,32,12,65,8,108,106,33,23,32,22,253,0,4,0,33,24,32,22,32,23,253,0,4,0,253,11,4,0,32,23,32,24,253,11,4,0,32,12,65,2,106,33,12,12,0,11,11,2,64,3,64,32,12,32,16,74,13,1,32,19,32,12,65,8,108,106,33,22,32,21,32,12,65,8,108,106,33,23,32,22,43,3,0,33,28,32,22,32,23,43,3,0,57,3,0,32,23,32,28,57,3,0,32,12,65,1,106,33,12,12,0,11,11,32,2,32,10,65,4,108,106,32,18,54,2,0,32,2,32,14,65,4,108,106,32,17,54,2,0,32,18,33,17,32,1,32,10,65,8,108,106,33,22,32,1,32,14,65,8,108,106,33,23,32,22,43,3,0,33,28,32,22,32,23,43,3,0,57,3,0,32,23,32,28,57,3,0,32,15,65,1,106,33,15,11,32,19,32,10,65,8,108,106,43,3,0,33,30,32,10,65,1,106,33,11,2,64,3,64,32,11,32,13,74,13,1,32,0,32,11,32,9,108,32,7,106,65,8,108,106,33,20,32,20,32,10,65,8,108,106,43,3,0,32,30,163,33,29,32,29,68,0,0,0,0,0,0,0,0,98,4,64,32,10,65,1,106,33,12,32,29,253,20,33,25,2,64,3,64,32,12,32,17,78,13,1,32,20,32,12,65,8,108,106,33,22,32,22,32,22,253,0,4,0,32,25,32,19,32,12,65,8,108,106,253,0,4,0,253,242,1,253,241,1,253,11,4,0,32,12,65,2,106,33,12,12,0,11,11,2,64,3,64,32,12,32,17,74,13,1,32,20,32,12,65,8,108,106,33,22,32,22,32,22,43,3,0,32,29,32,19,32,12,65,8,108,106,43,3,0,162,161,57,3,0,32,12,65,1,106,33,12,12,0,11,11,32,2,32,11,65,4,108,106,33,22,32,17,32,22,40,2,0,74,4,64,32,22,32,17,54,2,0,11,32,1,32,11,65,8,108,106,33,22,32,22,32,22,43,3,0,32,29,32,1,32,10,65,8,108,106,43,3,0,162,161,57,3,0,11,32,11,65,1,106,33,11,12,0,11,11,32,10,65,1,106,33,10,12,0,11,11,32,5,69,4,64,32,15,15,11,32,6,65,1,107,33,11,2,64,3,64,32,11,65,0,72,13,1,32,0,32,11,32,9,108,32,7,106,65,8,108,106,33,20,32,1,32,11,65,8,108,106,33,22,32,22,43,3,0,33,27,32,2,32,11,65,4,108,106,40,2,0,33,16,32,11,65,1,106,33,12,2,64,3,64,32,12,32,16,74,13,1,32,27,32,20,32,12,65,8,108,106,43,3,0,32,1,32,12,65,8,108,106,43,3,0,162,161,33,27,32,12,65,1,106,33,12,12,0,11,11,32,22,32,27,32,20,32,11,65,8,108,106,43,3,0,163,57,3,0,32,11,65,1,107,33,11,12,0,11,11,32,15,11,105,1,1,127,2,64,3,64,32,3,65,16,106,32,2,75,13,1,32,0,32,3,106,253,0,4,0,32,1,32,3,106,253,0,4,0,253,35,253,99,69,4,64,65,0,15,11,32,3,65,16,106,33,3,12,0,11,11,2,64,3,64,32,3,32,2,79,13,1,32,0,32,3,106,40,2,0,32,1,32,3,106,40,2,0,71,4,64,65,0,15,11,32,3,65,4,106,33,3,12,0,11,11,65,1,11]);
+--- a/scripts/physics/build-band-simd-kernel.mjs
++++ b/scripts/physics/build-band-simd-kernel.mjs
+@@ -33,7 +33,29 @@
+               (f64x2.mul (local.get $ratioPair) (v128.load (i32.add (local.get $kb) (i32.mul (local.get $j) (i32.const 8)))))))
+             (local.set $j (i32.add (local.get $j) (i32.const 2))) (br $updatePair)))
+           (block $updateDone (loop $update`);
+-const wat=`(module (import "env" "memory" (memory 1))\n${body})`;
++// Splitting at a column boundary does not change the pivot, elimination or
++// summation order. A prefix snapshot is taken before back substitution.
++let part=body.replace('(export "solveGeneralBandLU")','(export "solveGeneralBandLUPart")')
++ .replace('(param $n i32)', '(param $begin i32) (param $stopColumn i32) (param $backSubstitute i32) (param $n i32)')
++ .replace('    (block $done (loop $columns','    (local.set $k (local.get $begin))\n    (block $done (loop $columns')
++ .replace('(br_if $done (i32.ge_s (local.get $k) (local.get $n)))','(br_if $done (i32.ge_s (local.get $k) (local.get $stopColumn)))')
++ .replace('    (local.set $i (i32.sub (local.get $n) (i32.const 1)))',
++  '    (if (i32.eqz (local.get $backSubstitute)) (then (return (local.get $swaps))))\n    (local.set $i (i32.sub (local.get $n) (i32.const 1)))');
++const equality=`(func (export "sameMemoryBits") (param $a i32) (param $b i32) (param $bytes i32) (result i32)
++ (local $i i32)
++ (block $tail (loop $chunks
++  (br_if $tail (i32.gt_u (i32.add (local.get $i) (i32.const 16)) (local.get $bytes)))
++  (if (i32.eqz (i8x16.all_true (i8x16.eq
++   (v128.load (i32.add (local.get $a) (local.get $i)))
++   (v128.load (i32.add (local.get $b) (local.get $i)))))) (then (return (i32.const 0))))
++  (local.set $i (i32.add (local.get $i) (i32.const 16))) (br $chunks)))
++ (block $done (loop $words
++  (br_if $done (i32.ge_u (local.get $i) (local.get $bytes)))
++  (if (i32.ne (i32.load (i32.add (local.get $a) (local.get $i)))
++   (i32.load (i32.add (local.get $b) (local.get $i)))) (then (return (i32.const 0))))
++  (local.set $i (i32.add (local.get $i) (i32.const 4))) (br $words)))
++ (i32.const 1))`;
++const wat=`(module (import "env" "memory" (memory 1))\n${body}\n${part}\n${equality})`;
+ const wabt=await require(process.env.OET_WABT_PATH||'wabt')();
+ const parsed=wabt.parseWat('bandSimdKernel.wat',wat,{simd:true});
+ parsed.resolveNames();parsed.validate();
+--- a/src/benchmark/crossoverScenarioRecording.js
++++ b/src/benchmark/crossoverScenarioRecording.js
+@@ -15,7 +15,7 @@
+ const validQuality=(quality,dt)=>Array.isArray(quality)&&quality.length===2&&quality.every(q=>crossoverPhysicalGate(dt,q));
+ const captureQuality=d=>({converged:d.last.converged,certificateBound:d.last.certificateBound,residual:{length:d.last.residual.length},
+     quality:{finite:d.last.quality.finite,maxPenetration:d.last.quality.maxPenetration,bodies:d.last.quality.bodies.map(b=>({maxLengthError:b.maxLengthError}))}});
+-const captureWork=d=>({mesh:{...d.mesh},...(d.last?.directionProfile?{directionProfile:structuredClone(d.last.directionProfile)}:{}),...Object.fromEntries([
++const captureWork=d=>({mesh:{...d.mesh},...(d.last?.linearScratch?.prefix?{prefixReuse:{...d.last.linearScratch.prefix}}:{}),...(d.last?.directionProfile?{directionProfile:structuredClone(d.last.directionProfile)}:{}),...Object.fromEntries([
+     'iterations','factorizations','backtracks','geometryRestarts','frictionIterations','substepAttempts','subdivisions',
+     'predictorFallbacks','coupledFrictionFallbacks','wallNormalFallbacks','replayCaptureMs',
+     'workerWallMs','workerDispatchDelayMs','workerResponseMs','workerPublicationDelayMs'
+--- /dev/null
++++ b/tests/kirchhoffBandPrefixReuse.test.js
+@@ -0,0 +1,53 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {createKirchhoffLinearKernel} from '../src/physics/kirchhoffLinearKernel.js';
++import {solveBandWithPrefix,getBandPrefixReuseStats} from '../src/physics/kirchhoffBandPrefixReuse.js';
++function workspace(n,kl,ku,simd=true) {
++    const stride=2*kl+ku+1,bytes=8*n*stride+16*n+1024,kernel=createKirchhoffLinearKernel(3*bytes,{simd});
++    const w={n,kl,ku,stride,kernel,factor:kernel.alloc(Float64Array,n*stride),rhs:kernel.alloc(Float64Array,n),right:kernel.alloc(Int32Array,n)};
++    const cache=kernel.alloc(Uint8Array,2*bytes);kernel.prefixStorage={offset:cache.byteOffset,bytes:cache.byteLength};
++    return w;
++}
++function input(w,tail=0,mode='ordinary') {
++    const {n,kl,ku,stride,factor,rhs,right}=w;factor.fill(0);
++    for(let i=0;i<n;i++) {
++        right[i]=Math.min(n-1,i+ku);rhs[i]=Math.cos(i)*.3+(i>n-15?tail:0);
++        for(let j=Math.max(0,i-kl);j<=right[i];j++)factor[i*stride+kl+j-i]=
++            i===j?(mode==='pivot'?.00001:5+kl+ku)+(i>n-15?tail:0):Math.sin(i*7+j*11)*.4;
++    }
++    if(mode==='singular-prefix')for(let i=0;i<n;i++)for(let j=Math.max(0,i-kl);j<=right[i];j++)if(j===11)factor[i*stride+kl+j-i]=0;
++    if(mode==='singular-suffix')for(let i=0;i<n;i++)for(let j=Math.max(0,i-kl);j<=right[i];j++)if(j===n-10)factor[i*stride+kl+j-i]=0;
++}
++function compare(w,change=()=>{}) {
++    change(w);const ref=workspace(w.n,w.kl,w.ku,false);
++    ref.factor.set(w.factor);ref.rhs.set(w.rhs);ref.right.set(w.right);
++    const result=solveBandWithPrefix(w.kernel,w.factor,w.rhs,w.right,w.n,w.kl,w.ku);
++    const expected=ref.kernel.solveGeneralBandLU(ref.factor.byteOffset,ref.rhs.byteOffset,ref.right.byteOffset,ref.n,ref.kl,ref.ku);
++    assert.equal(result,expected);assert.deepEqual(w.factor,ref.factor);assert.deepEqual(w.rhs,ref.rhs);assert.deepEqual(w.right,ref.right);
++    return result;
++}
++test('cached elimination matches scalar pivoting and backsolve exactly, including changed tail equations and failures',()=>{
++    const start=getBandPrefixReuseStats();
++    for(const [n,kl,ku] of [[220,5,7],[420,9,4],[801,13,8]]) {
++        const w=workspace(n,kl,ku);
++        for(const mode of ['ordinary','pivot','singular-suffix','ordinary','singular-prefix','ordinary']) {
++            for(const tail of [0,.03,.05]){input(w,tail,mode);compare(w);}
++        }
++    }
++    const end=getBandPrefixReuseStats();assert.ok(end.hits-start.hits>=15);assert.ok(end.columnsSkipped>start.columnsSkipped);
++});
++test('RHS, pivot-frontier and layout changes invalidate the prefix; interleaved owners cannot corrupt retained data',()=>{
++    const w=workspace(850,11,5),other=workspace(211,3,7);
++    input(w);compare(w);let hits=getBandPrefixReuseStats().hits;
++    input(w,.03);compare(w);assert.equal(getBandPrefixReuseStats().hits,hits+1);hits++;
++    input(w,.05);compare(w,x=>x.rhs[522]+=.001);assert.equal(getBandPrefixReuseStats().hits,hits);
++    input(other);compare(other);input(w,.08);compare(w);assert.equal(getBandPrefixReuseStats().hits,hits);
++    const grown=workspace(851,11,5);input(grown,.09);compare(grown);assert.equal(getBandPrefixReuseStats().hits,hits);
++    input(grown,.09);compare(grown);assert.equal(getBandPrefixReuseStats().hits,hits+1);
++    // The full band bounds, not just coefficients, affect pivot fill.
++    input(grown,.1);compare(grown,x=>{x.right[520]--;x.factor[520*x.stride+x.kl+5]=0;});
++    assert.equal(getBandPrefixReuseStats().hits,hits+1);
++});
++test('unsupported SIMD and tiny systems retain ordinary exact elimination',()=>{
++    for(const [n,simd] of [[40,true],[850,false]]){const w=workspace(n,7,3,simd);input(w,0,'pivot');compare(w);}
++});

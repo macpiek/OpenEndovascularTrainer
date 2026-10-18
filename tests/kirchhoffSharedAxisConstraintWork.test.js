@@ -29,6 +29,16 @@ test('basis token ignores reactions/gaps but invalidates changed Jacobians, supp
     }
 });
 
+test('basis comparison buffers also support ordinary arrays and shrinking fixed masks',()=>{
+    const rows=[{kind:'length',dofs:[0,1],jacobian:[-1,1]}],fixed=[0,0,0];
+    const initial=sharedAxisBasisLinearization(rows,fixed);
+    assert.equal(sharedAxisBasisLinearization(rows,fixed),initial);
+    rows[0].jacobian[1]=.5;const changed=sharedAxisBasisLinearization(rows,fixed);
+    assert.notEqual(changed,initial);assert.equal(sharedAxisBasisLinearization(rows,fixed),changed);
+    fixed.pop();const shorter=sharedAxisBasisLinearization(rows,fixed);
+    assert.notEqual(shorter,changed);assert.equal(sharedAxisBasisLinearization(rows,fixed),shorter);
+});
+
 import {repeatedSharedAxisDual} from '../src/physics/kirchhoffSharedAxisLinear.js';
 test('lazy cycle checks match formatted signatures including rounding, negative zero and repeated sets',()=>{
     const map=new Map(),reference=new Set();

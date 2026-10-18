@@ -1,0 +1,31 @@
+--- a/src/physics/kirchhoffSharedAxisConstraintRows.js
++++ b/src/physics/kirchhoffSharedAxisConstraintRows.js
+@@ -210,7 +210,14 @@
+         }
+         if(prepareOnly)continue;
+         const multiplier=s.multipliers[index],sign=def.kind==='wall'?-1:1;
+-        if(multiplier!==0)for(let i=0;i<def.dofs.length;i++)g[def.dofs[i]]+=sign*J[i]*multiplier;
++        if(multiplier!==0) {
++            const dofs=def.dofs,count=dofs.length;
++            if(count===6||count===9) {
++                g[dofs[0]]+=sign*J[0]*multiplier;g[dofs[1]]+=sign*J[1]*multiplier;g[dofs[2]]+=sign*J[2]*multiplier;
++                g[dofs[3]]+=sign*J[3]*multiplier;g[dofs[4]]+=sign*J[4]*multiplier;g[dofs[5]]+=sign*J[5]*multiplier;
++                if(count===9){g[dofs[6]]+=sign*J[6]*multiplier;g[dofs[7]]+=sign*J[7]*multiplier;g[dofs[8]]+=sign*J[8]*multiplier;}
++            } else for(let i=0;i<count;i++)g[dofs[i]]+=sign*J[i]*multiplier;
++        }
+         let geometricHessian;
+         if(gapHessian&&multiplier!==0&&withTangent) {
+             geometricHessian=hessianBuffer(storage,index,gapHessian.length);
+@@ -230,7 +237,11 @@
+         }
+         if(storage) {
+             row.gap=gap;row.multiplier=multiplier;row.geometricHessian=geometricHessian;
+-            for(let i=0;i<J.length;i++)row.jacobian[i]=J[i];
++            const jacobian=row.jacobian,count=J.length;
++            if(count===6||count===9) {
++                jacobian[0]=J[0];jacobian[1]=J[1];jacobian[2]=J[2];jacobian[3]=J[3];jacobian[4]=J[4];jacobian[5]=J[5];
++                if(count===9){jacobian[6]=J[6];jacobian[7]=J[7];jacobian[8]=J[8];}
++            } else for(let i=0;i<count;i++)jacobian[i]=J[i];
+         } else {
+             rows[index]={...def,gap,jacobian:J,multiplier,penalty:1,geometricHessian};
+             if(s.wallCompliance&&def.witness)rows[index].compliance=s.wallCompliance;

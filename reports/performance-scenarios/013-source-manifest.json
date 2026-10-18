@@ -1,0 +1,16 @@
+{
+  "productionDefaultChanged": false,
+  "files": {
+    "src/physics/sharedAxisXpbdExperimental.js": "d25e238beda04a3842140dafd30e7584bdf8e20cbf5174c6367c298538357611",
+    "src/physics/xpbdChainBlock.js": "a15a97f858d58756fba46784afd15ec6001572a1085b843fcd57ef5fe04211d6",
+    "src/physics/xpbdChainIteration.js": "97eee11ca0f3b86227a7b8a21ee680930abdd4352e068810da124c1956029ae1",
+    "src/physics/xpbdSurfaceFriction.js": "f1c8ce7f4cd9f37355546f213d1e45cfac1394626f5309ebdecd42b71c04e052",
+    "src/benchmark/crossoverAlternativeSolvers.js": "65328a4beffdc7ba7182ec4f8e8b1f335eaf697fe47675cff5130c9d3648c672",
+    "scripts/benchmark-crossover-alternative-solvers.mjs": "52ef26298a766d0f62a342d0a9b232b4918d169223ac6166a8fc7f80780ed87c",
+    "scripts/validate-crossover-alternative.mjs": "6d11379bb8dac4e343fdb9c70a683703eca7c3a3869656fb39397156b750e748",
+    "scripts/diagnose-xpbd-chain.mjs": "95f6eac8b1e79fcb16d6b34865a678c8a693c2154c533e2e6ddc1f4f7790e742",
+    "tests/xpbdChainBlock.test.js": "9e638a86575279e84bdb50d2a518568a33a2304969e152f158ce50476f21401b",
+    "tests/xpbdSurfaceFriction.test.js": "dce769db76a0d56643828cb1a848e409028e2642443dc18ddd29877ef1ef321a"
+  },
+  "note": "Raw source hashes. Earlier unguarded, primal and simultaneous-contact block snapshots are retained in 013-chain-*.js. Per-run source hashes identify intermediate variants."
+}

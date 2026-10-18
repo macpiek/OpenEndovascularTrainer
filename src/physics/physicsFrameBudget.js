@@ -11,3 +11,17 @@ export function runPhysicsFrameBudget({hasDebt,canAttempt,canFit,attempt,maxStep
     }
     return {steps,slices};
 }
+
+/** Use only spare time before the next render deadline. Unlike the frame
+ * entry, even the first idle slice must fit. The caller owns cancellation,
+ * visibility and transaction epochs; this synchronous loop owns no timers. */
+export function runPhysicsIdleBudget({deadline,now,guardMs,maxSliceMs,hasDebt,canAttempt,canFit,attempt,maxSlices=6}) {
+    let steps=0,slices=0;
+    while(slices<maxSlices) {
+        const room=deadline-now()-guardMs;
+        if(!hasDebt()||!canAttempt()||!canFit(room))break;
+        if(attempt(Math.min(maxSliceMs,room)))steps++;
+        slices++;
+    }
+    return {steps,slices};
+}

@@ -3,6 +3,20 @@ import assert from 'node:assert/strict';
 import {solverDebugUrl} from '../src/ui/solverDebugControls.js';
 import {createRodNodesDebug} from '../src/ui/rodNodesDebug.js';
 
+test('manual PD crossover selection clears Newton-only replay and disables adaptive mesh controls',async()=>{
+    const {initSolverDebugControls}=await import('../src/ui/solverDebugControls.js');
+    const id='shared-axis-projective-crossover';
+    const url=new URL(solverDebugUrl('http://localhost:5182/?anatomy=infrarenal-aneurysm&crossoverScenario=1&crossoverBenchmark=full&crossoverWorker=1',id));
+    assert.equal(url.searchParams.get('coupledSolver'),id);
+    assert.equal(url.searchParams.get('anatomy'),'infrarenal-aneurysm');
+    for(const key of ['crossoverScenario','crossoverBenchmark','crossoverWorker'])assert.equal(url.searchParams.has(key),false);
+    const element=()=>({value:'.15',checked:false,disabled:false,addEventListener(){}});
+    const select={...element(),append(){},ownerDocument:{createElement(){return {};}}};
+    const tolerance=element(),fastNewtonToggle=element();
+    initSolverDebugControls({select,button:element(),tolerance,fastNewtonToggle,current:id,href:url.href,navigate(){}});
+    assert.equal(select.value,id);assert.equal(tolerance.disabled,true);assert.equal(fastNewtonToggle.disabled,true);
+});
+
 test('solver navigation preserves unrelated URL parameters and selects a clean restart',()=>{
     const next=new URL(solverDebugUrl('http://localhost:5173/?foo=1&experimentalSplitMotion=1&coupledLinearSolver=axial-band#view','shared-axis-adaptive'));
     assert.equal(next.searchParams.get('coupledSolver'),'shared-axis-adaptive');

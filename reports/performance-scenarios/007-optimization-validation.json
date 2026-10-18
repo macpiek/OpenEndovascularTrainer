@@ -1,0 +1,49 @@
+{
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "currentCandidate": "007-distal-remap-passing.patch",
+  "recorderPatch": "004-configurable-shape-limit.patch",
+  "currentWorkspace": "/tmp/oet-fluidity-1mm-zb0gv7v4",
+  "url": "http://127.0.0.1:5181/?anatomy=infrarenal-aneurysm&panel=anatomy&crossoverScenario=1&crossoverBenchmark=full&crossoverWorker=1&crossoverDistalMesh=1",
+  "completeBrowserReplay": {
+    "report": "007-distal-remap-full-browser.json.gz",
+    "steps": 7507,
+    "motionHz": 40.344985599368734,
+    "lastStageMotionHz": 30.108859974688723,
+    "maximumShapeDifferenceMm": 0.909750089299832,
+    "maximumCertificate": 9.950126695912331e-07,
+    "maximumPenetrationMm": 9.943140699686381e-09,
+    "maximumLengthErrorMm": 9.943140699686381e-09,
+    "firstDifferenceStep": 6621,
+    "firstReducedMeshStep": 6621,
+    "endNodes": 180,
+    "fullEndNodes": 204,
+    "performanceTargetMet": false
+  },
+  "regressions": {
+    "log": "007-distal-regressions.log",
+    "passed": 71
+  },
+  "rejected": [
+    {
+      "report": "007-distal-20mm-rejected.json.gz",
+      "complete": false,
+      "steps": 7252,
+      "maximumShapeDifferenceMm": 1.0149495678352465,
+      "error": "R\u00f3\u017cnica kszta\u0142tu 1.0149 mm przekracza 1 mm."
+    },
+    {
+      "report": "007-distal-liberal-rejected.json.gz",
+      "complete": false,
+      "steps": 6775,
+      "maximumShapeDifferenceMm": 1.1837036614698573,
+      "error": "R\u00f3\u017cnica kszta\u0142tu 1.1837 mm przekracza 1 mm."
+    }
+  ],
+  "decision": "First spatially reduced complete replay within 1 mm and original physical gates. Keep as isolated research candidate. A single run is insufficient for a repeatable performance claim, and 60 Hz is not reached.",
+  "nextInvestigation": "Core contact-solving cost remains dominant (final motion about 14.8 ms linear and 9.8 ms assembly per step). Consider the archived tail-retained LU only on long active-set searches with a larger 32-row Schur rank/cache, rather than rebasing after 8 changes; the prior tail probe used rank 8 and only the old final-pose continuation. Validate on the whole recorded maneuver before claiming improvement.",
+  "build": {
+    "log": "007-distal-build.log",
+    "passed": true
+  }
+}

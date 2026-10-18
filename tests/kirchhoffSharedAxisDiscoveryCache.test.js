@@ -17,6 +17,26 @@ function certify(cache, d, distance = () => 10, key = 'edge', options = { inside
     return capture.commit();
 }
 
+test('private discovery forks isolate commits, aborts, evictions and exported snapshots',()=>{
+    for(const retainOnAbort of [false,true]) {
+        const original=createSharedAxisDiscoveryCache({capacity:2,retainOnAbort}),d=descriptor();
+        certify(original,d);certify(original,descriptor({geometryToken:{}}),()=>10,'other-mesh');
+        const incoming=original.capture(geometryToken),fork=original.fork(geometryToken);
+        assert.equal(fork.size,1);assert.deepEqual(fork.capture(geometryToken),incoming);
+        const snapshot=fork.capture(geometryToken);snapshot[0][1].a[0]=999;
+        assert.equal(fork.lookup('edge',d).skip,true);
+        fork.begin('edge',d,{insideCertified:true}).abort();
+        assert.equal(fork.lookup('edge',d).skip,retainOnAbort);
+        certify(fork,d,()=>3);certify(fork,d,()=>4,'new-a');certify(fork,d,()=>5,'new-b');
+        assert.equal(fork.lookup('edge',d).skip,false,'private eviction');
+        assert.deepEqual(original.capture(geometryToken),incoming);
+        const child=fork.fork();fork.clear();
+        assert.equal(child.size,2);assert.equal(original.size,2);
+        const copied=child.capture(geometryToken);original.restore([],geometryToken);
+        assert.deepEqual(child.capture(geometryToken),copied);
+    }
+});
+
 test('clearance proof retains the certified pose across repeated skips and distinguishes inside from clear', () => {
     const cache = createSharedAxisDiscoveryCache({retainOnAbort:true}), d = descriptor();
     assert.equal(certify(cache, d), true);
@@ -124,7 +144,7 @@ test('distance error allowance and large-coordinate guard reduce skips; storage 
     cache.clear(); assert.equal(cache.size, 0);
 });
 
-function discoveryFixture({ queryReuse = true, retainDiscoveryCertificates=true, source = 'sparse-sdf-bvh', winnerOnly = false } = {}) {
+function discoveryFixture({ queryReuse = true, retainDiscoveryCertificates=true, source = 'sparse-sdf-bvh', winnerOnly = false, candidateMargin=.5 } = {}) {
     const field = { voxelSize: .25, fallbackGeometry: { boundsTree: {} }, calls: [], fail: false,
         queryCapsuleSoA(...args) {
             const [x, , , r] = args, knownInside = args[7], count = args[12], visitor = args[15];
@@ -139,7 +159,7 @@ function discoveryFixture({ queryReuse = true, retainDiscoveryCertificates=true,
             return result;
         }
     };
-    const discover = createSharedAxisVesselDiscovery(field, 0, { queryReuse,retainDiscoveryCertificates });
+    const discover = createSharedAxisVesselDiscovery(field, 0, { queryReuse,retainDiscoveryCertificates,candidateMargin });
     const state = { origin: [0, 0, 0], definitions: [], layout: { positions: [0, 3] } };
     const sample = x => discover({ state, edge: 0, a: [x, 0, 0], b: [x, 0, 5],
         coordinateA: 0, coordinateB: 5, radius: 1 });
@@ -265,4 +285,22 @@ test('private discovery history cannot erase the accepted inside certificates',(
     const retry=f.discover.forkDiscovery();
     assert.equal(retry.discoveryCache.size,1);
     assert.notEqual(retry.discoveryCache,f.discover.discoveryCache);
+});
+
+
+test('narrow candidates skip only proven separation and rediscover approaching contacts after a private fork',()=>{
+    const f=discoveryFixture({candidateMargin:.01});
+    f.sample(0);f.sample(8.8);
+    assert.equal(f.field.calls.length,1,'the full sample grid remains beyond the candidate margin');
+    assert.equal(f.state.pendingVesselRows?.size??0,0);
+    f.sample(8.995);
+    assert.equal(f.field.calls.length,2);assert.equal(f.state.pendingVesselRows.size,6);
+    const before=f.discover.discoveryCache.capture(f.field.fallbackGeometry.boundsTree);
+    const broad=f.discover.forkDiscovery({candidateMargin:.5});
+    const state={...f.state,pendingVesselRows:new Map()};
+    broad({state,edge:0,a:[8.8,0,0],b:[8.8,0,5],coordinateA:0,coordinateB:5,radius:1});
+    assert.equal(state.pendingVesselRows.size,6);
+    assert.deepEqual(f.discover.discoveryCache.capture(f.field.fallbackGeometry.boundsTree),before);
+    assert.throws(()=>f.sample(10.1),/crossed/);
+    for(const margin of [-1,NaN,Infinity,.51])assert.throws(()=>f.discover.forkDiscovery({candidateMargin:margin}),/margin/);
 });

@@ -1,0 +1,190 @@
+--- a/src/physics/kirchhoffSharedAxisAdaptiveMesh.js
++++ b/src/physics/kirchhoffSharedAxisAdaptiveMesh.js
+@@ -19,7 +19,7 @@
+ export function adaptiveMeshOptions(value) {
+     if (!value) return null;
+     const options = {...DEFAULT_ADAPTIVE_MESH, ...(value === true ? {} : value)};
+-    if (!Object.entries(options).every(([key,v]) => Number.isFinite(v) && (key === 'contactMargin' || key === 'maxArcLoss' || key === 'tipRefinementAhead' ? v >= 0 : v > 0)) || options.maxTurn >= Math.PI || options.maxArcLoss >= 1)
++    if (!Object.entries(options).every(([key,v]) => Number.isFinite(v) && (key === 'contactMargin' || key === 'maxArcLoss' || key === 'tipRefinementAhead' || key === 'finePrefixLength' ? v >= 0 : v > 0)) || options.maxTurn >= Math.PI || options.maxArcLoss >= 1)
+         throw new RangeError('Invalid adaptive mesh budget');
+     return options;
+ }
+@@ -63,6 +63,7 @@
+     let edge = 0;
+     for (let n = 0; n < previous.coordinates.length; n++) {
+         const x = previous.coordinates[n];
++        if(x<=(options.finePrefixLength??-Infinity)+(previous.spacing??0))continue;
+         if (x <= coordinates[0] || x >= coordinates.at(-1)) continue;
+         while (edge + 1 < coordinates.length - 1 && coordinates[edge + 1] < x) edge++;
+         const t = (x - coordinates[edge]) / (coordinates[edge + 1] - coordinates[edge]);
+@@ -96,7 +97,7 @@
+     // application factory enables this coarser contact neighbourhood yet.
+     const relaxContactMesh=(options.contactMaxSpacing??spacing)>spacing;
+     const tips = tools.map(tool => ({end: tool.insertion+(options.tipRefinementAhead??0), start: tool.insertion - tipLength(tool, options)}));
+-    const protectedNode = coordinates.map((x, i) => i < 2 || i === coordinates.length - 1 ||
++    const protectedNode = coordinates.map((x, i) => x<=(options.finePrefixLength??-Infinity)+spacing || i < 2 || i === coordinates.length - 1 ||
+         boundaries.includes(x) || (!relaxContactMesh&&(contacts.has(x) || contactSpans.some(([a,b])=>x>=a&&x<=b))) || tips.some(t => x >= t.start && x <= t.end) ||
+         boundaries.some(b => Math.abs(b - x) <= spacing));
+     const distance = (a, b) => Math.hypot(...a.map((v, k) => v - b[k]));
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -111,8 +111,12 @@
+     const boundaries=knots.slice();
+     // An adaptive replay supplies the exact mechanical grid. Ordinary feed
+     // rebuilds fine candidates before applying its spatial error budget.
+-    for (let x = Math.ceil(startCoordinate / spacing) * spacing; !(adaptiveMesh&&spatialKnots.length)&&x < end; x += spacing)
+-        if (x > startCoordinate&&!boundaries.some(b=>Math.abs(b-x)<minimumEdgeLength)) knots.push(x);
++    const referenceKnots=adaptiveMesh?.finePrefixLength!==undefined?knots.slice():null;
++    for (let x = Math.ceil(startCoordinate / spacing) * spacing; x < end; x += spacing)
++        if (x > startCoordinate&&!boundaries.some(b=>Math.abs(b-x)<minimumEdgeLength)) {
++            if(!(adaptiveMesh&&spatialKnots.length))knots.push(x);
++            referenceKnots?.push(x);
++        }
+     // Serialization may supply retained geometry knots. They are not fixed
+     // boundaries and feed reconsiders them using the accepted bend geometry.
+     knots.push(...spatialKnots);
+@@ -136,6 +140,18 @@
+     if(adaptiveMesh&&!spatialKnots.length)retainAdaptiveShapeSamples(coordinates,positions,previous,adaptiveMesh,{tools});
+     if(adaptiveMesh&&!spatialKnots.length)coarsenSharedAxisMesh(coordinates,positions,
+         {tools,boundaries,previous,spacing,options:adaptiveMesh});
++    // An edge is reduced only when it spans a removed reference knot.
++    // A long fractional tip edge can also exist in the full model; length
++    // alone cannot distinguish remeshing from ordinary insertion. Derive
++    // this mask on restore too, without adding cached data to the replay.
++    let reducedEdges=null;
++    if(referenceKnots) {
++        referenceKnots.sort((a,b)=>a-b);let k=0;
++        reducedEdges=Uint8Array.from(coordinates.slice(0,-1),(a,i)=>{
++            while(k<referenceKnots.length&&referenceKnots[k]<=a+1e-9)k++;
++            return referenceKnots[k]<coordinates[i+1]-1e-9?1:0;
++        });
++    }
+     const edgeTools = coordinates.slice(0,-1).map(x => tools.filter(t => x < t.insertion-1e-12).map(t => t.id));
+     const layout = createSharedAxisLayout(edgeTools);
+     const materials = tools.map(input => {
+@@ -191,7 +207,7 @@
+         id:`bend/${coordinates[e]}/${coordinates[e+1]}/${coordinates[e+2]}`,
+         dofs:[layout.positions[e],layout.positions[e+1],layout.positions[e+2]].flatMap(i=>[i,i+1,i+2]),
+         evaluate:evaluateBendLimit});
+-    const state = { adaptiveMesh,omitInactiveSampleRows, fractionalTipThreshold, rebaseNearTips, geometryKey:Symbol('pose'), maxBendAngle, kind: 'shared-axis-native', spacing, minimumEdgeLength, origin, coordinates, positions, materials, layout, wallSample, wallSamples, startCoordinate, boundaryCoordinates,
++    const state = { adaptiveMesh,reducedEdges,omitInactiveSampleRows, fractionalTipThreshold, rebaseNearTips, geometryKey:Symbol('pose'), maxBendAngle, kind: 'shared-axis-native', spacing, minimumEdgeLength, origin, coordinates, positions, materials, layout, wallSample, wallSamples, startCoordinate, boundaryCoordinates,
+         definitions, definitionIds: new Set(definitions.map(row=>row.id)), mixed: createSharedAxisLinear(layout, definitions,{lazy:true}),
+         chain: { layout, hessian: new Float64Array(layout.dofCount * layout.band), gradient: new Float64Array(layout.dofCount), hessianValid: true },
+         multipliers: new Float64Array(definitions.length), fixed: new Uint8Array(layout.dofCount), loads: new Float64Array(layout.dofCount),
+@@ -292,9 +308,17 @@
+             // change. Rediscover unloaded sites; retaining every old tip site
+             // would accumulate submillimetre constraints along the feed path.
+             if(!s.adaptiveMesh||!r.witness||!r.evaluate.retarget||!(s.multipliers[i]>1e-10))return [];
++            // Preserve reference retention in the protected proximal mesh.
++            // A moving fine tip is rediscovered as before, not converted into
++            // an adaptive contact merely because the distal shaft is reduced.
++            if(b<=(s.adaptiveMesh.finePrefixLength??-Infinity)+s.spacing)return [];
+             const site=a+(b-a)*r.witness.t;
+             const nextEdge=candidate.coordinates.findIndex((x,j)=>x<=site&&candidate.coordinates[j+1]>=site);
+             if(nextEdge<0)return [];
++            // A distal reduction must not change contact retention on two
++            // otherwise full-resolution intervals (including moving tips).
++            if(s.adaptiveMesh.finePrefixLength!==undefined&&
++                !s.reducedEdges?.[r.edge]&&!candidate.reducedEdges?.[nextEdge])return [];
+             const ca=candidate.coordinates[nextEdge],cb=candidate.coordinates[nextEdge+1],t=(site-ca)/(cb-ca);
+             const owner=r.witness.owner;
+             const id=`vessel/${ca}/${cb}/${t}/${r.witness.face}${owner?'/'+owner:''}`;
+--- a/src/physics/kirchhoffSharedAxisAppSystem.js
++++ b/src/physics/kirchhoffSharedAxisAppSystem.js
+@@ -196,7 +196,12 @@
+                 const key=JSON.stringify({bloodFlow:frozenBloodFlow?.time??flowNetwork?.time??null,capture,graftRevision:graftSurface?.revision??0,tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
+                 if(key===failedKey)return failedResult;
+                 if(state&&key===lastKey&&sleepFrames>=10)return {accepted:true,dt,status:'sleeping',diagnostics:{...diagnostics}};
+-                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,adaptiveMesh,physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,
++                pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,
++                    // Keep the complete reference path until a distal shaft
++                    // interval exists beyond the fine prefix and tip guard.
++                    adaptiveMesh:adaptiveMesh?.finePrefixLength!==undefined&&
++                        Math.max(...tools.map(t=>t.insertion))<=adaptiveMesh.finePrefixLength+adaptiveMesh.tipLength+5?null:adaptiveMesh,
++                    physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,
+                     sheath,sheathLength,flowNetwork,rotations:{...rotations},
+                     requestTools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation}))};
+                 if(frozenBloodFlow!==undefined)pending.physicsOptions={...pending.physicsOptions,bloodFlow:structuredClone(frozenBloodFlow)};
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -223,7 +223,7 @@
+         coupledFrictionNewton:new URLSearchParams(window.location.search).get('fastNewton')!=='0',
+         predictiveNewton:new URLSearchParams(window.location.search).get('predictiveNewton')!=='0',
+         ...(crossoverBenchmarkMode?{
+-            adaptiveMesh:crossoverBenchmarkMode==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:null,
++            adaptiveMesh:new URLSearchParams(window.location.search).get('crossoverDistalMesh')==='protected'?{...CROSSOVER_WIDE_CONTACT_MODEL,finePrefixLength:0,contactMaxSpacing:5}:new URLSearchParams(window.location.search).get('crossoverDistalMesh')==='1'?{...CROSSOVER_WIDE_CONTACT_MODEL,finePrefixLength:450}:crossoverBenchmarkMode==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:null,
+             contactCandidateMargin:.01,lazyBasisCoefficients:true,wasmBasis:true,deferActiveBasis:true,
+             reuseFrictionAssembly:true,coupledFrictionNewton:true,predictiveNewton:true,modifiedNewton:false,
+             pruneInactiveWitnesses:false,projectiveDynamics:false,
+--- a/tests/kirchhoffSharedAxisAdaptiveMesh.test.js
++++ b/tests/kirchhoffSharedAxisAdaptiveMesh.test.js
+@@ -242,3 +242,69 @@
+     assert.ok(coordinates.includes(237),'A physical cloth bend is not dropped by the tip-grid rule');
+     assert.deepEqual(previous.positions,saved);
+ });
++
++test('distal-only reduction preserves the complete proximal mesh and both fine tips',()=>{
++    const inputs=[{id:'wire',type:'glidewire',insertion:970},{id:'catheter',type:'pigtail',insertion:935}];
++    const options={...CONTACT_PROTECTED_MESH,maxSpacing:20,contactMaxSpacing:20,tipLength:80,tipRefinementAhead:80,finePrefixLength:450};
++    const fine=make(false,{tools:inputs}),reduced=make(options,{tools:inputs});
++    assert.deepEqual(reduced.coordinates.filter(x=>x<=455),fine.coordinates.filter(x=>x<=455));
++    assert.deepEqual(reduced.coordinates.filter(x=>x>=855),fine.coordinates.filter(x=>x>=855));
++    assert.ok(reduced.coordinates.length<fine.coordinates.length*.8);
++    for(const s of [fine,reduced])prepareSharedAxisDynamicStep(s,1/60);
++    assert.ok(Math.abs(fine.dynamicStep.masses.reduce((a,b)=>a+b,0)-reduced.dynamicStep.masses.reduce((a,b)=>a+b,0))<1e-10);
++    assert.throws(()=>adaptiveMeshOptions({...options,finePrefixLength:-1}),/Invalid/);
++});
++
++test('a moving tip inside the protected prefix retains exactly the reference wall topology',()=>{
++    const geometry=new PlaneGeometry(2000,2000),field={fallbackGeometry:geometry},results=[];
++    for(const adaptiveMesh of [null,{...CONTACT_PROTECTED_MESH,contactMaxSpacing:20,tipLength:80,finePrefixLength:450}]) {
++        const state=make(adaptiveMesh),edge=state.materials[1].last-1;
++        const row=createSharedAxisVesselWitness(field,{id:'moving-loaded',kind:'wall',edge,witness:{face:0,t:.9},
++            dofs:[state.layout.positions[edge],state.layout.positions[edge+1]].flatMap(p=>[p,p+1,p+2])});
++        extendSharedAxisNativeRows(state,[row]);state.multipliers[state.multipliers.length-1]=2;
++        const next=feedSharedAxisNative(state,{wire:300.7,catheter:240.4});
++        results.push({coordinates:next.coordinates,positions:next.positions,multipliers:Array.from(next.multipliers),
++            rows:next.definitions.map(r=>({id:r.id,edge:r.edge,dofs:r.dofs,kind:r.kind}))});
++    }
++    assert.deepEqual(results[1],results[0]);geometry.dispose();
++});
++
++test('distal policy does not remap loaded fine tip sites outside the proximal guard',()=>{
++    const geometry=new PlaneGeometry(2000,2000),field={fallbackGeometry:geometry},results=[];
++    for(const adaptiveMesh of [null,{...CONTACT_PROTECTED_MESH,contactMaxSpacing:20,tipLength:80,tipRefinementAhead:80,finePrefixLength:450}]) {
++        const state=make(adaptiveMesh,{tools:[{id:'wire',type:'glidewire',insertion:542},{id:'catheter',type:'pigtail',insertion:433}]});
++        const edge=state.materials[0].last-1;
++        const row=createSharedAxisVesselWitness(field,{id:'fine-distal-tip',kind:'wall',edge,witness:{face:0,t:.9},
++            dofs:[state.layout.positions[edge],state.layout.positions[edge+1]].flatMap(p=>[p,p+1,p+2])});
++        extendSharedAxisNativeRows(state,[row]);state.multipliers[state.multipliers.length-1]=2;
++        const next=feedSharedAxisNative(state,{wire:542.733333333,catheter:433});
++        if(adaptiveMesh)assert.equal(next.reducedEdges.some(Boolean),false);
++        results.push({coordinates:next.coordinates,positions:next.positions,rows:next.definitions.map(r=>({id:r.id,edge:r.edge,dofs:r.dofs})),multipliers:Array.from(next.multipliers)});
++    }
++    assert.deepEqual(results[1],results[0]);geometry.dispose();
++});
++
++test('a genuinely reduced interval still transfers its loaded physical site after refinement',()=>{
++    const options={...CONTACT_PROTECTED_MESH,maxSpacing:20,contactMaxSpacing:20,tipLength:80,finePrefixLength:450};
++    const state=make(options,{tools:[{id:'wire',insertion:970,type:'glidewire'},{id:'catheter',insertion:935,type:'pigtail'}]});
++    const edge=state.reducedEdges.findIndex(Boolean);assert.ok(edge>=0);
++    const geometry=new PlaneGeometry(2000,2000),field={fallbackGeometry:geometry};
++    const a=state.coordinates[edge],b=state.coordinates[edge+1],t=.37,site=a+t*(b-a);
++    const row=createSharedAxisVesselWitness(field,{id:'coarse-distal-site',kind:'wall',edge,witness:{face:0,t},
++        dofs:[state.layout.positions[edge],state.layout.positions[edge+1]].flatMap(p=>[p,p+1,p+2])});
++    extendSharedAxisNativeRows(state,[row]);state.multipliers[state.multipliers.length-1]=2;
++    state.adaptiveMesh={...state.adaptiveMesh,maxSpacing:10};
++    const next=feedSharedAxisNative(state,{wire:970.7,catheter:935.4});
++    const index=next.definitions.findIndex(r=>r.witness?.face===0),mapped=next.definitions[index];assert.ok(mapped);
++    const ca=next.coordinates[mapped.edge],cb=next.coordinates[mapped.edge+1];
++    assert.ok(Math.abs(ca+mapped.witness.t*(cb-ca)-site)<1e-12);assert.equal(next.multipliers[index],2);geometry.dispose();
++});
++
++test('distal reduction mask is reconstructed identically from an ordinary serialized replay',()=>{
++    const sheath={start:[10,20,30],end:[30,20,30],innerRadius:2,proximalExtension:40};
++    const state=createSharedAxisNative({...createSharedAxisContacts({sheath,localCoordinates:true}),
++        tools:[{id:'wire',insertion:970,type:'glidewire'},{id:'catheter',insertion:935,type:'pigtail'}],
++        adaptiveMesh:{...CONTACT_PROTECTED_MESH,contactMaxSpacing:20,tipLength:80,finePrefixLength:450}});
++    const saved=JSON.parse(JSON.stringify(captureSharedAxisReplay(state,sheath))),restored=restoreSharedAxisReplay(saved,null);
++    assert.deepEqual(restored.reducedEdges,state.reducedEdges);assert.deepEqual(captureSharedAxisReplay(restored,sheath),saved);
++});

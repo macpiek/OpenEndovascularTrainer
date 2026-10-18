@@ -10,9 +10,15 @@ const load=name=>JSON.parse(readFileSync(new URL(`./fixtures/shared-axis/${name}
 for(const name of ['anatomy-berenstein-feed-138.67-live-cycle','anatomy-pigtail-wire-withdraw-200.27-incoming'])
 test(`lazy basis preserve directions, acceptance and complete physical output: ${name}`,()=>{
     const fixture=load(name),req=fixture.stepRequest,outputs=[];
-    for(const [lazyBasisCoefficients,deferActiveBasis] of [[false,false],[true,false],[true,true]]) {
+    for(const [lazyBasisCoefficients,deferActiveBasis,wasmBasis] of [[false,false,false],[true,false,false],[true,true,false],[true,false,true],[true,true,true]]) {
         const input=restoreSharedAxisReplay(fixture,anatomy.field),before=captureSharedAxisReplay(input,fixture.sheath),trace=[];
-        const iterator=advanceSharedAxis(input,req.rotations,req.dt,req.tools,{...req.options,promoteTrialAssembly:true,projectionMode:'reduced',wasmMaterial:true,reuseConstraintWork:true,reuseMatrixAssembly:true,lazyBasisCoefficients,deferActiveBasis,
+        if(wasmBasis) {
+            const cancelled=advanceSharedAxis(input,req.rotations,req.dt,req.tools,{...req.options,
+                lazyBasisCoefficients:true,wasmBasis:true,reuseConstraintWork:true});
+            for(let i=0;i<12;i++)if(cancelled.next().done)break;
+            cancelled.return();assert.deepEqual(captureSharedAxisReplay(input,fixture.sheath),before);
+        }
+        const iterator=advanceSharedAxis(input,req.rotations,req.dt,req.tools,{...req.options,promoteTrialAssembly:true,projectionMode:'reduced',wasmMaterial:true,reuseConstraintWork:true,reuseMatrixAssembly:true,lazyBasisCoefficients,deferActiveBasis,wasmBasis,
             observeTrial:e=>{
                 if(e.kind==='direction') {
                     assert.equal(e.state.chain.hessianValid,true,'Each Newton/GN solve needs a valid full matrix');

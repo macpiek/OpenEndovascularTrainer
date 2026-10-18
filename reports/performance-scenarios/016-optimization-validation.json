@@ -1,0 +1,95 @@
+{
+  "updatedAt": "2026-10-17T16:29:14.085439+00:00",
+  "classificationOfPreviousGoalTurn": "Progress: 015 completed two full browser replays and established no useful speedup from exact limited-search working-set caching.",
+  "classificationOfThisTurn": "Progress: implemented an isolated material-only chord tangent with fresh residuals/contact/friction, tested invalidation and convergence, independently validated two rejected browser prefixes, archived and reverted the experiment. Also discovered an uncalibrated auxiliary Node/reference mismatch.",
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "shapeDifferenceLimitMm": 1,
+  "targetAcceptedPhysicsHz": 60,
+  "reference": "003-crossover-full-user-inputs.json.gz",
+  "implementation": {
+    "materialTangentOnly": true,
+    "currentForcesAndEnergy": true,
+    "currentInertiaContactsFriction": true,
+    "maxAge": 1,
+    "positionBudgetMm": 0.05,
+    "quaternionComponentBudget": 0.002,
+    "contextLifetime": "One nonlinear solve, refreshed after discovery and fallback; no approximate mechanical matrix published into the exact cache."
+  },
+  "tests": {
+    "uniquePassed": 17,
+    "firstRun": {
+      "passed": 16,
+      "log": "016-elastic-tests.log"
+    },
+    "longInsertionRun": {
+      "passed": 6,
+      "log": "016-elastic-long-tests.log",
+      "newTests": 1
+    },
+    "scope": "Five feature tests plus eleven existing material tests; then the same five feature tests and one new eligibility test. Source was reverted after rejection; logs describe the archived experimental code."
+  },
+  "browserExperiments": [
+    {
+      "manifest": "016-elastic-manifest.json",
+      "report": "016-elastic-browser.json.gz",
+      "validation": "016-elastic-browser-validation.json",
+      "screenshot": "016-elastic-rejected.jpg",
+      "steps": 1593,
+      "targetSteps": 7507,
+      "firstDifferentStep": 1,
+      "maximumShapeDifferenceMm": 1.0463915301330653,
+      "physicalChecks": 3186,
+      "maximumCertificate": 9.940691896304088e-07,
+      "maximumPenetrationMm": 8.700954068352473e-09,
+      "maximumLengthErrorMm": 8.700954068352473e-09,
+      "accepted": false,
+      "complete": false
+    },
+    {
+      "manifest": "016-elastic-long-manifest.json",
+      "report": "016-elastic-long-browser.json.gz",
+      "validation": "016-elastic-long-browser-validation.json",
+      "screenshot": "016-elastic-long-rejected.jpg",
+      "steps": 7176,
+      "targetSteps": 7507,
+      "firstDifferentStep": 6125,
+      "maximumShapeDifferenceMm": 1.0544055979387887,
+      "physicalChecks": 14352,
+      "maximumCertificate": 9.950126695912331e-07,
+      "maximumPenetrationMm": 9.896525932084899e-09,
+      "maximumLengthErrorMm": 9.896525932084899e-09,
+      "accepted": false,
+      "complete": false
+    }
+  ],
+  "auxiliaryNodeRuns": [
+    {
+      "report": "016-elastic-full.json.gz",
+      "steps": 1688,
+      "maximumShapeDifferenceMm": 1.0627891727366243,
+      "complete": false,
+      "evidence": "Auxiliary Node runtime only. Baseline itself exceeds 1 mm, so this cannot identify the candidate as the cause of divergence."
+    },
+    {
+      "report": "016-baseline-prefix.json.gz",
+      "steps": 1688,
+      "maximumShapeDifferenceMm": 1.1048703571919514,
+      "complete": false,
+      "evidence": "Auxiliary Node runtime only. Baseline itself exceeds 1 mm, so this cannot identify the candidate as the cause of divergence."
+    }
+  ],
+  "pairedEligiblePrefixCosts": "016-eligible-prefix-costs.json",
+  "decision": "Reject both variants. Global material tangent reuse exceeds 1 mm at step 1593; eligibility after both tools reach 400 mm remains bit-identical before step 6125, then exceeds 1 mm at 7176. For the same 676 moving eligible steps, candidate throughput was 35.14 Hz versus 39.50 Hz in the prior baseline run. This single non-alternating comparison is diagnostic, not a speedup or full-scenario claim.",
+  "restoredState": "All modified production-facing files in the temporary checkout restored to their 015 baseline byte hashes. No production solver replacement.",
+  "archive": "016-elastic-rejected-sources.json",
+  "patch": "016-elastic-rejected.patch",
+  "currentBestPassingCandidate": "007-distal-remap-passing.patch",
+  "retainedWork": "Independent rejected-prefix validator checks original targets, both accesses, exact shape metric and the first over-budget step while always reporting complete=false and goalAchieved=false.",
+  "nextInvestigation": "Resolve the auxiliary Node reference mismatch before using it to accept or reject more physics approximations. First compare exact tool properties and frozen flow requests with the actual app/worker (mass, radius, stiffness, friction, sheath, flow time and sampled velocities), then locate the first material divergence using paired same-runtime baselines. A Node-only difference against an uncalibrated browser recording is inconclusive. Preserve the original recording and authoritative full-browser 1 mm/strict force-and-geometry gates. Use a validated fast comparison to target the expensive repeated contact/linear solves; do not repeat elastic-chord caching or previously rejected whole-matrix modified Newton unchanged.",
+  "limitations": [
+    "No candidate completed the full maneuver in this turn. Rejected-prefix Hz cannot establish 60 Hz during the full scenario.",
+    "The auxiliary Node baseline mismatch remains unexplained; its results do not establish browser parity.",
+    "No build was needed or claimed for the archived, reverted temporary experiment."
+  ]
+}

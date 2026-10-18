@@ -1,0 +1,15 @@
+{
+  "scope": "Incomplete rejected prefix, not whole-maneuver acceptance",
+  "steps": 1593,
+  "complete": false,
+  "firstDifference": 462,
+  "maxDifference": 1.245168575913934,
+  "maxCertificate": 9.94819693289628e-7,
+  "maxPenetration": 3.4228165857186355e-9,
+  "maxLength": 3.4228165857186355e-9,
+  "commandsAndShapeMetricVerified": true,
+  "physicalGatesPassed": true,
+  "accepted": false,
+  "motionHz": 59.966122233920636,
+  "error": "Różnica kształtu 1.2452 mm przekracza 1 mm."
+}

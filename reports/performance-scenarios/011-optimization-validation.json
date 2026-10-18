@@ -1,0 +1,26 @@
+{
+  "goalAchieved": false,
+  "classification": "Progress: early predictor rejected with independently verified prefix; limited-search cache unit tests passed but browser run was interrupted.",
+  "earlyPredictor": {
+    "complete": false,
+    "steps": 1608,
+    "maximumShapeDifferenceMm": 1.1766933885965574,
+    "firstDifferentStep": 519,
+    "verifiedTargetPrefix": true,
+    "physicalChecks": 3216,
+    "accepted": false,
+    "goalAchieved": false
+  },
+  "limitedSearchCache": {
+    "testsPassed": 19,
+    "fullReplayCompleted": false,
+    "lastObservedStep": 3360,
+    "runState": "Tab and server handles missing on resume; no complete report exists. Not accepted or enabled in production."
+  },
+  "preexistingTests": {
+    "failures": 2,
+    "cause": "Discovery replay requires the same vessel mesh",
+    "baselineLog": "011-early-predictor-baseline-fixtures.log"
+  },
+  "nextWork": "User requested alternative solvers; research continued in 012."
+}

@@ -1,0 +1,154 @@
+--- a/src/physics/kirchhoffSharedAxisProjective.js
++++ b/src/physics/kirchhoffSharedAxisProjective.js
+@@ -2,7 +2,7 @@
+ import {quaternionExp,evaluateAdaptationConstraint} from './discreteKirchhoffRod.js';
+ import {captureSharedAxisNative,restoreSharedAxisNative,applySharedAxisNativeIncrement,extendSharedAxisNativeRows,sharedAxisOuterMaterialAt} from './kirchhoffSharedAxisNative.js';
+ import {prepareSharedAxisDynamicStep,completeSharedAxisDynamicStep} from './kirchhoffSharedAxisDynamics.js';
+-import {assembleSharedAxisConstraintRows} from './kirchhoffSharedAxisConstraintRows.js';
++import {assembleSharedAxisConstraintRows,leaseSharedAxisConstraintRowPool} from './kirchhoffSharedAxisConstraintRows.js';
+ import {measureSharedAxisQuality} from './kirchhoffSharedAxisDiagnostics.js';
+ import {iterateSharedAxisProjection} from './kirchhoffSharedAxisProjection.js';
+ import {factorProjectiveBand,projectRotation,quaternionColumns} from './projectiveRodMath.js';
+@@ -22,8 +22,8 @@
+  * Coulomb slip uses a bounded positional return, not the Newton certificate.
+  */
+ export function* iterateSharedAxisProjective(s,dt,{projective={},feedById={},bloodFlow=null,observeProjectionFailure=null}={}) {
+-    const {hardClosure=false,profile=false,reuseGeometry=false,fastRotations=false,scratchRotations=false,...settings}=projective;
+-    if([hardClosure,profile,reuseGeometry,fastRotations,scratchRotations].some(v=>typeof v!=='boolean')||fastRotations&&scratchRotations)throw new RangeError('Invalid PD boolean option');
++    const {hardClosure=false,profile=false,reuseGeometry=false,fastRotations=false,scratchRotations=false,reuseContactRows=false,...settings}=projective;
++    if([hardClosure,profile,reuseGeometry,fastRotations,scratchRotations,reuseContactRows].some(v=>typeof v!=='boolean')||fastRotations&&scratchRotations)throw new RangeError('Invalid PD boolean option');
+     const rotationProjection=fastRotations?projectRotationPolar:scratchRotations?createProjectRotationScratch():projectRotation;
+     const o={...PROJECTIVE_ROD_DEFAULTS,...settings};
+     if(!Number.isInteger(o.iterations)||o.iterations<1||Object.values(o).some(v=>!Number.isFinite(v)||v<=0))throw new RangeError('Invalid PD options');
+@@ -32,6 +32,10 @@
+     const started=performance.now(),timings={assemblyMs:0,linearMs:0,frictionMs:0,projectionMs:0};
+     if(profile)Object.assign(timings,{setupMs:0,constraintMs:0,rotationMs:0,closureSolveMs:0,constraintCalls:0,constraintReuse:0});
+     let committed=false,iterations=0,factorizations=0,backtracks=0,closureIterations=0,rows=[],change=Infinity,maxShear=0;
++    // A yielded projection still owns these rows. Lease the entire arena for
++    // this step; another access/solver must never overwrite its live geometry.
++    const rowLease=reuseContactRows?leaseSharedAxisConstraintRowPool():null;
++    const rowStorage=rowLease?.pool.acquire();
+     try {
+         prepareSharedAxisDynamicStep(s,dt,bloodFlow);
+         const initial=s.dynamicStep,variables=[],nodes=[],frames=[],stretches=[],terms=[],fixed=new Map(),contacts=new Map();
+@@ -95,11 +99,13 @@
+             evaluated=null;
+             const time=profile?performance.now():0;
+             s.chain.gradient.fill(0);
+-            let r=assembleSharedAxisConstraintRows(s,{withTangent:false,outerMaterialAt:sharedAxisOuterMaterialAt});
++            const assemblyOptions={withTangent:false,outerMaterialAt:sharedAxisOuterMaterialAt,
++                storage:rowStorage,cacheWallGeometry:reuseContactRows};
++            let r=assembleSharedAxisConstraintRows(s,assemblyOptions);
+             for(let discovery=0;s.pendingVesselRows?.size;discovery++) {
+                 if(discovery>=64)throw new Error('PD contact discovery did not settle');
+                 extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();
+-                r=assembleSharedAxisConstraintRows(s,{withTangent:false,outerMaterialAt:sharedAxisOuterMaterialAt});
++                r=assembleSharedAxisConstraintRows(s,assemblyOptions);
+             }
+             if(profile){timings.constraintMs+=performance.now()-time;timings.constraintCalls++;}
+             if(reuseGeometry)evaluated={key:s.geometryKey,definitions:s.definitions,count:s.definitions.length,rows:r};
+@@ -233,7 +239,7 @@
+         const admissible=quality.finite&&Number.isFinite(change)&&maxLengthError<=o.maxLengthError&&quality.maxPenetration<=o.maxPenetration&&maxShear<=o.maxShear&&
+             (!hardClosure||maxLengthErrorMm<=o.maxLengthError)&&
+             quality.bodies.every(b=>b.maxBendLimitDegrees===null||b.maxBendAngleDegrees<=b.maxBendLimitDegrees+(hardClosure?1e-5:2));
+-        const pd={model:hardClosure?'projective-with-hard-kirchhoff-closure':'projective-cosserat-penalty',parameters:{...o,hardClosure,profile,reuseGeometry,fastRotations,scratchRotations},iterations,factorizations,
++        const pd={model:hardClosure?'projective-with-hard-kirchhoff-closure':'projective-cosserat-penalty',parameters:{...o,hardClosure,profile,reuseGeometry,fastRotations,scratchRotations,reuseContactRows},iterations,factorizations,
+             change,maxShear,preClosureShear,maxLengthError,maxLengthErrorMm,closureCorrectionMm,closureIterations,dofs:3*x.length,
+             localGlobalConverged:!hardClosure&&change<o.tolerance,energyStepConverged:change<o.tolerance,equilibriumCertified:false,
+             limits:{lengthError:o.maxLengthError,penetration:o.maxPenetration,shear:o.maxShear},friction:'approximate-positional-coulomb'};
+@@ -248,5 +254,6 @@
+         return {converged:false,status:'pd-error',error:error.message,iterations,factorizations,backtracks,geometryRestarts:0,frictionIterations:0,timings,ms:performance.now()-started};
+     } finally {
+         if(!committed){restoreSharedAxisNative(s,incoming);Object.assign(s,previous);s.dynamicStep=null;}
++        rowLease?.release();
+     }
+ }
+--- a/src/physics/kirchhoffSharedAxisConstraintRows.js
++++ b/src/physics/kirchhoffSharedAxisConstraintRows.js
+@@ -106,7 +106,7 @@
+  * contact deferral. Its prepared results are consumed in the same synchronous
+  * assembly, before any pose/reaction changes or cooperative yield.
+  */
+-export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMaterialAt,retainWallHessians=false,reuseConstraintWork=false,storage=null,cullInactiveContacts=false,prepareOnly=null,prepared=null}={}) {
++export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMaterialAt,retainWallHessians=false,cacheWallGeometry=false,reuseConstraintWork=false,storage=null,cullInactiveContacts=false,prepareOnly=null,prepared=null}={}) {
+     if(prepared?.error&&prepared.index===undefined)throw prepared.error;
+     const g=s.chain.gradient,geometry=sharedAxisConstraintEdgeGeometry(s,storage),rows=prepareOnly?null:(storage?.rows??new Array(s.definitions.length));
+     if(rows)rows.length=s.definitions.length;
+@@ -148,7 +148,7 @@
+             gap=contact.gap;J=contact.jacobian;gapHessian=contact.hessian??null;
+         } else {
+             const owner=outerMaterialAt(s,e,def.witness?.t??1,def.witness?.owner),needHessian=(withTangent||retainWallHessians)&&(s.multipliers[index]!==0||(s.primalCompliantContacts&&def.witness));
+-            const cache=(s.cacheMechanicalAssembly||retainWallHessians)?(storage?.contacts??(s.wallGeometryCache??=new Map())):null,cached=cache?.get(def);
++            const cache=(s.cacheMechanicalAssembly||retainWallHessians||cacheWallGeometry)?(storage?.contacts??(s.wallGeometryCache??=new Map())):null,cached=cache?.get(def);
+             // A GN assembly without geometry caching must not overwrite the
+             // retained Newton contact/Hessian needed if that method is retried.
+             let record=storage&&cache?cache.get(def):null;
+--- a/tests/kirchhoffSharedAxisProjective.test.js
++++ b/tests/kirchhoffSharedAxisProjective.test.js
+@@ -141,6 +141,37 @@
+ });
+ 
+ const strictClosure={hardClosure:true,maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5};
++test('PD row arenas preserve loaded contacts, history and pose exactly across steps',()=>{
++    const states=[false,true].map(()=>create({tools:[{id:'wire',type:'glidewire',insertion:80},{id:'catheter',type:'pigtail',insertion:65}],
++        wallSample:({b})=>({gap:.5-b[1],jacobian:[0,0,0,0,-1,0]})}));
++    for(const s of states){s.loads[s.layout.positions.at(-1)+1]=1000;rotateSharedAxisNative(s,'catheter',.3);}
++    for(let step=0;step<10;step++) {
++        const results=states.map((s,i)=>finish(iterateSharedAxisProjective(s,1/60,{projective:{...strictClosure,reuseGeometry:true,scratchRotations:true,reuseContactRows:i===1}})));
++        assert.ok(results.every(r=>r.converged),JSON.stringify(results));
++        const snapshots=states.map(captureSharedAxisNative);
++        for(const key of ['positions','frames','multipliers'])assert.deepEqual(snapshots[0][key],snapshots[1][key]);
++        for(const key of ['velocities','angularVelocities','acceptedWallGaps','wallFrictionHistory'])assert.deepEqual(states[0][key],states[1][key]);
++        assert.deepEqual(results[0].quality,results[1].quality);
++    }
++});
++
++test('PD arenas remain private across cooperative yields, cancellation and later topology changes',()=>{
++    const make=()=>{const s=create();s.loads[s.layout.positions.at(-1)+1]=1000;return s;};
++    const a=make(),b=make(),reference=make(),saved=captureSharedAxisNative(a);
++    const options={projective:{...strictClosure,reuseGeometry:true,scratchRotations:true,reuseContactRows:true}};
++    const first=iterateSharedAxisProjective(a,1/60,options),second=iterateSharedAxisProjective(b,1/60,options);
++    assert.equal(first.next().done,false);assert.equal(second.next().done,false);
++    first.return();assert.deepEqual(captureSharedAxisNative(a),saved);
++    // Reuse the released arena while second still owns live rows.
++    const third=create({tools:[{id:'wire',insertion:20}]});
++    assert.equal(finish(iterateSharedAxisProjective(third,1/60,options)).converged,true);
++    const expected=finish(iterateSharedAxisProjective(reference,1/60,{projective:{...options.projective,reuseContactRows:false}}));
++    const actual=finish(second);assert.equal(actual.converged,true);assert.deepEqual(actual.quality,expected.quality);
++    const left=captureSharedAxisNative(b),right=captureSharedAxisNative(reference);
++    for(const key of ['positions','frames','multipliers'])assert.deepEqual(left[key],right[key]);
++    assert.deepEqual(b.velocities,reference.velocities);
++});
++
+ test('PD hard closure corrects penalty stretch and wall penetration without moving prescribed nodes',()=>{
+     const s=create({wallSample:({b})=>({gap:.5-b[1],jacobian:[0,0,0,0,-1,0]})});
+     s.loads[s.layout.positions.at(-1)+1]=1000;
+--- a/tests/crossoverAlternativeSolvers.browser.html
++++ b/tests/crossoverAlternativeSolvers.browser.html
+@@ -14,7 +14,7 @@
+ <nav><label>Metoda <select id="solver"><option value="xpbd">XPBD</option><option value="hybrid" selected>XPBD + wspólna korekta długości i kontaktów</option><option value="projective">Projective Dynamics</option><option value="projective-hybrid">Projective Dynamics + korekta długości i kontaktów</option></select></label>
+ <label>Iteracje <select id="iterations"><option>4</option><option>8</option><option>16</option><option>32</option><option selected>64</option><option>128</option></select></label>
+ <label><input id="profile" type="checkbox"> Profil kosztów PD</label>
+-<label>Optymalizacja PD <select id="optimization"><option value="none">Bez</option><option value="geometry">Buforowanie geometrii</option><option value="geometry-jacobi">Buforowanie geometrii i obrotów Jacobiego</option><option value="geometry-polar">Buforowanie i szybsze obroty polarne</option></select></label>
++<label>Optymalizacja PD <select id="optimization"><option value="none">Bez</option><option value="geometry">Buforowanie geometrii</option><option value="geometry-jacobi">Buforowanie geometrii i obrotów Jacobiego</option><option value="geometry-jacobi-rows">Geometria, obroty i bufory kontaktów</option><option value="geometry-polar">Buforowanie i szybsze obroty polarne</option></select></label>
+ <label>Siatka <select id="mesh"><option value="fine">Dokładna 5 mm</option><option value="adaptive250">Adaptacyjna 5–20 mm, początek 250 mm dokładny</option><option value="adaptive80">Adaptacyjna 5–20 mm, początek 80 mm dokładny</option></select></label>
+ <button id="run" disabled>Odtwórz cały manewr</button><button id="stop" disabled>Zatrzymaj</button><a id="download" hidden>Pobierz raport</a></nav>
+ <p><label>Przegląd przebiegu <input id="review" type="range" min="1" max="7507" value="1" disabled></label> <span id="reviewLabel"></span></p>
+@@ -44,7 +44,7 @@
+     const sourceSha256=await hash(sourceBytes),asset=decodeCollisionAsset(assetBytes),geometry=new STLLoader().parse(meshBytes);
+     transformAortaGeometry(geometry,generateVessel(140,0).vessel);geometry.computeBoundingBox();geometry.boundsTree=new MeshBVH(geometry);
+     const field=new VesselContactField(asset,{fallbackGeometry:geometry,bvhValidationDistance:.02,capsuleBvhValidation:-.1});
+-    const sourceHashes=Object.fromEntries(await Promise.all(['src/physics/sharedAxisXpbdExperimental.js','src/physics/kirchhoffSharedAxisProjective.js','src/physics/projectiveRotationPolar.js','src/physics/projectiveRotationScratch.js','src/physics/kirchhoffSharedAxisAdaptiveMesh.js','src/physics/kirchhoffSharedAxisNative.js','src/benchmark/crossoverAlternativeSolvers.js','src/benchmark/crossoverFunctionalRoute.js']
++    const sourceHashes=Object.fromEntries(await Promise.all(['src/physics/kirchhoffSharedAxisConstraintRows.js','src/physics/sharedAxisXpbdExperimental.js','src/physics/kirchhoffSharedAxisProjective.js','src/physics/projectiveRotationPolar.js','src/physics/projectiveRotationScratch.js','src/physics/kirchhoffSharedAxisAdaptiveMesh.js','src/physics/kirchhoffSharedAxisNative.js','src/benchmark/crossoverAlternativeSolvers.js','src/benchmark/crossoverFunctionalRoute.js']
+         .map(async p=>[p,await hash(await read('/'+p).then(r=>r.arrayBuffer()))])));
+     const draw=()=>{
+         ctx.fillStyle='#080e15';ctx.fillRect(0,0,600,900);ctx.strokeStyle='#263a48';ctx.lineWidth=1;ctx.beginPath();
+@@ -91,7 +91,7 @@
+         const options={iterations:Number(el('iterations').value),maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5,...(mode.endsWith('hybrid')?{hardClosure:true}:{})};
+         if(solver==='projective')Object.assign(options,{profile:el('profile').checked,
+             reuseGeometry:el('optimization').value!=='none',fastRotations:el('optimization').value==='geometry-polar',
+-            scratchRotations:el('optimization').value==='geometry-jacobi'});
++            scratchRotations:el('optimization').value.startsWith('geometry-jacobi'),reuseContactRows:el('optimization').value==='geometry-jacobi-rows'});
+         const mesh=el('mesh').value==='fine'?null:{maxSpacing:20,contactMaxSpacing:20,shapeTolerance:.15,maxArcLoss:.002,
+             maxTurn:Math.PI/15,contactMargin:.01,tipLength:80,tipRefinementAhead:80,finePrefixLength:el('mesh').value==='adaptive250'?250:80};
+         report={source,sourceSha256,sourceHashes,solver,options,mesh,dt:record.dt,startedAt:new Date().toISOString(),rows:[],

@@ -1,4 +1,4 @@
-import {clearDeferredSharedAxisContact,deferSharedAxisContact,materializeSharedAxisContacts} from './kirchhoffSharedAxisInactiveContacts.js';
+import {clearDeferredSharedAxisContact,releaseDeferredSharedAxisContact,deferSharedAxisContact,materializeSharedAxisContacts} from './kirchhoffSharedAxisInactiveContacts.js';
 // Geometry is immutable for a pose token. It contains no reactions: multiplier
 // updates at an unchanged pose must still assemble fresh forces and tangents.
 const poseGeometry = new WeakMap(), positionMasks = new WeakMap();
@@ -36,11 +36,43 @@ export function sharedAxisConstraintEdgeGeometry(s,storage=null) {
 // are private to one nonlinear call. Contact scratch may span friction solves
 // within a timestep: each bank copies its derivatives before retaining a row.
 export function createSharedAxisConstraintRowPool(contacts=new Map()) {
-    const banks=[],geometryCache={geometry:null};
+    const banks=[],geometryCache={geometry:null,contactOutputs:[],contactOutputOwners:[]};
     return {banks,acquire(protectedRows=[]) {
         let bank=banks.find(b=>!protectedRows.includes(b.rows));
-        if(!bank){bank={rows:[],definitions:[],hessians:[],contacts,geometryCache};banks.push(bank);}
+        if(!bank){bank={rows:[],rowBuffers:[],definitions:[],hessians:[],contacts,geometryCache};banks.push(bank);}
         return bank;
+    },reset() {
+        // Keep only numeric scratch between timesteps. No accepted state,
+        // evaluator, geometry owner or deferred pose may survive the lease.
+        for(const bank of banks) {
+            for(let i=0;i<bank.rowBuffers.length;i++) {
+                const row=bank.rowBuffers[i],def=bank.definitions[i];
+                if(!row)continue;
+                if(def)for(const key of Object.keys(def))row[key]=undefined;
+                row.compliance=undefined;row.geometricHessian=undefined;
+                row.extraForceDofs=undefined;row.extraForceJacobian=undefined;
+                releaseDeferredSharedAxisContact(row);
+            }
+            bank.definitions.fill(undefined);bank.rows.length=0;
+            if(bank.preparedContacts)bank.preparedContacts.length=0;
+        }
+        contacts.clear();
+        geometryCache.contactOutputOwners.fill(undefined);
+        if(geometryCache.geometry){geometryCache.geometry.key=null;geometryCache.geometry.positions=null;}
+        geometryCache.contactPose=null;
+    }};
+}
+
+let spareRowPool=null;
+// A nonlinear generator can yield while another simulation runs. Lease the
+// entire bank set until its timestep publishes exact contacts or rolls back.
+// Keep at most one idle arena; overlapping solvers never share live rows.
+export function leaseSharedAxisConstraintRowPool() {
+    const pool=spareRowPool??createSharedAxisConstraintRowPool();spareRowPool=null;
+    let released=false;
+    return {pool,release() {
+        if(released)return;released=true;pool.reset();
+        spareRowPool??=pool;
     }};
 }
 export function snapshotSharedAxisConstraintMeasure(measure) {
@@ -53,6 +85,16 @@ function hessianBuffer(storage,index,count) {
     if(!storage)return new Float64Array(count);
     if(storage.hessians[index]?.length!==count)storage.hessians[index]=new Float64Array(count);
     return storage.hessians[index];
+}
+
+function finiteContact(contact,count) {
+    const jacobian=contact?.jacobian;
+    if(!Number.isFinite(contact?.gap)||jacobian?.length!==count)return false;
+    // Avoid one callback invocation per coefficient in every Newton measure.
+    // Reading every entry also rejects sparse arrays instead of letting
+    // Array.every skip a missing derivative.
+    for(let i=0;i<count;i++)if(!Number.isFinite(jacobian[i]))return false;
+    return true;
 }
 
 /** Assemble the existing physical rows without repeated vector construction.
@@ -74,16 +116,28 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
         const def=s.definitions[index],e=def.edge,a=s.positions[e],b=s.positions[e+1],length=geometry.lengths[e];
         let gap,J,gapHessian=null,row;
         if(storage&&!prepareOnly) {
-            row=rows[index];
+            row=rows[index]??storage.rowBuffers?.[index];
             if(storage.definitions[index]!==def) {
-                storage.definitions[index]=def;storage.hessians[index]=null;
-                row=rows[index]={...def,gap:0,jacobian:new Array(def.dofs.length),multiplier:0,penalty:1,geometricHessian:undefined,
+                const jacobian=row?.jacobian?.length===def.dofs.length?row.jacobian:new Array(def.dofs.length);
+                const previous=storage.definitions[index];
+                if(previous&&row)for(const key of Object.keys(previous))row[key]=undefined;
+                storage.definitions[index]=def;
+                // Keep hot numeric fields in a stable object layout across
+                // length, sheath, bend and vessel rows. Optional metadata
+                // should not change their layout in every active-set scan.
+                row??={kind:undefined,edge:undefined,dofs:undefined,sample:undefined,sampleT:undefined,
+                    id:undefined,subtype:undefined,witness:undefined,evaluate:undefined,compliance:undefined,
+                    gap:0,jacobian,multiplier:0,penalty:1,geometricHessian:undefined,
                     extraForceDofs:undefined,extraForceJacobian:undefined};
+                Object.assign(row,def);
+                row.gap=0;row.jacobian=jacobian;row.multiplier=0;row.penalty=1;
+                rows[index]=row;
+                if(storage.rowBuffers)storage.rowBuffers[index]=row;
             }
             // No force column or Hessian from the preceding use may survive.
             clearDeferredSharedAxisContact(row);
             if(s.wallCompliance&&def.witness)row.compliance=s.wallCompliance;
-            else if(row.compliance!==undefined)delete row.compliance;
+            else row.compliance=undefined;
             row.geometricHessian=undefined;row.extraForceDofs=undefined;row.extraForceJacobian=undefined;
         }
 
@@ -116,8 +170,26 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
                     }
                 }
                 if(record)record.key=null; // A throwing evaluation cannot leave a valid cache key.
-                const contactStorage=record&&evaluate.contactStorageSupported?
-                    (record.output??={contact:{gap:NaN,jacobian:new Array(def.dofs.length),hessian:undefined},hessian:null}):undefined;
+                let contactStorage;
+                if(record&&evaluate.contactStorageSupported) {
+                    if(!record.output) {
+                        // Only explicitly numeric native scratch can survive
+                        // a lease. Custom evaluators may store arbitrary owners
+                        // and retain their original per-step lifetime.
+                        const outputs=evaluate.contactStorageReusable?storage?.geometryCache?.contactOutputs:null;
+                        const owners=outputs?storage.geometryCache.contactOutputOwners:null;
+                        // A caller may use a bank for different definitions
+                        // before resetting the pool. Never overwrite another
+                        // still-live record's geometry at the same row index.
+                        const reusable=outputs&&(!owners[index]||owners[index]===def);
+                        let output=reusable?outputs[index]:undefined;
+                        if(output?.contact.jacobian.length!==def.dofs.length)
+                            output={contact:{gap:NaN,jacobian:new Array(def.dofs.length),hessian:undefined},hessian:null};
+                        if(reusable){outputs[index]=output;owners[index]=def;}
+                        record.output=output;
+                    }
+                    contactStorage=record.output;
+                }
                 contact=evaluate({state:s,a,b,edge:e,radius:owner.body.radius,owner:owner.spec.id,needHessian,reuseGeometry:reuseConstraintWork,sampleT:def.sampleT,
                     coordinateA:s.coordinates[e],coordinateB:s.coordinates[e+1],contactStorage});
                 if(cache&&contact) {
@@ -129,7 +201,7 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
                     else cache.set(def,{key:s.geometryKey,withHessian:needHessian,contact});
                 }
             }
-            if(!contact||!Number.isFinite(contact.gap)||contact.jacobian?.length!==def.dofs.length||!contact.jacobian.every(Number.isFinite)) {
+            if(!finiteContact(contact,def.dofs.length)) {
                 if(record)record.key=null;
                 throw new RangeError('Wall sample must supply its signed gap and exact edge Jacobian');
             }
@@ -138,7 +210,7 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
         }
         if(prepareOnly)continue;
         const multiplier=s.multipliers[index],sign=def.kind==='wall'?-1:1;
-        for(let i=0;i<def.dofs.length;i++)g[def.dofs[i]]+=sign*J[i]*multiplier;
+        if(multiplier!==0)for(let i=0;i<def.dofs.length;i++)g[def.dofs[i]]+=sign*J[i]*multiplier;
         let geometricHessian;
         if(gapHessian&&multiplier!==0&&withTangent) {
             geometricHessian=hessianBuffer(storage,index,gapHessian.length);
@@ -147,9 +219,14 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
         if(withTangent&&def.kind==='length'&&multiplier!==0) {
             geometricHessian=hessianBuffer(storage,index,36);
             const scale=multiplier/length;
-            for(let i=0;i<6;i++)for(let j=0;j<6;j++)
-                geometricHessian[i*6+j]=scale*(i<3?-1:1)*(j<3?-1:1)*
-                    ((i%3===j%3?1:0)-J[3+i%3]*J[3+j%3]);
+            // The two endpoints contribute [P,-P;-P,P]. Negating the
+            // completed product preserves the scalar sign/rounding (also
+            // signed zero), while evaluating each 3x3 entry only once.
+            for(let i=0;i<3;i++)for(let j=0;j<3;j++) {
+                const at=i*6+j,value=scale*((i===j?1:0)-J[3+i]*J[3+j]);
+                geometricHessian[at]=geometricHessian[at+21]=value;
+                geometricHessian[at+3]=geometricHessian[at+18]=-value;
+            }
         }
         if(storage) {
             row.gap=gap;row.multiplier=multiplier;row.geometricHessian=geometricHessian;

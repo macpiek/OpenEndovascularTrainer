@@ -1,0 +1,605 @@
+{
+  "recordedAt": "2026-10-15T13:27:42.454516+00:00",
+  "goalTurnClassification": "progress",
+  "goalAchieved": false,
+  "goalStatus": "active",
+  "userAuthorizedShapeBudgetMm": 0.1,
+  "implemented": "Preserve the reference fine topology near moving tips instead of retaining discarded short elements; retain physical cloth bends and shaft shape samples. Add an explicit research preset and browser comparison mode. Default simulator continues to use the full model.",
+  "causeEvidence": "001-reduced-authorized-topology.json: step 30 retained an extra 860 mm knot only 0.1667 mm from the moving catheter tip, changing local stiffness; old moving tips also accumulated near 852 mm.",
+  "decision": "Keep the adaptive tip-grid correction. Mesh plus early negative-contact recovery passes the authorized shape gate with original force/length/contact certificates and improves measured browser throughput, but remains a research option until broader trajectory and full-app validation. Do not claim 60 Hz from CPU throughput.",
+  "experiments": [
+    {
+      "report": "001-reduced-authorized-015.json",
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.015,
+        "maxArcLoss": 0.0001,
+        "maxTurn": 0.06,
+        "contactMargin": 0.01,
+        "tipLength": 40,
+        "tipRefinementAhead": 40
+      },
+      "contactOptions": {},
+      "steps": 300,
+      "passed": false,
+      "maxShapeDifferenceMm": 0.3342915020875123,
+      "maxTipDifferenceMm": 0.3266090908212673,
+      "savedCpuPercent": 2.572550949497321,
+      "reference": {
+        "steps": 300,
+        "totalMs": 8336.035251000012,
+        "medianMs": 18.570041999999376,
+        "p95Ms": 75.86045800000102,
+        "maxMs": 327.6439160000009,
+        "cpuStepsPerSecond": 35.98833149895944,
+        "withinBudget": 104,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 9.09027297879561e-11,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-07,
+        "maxSpeed": 21.613441219624374
+      },
+      "candidate": {
+        "steps": 300,
+        "totalMs": 8121.58649699998,
+        "medianMs": 17.468042000000423,
+        "p95Ms": 60.58662499999991,
+        "maxMs": 450.56095900000037,
+        "cpuStepsPerSecond": 36.93859569319572,
+        "withinBudget": 123,
+        "minNodes": 181,
+        "maxNodes": 197,
+        "maxPenetrationMm": 1.5210055437364645e-13,
+        "maxLengthError": 1.0084525806904452e-13,
+        "maxCertificateBound": 9.919153853843454e-07,
+        "maxSpeed": 20.50485492196005
+      }
+    },
+    {
+      "report": "001-reduced-authorized-005-contact.json",
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.005,
+        "maxArcLoss": 2e-05,
+        "maxTurn": 0.03,
+        "contactMargin": 0.01,
+        "tipLength": 80,
+        "tipRefinementAhead": 80,
+        "contactMaxSpacing": 10
+      },
+      "contactOptions": {},
+      "steps": 300,
+      "passed": false,
+      "maxShapeDifferenceMm": 0.3341119147445313,
+      "maxTipDifferenceMm": 0.3264514366166764,
+      "savedCpuPercent": 16.454482028421612,
+      "reference": {
+        "steps": 300,
+        "totalMs": 8966.033147999984,
+        "medianMs": 19.83129199999894,
+        "p95Ms": 63.981165999999575,
+        "maxMs": 405.9098330000015,
+        "cpuStepsPerSecond": 33.45961308060965,
+        "withinBudget": 92,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 9.09027297879561e-11,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-07,
+        "maxSpeed": 21.613441219624374
+      },
+      "candidate": {
+        "steps": 300,
+        "totalMs": 7490.718835000002,
+        "medianMs": 17.915458999999828,
+        "p95Ms": 48.58129100000042,
+        "maxMs": 556.8745839999992,
+        "cpuStepsPerSecond": 40.04956087769111,
+        "withinBudget": 123,
+        "minNodes": 190,
+        "maxNodes": 197,
+        "maxPenetrationMm": 1.6409096303959814e-13,
+        "maxLengthError": 1.432187701751201e-13,
+        "maxCertificateBound": 9.92343921257799e-07,
+        "maxSpeed": 20.51590832091863
+      }
+    },
+    {
+      "report": "001-reduced-tip-grid-005.json",
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.005,
+        "maxArcLoss": 2e-05,
+        "maxTurn": 0.03,
+        "contactMargin": 0.01,
+        "tipLength": 80,
+        "tipRefinementAhead": 80,
+        "contactMaxSpacing": 10
+      },
+      "contactOptions": {},
+      "steps": 300,
+      "passed": true,
+      "maxShapeDifferenceMm": 0.04102603844977434,
+      "maxTipDifferenceMm": 0.004055315018933873,
+      "savedCpuPercent": 17.64240126375042,
+      "reference": {
+        "steps": 300,
+        "totalMs": 8064.474181999985,
+        "medianMs": 17.591167000000496,
+        "p95Ms": 62.962499999999636,
+        "maxMs": 281.9914170000011,
+        "cpuStepsPerSecond": 37.20019349427692,
+        "withinBudget": 117,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 9.09027297879561e-11,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-07,
+        "maxSpeed": 21.613441219624374
+      },
+      "candidate": {
+        "steps": 300,
+        "totalMs": 6641.707286999994,
+        "medianMs": 16.803749999999127,
+        "p95Ms": 45.074125000000095,
+        "maxMs": 356.4222910000026,
+        "cpuStepsPerSecond": 45.169108940889146,
+        "withinBudget": 145,
+        "minNodes": 188,
+        "maxNodes": 192,
+        "maxPenetrationMm": 2.806076704331417e-09,
+        "maxLengthError": 1.0954200509518231e-13,
+        "maxCertificateBound": 9.68004695511837e-07,
+        "maxSpeed": 21.61356602129868
+      }
+    },
+    {
+      "report": "001-reduced-tip-grid-020.json",
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.02,
+        "maxArcLoss": 0.0001,
+        "maxTurn": 0.06,
+        "contactMargin": 0.01,
+        "tipLength": 80,
+        "tipRefinementAhead": 80,
+        "contactMaxSpacing": 10
+      },
+      "contactOptions": {},
+      "steps": 300,
+      "passed": true,
+      "maxShapeDifferenceMm": 0.04935269260350567,
+      "maxTipDifferenceMm": 0.006446932793423723,
+      "savedCpuPercent": 15.003257828365868,
+      "reference": {
+        "steps": 300,
+        "totalMs": 8969.448885000033,
+        "medianMs": 19.911292000000685,
+        "p95Ms": 73.04912500000137,
+        "maxMs": 317.0731250000008,
+        "cpuStepsPerSecond": 33.44687102255546,
+        "withinBudget": 79,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 9.09027297879561e-11,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-07,
+        "maxSpeed": 21.613441219624374
+      },
+      "candidate": {
+        "steps": 300,
+        "totalMs": 7623.73934299999,
+        "medianMs": 17.523542000000816,
+        "p95Ms": 60.39158300000054,
+        "maxMs": 610.6262499999993,
+        "cpuStepsPerSecond": 39.35076823887687,
+        "withinBudget": 128,
+        "minNodes": 173,
+        "maxNodes": 183,
+        "maxPenetrationMm": 9.470547568390941e-09,
+        "maxLengthError": 1.5227448931254954e-11,
+        "maxCertificateBound": 9.904970852403494e-07,
+        "maxSpeed": 21.60985408937566
+      }
+    },
+    {
+      "report": "001-reduced-tip-grid-030.json",
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.03,
+        "maxArcLoss": 0.0002,
+        "maxTurn": 0.08,
+        "contactMargin": 0.01,
+        "tipLength": 80,
+        "tipRefinementAhead": 80,
+        "contactMaxSpacing": 20
+      },
+      "contactOptions": {},
+      "steps": 300,
+      "passed": false,
+      "maxShapeDifferenceMm": 0.148374865559662,
+      "maxTipDifferenceMm": 0.0284142547635037,
+      "savedCpuPercent": 13.332215633535894,
+      "reference": {
+        "steps": 300,
+        "totalMs": 12952.398637000004,
+        "medianMs": 24.081459000000905,
+        "p95Ms": 140.29016599999886,
+        "maxMs": 582.5442909999983,
+        "cpuStepsPerSecond": 23.161733081856806,
+        "withinBudget": 41,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 9.09027297879561e-11,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-07,
+        "maxSpeed": 21.613441219624374
+      },
+      "candidate": {
+        "steps": 300,
+        "totalMs": 11225.556921,
+        "medianMs": 21.069166999999652,
+        "p95Ms": 109.93570799999907,
+        "maxMs": 547.5084170000009,
+        "cpuStepsPerSecond": 26.724731976440353,
+        "withinBudget": 84,
+        "minNodes": 164,
+        "maxNodes": 170,
+        "maxPenetrationMm": 4.467620051684662e-09,
+        "maxLengthError": 1.460165321987006e-13,
+        "maxCertificateBound": 9.7461422732259e-07,
+        "maxSpeed": 21.602551892876054
+      }
+    },
+    {
+      "report": "001-reduced-tip-grid-confirmation.json",
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.02,
+        "maxArcLoss": 0.0001,
+        "maxTurn": 0.06,
+        "contactMargin": 0.01,
+        "tipLength": 80,
+        "tipRefinementAhead": 80,
+        "contactMaxSpacing": 10
+      },
+      "contactOptions": {},
+      "steps": 600,
+      "passed": true,
+      "maxShapeDifferenceMm": 0.04935269260350567,
+      "maxTipDifferenceMm": 0.006446932793423723,
+      "savedCpuPercent": 5.520163173846104,
+      "reference": {
+        "steps": 600,
+        "totalMs": 13745.714594000003,
+        "medianMs": 16.401833000000806,
+        "p95Ms": 52.47741700000006,
+        "maxMs": 279.68858399999954,
+        "cpuStepsPerSecond": 43.649967842479406,
+        "withinBudget": 312,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 7.719741068612507e-09,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-07,
+        "maxSpeed": 21.613441219624374
+      },
+      "candidate": {
+        "steps": 600,
+        "totalMs": 12986.928719000025,
+        "medianMs": 15.11145899999974,
+        "p95Ms": 47.881374999999935,
+        "maxMs": 609.7719580000003,
+        "cpuStepsPerSecond": 46.200299776974454,
+        "withinBudget": 396,
+        "minNodes": 173,
+        "maxNodes": 183,
+        "maxPenetrationMm": 9.470547568390941e-09,
+        "maxLengthError": 1.5227448931254954e-11,
+        "maxCertificateBound": 9.904970852403494e-07,
+        "maxSpeed": 21.60985408937566
+      }
+    },
+    {
+      "report": "001-reduced-tip-grid-pruning.json",
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.02,
+        "maxArcLoss": 0.0001,
+        "maxTurn": 0.06,
+        "contactMargin": 0.01,
+        "tipLength": 80,
+        "tipRefinementAhead": 80,
+        "contactMaxSpacing": 10
+      },
+      "contactOptions": {
+        "pruneInactiveWitnesses": true
+      },
+      "steps": 600,
+      "passed": true,
+      "maxShapeDifferenceMm": 0.04935267253691256,
+      "maxTipDifferenceMm": 0.006525921892686099,
+      "savedCpuPercent": 2.0151777722814956,
+      "reference": {
+        "steps": 600,
+        "totalMs": 12848.27946999999,
+        "medianMs": 15.968582999998034,
+        "p95Ms": 46.90454199999931,
+        "maxMs": 286.67425000000003,
+        "cpuStepsPerSecond": 46.69885967229824,
+        "withinBudget": 346,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 7.719741068612507e-09,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-07,
+        "maxSpeed": 21.613441219624374
+      },
+      "candidate": {
+        "steps": 600,
+        "totalMs": 12589.363797999944,
+        "medianMs": 14.363750000000437,
+        "p95Ms": 40.15129199999865,
+        "maxMs": 421.08008300000074,
+        "cpuStepsPerSecond": 47.65927886644449,
+        "withinBudget": 429,
+        "minNodes": 173,
+        "maxNodes": 183,
+        "maxPenetrationMm": 9.508746567910009e-09,
+        "maxLengthError": 1.2082927251208453e-13,
+        "maxCertificateBound": 9.912117775456863e-07,
+        "maxSpeed": 21.609853090854564
+      }
+    },
+    {
+      "report": "001-reduced-tip-grid-005-confirmation.json",
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.005,
+        "maxArcLoss": 2e-05,
+        "maxTurn": 0.03,
+        "contactMargin": 0.01,
+        "tipLength": 80,
+        "tipRefinementAhead": 80,
+        "contactMaxSpacing": 10
+      },
+      "contactOptions": {},
+      "steps": 600,
+      "passed": true,
+      "maxShapeDifferenceMm": 0.04102603844977434,
+      "maxTipDifferenceMm": 0.004055315018933873,
+      "savedCpuPercent": 2.578837785536503,
+      "reference": {
+        "steps": 600,
+        "totalMs": 12737.121110999968,
+        "medianMs": 15.918334000001778,
+        "p95Ms": 45.43883300000016,
+        "maxMs": 295.91891699999906,
+        "cpuStepsPerSecond": 47.10640613143193,
+        "withinBudget": 352,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 7.719741068612507e-09,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-07,
+        "maxSpeed": 21.613441219624374
+      },
+      "candidate": {
+        "steps": 600,
+        "totalMs": 12408.651418999954,
+        "medianMs": 15.086874999999964,
+        "p95Ms": 36.20795799999996,
+        "maxMs": 427.0381669999988,
+        "cpuStepsPerSecond": 48.353360872180545,
+        "withinBudget": 400,
+        "minNodes": 188,
+        "maxNodes": 192,
+        "maxPenetrationMm": 9.864960737182571e-09,
+        "maxLengthError": 1.0954200509518231e-13,
+        "maxCertificateBound": 9.68004695511837e-07,
+        "maxSpeed": 21.61356602129868
+      }
+    },
+    {
+      "report": "001-authorized-contact-recovery.json",
+      "mesh": null,
+      "contactOptions": {
+        "recoverNegativeContact": true
+      },
+      "steps": 600,
+      "passed": true,
+      "maxShapeDifferenceMm": 0.0069313219354517515,
+      "maxTipDifferenceMm": 0.001312844944638693,
+      "savedCpuPercent": 16.615695983644997,
+      "reference": {
+        "steps": 600,
+        "totalMs": 14741.27031699999,
+        "medianMs": 16.843042000000423,
+        "p95Ms": 62.06304099999943,
+        "maxMs": 575.2640419999989,
+        "cpuStepsPerSecond": 40.702055324775195,
+        "withinBudget": 288,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 7.719741068612507e-09,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-07,
+        "maxSpeed": 21.613441219624374
+      },
+      "candidate": {
+        "steps": 600,
+        "totalMs": 12291.90565699997,
+        "medianMs": 16.846624999998312,
+        "p95Ms": 44.7288750000007,
+        "maxMs": 104.31737499999963,
+        "cpuStepsPerSecond": 48.81261024471931,
+        "withinBudget": 293,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 1.6823175075231234e-09,
+        "maxLengthError": 1.6342482922482304e-13,
+        "maxCertificateBound": 9.991387628360826e-07,
+        "maxSpeed": 21.61344150081253
+      }
+    },
+    {
+      "report": "001-authorized-mesh-contact-recovery.json",
+      "mesh": {
+        "maxSpacing": 20,
+        "shapeTolerance": 0.02,
+        "maxArcLoss": 0.0001,
+        "maxTurn": 0.06,
+        "contactMargin": 0.01,
+        "tipLength": 80,
+        "tipRefinementAhead": 80,
+        "contactMaxSpacing": 10
+      },
+      "contactOptions": {
+        "recoverNegativeContact": true
+      },
+      "steps": 600,
+      "passed": true,
+      "maxShapeDifferenceMm": 0.04935269260350567,
+      "maxTipDifferenceMm": 0.006493243215411228,
+      "savedCpuPercent": 22.732544686896496,
+      "reference": {
+        "steps": 600,
+        "totalMs": 12437.76079599999,
+        "medianMs": 15.418165999999474,
+        "p95Ms": 46.69591700000001,
+        "maxMs": 312.32075000000077,
+        "cpuStepsPerSecond": 48.24019450454147,
+        "withinBudget": 386,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 7.719741068612507e-09,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-07,
+        "maxSpeed": 21.613441219624374
+      },
+      "candidate": {
+        "steps": 600,
+        "totalMs": 9610.341265,
+        "medianMs": 14.138084000000163,
+        "p95Ms": 28.023207999998704,
+        "maxMs": 87.36083299999973,
+        "cpuStepsPerSecond": 62.43274650247293,
+        "withinBudget": 463,
+        "minNodes": 173,
+        "maxNodes": 183,
+        "maxPenetrationMm": 9.499810160740196e-09,
+        "maxLengthError": 3.683719995707657e-13,
+        "maxCertificateBound": 9.904970852403494e-07,
+        "maxSpeed": 21.60985315384498
+      }
+    }
+  ],
+  "browser": {
+    "reference": {
+      "report": "001-browser-adaptive-reference.json",
+      "passed": true,
+      "steps": 300,
+      "dt": 0.016666666666666666,
+      "acceptedPhysicsHz": 36.47017347709273,
+      "renderFps": 60.175786237203006,
+      "stepCpuMs": {
+        "median": 15.5,
+        "p95": 42.700000047683716,
+        "max": 238.79999995231628
+      },
+      "model": "full",
+      "options": {
+        "contactCandidateMargin": 0.01,
+        "deferActiveBasis": true,
+        "lazyBasisCoefficients": true,
+        "wasmBasis": true,
+        "reuseFrictionAssembly": true,
+        "reuseRejectedWorkingSet": true
+      }
+    },
+    "meshOnly": {
+      "report": "001-browser-adaptive-tip-grid.json",
+      "passed": true,
+      "steps": 300,
+      "dt": 0.016666666666666666,
+      "acceptedPhysicsHz": 36.007057384071416,
+      "renderFps": 60.13178583139926,
+      "stepCpuMs": {
+        "median": 14.200000047683716,
+        "p95": 53.39999985694885,
+        "max": 415.50000071525574
+      },
+      "model": "reduced",
+      "options": {
+        "contactCandidateMargin": 0.01,
+        "deferActiveBasis": true,
+        "lazyBasisCoefficients": true,
+        "wasmBasis": true,
+        "reuseFrictionAssembly": true,
+        "reuseRejectedWorkingSet": true
+      }
+    },
+    "meshAndRecovery": {
+      "report": "001-browser-adaptive-recovery.json",
+      "passed": true,
+      "steps": 300,
+      "dt": 0.016666666666666666,
+      "acceptedPhysicsHz": 43.07250538406318,
+      "renderFps": 60.301507537688444,
+      "stepCpuMs": {
+        "median": 14.099999904632568,
+        "p95": 34.299999952316284,
+        "max": 205.80000042915344
+      },
+      "model": "reduced-recovery",
+      "options": {
+        "contactCandidateMargin": 0.01,
+        "deferActiveBasis": true,
+        "lazyBasisCoefficients": true,
+        "wasmBasis": true,
+        "reuseFrictionAssembly": true,
+        "reuseRejectedWorkingSet": true,
+        "recoverNegativeContact": true
+      }
+    }
+  },
+  "browserErrorLogs": [],
+  "validation": {
+    "regressionTests": {
+      "passed": 69,
+      "log": "001-adaptive-tip-grid-regressions.log"
+    },
+    "contactTests": {
+      "passed": 17,
+      "log": "001-authorized-contact-recovery-tests.log"
+    },
+    "productionBuild": {
+      "passed": true,
+      "log": "001-adaptive-tip-grid-build.log",
+      "knownWarning": "Large generated chunks"
+    },
+    "runtimeHashesMatchBestBenchmark": true
+  },
+  "sourceHashes": {
+    "src/physics/kirchhoffSharedAxisAdaptiveMesh.js": "9f5592f31bd3c01726d80f3785f15fdc8111ce86921bcbeaf1217836e7617865",
+    "src/physics/kirchhoffSharedAxisNative.js": "87ab104cee65e1d0a545debb619083b5e1f138b864e05e9c3b5c24810702b0db",
+    "tests/kirchhoffSharedAxisAdaptiveMesh.test.js": "5cc8fef81155da5e8fef63c06db259b391d3c3e3e302f96c2f6fb86fb11bd30f",
+    "tests/helpers/crossoverReducedModel.js": "7f6229b377e8c5d2fb58273814dccbc84927802736cc901cf277bad40451e743",
+    "tests/crossoverPhysics.browser.html": "c0f10f764c99c674e869291574a54874e98632602aecc11a1bf46e48bcf38673",
+    "scripts/benchmark-crossover-reduced-model.mjs": "4c405a60dde6dfe9e3af321e2793ee536f3a0aca7432346cee4d50124e4985ec"
+  },
+  "patch": "001-adaptive-tip-grid-change.patch",
+  "limitations": [
+    "The 600-step reference comparison covers 10 simulated seconds of hold, withdrawal, advancement and settling from the saved long-tool state; not the complete manual crossover.",
+    "Browser runs cover 300 steps with a lightweight preview, not the full fluoroscopic renderer and app idle scheduler.",
+    "The local mesh threshold is not a global guarantee: every accepted step is compared against the full model at all polygonal breakpoints.",
+    "Early contact recovery can change internal temporal subdivision; outer dt remains 1/60 s and all original physical acceptance thresholds are retained.",
+    "The ordinary adaptive application factory has different historical solver defaults; any future application integration must explicitly preserve the strict tolerances used here."
+  ],
+  "nextWork": [
+    "Use mesh plus early contact recovery as the candidate for further measurements; neither pruning alone nor increasingly coarse mesh reliably removes expensive tails.",
+    "Profile the combined candidate and test the full app scheduler; current browser physics remains 43.1 Hz despite CPU-only average 62.4 steps/s.",
+    "Verify longer motion and rotation sequences and the complete crossover before enabling the approximation by default."
+  ]
+}

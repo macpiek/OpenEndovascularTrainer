@@ -1,0 +1,334 @@
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -638,7 +638,7 @@
+                 if (method !== methods[0] || isGaussNewton) { restoreSharedAxisNative(s, snapshot); base = assemble(isGaussNewton ? 'gauss-newton' : undefined); }
+                 const linearStart = performance.now();
+                 const linearOptions = { [fallbackWorkingSetLease]:fallbackFailures, recoverNegativeContact, reuseRejectedWorkingSet, eliminateConstantRows, batchActivationSize, simultaneousContactRelease, primalCompliantContacts, condenseCompliantContacts:condenseCompliantContacts||primalCompliantContacts, wasmLinearAssembly, lazyBasisCoefficients, wasmBasis, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
+-                    observeLinearSystem,modifiedNewtonContext:method===0?modified:null,incrementalContacts:modified?false:incrementalContacts==='frozen'?!s.wallFrictionStep?.liveNormalLoad:incrementalContacts,trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet:modified?false:reuseWorkingSet,reuseStructure,reuseConstraintWork,reuseMatrixAssembly, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(linearToleranceCap,Math.min(forceTolerance, lengthTolerance) * .01), 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
++                    observeLinearSystem,modifiedNewtonContext:method===0?modified:null,incrementalContacts:modified?false:incrementalContacts==='frozen'?!s.wallFrictionStep?.liveNormalLoad:incrementalContacts,trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet:method===0&&modified?false:reuseWorkingSet,reuseStructure,reuseConstraintWork,reuseMatrixAssembly, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(linearToleranceCap,Math.min(forceTolerance, lengthTolerance) * .01), 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
+                 if(method===2&&matchesRejectedSharedAxisLinearization(rejectedNewton,s.chain,linearOptions)) {
+                     // The first search already exhausted these exact equations
+                     // without reaching its limit. A different tangent was tried
+@@ -745,8 +745,9 @@
+                     observeTrial?.({kind:'trial',state:s,iteration:iterations,method,trial,rootSearch,scale:trustScale*2**-trial,
+                         base:observed(base),candidate:observed(candidate),basePotential,candidatePotential,predictedSlope,accept});
+                     if (accept) {
++                        const previousMerit=merit(base);
+                         if(isModified){modified.diagnostics.modifiedAccepted++;modified.diagnostics.modifiedFallbacks--;}
+-                        modified?.arm((isModified||method===0)&&trial===0&&trustScale===1&&relativeStep<.05&&merit(candidate)<.8*merit(base));
++                        modified?.arm((isModified||method===0)&&trial===0&&trustScale===1&&relativeStep<.05&&merit(candidate)<.2*merit(base));
+                         accepted = true; base = candidate;if(trialRowsAdded)retainedDiscoveryTrials++;
+                         // Update the friction chart only after accepting the pose.
+                         // Every direction and its entire line search retain one law.
+@@ -757,7 +758,6 @@
+                             frictionRefreshMs+=performance.now()-started;coupledFrictionRefreshes++;
+                             observeTrial?.({kind:'friction-refresh',state:s,iteration:iterations,change});
+                             if(change.forceChange>0){
+-                                modified?.invalidate();
+                                 let refreshed=null;
+                                 if(reuseFrictionAssembly&&!cullInactiveContacts) {
+                                     const started=performance.now();
+@@ -765,6 +765,13 @@
+                                     finally{const elapsed=performance.now()-started;timings.assemblyMs+=elapsed;timings.residualAssemblyMs+=elapsed;}
+                                     if(refreshed)residualAssemblies++;
+                                 }
++                                // An owned friction-only residual is current at
++                                // this accepted pose. In the opt-in chord solve,
++                                // changing that force need not discard the frozen
++                                // direction matrix: retain it only while the full
++                                // refreshed residual still makes strong progress.
++                                if(refreshed)modified?.arm((isModified||method===0)&&trial===0&&trustScale===1&&relativeStep<.05&&merit(refreshed)<.2*previousMerit);
++                                else modified?.invalidate();
+                                 base=refreshed??assembleDiscovered();
+                             }
+                         }
+--- a/src/physics/kirchhoffSharedAxisLinear.js
++++ b/src/physics/kirchhoffSharedAxisLinear.js
+@@ -16,7 +16,9 @@
+ // the caller's private workspace before yielding. Reuse bounded structural
+ // maps across callers and lend one numeric arena to changing layouts. The
+ // previous per-state layout cache could not recycle an evicted matrix's arrays.
+-// Retained/incremental factors must keep their own workspaces instead.
++// Retained factors own their numerical snapshots. Chord solves may borrow
++// these maps while assembling, then snapshot before yielding. Incremental
++// bordered updates still require their private mutable workspaces.
+ const sharedCompactWorkspaces=new Map();
+ const sharedCompactNumbers={};
+ let compactNumericAllocations=0;
+@@ -221,7 +223,7 @@
+         r.dofs.forEach((p,i)=>r.dofs.forEach((q,j)=>add(primal[p],primal[q],r.geometricHessian[i*r.dofs.length+j])));
+     }
+     if(condensedRows.length)assembleCondensedSharedAxisContacts(w,condensedRows);
+-    const wasmLinear=wasmLinearAssembly&&!incrementalContext&&!modifiedNewtonContext;
++    const wasmLinear=wasmLinearAssembly&&!incrementalContext;
+     if(matrixAssembly)applyPreparedSharedAxisFixedMask(w);
+     for (let i = 0; i < w.count; i++) {
+         if(!matrixAssembly) {
+@@ -237,12 +239,12 @@
+     // Experimental factors belong to one immutable linearization. Their
+     // memory stays exclusive while yielded; the ordinary arena is overwritten
+     // by other solvers. Compact mode uses this LU as its border-update base.
+-    let lu=wasmLinear?(w.wasmLU??=createCoulombBandLU(w.band,w.count,{arena:sharedLinearScratchArena,wasmAssembly:true})):w.lu;
++    let lu=modifiedNewtonContext?modifiedNewtonContext.getLU(w,wasmLinear):
++        wasmLinear?(w.wasmLU??=createCoulombBandLU(w.band,w.count,{arena:sharedLinearScratchArena,wasmAssembly:true})):w.lu;
+     if(incrementalContext) {
+         lu=incrementalContext.workspaces.get(w);
+         if(!lu){lu=createIncrementalContactLU(w.band,w.count,{maxRank:incrementalContext.maxRank});incrementalContext.workspaces.set(w,lu);incrementalContext.allDiagnostics.push(lu.diagnostics);}
+     }
+-    if(modifiedNewtonContext)lu=modifiedNewtonContext.getLU(w);
+     const retained=!!(incrementalContext||modifiedNewtonContext);
+     const factorsBefore=retained?lu.diagnostics.factorizations:0;
+     const solved = lu.solve(A, F, w.scales, 0, w.solution,wasmLinear);
+@@ -320,7 +322,7 @@
+     // Recheck actual supports even with a reused index map: contact/friction
+     // derivatives can change their sparsity without changing the active mask.
+     const key=`${chain.layout.dofCount}/${chain.layout.band}/`+rowSupportKey(activeRows,options.supportKeyCache);
+-    const shared=options.reuseConstraintWork&&options.reuseStructure!==false&&!context&&!options.modifiedNewtonContext&&options.reuseLinearBuffers!==false;
++    const shared=options.reuseConstraintWork&&options.reuseStructure!==false&&!context&&options.reuseLinearBuffers!==false;
+     const cache=shared?sharedCompactWorkspaces:(w.activeWorkspaces??=new Map());
+     let packed=cache.get(key);
+     if(!packed) {
+@@ -611,7 +613,7 @@
+     // this linearization. Omit only equations that are exactly constant and
+     // feasible, never a merely small coefficient or a deferred wall witness.
+     if(options.eliminateConstantRows===false||!options.reuseConstraintWork||options.compactWorkingSet===false||
+-        options.incrementalContacts||options.modifiedNewtonContext||options.observeLinearSystem||options.trace)return null;
++        options.incrementalContacts||options.observeLinearSystem||options.trace)return null;
+     const rows=options.rows,indices=[];
+     for(let i=0;i<rows.length;i++) {
+         const r=rows[i];
+@@ -624,7 +626,12 @@
+     let workspace=w.constantRowWorkspace;
+     if(!workspace||workspace.multiplierIncrement.length!==selected.length)
+         workspace=w.constantRowWorkspace=createSharedAxisLinear(chain.layout,selected,{lazy:true});
++    const modified=options.modifiedNewtonContext;
+     return {workspace,indices,options:{...options,rows:selected,
++        // The chord snapshot is sealed against the complete physical row set.
++        // Convert compact active indices back before retaining its dual map.
++        ...(modified?{modifiedNewtonContext:{getLU:(w,wasm)=>modified.getLU(w,wasm),
++            record:(w,active)=>modified.record(w,active.map(i=>indices[i]))}}:{}),
+         // Removing tautologies must not shorten the reference search budget.
+         maxActiveSetAttempts:options.maxActiveSetAttempts??Math.max(8,rows.length*2)}};
+ }
+--- a/src/physics/kirchhoffIncrementalContactLU.js
++++ b/src/physics/kirchhoffIncrementalContactLU.js
+@@ -14,15 +14,21 @@
+ 
+ // General row updates A = B + U V^T; retain a pivoted band LU of B.
+ // This workspace belongs to exactly one immutable linearization.
+-export function createIncrementalContactLU(layout,count,{maxRank=8}={}) {
++export function createIncrementalContactLU(layout,count,{maxRank=8,wasmAssembly=false}={}) {
+     if(!Number.isInteger(maxRank)||maxRank<0||maxRank>16)throw new RangeError('Invalid contact update rank');
++    if(wasmAssembly&&maxRank!==0)throw new RangeError('Batched retained assembly requires a fixed matrix');
+     const {starts,ends,offsets,kl,ku}=layout,stride=2*kl+ku+1;
+-    const lease=acquire(8*count*(stride+kl+4)+128),{kernel,buffer}=lease;
++    const lease=acquire(8*count*(stride+kl+(wasmAssembly?10:4))+(wasmAssembly?8*layout.entries:0)+256),{kernel,buffer}=lease;
+     let cursor=0,disposed=false;
+     const alloc=(Type,length)=>{cursor=Math.ceil(cursor/8)*8;const v=new Type(buffer,cursor,length);cursor+=v.byteLength;return v;};
+     const factor=alloc(Float64Array,count*stride),rhs=alloc(Float64Array,count),
+         right=alloc(Int32Array,count),pivots=alloc(Int32Array,count),lower=alloc(Float64Array,count*kl);
+-    const base=new Float64Array(layout.entries),scale=new Float64Array(count),x=new Float64Array(count);
++    const base=wasmAssembly?alloc(Float64Array,layout.entries):new Float64Array(layout.entries),
++        scale=wasmAssembly?alloc(Float64Array,count):new Float64Array(count),x=wasmAssembly?alloc(Float64Array,count):new Float64Array(count);
++    const assembly=wasmAssembly?{input:alloc(Float64Array,count),error:alloc(Float64Array,count),
++        starts:alloc(Int32Array,count),ends:alloc(Int32Array,count),offsets:alloc(Int32Array,count)}:null;
++    if(assembly){assembly.starts.set(starts);assembly.ends.set(ends);assembly.offsets.set(offsets);}
++    let matrixNorm=0;
+     let valid=false;const columns=new Map();
+     const diagnostics={factorizations:0,updates:0,reuses:0,backsolves:0,updateFailures:0,rankResets:0,
+         changedRows:{},maximumBackwardError:0};
+@@ -33,7 +39,14 @@
+     }
+     function certify(J,F) {
+         let err=0,normA=0,normF=0,normX=0;
+-        for(let i=0;i<count;i++) {
++        if(assembly) {
++            // Rank-zero reuse retains precisely this original matrix. Only
++            // its RHS changes; do not copy/scan the band again at every solve.
++            assembly.input.set(F);normA=matrixNorm;
++            err=kernel.measureOriginalBandResidual(base.byteOffset,assembly.input.byteOffset,x.byteOffset,
++                assembly.starts.byteOffset,assembly.ends.byteOffset,assembly.offsets.byteOffset,assembly.error.byteOffset,count);
++            for(let i=0;i<count;i++){normF=Math.max(normF,Math.abs(F[i]));normX=Math.max(normX,Math.abs(x[i]));}
++        } else for(let i=0;i<count;i++) {
+             let v=F[i],row=0;
+             for(let j=starts[i];j<=ends[i];j++){const a=J[offsets[i]+j];v+=a*x[j];row+=Math.abs(a);}
+             err=Math.max(err,Math.abs(v));normA=Math.max(normA,row);normF=Math.max(normF,Math.abs(F[i]));normX=Math.max(normX,Math.abs(x[i]));
+@@ -42,9 +55,20 @@
+         if(Number.isFinite(error))diagnostics.maximumBackwardError=Math.max(diagnostics.maximumBackwardError,error);
+         return Number.isFinite(error)&&error<=64*Math.max(1,count)*Number.EPSILON&&x.every(Number.isFinite);
+     }
+-    function fresh(J,F,scales) {
++    function fresh(J,F,scales,equilibrate=false) {
+         valid=false;columns.clear();base.set(J);scale.set(scales);factor.fill(0);right.set(ends);
+-        for(let i=0;i<count;i++) {
++        if(assembly) {
++            assembly.input.set(F);
++            if(equilibrate) {
++                kernel.equilibrateGeneralBand(base.byteOffset,assembly.starts.byteOffset,assembly.ends.byteOffset,assembly.offsets.byteOffset,scale.byteOffset,count);
++                scales.set(scale);
++            }
++            kernel.prepareGeneralBandLU(base.byteOffset,assembly.input.byteOffset,scale.byteOffset,
++                assembly.starts.byteOffset,assembly.ends.byteOffset,assembly.offsets.byteOffset,
++                factor.byteOffset,rhs.byteOffset,right.byteOffset,count,stride,kl,0);
++            matrixNorm=0;
++            for(let i=0;i<count;i++){let row=0;for(let j=starts[i];j<=ends[i];j++)row+=Math.abs(base[offsets[i]+j]);matrixNorm=Math.max(matrixNorm,row);}
++        } else for(let i=0;i<count;i++) {
+             rhs[i]=-F[i]*scale[i];const target=i*stride+kl-i;
+             for(let j=starts[i];j<=ends[i];j++)factor[target+j]=J[offsets[i]+j]*scale[i]*scale[j];
+         }
+@@ -82,11 +106,27 @@
+         if(!certify(J,F))return false;
+         diagnostics.updates++;return true;
+     }
+-    return {diagnostics,dispose() {if(!disposed){disposed=true;valid=false;if(idle.length<2&&lease.buffer.byteLength<=4*1024*1024)idle.push(lease);}},inverse(input,out) {
++    return {diagnostics,dispose() {if(!disposed){disposed=true;valid=false;if(idle.length<2&&lease.buffer.byteLength<=4*1024*1024)idle.push(lease);}},
++    measureOriginalResidual(solution,error,F) {
++        if(disposed)throw new Error('Released incremental LU lease');
++        if(!assembly||!valid)return null;
++        x.set(solution);assembly.input.set(F);
++        const residual=kernel.measureOriginalBandResidual(base.byteOffset,assembly.input.byteOffset,x.byteOffset,
++            assembly.starts.byteOffset,assembly.ends.byteOffset,assembly.offsets.byteOffset,assembly.error.byteOffset,count);
++        error.set(assembly.error);return residual;
++    },
++    // Solve against the owned base factor, not against a caller-owned matrix
++    // that might have changed. An invalid factor must return to full Newton.
++    solveRetainedRhs(F,direction) {
++        if(disposed)throw new Error('Released incremental LU lease');
++        if(!valid||!update(base,F,[]))return false;
++        for(let i=0;i<count;i++)direction[i]=x[i]/scale[i];
++        return true;
++    },inverse(input,out) {
+         if(!valid)return false;
+         for(let i=0;i<count;i++)rhs[i]=input[i]*scale[i];
+         backsolve(out);return out.every(Number.isFinite);
+-    },solve(J,F,scales,shift,direction) {
++    },solve(J,F,scales,shift,direction,equilibrate=false) {
+         if(disposed)throw new Error('Released incremental LU lease');
+         if(shift!==0)throw new RangeError('Incremental contact prototype requires an unshifted matrix');
+         const changed=[];
+@@ -97,7 +137,8 @@
+         let ok=false;
+         if(valid&&changed.length<=maxRank) {ok=update(J,F,changed);if(!ok)diagnostics.updateFailures++;}
+         else if(valid)diagnostics.rankResets++;
+-        if(!ok)ok=fresh(J,F,scales);
++        if(!ok)ok=fresh(J,F,scales,equilibrate);
++        else if(equilibrate&&assembly)scales.set(scale);
+         if(ok)for(let i=0;i<count;i++)direction[i]=x[i]/scales[i];
+         return ok;
+     }};
+--- a/src/physics/kirchhoffSharedAxisModifiedNewton.js
++++ b/src/physics/kirchhoffSharedAxisModifiedNewton.js
+@@ -4,12 +4,12 @@
+  * matrices are a chord-Newton approximation, never a current Jacobian cache.
+  * Physical residuals, contact discovery and trial acceptance remain current. */
+ export function createSharedAxisModifiedNewton() {
+-    let packed=null,lu=null,indices=null,saved=null,armed=false,age=0;
++    let packed=null,lu=null,indices=null,saved=null,armed=false,age=0,packedWasm=false;
+     const diagnostics={modifiedAttempts:0,modifiedAccepted:0,modifiedFallbacks:0};
+     const invalidate=()=>{armed=false;saved=null;age=0;};
+     return {diagnostics,invalidate,
+-        getLU(w) {
+-            if(packed!==w) {lu?.dispose();lu=createIncrementalContactLU(w.band,w.count,{maxRank:0});packed=w;indices=null;invalidate();}
++        getLU(w,wasmAssembly=false) {
++            if(packed!==w||packedWasm!==wasmAssembly) {lu?.dispose();lu=createIncrementalContactLU(w.band,w.count,{maxRank:0,wasmAssembly});packed=w;packedWasm=wasmAssembly;indices=null;invalidate();}
+             return lu;
+         },
+         record(w,activeIndices) {if(w===packed)indices=activeIndices.slice();},
+@@ -21,7 +21,7 @@
+                     extraForceDofs:r.extraForceDofs?.slice(),extraForceJacobian:r.extraForceJacobian?.slice()}))};
+             age=0;armed=false;
+         },
+-        arm(ok) {armed=!!saved&&ok&&age<2;},
++        arm(ok) {armed=!!saved&&ok&&age<1;},
+         canReuse(rows,fixed,tolerance) {
+             if(!armed||!saved||rows.length!==saved.rows.length||fixed.length!==saved.fixed.length)return false;
+             for(let i=0;i<fixed.length;i++)if(fixed[i]!==saved.fixed[i])return false;
+@@ -50,13 +50,16 @@
+                 F[w.dual[i]]=movable?current.gap:current.multiplier;
+             }
+             const x=new Float64Array(w.count),before=lu.diagnostics.factorizations;
+-            let ok=lu.solve(A,F,scales,0,x);
++            let ok=lu.solveRetainedRhs(F,x);
+             for(let i=0;i<x.length;i++)x[i]*=scales[i];
+             let residual=Infinity;
+             if(ok) {
+                 const {starts,ends,offsets}=w.band;
+-                residual=0;
+-                for(let i=0;i<w.count;i++) {let v=F[i];for(let j=starts[i];j<=ends[i];j++)v+=A[offsets[i]+j]*x[j];residual=Math.max(residual,Math.abs(v));}
++                residual=lu.measureOriginalResidual(x,w.error,F);
++                if(residual===null) {
++                    residual=0;
++                    for(let i=0;i<w.count;i++) {let v=F[i];for(let j=starts[i];j<=ends[i];j++)v+=A[offsets[i]+j]*x[j];residual=Math.max(residual,Math.abs(v));}
++                }
+                 ok=Number.isFinite(residual)&&residual<=tolerance;
+             }
+             const increment=Float64Array.from(w.primal,p=>x[p]);
+--- a/tests/kirchhoffIncrementalContactLU.test.js
++++ b/tests/kirchhoffIncrementalContactLU.test.js
+@@ -79,6 +79,34 @@
+     const c=createIncrementalContactLU(f.layout,f.n);compare(f,c);c.dispose();
+ });
+ 
++test('batched retained LU owns its matrix, equilibrates identically, and certifies changing right-hand sides',()=>{
++    const f=fixture(40,3,2),saved=f.J.slice(),solver=createIncrementalContactLU(f.layout,f.n,{maxRank:0,wasmAssembly:true});
++    const reference=createCoulombBandLU(f.layout,f.n,{wasmAssembly:true}),actual=new Float64Array(f.n).fill(123),expected=actual.slice();
++    try {
++        assert.equal(solver.solveRetainedRhs(f.F,actual),false);assert.ok(actual.every(v=>v===123));
++        const scales=f.scales.slice();
++        assert.equal(reference.solve(saved,f.F,scales,0,expected,true),true);
++        assert.equal(solver.solve(f.J,f.F,f.scales,0,actual,true),true);
++        assert.deepEqual(f.scales,scales);
++        // Retained LU certifies physical coordinates, then converts back to
++        // equilibrated coordinates; that round trip can differ by one ULP.
++        for(let i=0;i<f.n;i++)assert.ok(Math.abs(actual[i]-expected[i])<=8*Number.EPSILON*Math.max(1,Math.abs(expected[i])));
++        f.J.fill(0); // Caller storage is not the retained matrix.
++        for(let step=0;step<8;step++) {
++            f.F[step]+=.1;
++            assert.equal(reference.solve(saved,f.F,scales,0,expected),true);
++            assert.equal(solver.solveRetainedRhs(f.F,actual),true);
++            for(let i=0;i<f.n;i++)assert.ok(Math.abs(actual[i]-expected[i])<1e-10*Math.max(1,Math.abs(expected[i])));
++            const unscaled=Float64Array.from(actual,(v,i)=>v*scales[i]),error=new Float64Array(f.n);
++            assert.ok(solver.measureOriginalResidual(unscaled,error,f.F)<1e-10);
++        }
++        assert.equal(solver.diagnostics.factorizations,1);
++        assert.equal(solver.solve(f.J,f.F,f.scales,0,actual,true),false);
++        actual.fill(123);assert.equal(solver.solveRetainedRhs(f.F,actual),false);assert.ok(actual.every(v=>v===123));
++    } finally {solver.dispose();}
++    assert.throws(()=>solver.solveRetainedRhs(f.F,actual),/Released/);
++});
++
+ test('ROLLOUT GATE: captured pigtail withdrawal retains strict state parity',
+     {skip:process.env.OET_INCREMENTAL_ROLLOUT!=='1'&&'Experimental path is disabled: strict Pigtail parity has not passed; set OET_INCREMENTAL_ROLLOUT=1 to run the gate'},async()=>{
+     const {readFileSync}=await import('node:fs');
+--- a/tests/kirchhoffSharedAxisModifiedNewton.test.js
++++ b/tests/kirchhoffSharedAxisModifiedNewton.test.js
+@@ -45,6 +45,29 @@
+     } finally {cache.dispose();}
+ });
+ 
++test('a chord solve maps eliminated constant rows back and survives an unrelated shared-arena solve',()=>{
++    for(const wasmLinearAssembly of [false,true]) {
++        const f=linearFixture(),cache=createSharedAxisModifiedNewton();
++        f.rows=f.rows.flatMap((row,i)=>[{id:`constant/${i}`,kind:'wall',dofs:row.dofs.slice(),jacobian:[0],gap:1,multiplier:0},row]);
++        f.options={...f.options,rows:f.rows,reuseConstraintWork:true,reuseMatrixAssembly:true,wasmLinearAssembly};
++        f.w=createSharedAxisLinear(f.layout,f.rows,{lazy:true});
++        try {
++            const first=solveSharedAxisLinear(f.w,f.chain,{...f.options,modifiedNewtonContext:cache});
++            assert.ok(first.converged);assert.equal(first.constantRowsEliminated,3);
++            cache.seal(f.rows,f.options.fixed);cache.arm(true);
++            f.rows[1].gap=.1;f.rows[3].gap=.05;f.rows[3].multiplier=3;f.options.gradient.set([1,2,3]);
++            f.chain.hessian.fill(7);solveSharedAxisLinear(f.w,f.chain,f.options);f.chain.hessian.fill(2);
++            assert.equal(cache.canReuse(f.rows,f.options.fixed,1e-8),true);
++            const actual=cache.solve(f.rows,f.options.gradient,1e-8);
++            const reference=solveSharedAxisLinear(createSharedAxisLinear(f.layout,f.rows,{lazy:true}),f.chain,f.options);
++            assert.ok(actual.converged);assert.equal(actual.factorizations,0);
++            close(actual.increment,reference.increment);close(actual.multiplierIncrement,reference.multiplierIncrement);
++            // An inactive row may store -0 as the negated zero reaction.
++            assert.equal(Math.abs(actual.multiplierIncrement[0]),0);assert.equal(Math.abs(actual.multiplierIncrement[2]),0);
++        } finally {cache.dispose();}
++    }
++});
++
+ function rod() {
+     const s=createSharedAxisNative({startCoordinate:-10,tools:[{id:'wire',type:'straight',insertion:40}]});
+     const dx=new Float64Array(s.layout.dofCount);

@@ -1,0 +1,127 @@
+{
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "shapeDifferenceLimitMm": 1,
+  "targetAcceptedPhysicsHz": 60,
+  "reference": "003-crossover-full-user-inputs.json.gz",
+  "referenceSha256": "bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac",
+  "currentCandidate": "007-distal-remap-passing.patch",
+  "recorderPatch": "004-configurable-shape-limit.patch",
+  "currentWorkspace": "/tmp/oet-fluidity-1mm-zb0gv7v4",
+  "bestCompleteCandidate": {
+    "report": "008-distal-confirmation-full-browser.json.gz",
+    "validation": "008-distal-confirmation-validation.json",
+    "steps": 7507,
+    "maximumShapeDifferenceMm": 0.909750089299832,
+    "maximumCertificate": 9.950126695912331e-7,
+    "maximumPenetrationMm": 9.943140699686381e-9,
+    "maximumLengthErrorMm": 9.943140699686381e-9,
+    "motionHz": 42.527920250121646,
+    "lastStageMotionHz": 32.42595166049221,
+    "minimumMovingWindowHz": 14.605291983620335,
+    "performanceTargetMet": false,
+    "note": "Results from the unchanged 008 confirmation; not a new optimization result."
+  },
+  "exactFullDiagnostic": {
+    "report": "009-direction-profile-full-browser.json.gz",
+    "validation": "009-direction-profile-full-validation.json",
+    "steps": 7507,
+    "maximumShapeDifferenceMm": 0,
+    "maximumCertificate": 9.950126695912331e-7,
+    "maximumPenetrationMm": 9.934624012331028e-9,
+    "maximumLengthErrorMm": 9.934624012331028e-9,
+    "motionHz": 40.54942524411721,
+    "lastStageMotionHz": 29.03474715133605,
+    "performanceTargetMet": false,
+    "profile": "009-full-direction-summary.json",
+    "sourceManifest": "009-direction-profile-manifest.json",
+    "note": "Counts preserve the solver cache and the complete recorded shape sequence. Instrumented timing is not claimed as an implementation speedup."
+  },
+  "rejected": [
+    {
+      "name": "Larger Newton active-set budget",
+      "patch": "009-newton32-rejected.patch",
+      "scope": "Incomplete rejected prefix, not whole-maneuver acceptance",
+      "steps": 1593,
+      "complete": false,
+      "firstDifference": 462,
+      "maxDifference": 1.245168575913934,
+      "maxCertificate": 9.94819693289628e-7,
+      "maxPenetration": 3.4228165857186355e-9,
+      "maxLength": 3.4228165857186355e-9,
+      "commandsAndShapeMetricVerified": true,
+      "physicalGatesPassed": true,
+      "accepted": false,
+      "motionHz": 59.966122233920636,
+      "error": "Różnica kształtu 1.2452 mm przekracza 1 mm."
+    },
+    {
+      "name": "Packed sparse primal traversal",
+      "patch": "009-sparse-primal-rejected.patch",
+      "beforeMs": 14202.920954999981,
+      "afterMs": 14688.955108000051,
+      "timeReductionPercent": -3.4220718015681606,
+      "maximumShapeDifferenceMm": 0,
+      "scope": "Diagnostic long-tool continuation, not the full recorded maneuver",
+      "accepted": false,
+      "reason": "Longer paired confirmation was slower in both repetitions."
+    },
+    {
+      "name": "WASM primal scatter",
+      "patch": "009-wasm-primal-inconclusive.patch",
+      "beforeMs": 4950.336576999999,
+      "afterMs": 4939.39954099999,
+      "timeReductionPercent": 0.22093519965540231,
+      "maximumShapeDifferenceMm": 0,
+      "scope": "Diagnostic long-tool continuation, not the full recorded maneuver",
+      "accepted": false,
+      "reason": "Opposite timing directions between repetitions; no repeatable speed benefit."
+    }
+  ],
+  "diagnosticCorrections": {
+    "script": "scripts/profile-crossover-directions.mjs",
+    "result": "009-direction-profile-nonintrusive.json",
+    "supersedes": "009-direction-profile.json",
+    "reason": "observeTrial disables fallback-working-set caches; replaced with scalar direction counters that leave solver choices intact. Both are diagnostic continuations, not full-maneuver acceptance."
+  },
+  "prefixOpportunity": {
+    "calls": 951,
+    "sameStrideCalls": 841,
+    "safePrefixColumns": 322603,
+    "columns": 1192823,
+    "buckets": {
+      "0": 951,
+      "32": 381,
+      "64": 381,
+      "128": 381,
+      "256": 375,
+      "512": 367
+    },
+    "note": "One previous prepared band compared exactly, including RHS, bounds and pivot reach. This is an opportunity estimate, not measured savings. Validate on the complete maneuver before choosing the algorithm.",
+    "result": "009-band-prefix-opportunity.json",
+    "patch": "009-band-prefix-diagnostic.patch",
+    "maximumReusableColumnFraction": 0.27045336986292184,
+    "implementedReuse": false
+  },
+  "regressions": {
+    "directionProfile": {
+      "passed": 48,
+      "log": "009-direction-profile-tests.log"
+    },
+    "wasmPrimal": {
+      "passed": 5,
+      "log": "009-wasm-primal-tests.log",
+      "candidateEnabled": false
+    },
+    "build": "009-direction-profile-build.log"
+  },
+  "restoration": {
+    "instrumentedBaselineHashesMatched": true,
+    "newton32Removed": true,
+    "sparsePrimalRemoved": true,
+    "wasmPrimalRemoved": true,
+    "prefixObserverRemoved": true,
+    "originalUserPosePreserved": true
+  },
+  "nextInvestigation": "Evaluate exact reuse of an unchanged band-LU prefix, accounting for partial pivot reach, RHS, row bounds and identical scaling. First measure eligible prefixes in full moving steps; then test cancellation/interleaving, changed supports, failed factors, bit-identical results and real wall time. Do not reuse approximate retained factors or alter accepted-step dt, shape gates or physical tolerances."
+}

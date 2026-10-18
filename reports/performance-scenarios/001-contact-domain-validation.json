@@ -1,0 +1,28 @@
+{
+  "recordedAt": "2026-10-14T15:15:45.651747+00:00",
+  "productionChangeRetained": false,
+  "report": "001-contact-domain-throughput.json",
+  "patch": "001-contact-domain-rejected.patch",
+  "before": {
+    "steps": 600,
+    "totalMs": 16602.57255399997,
+    "medianMs": 19.987959000001865,
+    "p95Ms": 61.14729199999783,
+    "maxMs": 336.0799160000024,
+    "cpuStepsPerSecond": 36.13897774266586,
+    "withinBudget": 127
+  },
+  "after": {
+    "steps": 600,
+    "totalMs": 16893.671117000024,
+    "medianMs": 19.99649999999383,
+    "p95Ms": 64.47799999999916,
+    "maxMs": 324.42775000000256,
+    "cpuStepsPerSecond": 35.51625906794307,
+    "withinBudget": 114
+  },
+  "cpuReductionPercent": -1.7533340815301557,
+  "maxWorldDifferenceMm": 0,
+  "testsPassed": 23,
+  "reason": "The longer paired 600-step-per-version test did not confirm the short warmup gain; discard the extra sampler-domain dispatch."
+}

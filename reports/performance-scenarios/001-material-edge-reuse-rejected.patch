@@ -1,0 +1,88 @@
+--- a/src/physics/kirchhoffSharedAxisMaterialTangent.js
++++ b/src/physics/kirchhoffSharedAxisMaterialTangent.js
+@@ -4,6 +4,7 @@
+ // Per-body ownership isolates tools and remeshed states without retaining old
+ // simulations. The evaluator invalidates its rest-frame cache by scalar values.
+ const materialScratch = new WeakMap();
++const assemblyScratch = new WeakMap();
+ function hingeScratch(body) {
+     let scratch=materialScratch.get(body);
+     if(!scratch){scratch=[];materialScratch.set(body,scratch);}
+@@ -33,6 +34,21 @@
+         result:{energy:0,torque:null},tangentResult:{energy:0,torque:null,jacobian:null},coefficients:new Array(2),
+         jacobian:new Float64Array(36),dphi:new Float64Array(3),dp:new Float64Array(3),
+         dJ:new Float64Array(9),dA:new Float64Array(9),du:new Float64Array(3),spun:new Float64Array(3)};
++}
++function createAssemblyWork() {
++    return {dofs:new Int32Array(11),frames:new Float64Array(18),d1:new Float64Array(6),d2:new Float64Array(6),
++        lengths:new Float64Array(2),tangents:new Float64Array(6),forces:new Float64Array(6),
++        angular:new Float64Array(66),dLengths:new Float64Array(22),dTorque:new Float64Array(6),column:new Float64Array(11),
++        torque:createTorqueWork(),q0:{x:0,y:0,z:0,w:1},q1:{x:0,y:0,z:0,w:1},rest:{x:0,y:0,z:0},compliance:new Float64Array(3)};
++}
++function assemblyWork(chain) {
++    let work=assemblyScratch.get(chain);
++    if(!work){work=createAssemblyWork();assemblyScratch.set(chain,work);}
++    return work;
++}
++function readQInto(body,edge,out) {
++    out.x=body.orientationX[edge];out.y=body.orientationY[edge];out.z=body.orientationZ[edge];out.w=body.orientationW[edge];
++    return out;
+ }
+ function copyValues(out,value) {for(let i=0;i<value.length;i++)out[i]=value[i];}
+ function transposedMultiplyInto(A,v,out,offset=0) {
+@@ -126,26 +142,34 @@
+     // Scratch belongs to this synchronous assembly call. Every material hinge
+     // reuses it; no temporary vectors or columns are created in the 11-column
+     // derivative loop. Both triangles of the moving-frame tangent are kept.
+-    const dofs=new Int32Array(11),frames=new Float64Array(18),d1=new Float64Array(6),d2=new Float64Array(6);
+-    const lengths=new Float64Array(2),tangents=new Float64Array(6),forces=new Float64Array(6);
+-    const angular=withTangent&&!kernel?new Float64Array(66):null,dLengths=withTangent&&!kernel?new Float64Array(22):null;
+-    const dTorque=withTangent&&!kernel?new Float64Array(6):null,column=withTangent&&!kernel?new Float64Array(11):null;
++    const work=reuseMaterialScratch?assemblyWork(chain):createAssemblyWork();
++    const {dofs,frames,d1,d2,lengths,tangents,forces,angular,dLengths,dTorque,column}=work;
+     // Borrowed results are consumed synchronously by this assembly. Promotion
+     // keeps separate owned arrays, so later hinges/trials cannot overwrite it.
+-    const torqueWork=reuseMaterialScratch?createTorqueWork():null;
++    const torqueWork=reuseMaterialScratch?work.torque:null;
+     let energy=0,hinge=0;
+     for(const {body,spec,last} of s.materials) {
+         const spins=layout.spins.get(spec.id),scratch=reuseMaterialScratch?hingeScratch(body):null;
+         for(let e=1;e<last;e++) {
+             for(let node=0;node<3;node++)for(let a=0;a<3;a++)dofs[node*3+a]=layout.positions[e-1+node]+a;
+             dofs[9]=spins[e-1];dofs[10]=spins[e];
+-            const saved=promotion?.reuse?.[hinge],q0=readQ(body,e-1),q1=readQ(body,e);
++            const saved=promotion?.reuse?.[hinge],q0=reuseMaterialScratch?readQInto(body,e-1,work.q0):readQ(body,e-1),
++                q1=reuseMaterialScratch?readQInto(body,e,work.q1):readQ(body,e);
+             if(saved) {
+                 frames.set(saved.geometry.subarray(0,18));d1.set(saved.geometry.subarray(18,24));d2.set(saved.geometry.subarray(24,30));
+                 lengths.set(saved.geometry.subarray(30,32));tangents.set(saved.geometry.subarray(32,38));forces.set(saved.geometry.subarray(38,44));
+             } else {
+-                matrix(q0,frames,0);matrix(q1,frames,9);
+-                for(let j=0;j<2;j++) {
++                // Adjacent hinges share exactly one material edge. Reuse its
++                // current-call geometry, never the previous pose's geometry.
++                // Reset at each tool boundary: its independent frame may differ.
++                const firstEdge=reuseMaterialScratch&&e>1?1:0;
++                if(firstEdge) {
++                    for(let k=0;k<9;k++)frames[k]=frames[9+k];
++                    lengths[0]=lengths[1];
++                    for(let k=0;k<3;k++){d1[k]=d1[3+k];d2[k]=d2[3+k];tangents[k]=tangents[3+k];}
++                } else matrix(q0,frames,0);
++                matrix(q1,frames,9);
++                for(let j=firstEdge;j<2;j++) {
+                     const at=3*j,m=9*j,a=s.positions[e-1+j],b=s.positions[e+j];
+                     const dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2],length=Math.sqrt(dx*dx+dy*dy+dz*dz);
+                     lengths[j]=length;tangents[at]=dx/length;tangents[at+1]=dy/length;tangents[at+2]=dz/length;
+@@ -155,8 +179,10 @@
+             const capture=promotion?.capture?(promotion.capture[hinge]??={geometry:new Float64Array(44)}):null;
+             const preparation=saved?{reuse:saved.material}:capture?{store:true,target:torqueWork?capture.material:null}:null;
+             const packed=kernel?.records[hinge];
+-            const material=nativeHingeTorqueTangent(q0,q1,{x:body.restRotation1[e],y:body.restRotation2[e],z:body.restRotation3[e]},
+-                [body.kirchhoffBendCompliance1[e],body.kirchhoffBendCompliance2[e],body.kirchhoffTwistCompliance[e]],withTangent,preparation,packed?.data,scratch?(scratch[e]??={}):null,torqueWork);
++            const rest=work.rest,compliance=work.compliance;
++            rest.x=body.restRotation1[e];rest.y=body.restRotation2[e];rest.z=body.restRotation3[e];
++            compliance[0]=body.kirchhoffBendCompliance1[e];compliance[1]=body.kirchhoffBendCompliance2[e];compliance[2]=body.kirchhoffTwistCompliance[e];
++            const material=nativeHingeTorqueTangent(q0,q1,rest,compliance,withTangent,preparation,packed?.data,scratch?(scratch[e]??={}):null,torqueWork);
+             energy+=material.energy;
+             for(let j=0;j<2;j++) {
+                 const at=3*j;

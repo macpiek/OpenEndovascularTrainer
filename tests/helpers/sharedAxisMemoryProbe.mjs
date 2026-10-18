@@ -10,7 +10,8 @@ const {createSharedAxisNative,feedSharedAxisNative}=await import(new URL('src/ph
 const {stepSharedAxis}=await import(new URL('src/physics/kirchhoffSharedAxisTimeStep.js',sourceRoot));
 const {defineKirchhoffMaterialProfile}=await import(new URL('src/physics/kirchhoffMaterialProfile.js',sourceRoot));
 const {sharedAxisMaterialKernelWorkspace}=await import(new URL('src/physics/kirchhoffSharedAxisMaterialKernel.js',sourceRoot));
-const wasmMaterial=process.argv[3]==='wasm',dynamic=wasmMaterial||process.argv[3]==='dynamic',count=dynamic?30:160;
+const {getSharedAxisLinearScratchStats}=await import(new URL('src/physics/kirchhoffSharedAxisLinear.js',sourceRoot));
+const wasmMaterial=process.argv[3].startsWith('wasm'),dynamic=wasmMaterial||process.argv[3]==='dynamic',count=dynamic?30:160;
 const beam=defineKirchhoffMaterialProfile({id:'memory-lifecycle-beam',sampleEI1:()=>1e6,sampleGJ:()=>1e6/1.3});
 const oldStates=[],oldPositions=[],oldBodies=[],oldMaterialMemories=[];
 let factorizations=0;
@@ -21,7 +22,7 @@ function build() {
     for(let i=0;i<count;i++) {
         if(dynamic) {
             state.loads[state.layout.positions.at(-1)+1]=1;
-            const result=stepSharedAxis(state,1/60,{liveWallNormalLoad:true,wasmMaterial,reuseConstraintWork:wasmMaterial,reuseMatrixAssembly:wasmMaterial,reuseRowBuffers:wasmMaterial,reuseMaterialScratch:wasmMaterial,lightweightFriction:wasmMaterial});
+            const result=stepSharedAxis(state,1/60,{liveWallNormalLoad:true,wasmMaterial,reuseStructure:process.argv[3]!=='wasm-owned',reuseConstraintWork:wasmMaterial,reuseMatrixAssembly:wasmMaterial,reuseRowBuffers:wasmMaterial,reuseMaterialScratch:wasmMaterial,lightweightFriction:wasmMaterial});
             assert.ok(result.converged,JSON.stringify(result));
             factorizations+=result.factorizations;
             if(wasmMaterial) {
@@ -46,7 +47,7 @@ const alive=refs=>refs.reduce((n,r)=>n+(r.deref()===undefined?0:1),0);
 const {latest,cache}=build();
 await collect();
 const held={states:alive(oldStates),positions:alive(oldPositions),bodies:alive(oldBodies),materialMemories:alive(oldMaterialMemories),
-    latestAlive:latest.deref()!==undefined,cacheSize:cache?.deref()?.size??0};
+    latestAlive:latest.deref()!==undefined,cacheSize:cache?.deref()?.size??0,linearScratch:getSharedAxisLinearScratchStats()};
 globalThis.currentMemoryProbeState=null;
 await collect();
 const released={states:alive(oldStates),positions:alive(oldPositions),bodies:alive(oldBodies),materialMemories:alive(oldMaterialMemories),

@@ -1,0 +1,185 @@
+{
+  "recordedAt": "2026-10-14T10:25:41.187Z",
+  "goalAchieved": false,
+  "defaultPhysicsChanged": false,
+  "mode": "Experimental contact-protected adaptive shaft mechanics; browser benchmark only",
+  "command": "npm run benchmark:crossover:reduced -- reports/performance-scenarios/001-reduced-model.json '{}' 180",
+  "spatialApproximation": "5 mm reference grid. Coarsen free, nearly straight shaft spans up to 20 mm; keep fine contacts and tool tips, including 40 mm ahead of a tip. Shape tolerance 0.03 mm, arc loss 0.0002, turn 0.08 rad.",
+  "certificates": {
+    "dt": 0.016666666666666666,
+    "forceTolerance": 0.000001,
+    "lengthTolerance": 0.00001,
+    "fullVesselDiscovery": true
+  },
+  "rejectedCoarseContacts": {
+    "report": "001-reduced-model-10mm.json",
+    "passed": false,
+    "reason": "Coarsening loaded contact spans caused shape deviation and an expensive transition",
+    "maxShapeDifferenceMm": 1.5661138888380959,
+    "maxTipDifferenceMm": 0.983508277534026,
+    "summary": {
+      "reference": {
+        "steps": 180,
+        "totalMs": 8075.366705999997,
+        "medianMs": 32.39533400000073,
+        "p95Ms": 112.79033300000083,
+        "maxMs": 331.3588329999984,
+        "cpuStepsPerSecond": 22.290009426601024,
+        "withinBudget": 0,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 1.52433621281034e-13,
+        "maxLengthError": 1.498801083228001e-13,
+        "maxCertificateBound": 9.993825074161578e-7,
+        "maxSpeed": 21.613441219624374
+      },
+      "reduced": {
+        "steps": 180,
+        "totalMs": 10021.969454000018,
+        "medianMs": 28.63116699999955,
+        "p95Ms": 96.54679099999885,
+        "maxMs": 2687.2030830000003,
+        "cpuStepsPerSecond": 17.960541670595244,
+        "withinBudget": 2,
+        "minNodes": 151,
+        "maxNodes": 154,
+        "maxPenetrationMm": 4.1603748224261494e-9,
+        "maxLengthError": 8.940996091552717e-13,
+        "maxCertificateBound": 9.653904271544889e-7,
+        "maxSpeed": 79.82947120263289
+      }
+    }
+  },
+  "protectedContacts": {
+    "report": "001-reduced-model-protected-contacts.json",
+    "passed": true,
+    "steps": 180,
+    "maxShapeDifferenceMm": 0.1203764880400181,
+    "maxTipDifferenceMm": 0.011979120752749525,
+    "summary": {
+      "reference": {
+        "steps": 180,
+        "totalMs": 19191.23120099999,
+        "medianMs": 63.65233400000034,
+        "p95Ms": 297.5538749999978,
+        "maxMs": 1726.3377499999997,
+        "cpuStepsPerSecond": 9.379283596490714,
+        "withinBudget": 0,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 1.52433621281034e-13,
+        "maxLengthError": 1.498801083228001e-13,
+        "maxCertificateBound": 9.993825074161578e-7,
+        "maxSpeed": 21.613441219624374
+      },
+      "reduced": {
+        "steps": 180,
+        "totalMs": 14388.390630000018,
+        "medianMs": 58.61133400000108,
+        "p95Ms": 212.13991700000042,
+        "maxMs": 519.3206250000003,
+        "cpuStepsPerSecond": 12.510085709286846,
+        "withinBudget": 0,
+        "minNodes": 170,
+        "maxNodes": 191,
+        "maxPenetrationMm": 1.539879335155092e-13,
+        "maxLengthError": 7.938094625985339e-14,
+        "maxCertificateBound": 9.681015171736362e-7,
+        "maxSpeed": 21.600639609598698
+      }
+    }
+  },
+  "longComparison": {
+    "report": "001-reduced-model-protected-long.json",
+    "passed": false,
+    "completedPairedSteps": 203,
+    "maxShapeDifferenceMm": 0.1203764880400181,
+    "maxTipDifferenceMm": 0.011979120752749525,
+    "pairedSummary": {
+      "reference": {
+        "steps": 203,
+        "totalMs": 12704.246374999982,
+        "medianMs": 35.1478330000009,
+        "p95Ms": 178.16879199999676,
+        "maxMs": 833.1501669999998,
+        "cpuStepsPerSecond": 15.978909256630367,
+        "withinBudget": 0,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 9.09027297879561e-11,
+        "maxLengthError": 1.498801083228001e-13,
+        "maxCertificateBound": 9.993825074161578e-7,
+        "maxSpeed": 21.613441219624374
+      },
+      "reduced": {
+        "steps": 203,
+        "totalMs": 10077.733327000036,
+        "medianMs": 32.45450000000346,
+        "p95Ms": 140.39750000000095,
+        "maxMs": 265.3763749999998,
+        "cpuStepsPerSecond": 20.14341850623562,
+        "withinBudget": 1,
+        "minNodes": 170,
+        "maxNodes": 191,
+        "maxPenetrationMm": 1.539879335155092e-13,
+        "maxLengthError": 7.938094625985339e-14,
+        "maxCertificateBound": 9.681015171736362e-7,
+        "maxSpeed": 21.600639609598698
+      }
+    },
+    "failure": "Error: reference failed at step 203: linear-solve",
+    "checkpoint": "reports/performance-scenarios/001-reduced-model-protected-long.failed-reference.json.gz",
+    "baselineReproduction": [
+      {
+        "name": "current",
+        "accepted": false,
+        "status": "linear-solve",
+        "factorizations": 435
+      },
+      {
+        "name": "constantRowsOff",
+        "accepted": false,
+        "status": "linear-solve",
+        "factorizations": 435
+      },
+      {
+        "name": "stage4",
+        "accepted": false,
+        "status": "linear-solve",
+        "factorizations": 435
+      }
+    ]
+  },
+  "browser": {
+    "report": "001-browser-reduced-model.json",
+    "screenshot": "001-browser-reduced-model.jpg",
+    "passed": true,
+    "steps": 100,
+    "physicsHz": 19.57713390759593,
+    "renderFps": 59.31871574001567,
+    "stepCpuMs": {
+      "median": 32.299999952316284,
+      "p95": 132.30000019073486,
+      "max": 189.20000052452087
+    },
+    "consoleErrors": 0
+  },
+  "tests": {
+    "passed": 14,
+    "failed": 0,
+    "report": "001-reduced-model-tests.log",
+    "historicalFixtureFix": "ContactMesh regression now loads its original open anatomy through the existing verified historical loader; geometry identity checks remain enforced."
+  },
+  "limitations": [
+    "Exploratory 0.5 mm shape budget is not a clinical validation criterion.",
+    "Machine load varied considerably; do not compare absolute CPU timings between separate runs.",
+    "Browser result is one 100-step run with a lightweight preview, not full fluoroscopy or a paired FPS improvement.",
+    "Long reference run rejects step 203, including with constant-row optimization disabled and with stage-4 baseline. This existing stability defect is captured and remains unresolved.",
+    "No promotion to production default; 60 Hz goal remains active."
+  ],
+  "build": {
+    "passed": true,
+    "report": "001-reduced-model-build.log",
+    "warning": "Existing bundle chunk size warning (>500 kB)"
+  }
+}

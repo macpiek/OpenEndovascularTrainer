@@ -1,0 +1,106 @@
+{
+  "recordedAt": "2026-10-14T14:48:57.716Z",
+  "goalAchieved": false,
+  "change": "Defer the exact basis-Jacobian snapshot until rank repair is first needed; preserve original rows, pivots and final certificates.",
+  "reports": [
+    "001-deferred-basis-snapshot-screen.json",
+    "001-deferred-basis-snapshot-confirmation.json"
+  ],
+  "totals": {
+    "before": {
+      "steps": 1200,
+      "totalMs": 35268.67395400003
+    },
+    "after": {
+      "steps": 1200,
+      "totalMs": 34942.659256
+    }
+  },
+  "cpuReductionPercent": 0.9243746970051703,
+  "maxWorldDifferenceMm": 0,
+  "identicalPerStepMetrics": [
+    "iterations",
+    "factorizations",
+    "fullAssemblies",
+    "residualAssemblies",
+    "promotedAssemblies",
+    "coupledFrictionRefreshes",
+    "fallbackLinearizationReuses",
+    "certificateBound",
+    "subdivisions",
+    "backtracks",
+    "geometryRestarts",
+    "maxPenetrationMm",
+    "nodes",
+    "rows"
+  ],
+  "sourceHashesVerified": true,
+  "sourceHashes": {
+    "kirchhoffSharedAxisFrictionKernel.js": "00ca0668d1ee4745ab58d4255f6b93c77dad38bd2b8c6cb8b18ba35383b11dff",
+    "kirchhoffSharedAxisFrictionKernelBytes.js": "0eef2b1b9b4025a747ae320de39f555b067f2b159fc4e906173cd7a8d153431c",
+    "kirchhoffSharedAxisWallFriction.js": "96a397bf67a898dc0cceded47b6359aaa144e4222e7c950dc32823747324e14f",
+    "collision/scalarMeshBvhClosestPoint.js": "5d65d69f0b804d3545a0e023b6ce566d462d952f8dfde8f597649aa842493e28",
+    "collision/vesselContactField.js": "41f7d3ea5eea3ee46a8f42ab52aa92db8a87e4db13f48333bb6b5cfa2bcf9680",
+    "kirchhoffCoulombBandLU.js": "8bc919a3d684de7ae273341b753c1915e73c762ce20a0595b4abb47695c4371b",
+    "kirchhoffSharedAxisProjection.js": "4a33a2154689f684e2a51ce996a96c1c879b1889d16b2837a6e7909af4dcb889",
+    "kirchhoffSharedAxisDynamics.js": "cb7daccf43492126275b8e90f71e20630388eb76ed97d93e882075dec48a665c",
+    "kirchhoffSharedAxisMaterialKernel.js": "209150379826f8cb9177e23100d41303b209c5c221b1a56fb4ca17d94989bef9",
+    "kirchhoffSharedAxisMaterialKernelBytes.js": "d29abaf2030c6b9aec32c0aa0aa93026f06b25f1ecd4eac7e2e081cdb54242f4",
+    "kirchhoffSharedAxisInertiaKernelBytes.js": "02d64e88fddfe0706353e10a5392d1d8595ada0085155f1257c65ca93ed5f2c1",
+    "kirchhoffSharedAxisMaterialTangent.js": "9d78bdc2fc73c86bad46e65ef443f2a17f7dfc1881b9a906c6a8c55c3a85cfef",
+    "kirchhoffSharedAxisActiveBasis.js": "9fde53787b6bdea4a6e89c22afffd8e1cff8d53216aabca41155c8d454a60968",
+    "kirchhoffSharedAxisBasisKernel.js": "cbe1bb52ac142df24b9f9c4e34c2606238b965eff0f33b8f5b65861d0d4dec4a",
+    "kirchhoffSharedAxisBasisKernelBytes.js": "3da342d94707838b0063a11bb481e558675113d2060f5f78544bf2c506ef1a0e",
+    "kirchhoffSharedAxisRejectedLinearization.js": "05b10ec423f8fad9e776cc2c43f4b36ab6f8a63ce46be38a2c3922f1baa9332d",
+    "kirchhoffSharedAxisConstraintRows.js": "c037d83b5c285846ca86f36d104b80a593832fcab00925bb6c366c4899004e23",
+    "kirchhoffSharedAxisDiscoveryCache.js": "9b85bef990efa76112451e74ef3fcc191402c0ef896dc1d72532d28014dba217",
+    "kirchhoffSharedAxisVesselWitnesses.js": "19054c3ccac4354da47d659e4b2122ecd1b5868392a44312360f1ac4f466c9f9",
+    "kirchhoffSharedAxisNative.js": "26a5a815a3b8e81870249543e18c446e1207afc4e2b10734c6818418a50af422",
+    "kirchhoffSharedAxisModifiedNewton.js": "7a421e0254fc77be7b161f4bdfb8fcf2ab2349411c9d5ee2a8c77eec0e5c43d6",
+    "kirchhoffIncrementalContactLU.js": "cf011073507c383dad63ee9971ef4601985da29b6b9b532cfbc962454bd57e2f",
+    "kirchhoffSharedAxisAppSystem.js": "741db9e8e27e46448186331d035963782a45e410c2eb221c1272f1ec59a162e8",
+    "kirchhoffSharedAxisLinear.js": "fe94794d4d0bdf7aaba2325b0a35d3603e319619a8eae47e9f17ac6b018970ae",
+    "kirchhoffSharedAxisTimeStep.js": "62acfbc04f6060676a8dfcc9cb2489e6aa25e5ca22f23fcf3867cecd5a3cba30",
+    "kirchhoffSharedAxisInactiveContacts.js": "937ae30e5733933b080df49e9c2ed079e33009b61a0bfeccede15a98a085feae",
+    "kirchhoffSharedAxisBendLimit.js": "3d944fc8d224c8a8bec60a16d2839c13296f49f701e3ea87b8196387e0deb712",
+    "kirchhoffSharedAxisContacts.js": "391e58c2388b9a64fb40fa6f92f2f0ab22fcec69a1800819e11ce7fd59dbfcdb",
+    "kirchhoffSharedAxisReplay.js": "8ee25a5ef2d063db76762594c4afbd1771f8e1765e6b0df8f469ff4cdb2abe22",
+    "../simulator.js": "eefd5e84e2a421d82736fd39ef3b2c7bc0d4542e6750699497abe19f9f66d48f"
+  },
+  "tests": {
+    "report": "001-deferred-basis-snapshot-regressions.log",
+    "passed": 69,
+    "failed": 0,
+    "skipped": 0
+  },
+  "build": {
+    "report": "001-deferred-basis-snapshot-build.log",
+    "passed": true,
+    "warning": "Existing bundle-size warning"
+  },
+  "diffCheckPassed": true,
+  "browser": {
+    "report": "001-browser-deferred-basis-snapshot.json",
+    "screenshot": "001-browser-deferred-basis-snapshot.jpg",
+    "consoleErrors": [],
+    "recordedAt": "2026-10-14T14:47:35.447Z",
+    "dt": 0.016666666666666666,
+    "targetSteps": 300,
+    "workSliceMs": 12,
+    "scheduler": "runPhysicsFrameBudget",
+    "mechanicalModel": "full",
+    "frames": 660,
+    "wallSeconds": 11.156,
+    "simulationSeconds": 5,
+    "acceptedPhysicsHz": 26.891358910003586,
+    "renderFps": 59.16098960200789,
+    "passed": true,
+    "aborted": false,
+    "goalAchieved": false
+  },
+  "limitations": [
+    "Small CPU saving (~0.9%) with run-to-run variation; not sufficient for 60 Hz.",
+    "Browser preview excludes full fluoroscopic rendering and is not a paired before/after throughput comparison.",
+    "Continuation of the captured long insertion, not the entire manual crossover."
+  ]
+}

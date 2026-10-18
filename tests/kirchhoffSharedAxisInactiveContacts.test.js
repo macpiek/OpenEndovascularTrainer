@@ -89,8 +89,11 @@ test('row-bank reuse and restored poses never retain a deferred Jacobian for a l
     restoreSharedAxisNative(s,saved);s.multipliers[index]=2;
     const actual=assembleSharedAxisNative(s,options).rows[index],gradient=s.chain.gradient.slice();
     const expected={...assembleSharedAxisNative(s).rows[index],extraForceDofs:undefined,extraForceJacobian:undefined};
-    assert.deepEqual(actual,expected);assert.deepEqual(s.chain.gradient,gradient);
-    materializeSharedAxisContact(actual);assert.deepEqual(actual,expected);
+    // Private row banks predeclare optional metadata to keep a stable layout.
+    // Compare every defined field, including restored exact derivatives.
+    const defined=row=>Object.fromEntries(Object.entries(row).filter(([,value])=>value!==undefined));
+    assert.deepEqual(defined(actual),defined(expected));assert.deepEqual(s.chain.gradient,gradient);
+    materializeSharedAxisContact(actual);assert.deepEqual(defined(actual),defined(expected));
 });
 
 test('protected deferred banks and exact cache entries survive later trials and restore independently',()=>{

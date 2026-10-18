@@ -1,0 +1,38 @@
+--- a/src/physics/kirchhoffSharedAxisMaterialTangent.js
++++ b/src/physics/kirchhoffSharedAxisMaterialTangent.js
+@@ -1,12 +1,13 @@
+ import { evaluateBendTwistLocalConstraintNormalized, quaternionExp } from './discreteKirchhoffRod.js';
+ import {sharedAxisMaterialKernelWorkspace} from './kirchhoffSharedAxisMaterialKernel.js';
+ 
+-// Per-body ownership isolates tools and remeshed states without retaining old
+-// simulations. The evaluator invalidates its rest-frame cache by scalar values.
++// A body lends one evaluator scratch to its sequential hinge evaluations.
++// Each result is consumed before the next hinge; promotion owns its snapshots.
++// Rest-frame caches are invalidated by scalar values, including tip profiles.
+ const materialScratch = new WeakMap();
+-function hingeScratch(body) {
++function bodyEvaluationScratch(body) {
+     let scratch=materialScratch.get(body);
+-    if(!scratch){scratch=[];materialScratch.set(body,scratch);}
++    if(!scratch){scratch={};materialScratch.set(body,scratch);}
+     return scratch;
+ }
+ 
+@@ -135,7 +136,7 @@
+     const torqueWork=reuseMaterialScratch?createTorqueWork():null;
+     let energy=0,hinge=0;
+     for(const {body,spec,last} of s.materials) {
+-        const spins=layout.spins.get(spec.id),scratch=reuseMaterialScratch?hingeScratch(body):null;
++        const spins=layout.spins.get(spec.id),scratch=reuseMaterialScratch?bodyEvaluationScratch(body):null;
+         for(let e=1;e<last;e++) {
+             for(let node=0;node<3;node++)for(let a=0;a<3;a++)dofs[node*3+a]=layout.positions[e-1+node]+a;
+             dofs[9]=spins[e-1];dofs[10]=spins[e];
+@@ -156,7 +157,7 @@
+             const preparation=saved?{reuse:saved.material}:capture?{store:true,target:torqueWork?capture.material:null}:null;
+             const packed=kernel?.records[hinge];
+             const material=nativeHingeTorqueTangent(q0,q1,{x:body.restRotation1[e],y:body.restRotation2[e],z:body.restRotation3[e]},
+-                [body.kirchhoffBendCompliance1[e],body.kirchhoffBendCompliance2[e],body.kirchhoffTwistCompliance[e]],withTangent,preparation,packed?.data,scratch?(scratch[e]??={}):null,torqueWork);
++                [body.kirchhoffBendCompliance1[e],body.kirchhoffBendCompliance2[e],body.kirchhoffTwistCompliance[e]],withTangent,preparation,packed?.data,scratch,torqueWork);
+             energy+=material.energy;
+             for(let j=0;j<2;j++) {
+                 const at=3*j;

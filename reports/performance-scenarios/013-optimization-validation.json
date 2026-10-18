@@ -1,0 +1,732 @@
+{
+  "updatedAt": "2026-10-17T15:41:46.560Z",
+  "goalAchieved": false,
+  "classificationOfThisTurn": "Progress: implemented global chain XPBD, coupled finite-radius elastic friction, and feasible dual contact pivots; reproduced and fixed prototype mechanical/contact defects, then rejected all full-maneuver attempts on measured fidelity/geometry failures.",
+  "userDirection": "Evaluate alternative solvers including XPBD. Keep the complete moving crossover and the 1.0 mm shape budget as acceptance criteria.",
+  "shapeDifferenceLimitMm": 1,
+  "targetAcceptedPhysicsHz": 60,
+  "productionDefaultChanged": false,
+  "changes": [
+    "Global banded constraint solve couples shared length, independent material shear/bend/twist and unilateral contacts.",
+    "Surface-friction option uses the reference regularized Coulomb potential, incoming feed tangent, contact radius, angular motion, owner/site history and stick/slide mode.",
+    "Feasible dual pivots replace simultaneous release/reactivation, fixing a reproducible convex contact cycle.",
+    "Candidate polylines are retained in gzip reports and independently checked against every original target in the available prefix."
+  ],
+  "tests": {
+    "passed": 28,
+    "log": "013-chain-tests.log",
+    "buildPassed": true,
+    "buildLog": "013-build.log",
+    "diffCheckPassed": true
+  },
+  "experiments": [
+    {
+      "report": "013-global-xpbd16.json.gz",
+      "solver": "xpbd",
+      "options": {
+        "iterations": 16,
+        "globalChain": true
+      },
+      "summary": {
+        "attemptedSteps": 1,
+        "acceptedSteps": 0,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 0,
+        "maximumShapeDifferenceMm": null,
+        "shapeWithinLimit": null,
+        "firstShapeLimitStep": null,
+        "movingCpuCapacityHz": null,
+        "movingMedianCpuMs": null,
+        "movingP95CpuMs": null,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "sourceHashes": {
+        "src/physics/sharedAxisXpbdExperimental.js": "54c4a3f44b8bd0a9a35afd1f2c4551af42c3a146235a026f5e5fac30c0721013",
+        "src/physics/xpbdChainBlock.js": "5ad87e9e2d397c166d2e7037294b3c7cc0df92dfa644e3306cda5ef13f79f13a",
+        "src/physics/xpbdChainIteration.js": "b90b4a66afa61cb7d7b386de828ae50ec1d249a04c4529e63b5722eac8299a27",
+        "src/physics/kirchhoffSharedAxisProjective.js": "28b5648d81b20013e19109e7dafe323259bbf49b3a53718535e97315aa28d5ac",
+        "src/benchmark/crossoverAlternativeSolvers.js": "65328a4beffdc7ba7182ec4f8e8b1f335eaf697fe47675cff5130c9d3648c672"
+      },
+      "accepted": false,
+      "lastFailure": [
+        {
+          "subdivisions": 1,
+          "part": 1,
+          "status": "xpbd-quality-limit",
+          "iterations": 16,
+          "ms": 47.321042000000034,
+          "maxLengthError": 0.36049353753798635,
+          "maxShear": 0.795250741704207,
+          "penetrationMm": 3.983689497552033
+        },
+        {
+          "subdivisions": 2,
+          "part": 1,
+          "status": "xpbd-quality-limit",
+          "iterations": 16,
+          "ms": 16.72875000000022,
+          "maxLengthError": 0.06636836151520224,
+          "maxShear": 0.10087759312987213,
+          "penetrationMm": 2.8875470028041597
+        },
+        {
+          "subdivisions": 4,
+          "part": 1,
+          "status": "xpbd-quality-limit",
+          "iterations": 16,
+          "ms": 9.523083000000042,
+          "maxLengthError": 0.017731126338779112,
+          "maxShear": 0.0226849085122627,
+          "penetrationMm": 0.4979256590628932
+        },
+        {
+          "subdivisions": 8,
+          "part": 1,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 16,
+          "ms": 6.2973329999999805,
+          "maxLengthError": 2.4868995751603505e-15,
+          "maxShear": 2.3803347352315635e-15,
+          "penetrationMm": 1.1647074253662293e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 2,
+          "status": "xpbd-quality-limit",
+          "iterations": 16,
+          "ms": 5.8049590000000535,
+          "maxLengthError": 0.001016500326401193,
+          "maxShear": 0.0011118111271982989,
+          "penetrationMm": 0.2837617028679669
+        }
+      ],
+      "scope": "CPU screening of full recorded targets from empty tools, right access only; not full-app FPS. Stops on geometry rejection, continues through shape-budget failures for diagnosis."
+    },
+    {
+      "report": "013-global-xpbd32-merit.json.gz",
+      "solver": "xpbd",
+      "options": {
+        "iterations": 32,
+        "globalChain": true
+      },
+      "summary": {
+        "attemptedSteps": 421,
+        "acceptedSteps": 420,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 337,
+        "maximumShapeDifferenceMm": 9.844362789391399,
+        "shapeWithinLimit": false,
+        "firstShapeLimitStep": 275,
+        "movingCpuCapacityHz": 4.4256329846402025,
+        "movingMedianCpuMs": 253.63058400000045,
+        "movingP95CpuMs": 472.32154199999786,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "sourceHashes": {
+        "src/physics/sharedAxisXpbdExperimental.js": "54c4a3f44b8bd0a9a35afd1f2c4551af42c3a146235a026f5e5fac30c0721013",
+        "src/physics/xpbdChainBlock.js": "5ad87e9e2d397c166d2e7037294b3c7cc0df92dfa644e3306cda5ef13f79f13a",
+        "src/physics/xpbdChainIteration.js": "e3163028689b53813274b5d67bc5176a84e0e6cb324228bfd74a38a536c1be22",
+        "src/physics/kirchhoffSharedAxisProjective.js": "28b5648d81b20013e19109e7dafe323259bbf49b3a53718535e97315aa28d5ac",
+        "src/benchmark/crossoverAlternativeSolvers.js": "65328a4beffdc7ba7182ec4f8e8b1f335eaf697fe47675cff5130c9d3648c672"
+      },
+      "accepted": false,
+      "lastFailure": [
+        {
+          "subdivisions": 1,
+          "part": 1,
+          "status": "xpbd-quality-limit",
+          "iterations": 32,
+          "ms": 112.5789999999979,
+          "maxLengthError": 0.00015145892777432835,
+          "maxShear": 0.00032752547851215525,
+          "penetrationMm": 0.00008951592613731796
+        },
+        {
+          "subdivisions": 2,
+          "part": 1,
+          "status": "xpbd-quality-limit",
+          "iterations": 32,
+          "ms": 100.46645799999533,
+          "maxLengthError": 0.00016996697346147727,
+          "maxShear": 0.0001992482881091823,
+          "penetrationMm": 0.000008124616935889506
+        },
+        {
+          "subdivisions": 4,
+          "part": 1,
+          "status": "xpbd-quality-limit",
+          "iterations": 32,
+          "ms": 66.89583399999538,
+          "maxLengthError": 0.00009980818646102563,
+          "maxShear": 0.00010694670193854951,
+          "penetrationMm": 0.000013152001472893637
+        },
+        {
+          "subdivisions": 8,
+          "part": 1,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 52.16920799999207,
+          "maxLengthError": 0.0000017422953719758993,
+          "maxShear": 0.0000020073718697760024,
+          "penetrationMm": 1.2684049802147435e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 2,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 57.00570799999696,
+          "maxLengthError": 8.755716152109017e-11,
+          "maxShear": 1.916823701032261e-10,
+          "penetrationMm": 1.2143685960974704e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 3,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 53.971249999987776,
+          "maxLengthError": 1.9241497284383513e-11,
+          "maxShear": 3.7674205299124945e-11,
+          "penetrationMm": 1.213836613583874e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 4,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 53.93249999999534,
+          "maxLengthError": 7.133724722052648e-11,
+          "maxShear": 1.2644941909033567e-10,
+          "penetrationMm": 1.2138824159735329e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 5,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 55.44562500000757,
+          "maxLengthError": 6.165770116695057e-11,
+          "maxShear": 9.889838527988116e-11,
+          "penetrationMm": 1.2136911833882102e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 6,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 53.81883299999754,
+          "maxLengthError": 5.840963268610721e-11,
+          "maxShear": 8.459052932733844e-11,
+          "penetrationMm": 1.2135401783464062e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 7,
+          "status": "xpbd-quality-limit",
+          "iterations": 32,
+          "ms": 52.24279099999694,
+          "maxLengthError": 0.00003207812729257853,
+          "maxShear": 0.000037298099870435755,
+          "penetrationMm": 1.2369080647223196e-7
+        }
+      ],
+      "scope": "CPU screening of full recorded targets from empty tools, right access only; not full-app FPS. Stops on geometry rejection, continues through shape-budget failures for diagnosis."
+    },
+    {
+      "report": "013-global-xpbd16-classic.json.gz",
+      "solver": "xpbd",
+      "options": {
+        "iterations": 16,
+        "globalChain": true,
+        "chainPrimalBalance": false
+      },
+      "summary": {
+        "attemptedSteps": 422,
+        "acceptedSteps": 421,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 337,
+        "maximumShapeDifferenceMm": 10.292439110595396,
+        "shapeWithinLimit": false,
+        "firstShapeLimitStep": 186,
+        "movingCpuCapacityHz": 40.57834596072278,
+        "movingMedianCpuMs": 21.48229099999935,
+        "movingP95CpuMs": 72.56049999999959,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "sourceHashes": {
+        "src/physics/sharedAxisXpbdExperimental.js": "c559f89f2eb0d61c0bfd85d6025aa70a3fe3de30e6af62c39bd9ef6a2310312e",
+        "src/physics/xpbdChainBlock.js": "06e8ee29599a9352a4720a5cdaad8a5bebd82b515fb1e09b506fb15614595a4e",
+        "src/physics/xpbdChainIteration.js": "e6d54bcd8cd4b814fa3ae35d21900c7c0d697ef4bcf587ac6548809704ab2092",
+        "src/physics/kirchhoffSharedAxisProjective.js": "28b5648d81b20013e19109e7dafe323259bbf49b3a53718535e97315aa28d5ac",
+        "src/benchmark/crossoverAlternativeSolvers.js": "65328a4beffdc7ba7182ec4f8e8b1f335eaf697fe47675cff5130c9d3648c672"
+      },
+      "accepted": false,
+      "lastFailure": [
+        {
+          "subdivisions": 1,
+          "part": 1,
+          "status": "xpbd-quality-limit",
+          "iterations": 16,
+          "ms": 25.620082999999795,
+          "maxLengthError": 0.000398726349974865,
+          "maxShear": 0.00045637279087674623,
+          "penetrationMm": 0.00006342711022383485
+        },
+        {
+          "subdivisions": 2,
+          "part": 1,
+          "status": "xpbd-quality-limit",
+          "iterations": 16,
+          "ms": 22.299667000001136,
+          "maxLengthError": 0.00037643787407031225,
+          "maxShear": 0.00079545374239755,
+          "penetrationMm": 0.00026915587474257707
+        },
+        {
+          "subdivisions": 4,
+          "part": 1,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 16,
+          "ms": 22.616041999999652,
+          "maxLengthError": 4.440892098500626e-15,
+          "maxShear": 1.497168577522552e-14,
+          "penetrationMm": 1.3379861091289413e-7
+        },
+        {
+          "subdivisions": 4,
+          "part": 2,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 16,
+          "ms": 22.913958999999522,
+          "maxLengthError": 1.0480505352461478e-14,
+          "maxShear": 1.211313866721207e-14,
+          "penetrationMm": 1.4432781490769653e-7
+        },
+        {
+          "subdivisions": 4,
+          "part": 3,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 16,
+          "ms": 24.765791999998328,
+          "maxLengthError": 7.23687776371662e-13,
+          "maxShear": 8.603689866976587e-13,
+          "penetrationMm": 1.4962901251358574e-7
+        },
+        {
+          "subdivisions": 4,
+          "part": 4,
+          "status": "xpbd-quality-limit",
+          "iterations": 16,
+          "ms": 23.954250000000684,
+          "maxLengthError": 0.00002057632981458113,
+          "maxShear": 0.00006195763022680636,
+          "penetrationMm": 0.000004452573869051513
+        },
+        {
+          "subdivisions": 8,
+          "part": 1,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 16,
+          "ms": 22.571125000000393,
+          "maxLengthError": 4.263256414560601e-15,
+          "maxShear": 9.490848524877935e-15,
+          "penetrationMm": 1.259606124820456e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 2,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 16,
+          "ms": 22.624915999998848,
+          "maxLengthError": 4.7961634663806766e-15,
+          "maxShear": 1.4005053111557174e-14,
+          "penetrationMm": 1.4443866404312278e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 3,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 16,
+          "ms": 22.35962499999914,
+          "maxLengthError": 2.842170943040401e-15,
+          "maxShear": 3.4180447636511703e-15,
+          "penetrationMm": 1.4437478382256508e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 4,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 16,
+          "ms": 22.73858300000029,
+          "maxLengthError": 2.842170943040401e-15,
+          "maxShear": 3.1986756541913597e-15,
+          "penetrationMm": 1.43411230932311e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 5,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 16,
+          "ms": 23.08429200000137,
+          "maxLengthError": 4.618527782440651e-15,
+          "maxShear": 4.851814346186461e-15,
+          "penetrationMm": 1.4340788283273564e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 6,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 16,
+          "ms": 22.603624999999738,
+          "maxLengthError": 3.730349362740526e-15,
+          "maxShear": 6.193134121744124e-15,
+          "penetrationMm": 1.4323292098217255e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 7,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 16,
+          "ms": 22.948334000000614,
+          "maxLengthError": 3.907985046680551e-15,
+          "maxShear": 4.269034910008165e-15,
+          "penetrationMm": 1.4311424549606766e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 8,
+          "status": "xpbd-quality-limit",
+          "iterations": 16,
+          "ms": 23.225125000000844,
+          "maxLengthError": 0.000011890672142378378,
+          "maxShear": 0.000038340683516899075,
+          "penetrationMm": 0.00001775779990609294
+        }
+      ],
+      "scope": "CPU screening of full recorded targets from empty tools, right access only; not full-app FPS. Stops on geometry rejection, continues through shape-budget failures for diagnosis."
+    },
+    {
+      "report": "013-global-xpbd32-surface.json.gz",
+      "solver": "xpbd",
+      "options": {
+        "iterations": 32,
+        "globalChain": true,
+        "chainSurfaceFriction": true
+      },
+      "summary": {
+        "attemptedSteps": 376,
+        "acceptedSteps": 375,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 292,
+        "maximumShapeDifferenceMm": 6.809941983056139,
+        "shapeWithinLimit": false,
+        "firstShapeLimitStep": 276,
+        "movingCpuCapacityHz": 5.259993299407662,
+        "movingMedianCpuMs": 153.3907909999998,
+        "movingP95CpuMs": 512.4704999999994,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "sourceHashes": {
+        "src/physics/sharedAxisXpbdExperimental.js": "d25e238beda04a3842140dafd30e7584bdf8e20cbf5174c6367c298538357611",
+        "src/physics/xpbdChainBlock.js": "06e8ee29599a9352a4720a5cdaad8a5bebd82b515fb1e09b506fb15614595a4e",
+        "src/physics/xpbdChainIteration.js": "97eee11ca0f3b86227a7b8a21ee680930abdd4352e068810da124c1956029ae1",
+        "src/physics/xpbdSurfaceFriction.js": "f1c8ce7f4cd9f37355546f213d1e45cfac1394626f5309ebdecd42b71c04e052",
+        "src/physics/kirchhoffSharedAxisProjective.js": "28b5648d81b20013e19109e7dafe323259bbf49b3a53718535e97315aa28d5ac",
+        "src/benchmark/crossoverAlternativeSolvers.js": "65328a4beffdc7ba7182ec4f8e8b1f335eaf697fe47675cff5130c9d3648c672"
+      },
+      "accepted": false,
+      "lastFailure": [
+        {
+          "subdivisions": 1,
+          "part": 1,
+          "status": "xpbd-error",
+          "error": "XPBD chain active set did not converge",
+          "iterations": 0,
+          "ms": 16.715667000004032
+        },
+        {
+          "subdivisions": 2,
+          "part": 1,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 110.31304100000125,
+          "maxLengthError": 8.90563178224113e-7,
+          "maxShear": 8.943859993314069e-7,
+          "penetrationMm": 0.0000017108898685003204
+        },
+        {
+          "subdivisions": 2,
+          "part": 2,
+          "status": "xpbd-error",
+          "error": "XPBD chain active set did not converge",
+          "iterations": 0,
+          "ms": 16.393917000001238
+        },
+        {
+          "subdivisions": 4,
+          "part": 1,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 103.77595899999869,
+          "maxLengthError": 1.5009504750196356e-10,
+          "maxShear": 1.5060896611124183e-10,
+          "penetrationMm": 1.250334712987744e-7
+        },
+        {
+          "subdivisions": 4,
+          "part": 2,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 87.8294590000005,
+          "maxLengthError": 4.178879464689089e-12,
+          "maxShear": 4.192897371325603e-12,
+          "penetrationMm": 1.2983686056844412e-7
+        },
+        {
+          "subdivisions": 4,
+          "part": 3,
+          "status": "xpbd-error",
+          "error": "XPBD chain active set did not converge",
+          "iterations": 0,
+          "ms": 15.387374999998428
+        },
+        {
+          "subdivisions": 8,
+          "part": 1,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 57.660040999995545,
+          "maxLengthError": 1.127986593019159e-13,
+          "maxShear": 1.1247223600084389e-13,
+          "penetrationMm": 1.210009662327982e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 2,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 55.51391699999658,
+          "maxLengthError": 1.1013412404281553e-14,
+          "maxShear": 1.1037917489583766e-14,
+          "penetrationMm": 1.2082178033057112e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 3,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 57.15570899999875,
+          "maxLengthError": 2.433608869978343e-14,
+          "maxShear": 2.4182115301008797e-14,
+          "penetrationMm": 1.2081920859607909e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 4,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 56.2019999999975,
+          "maxLengthError": 3.907985046680551e-15,
+          "maxShear": 3.747820894269879e-15,
+          "penetrationMm": 1.2077164014689945e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 5,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 55.19524999999703,
+          "maxLengthError": 4.440892098500626e-15,
+          "maxShear": 4.977762653340553e-15,
+          "penetrationMm": 1.2075222997898205e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 6,
+          "status": "xpbd-error",
+          "error": "XPBD chain active set did not converge",
+          "iterations": 0,
+          "ms": 15.270874999994703
+        }
+      ],
+      "scope": "CPU screening of full recorded targets from empty tools, right access only; not full-app FPS. Stops on geometry rejection, continues through shape-budget failures for diagnosis."
+    },
+    {
+      "report": "013-global-xpbd32-pivot.json.gz",
+      "solver": "xpbd",
+      "options": {
+        "iterations": 32,
+        "globalChain": true,
+        "chainSurfaceFriction": true
+      },
+      "summary": {
+        "attemptedSteps": 517,
+        "acceptedSteps": 516,
+        "targetSteps": 7507,
+        "complete": false,
+        "movingSteps": 413,
+        "maximumShapeDifferenceMm": 20.433502137529633,
+        "shapeWithinLimit": false,
+        "firstShapeLimitStep": 276,
+        "movingCpuCapacityHz": 2.8423673325729553,
+        "movingMedianCpuMs": 286.9994579999984,
+        "movingP95CpuMs": 1046.4874169999966,
+        "goalAchieved": false,
+        "applicationFpsVerified": false,
+        "equilibriumCertified": false
+      },
+      "sourceHashes": {
+        "src/physics/sharedAxisXpbdExperimental.js": "d25e238beda04a3842140dafd30e7584bdf8e20cbf5174c6367c298538357611",
+        "src/physics/xpbdChainBlock.js": "a15a97f858d58756fba46784afd15ec6001572a1085b843fcd57ef5fe04211d6",
+        "src/physics/xpbdChainIteration.js": "97eee11ca0f3b86227a7b8a21ee680930abdd4352e068810da124c1956029ae1",
+        "src/physics/xpbdSurfaceFriction.js": "f1c8ce7f4cd9f37355546f213d1e45cfac1394626f5309ebdecd42b71c04e052",
+        "src/physics/kirchhoffSharedAxisProjective.js": "28b5648d81b20013e19109e7dafe323259bbf49b3a53718535e97315aa28d5ac",
+        "src/benchmark/crossoverAlternativeSolvers.js": "65328a4beffdc7ba7182ec4f8e8b1f335eaf697fe47675cff5130c9d3648c672"
+      },
+      "accepted": false,
+      "lastFailure": [
+        {
+          "subdivisions": 1,
+          "part": 1,
+          "status": "xpbd-error",
+          "error": "XPBD chain trial failed residual decrease",
+          "iterations": 16,
+          "ms": 248.37062500001048
+        },
+        {
+          "subdivisions": 2,
+          "part": 1,
+          "status": "xpbd-quality-limit",
+          "iterations": 32,
+          "ms": 242.70362499999464,
+          "maxLengthError": 0.000024454095104431417,
+          "maxShear": 0.00012802361553142458,
+          "penetrationMm": 0.0008906603979009359
+        },
+        {
+          "subdivisions": 4,
+          "part": 1,
+          "status": "xpbd-error",
+          "error": "XPBD chain trial failed residual decrease",
+          "iterations": 17,
+          "ms": 64.09591699999874
+        },
+        {
+          "subdivisions": 8,
+          "part": 1,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 77.53987499998766,
+          "maxLengthError": 5.412337245052777e-15,
+          "maxShear": 6.08709993709682e-15,
+          "penetrationMm": 1.1098265988163103e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 2,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 74.79662500001723,
+          "maxLengthError": 4.7961634663806766e-15,
+          "maxShear": 4.977812177157525e-15,
+          "penetrationMm": 1.1236627860122805e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 3,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 76.33929199998965,
+          "maxLengthError": 1.2073675392810041e-14,
+          "maxShear": 1.2945132034834766e-14,
+          "penetrationMm": 1.1315926289057199e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 4,
+          "status": "xpbd-geometry-admissible",
+          "iterations": 32,
+          "ms": 76.33387500001118,
+          "maxLengthError": 5.204170427935363e-15,
+          "maxShear": 5.410585558079217e-15,
+          "penetrationMm": 1.1351345648169531e-7
+        },
+        {
+          "subdivisions": 8,
+          "part": 5,
+          "status": "xpbd-quality-limit",
+          "iterations": 32,
+          "ms": 82.7377919999999,
+          "maxLengthError": 7.901427245826699e-9,
+          "maxShear": 7.95112783329327e-9,
+          "penetrationMm": 0.00001248157726428667
+        }
+      ],
+      "scope": "CPU screening of full recorded targets from empty tools, right access only; not full-app FPS. Stops on geometry rejection, continues through shape-budget failures for diagnosis."
+    }
+  ],
+  "validations": [
+    "013-global-xpbd32-validation.json",
+    "013-global-xpbd16-validation.json",
+    "013-global-xpbd32-surface-validation.json",
+    "013-global-xpbd32-pivot-validation.json"
+  ],
+  "mechanicalCalibration": {
+    "report": "013-constitutive-calibration.json",
+    "scope": "Free 60 mm rod under unit tip load for 30 steps. Mechanical calibration; not scenario performance.",
+    "cases": [
+      {
+        "type": "straight",
+        "chainPrimalBalance": true,
+        "complete": true,
+        "maxDifferenceMm": 8.704944666343863e-15
+      },
+      {
+        "type": "straight",
+        "chainPrimalBalance": false,
+        "complete": true,
+        "maxDifferenceMm": 9.688440806452442e-10
+      },
+      {
+        "type": "berenstein",
+        "chainPrimalBalance": true,
+        "complete": true,
+        "maxDifferenceMm": 2.518851555952043e-10
+      },
+      {
+        "type": "berenstein",
+        "chainPrimalBalance": false,
+        "complete": true,
+        "maxDifferenceMm": 0.006174693221023597
+      }
+    ],
+    "surfaceFriction": "30 steps of planar contact with static/kinetic friction, elastic memory and feed; complete geometry and history agree with Newton to 1e-6 mm / 1e-7 mm in tests. These fixtures do not establish anatomical or clinical realism."
+  },
+  "contactCycleFixture": "013-active-set-cycle.json",
+  "sourceManifest": "013-source-manifest.json",
+  "patch": "013-global-xpbd-research.patch",
+  "decision": "Reject these replacements. The latest global variant fails step 517/7507, exceeds 1.0 mm from step 276, and needs far more than the 16.67 ms budget. Correct short-rod material/friction calibration and passing unit tests do not imply a correct whole-maneuver trajectory.",
+  "currentBestPassingCandidate": "007-distal-remap-passing.patch",
+  "nextInvestigation": "Measure per-iteration nonlinear force residuals of the independent rod/frame formulation and compare the same contact trajectory against reference Newton. Separate insufficient nonlinear convergence from geometric contact-chart differences before further performance tuning. Do not increase contact tolerance or replace the production solver based on these rejected prefixes.",
+  "limitations": [
+    "All runs are partial, rejected trajectories. No new candidate passed the full maneuver.",
+    "CPU capacities describe different rejected prefixes and are neither directly comparable full-scenario performance nor full-application FPS.",
+    "Only the right-access physical target sequence is driven by this research harness; app input processing, both accesses and RTG are not validated here.",
+    "No original Newton force certificate applies to these experimental geometry-admissible states.",
+    "The global prototype has not been accepted or enabled in the production simulator."
+  ]
+}

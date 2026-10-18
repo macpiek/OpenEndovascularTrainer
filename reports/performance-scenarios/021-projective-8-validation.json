@@ -1,0 +1,315 @@
+{
+  "reference": "reports/performance-scenarios/003-crossover-full-user-inputs.json.gz",
+  "candidate": "reports/performance-scenarios/021-projective-8-full.json.gz",
+  "referenceSha256": "bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac",
+  "referenceDecodedSha256": "efe60d05b63ac7cc4323c54701a4fc7db318dcf890b116f5ec5c34a753d90b14",
+  "candidateSha256": "2b31b47ce7844116300ece5e9e2aac41744df92a83b6d8649aced986d85bdc44",
+  "rightAccessTargetPrefixVerified": true,
+  "stepsChecked": 7507,
+  "expectedSteps": 7507,
+  "summary": {
+    "attemptedSteps": 7507,
+    "acceptedSteps": 7507,
+    "targetSteps": 7507,
+    "complete": true,
+    "movingSteps": 3645,
+    "maximumShapeDifferenceMm": 697.4594988301769,
+    "shapeWithinLimit": false,
+    "firstShapeLimitStep": 231,
+    "movingCpuCapacityHz": 44.823803716567724,
+    "movingMedianCpuMs": 11.900000095367432,
+    "movingP95CpuMs": 83.79999995231628,
+    "acceptanceMode": "functional",
+    "shapeComparisonRole": "diagnostic",
+    "shapeDifferenceLimitMm": null,
+    "functionalRoute": {
+      "checkpoints": [
+        {
+          "stage": 0,
+          "passed": false,
+          "wire": {
+            "region": "ipsilateral",
+            "point": [
+              -9.325012605509118,
+              -311.6778327422888,
+              4.721581166182535
+            ],
+            "edgeIndex": 5748,
+            "distanceMm": 3.093806673877643,
+            "radiusMm": 4.419711112976074
+          },
+          "catheter": {
+            "region": "unknown",
+            "point": [
+              3.3664281941302905,
+              -267.01288467610027,
+              16.877267192004698
+            ],
+            "edgeIndex": 5592,
+            "distanceMm": 8.59423963758263,
+            "radiusMm": 1.2800891876220704
+          }
+        },
+        {
+          "stage": 1,
+          "passed": false,
+          "wire": {
+            "region": "ipsilateral",
+            "point": [
+              -8.725230146178166,
+              -309.1258656721062,
+              3.948584457660644
+            ],
+            "edgeIndex": 5734,
+            "distanceMm": 3.2323074799996654,
+            "radiusMm": 4.419711112976074
+          },
+          "catheter": {
+            "region": "aorta",
+            "point": [
+              -9.543545743272135,
+              -279.5139122471517,
+              4.246767274098303
+            ],
+            "edgeIndex": 5491,
+            "distanceMm": 7.273657058469182,
+            "radiusMm": 7.704066753387451
+          }
+        },
+        {
+          "stage": 2,
+          "passed": false,
+          "wire": {
+            "region": "contralateral-common",
+            "point": [
+              3.6352432715064893,
+              -313.7289666771769,
+              -1.6051400781030876
+            ],
+            "edgeIndex": 5791,
+            "distanceMm": 4.459880975085429,
+            "radiusMm": 4.6237305068969725
+          },
+          "catheter": {
+            "region": "aorta",
+            "point": [
+              -7.768537663497575,
+              -280.35328040948184,
+              5.36667304627581
+            ],
+            "edgeIndex": 5491,
+            "distanceMm": 5.132873851836711,
+            "radiusMm": 7.704066753387451
+          }
+        },
+        {
+          "stage": 3,
+          "passed": false,
+          "wire": {
+            "region": "unknown",
+            "point": [
+              -16.420531964640197,
+              -243.91458789490252,
+              28.135624638464943
+            ],
+            "edgeIndex": 5409,
+            "distanceMm": 19.74391894635232,
+            "radiusMm": 1.8567266464233398
+          },
+          "catheter": {
+            "region": "aorta",
+            "point": [
+              15.461095394097123,
+              -234.52850237328389,
+              5.100581319304818
+            ],
+            "edgeIndex": 3410,
+            "distanceMm": 17.925143857594897,
+            "radiusMm": 17.064498901367188
+          }
+        },
+        {
+          "stage": 4,
+          "passed": false,
+          "wire": {
+            "region": "ipsilateral",
+            "point": [
+              -67.48386251956853,
+              -357.29728866991655,
+              11.073535763197237
+            ],
+            "edgeIndex": 6611,
+            "distanceMm": 3.7150685980784233,
+            "radiusMm": 3.4366188049316406
+          },
+          "catheter": {
+            "region": "ipsilateral",
+            "point": [
+              -43.019092783772145,
+              -342.7291892906142,
+              -4.814464598499924
+            ],
+            "edgeIndex": 6227,
+            "distanceMm": 2.698410166708826,
+            "radiusMm": 2.6567742824554443
+          }
+        }
+      ],
+      "routeChecksPassed": false,
+      "fullManeuverVerified": false,
+      "visualReviewRequired": true,
+      "scope": "Coarse tip branch checks at five stages. Does not certify wall containment, pigtail seating, femoral entry, jitter or freedom from blocking."
+    },
+    "goalAchieved": false,
+    "applicationFpsVerified": false,
+    "equilibriumCertified": false
+  },
+  "observedWallThroughputHz": 41.83116524898375,
+  "candidatePolylinesVerified": true,
+  "functionalRoute": {
+    "checkpoints": [
+      {
+        "stage": 0,
+        "passed": false,
+        "wire": {
+          "region": "ipsilateral",
+          "point": [
+            -9.325012605509118,
+            -311.6778327422888,
+            4.721581166182535
+          ],
+          "edgeIndex": 5748,
+          "distanceMm": 3.093806673877643,
+          "radiusMm": 4.419711112976074
+        },
+        "catheter": {
+          "region": "unknown",
+          "point": [
+            3.3664281941302905,
+            -267.01288467610027,
+            16.877267192004698
+          ],
+          "edgeIndex": 5592,
+          "distanceMm": 8.59423963758263,
+          "radiusMm": 1.2800891876220704
+        }
+      },
+      {
+        "stage": 1,
+        "passed": false,
+        "wire": {
+          "region": "ipsilateral",
+          "point": [
+            -8.725230146178166,
+            -309.1258656721062,
+            3.948584457660644
+          ],
+          "edgeIndex": 5734,
+          "distanceMm": 3.2323074799996654,
+          "radiusMm": 4.419711112976074
+        },
+        "catheter": {
+          "region": "aorta",
+          "point": [
+            -9.543545743272135,
+            -279.5139122471517,
+            4.246767274098303
+          ],
+          "edgeIndex": 5491,
+          "distanceMm": 7.273657058469182,
+          "radiusMm": 7.704066753387451
+        }
+      },
+      {
+        "stage": 2,
+        "passed": false,
+        "wire": {
+          "region": "contralateral-common",
+          "point": [
+            3.6352432715064893,
+            -313.7289666771769,
+            -1.6051400781030876
+          ],
+          "edgeIndex": 5791,
+          "distanceMm": 4.459880975085429,
+          "radiusMm": 4.6237305068969725
+        },
+        "catheter": {
+          "region": "aorta",
+          "point": [
+            -7.768537663497575,
+            -280.35328040948184,
+            5.36667304627581
+          ],
+          "edgeIndex": 5491,
+          "distanceMm": 5.132873851836711,
+          "radiusMm": 7.704066753387451
+        }
+      },
+      {
+        "stage": 3,
+        "passed": false,
+        "wire": {
+          "region": "unknown",
+          "point": [
+            -16.420531964640197,
+            -243.91458789490252,
+            28.135624638464943
+          ],
+          "edgeIndex": 5409,
+          "distanceMm": 19.74391894635232,
+          "radiusMm": 1.8567266464233398
+        },
+        "catheter": {
+          "region": "aorta",
+          "point": [
+            15.461095394097123,
+            -234.52850237328389,
+            5.100581319304818
+          ],
+          "edgeIndex": 3410,
+          "distanceMm": 17.925143857594897,
+          "radiusMm": 17.064498901367188
+        }
+      },
+      {
+        "stage": 4,
+        "passed": false,
+        "wire": {
+          "region": "ipsilateral",
+          "point": [
+            -67.48386251956853,
+            -357.29728866991655,
+            11.073535763197237
+          ],
+          "edgeIndex": 6611,
+          "distanceMm": 3.7150685980784233,
+          "radiusMm": 3.4366188049316406
+        },
+        "catheter": {
+          "region": "ipsilateral",
+          "point": [
+            -43.019092783772145,
+            -342.7291892906142,
+            -4.814464598499924
+          ],
+          "edgeIndex": 6227,
+          "distanceMm": 2.698410166708826,
+          "radiusMm": 2.6567742824554443
+        }
+      }
+    ],
+    "routeChecksPassed": false,
+    "fullManeuverVerified": false,
+    "visualReviewRequired": true,
+    "scope": "Coarse tip branch checks at five stages. Does not certify wall containment, pigtail seating, femoral entry, jitter or freedom from blocking."
+  },
+  "physicalForceCertificate": false,
+  "completeCommonStepReplay": false,
+  "goalAchieved": false,
+  "limitations": [
+    "Research harness directly applies recorded right-access targets, not the app input handler or both accesses.",
+    "CPU capacity and the simple browser test are not full-application physics FPS.",
+    "Incomplete/rejected trajectories cannot pass optimization acceptance."
+  ]
+}

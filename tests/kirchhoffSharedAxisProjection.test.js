@@ -1,9 +1,12 @@
 import test, {after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {gunzipSync} from 'node:zlib';
 import {loadCoupledRuntimeAnatomy} from './helpers/coupledRuntimeFixture.js';
 import {restoreSharedAxisReplay,captureSharedAxisReplay} from './helpers/sharedAxisReplay.js';
 import {advanceSharedAxis} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
+import {captureBloodFlow} from '../src/physics/bloodFlowCoupling.js';
+import {createCrossoverFlow} from './helpers/crossoverFlow.js';
 const anatomy=await loadCoupledRuntimeAnatomy();after(()=>anatomy.dispose());
 const load=name=>JSON.parse(readFileSync(new URL(`./fixtures/shared-axis/${name}.json`,import.meta.url)));
 
@@ -35,9 +38,34 @@ test(`specialized projection preserves every direction/acceptance decision and c
     for(const key of ['quality','residual','iterations','factorizations','backtracks','geometryRestarts','substepAttempts'])
         assert.deepEqual(lazy.result[key],reference.result[key],key);
     assert.equal(lazy.result.fullAssemblies,reference.result.fullAssemblies);
-    if(name.endsWith('projection'))assert.ok(lazy.result.timings.projectionMs>0,'This fixture must exercise nonlinear trial corrections');
+    // The historical "projection" snapshot now converges without a trial
+    // correction. Keep its exact parity check; the crossover below exercises
+    // the correction branch explicitly under the current contact geometry.
 
     assert.equal(lazy.result.residualAssemblies,reference.result.residualAssemblies);
+});
+
+test('captured long crossover exercises nonlinear projection and preserves the complete certified step',async()=>{
+    const fixture=JSON.parse(gunzipSync(readFileSync(new URL('../reports/performance-scenarios/001-stage-05-replay.json.gz',import.meta.url))));
+    const actualAnatomy=await loadCoupledRuntimeAnatomy(undefined,fixture.anatomy),req=fixture.stepRequest,outputs=[];
+    try {
+        for(const projectionMode of [false,'reduced']) {
+            const input=restoreSharedAxisReplay(fixture,actualAnatomy.field),before=captureSharedAxisReplay(input,fixture.sheath);
+            const flow=createCrossoverFlow();flow.time=req.options.bloodFlow.time;
+            const bloodFlow=captureBloodFlow(input,flow,req.options.bloodFlow.sheathLength,Math.max(...req.tools.map(t=>t.insertion)));
+            const it=advanceSharedAxis(input,req.rotations,req.dt,req.tools,{...req.options,bloodFlow,projectionMode,
+                contactCandidateMargin:.01,lazyBasisCoefficients:true,deferActiveBasis:true,wasmBasis:true});
+            let next;do{next=it.next();}while(!next.done);
+            const {state,result}=next.value;
+            assert.ok(state&&result.converged);assert.ok(result.timings.projectionMs>0,'Actually execute nonlinear trial corrections');
+            assert.ok(result.certificateBound<=1e-6&&result.residual.length<=1e-5&&result.quality.maxPenetration<=1e-5);
+            assert.deepEqual(captureSharedAxisReplay(input,fixture.sheath),before);
+            outputs.push({state:captureSharedAxisReplay(state,fixture.sheath),result});
+        }
+        assert.deepEqual(outputs[1].state,outputs[0].state);
+        for(const key of ['quality','residual','iterations','factorizations','backtracks','geometryRestarts','substepAttempts'])
+            assert.deepEqual(outputs[1].result[key],outputs[0].result[key],key);
+    }finally{actualAnatomy.dispose();}
 });
 
 

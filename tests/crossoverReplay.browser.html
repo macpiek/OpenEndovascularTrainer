@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pl">
+<meta charset="utf-8">
+<title>Crossover — długie narzędzia</title>
+<style>
+body{margin:24px;background:#101922;color:#e8eef3;font:15px system-ui}
+h1{font-size:24px}p{max-width:1000px;color:#b9c9d5;line-height:1.5}
+main{display:flex;gap:20px}section{flex:1;min-width:0}h2{font-size:17px}
+canvas{width:100%;height:auto;background:#080e15;border:1px solid #324553;border-radius:8px}
+nav{display:flex;align-items:center;gap:15px;margin:18px 0}input{flex:1;accent-color:#46ded0}
+button{background:#224859;color:white;border:1px solid #537582;border-radius:6px;padding:9px 16px}
+output{font-variant-numeric:tabular-nums}#metrics{padding:12px;background:#182c37;border-radius:6px}
+.wire{color:#46ded0}.catheter{color:#efa457}a{color:#83d6ff}
+</style>
+<h1>Crossover · prowadnik 981 mm, pigtail 861 mm</h1>
+<p>Odtworzony zapis końcowego etapu oraz 100 nowych kroków fizyki: utrzymanie pozycji,
+cofnięcie obu narzędzi o 10 mm, ponowne wsunięcie i uspokojenie ruchu. Przepływ krwi jest włączony.</p>
+<p id="metrics">Ładowanie wyników benchmarku…</p>
+<nav><button id="play" disabled>Odtwórz</button><input id="frame" type="range" min="0" value="0" step="1" aria-label="Klatka odtworzenia" disabled><output id="time"></output></nav>
+<p><span class="wire">Prowadnik</span> · <span class="catheter">Cewnik</span> · szary: osie anatomicznych naczyń.</p>
+<main></main>
+<p id="status" role="status"></p>
+<p>To podgląd zatwierdzonych wyników solvera. Szybkość odtwarzania obrazu nie jest pomiarem FPS fizyki.
+Zapis początkowych etapów obejmuje pozycje kontrolne i opis, a nie pełną historię klawiszy.</p>
+<script type="module">
+import * as THREE from 'three';
+import {decodeCollisionAsset} from '../src/physics/collision/collisionAssetFormat.js';
+const directory='/reports/performance-scenarios/';
+const status=document.querySelector('#status'),frame=document.querySelector('#frame'),play=document.querySelector('#play');
+try {
+    async function json(path){const r=await fetch(directory+path);if(!r.ok)throw Error('Najpierw uruchom npm run benchmark:crossover oraz npm run benchmark:crossover -- continuation');return r.json();}
+    const [report,checkpoint,bytes]=await Promise.all([json('001-continuation-result.json'),json('001-checkpoint-result.json'),
+        fetch('/res/Aorta_infrarenal_aneurysm.collision.bin').then(r=>r.arrayBuffer())]);
+    if(!report.passed||!checkpoint.passed)throw Error('Benchmark nie przeszedł kontroli fizyki. Sprawdź zapisany raport.');
+    const samples=report.trajectory;
+    const data=decodeCollisionAsset(bytes).arrays.centerlineSegments,lines=[];
+    for(let i=0;i<data.length;i+=9)lines.push(new THREE.Vector3().fromArray(data,i),new THREE.Vector3().fromArray(data,i+3));
+    const before=checkpoint.summary.find(s=>!s.enabled),after=checkpoint.summary.find(s=>s.enabled);
+    document.querySelector('#metrics').textContent=`Koszt zapisanej trudnej klatki: ${before.medianCpuMs.toFixed(0)} → ${after.medianCpuMs.toFixed(0)} ms CPU · ${checkpoint.runs.find(r=>!r.enabled).iterations} → ${checkpoint.runs.find(r=>r.enabled).iterations} iteracji · 100/100 kolejnych kroków zaakceptowanych.`;
+    const views=[];
+    for(const [title,x,y,height] of [['Cała droga narzędzi',20,-640,850],['Crossover nad rozwidleniem',0,-345,230]]) {
+        const scene=new THREE.Scene();scene.background=new THREE.Color('#080e15');
+        scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(lines),new THREE.LineBasicMaterial({color:'#526473',transparent:true,opacity:.5})));
+        const camera=new THREE.OrthographicCamera(-height*.38,height*.38,height*.5,-height*.5,.1,3000);
+        camera.position.set(x,y,1300);camera.lookAt(x,y,0);
+        const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(532,700,false);
+        const section=document.createElement('section'),heading=document.createElement('h2');heading.textContent=title;
+        section.append(heading,renderer.domElement);document.querySelector('main').append(section);
+        const tools=new THREE.Group();scene.add(tools);views.push({scene,camera,renderer,tools});
+    }
+    // Linear interpolation follows the accepted nodes without introducing
+    // spline overshoot at tight bends. Tube radii are enlarged for visibility.
+    class RodCurve extends THREE.Curve {
+        constructor(points){super();this.points=points;}
+        getPoint(t,out=new THREE.Vector3()){const x=t*(this.points.length-1),i=Math.min(this.points.length-2,Math.floor(x));return out.copy(this.points[i]).lerp(this.points[i+1],x-i);}
+    }
+    let drawn=-1;
+    function draw(index) {
+        if(drawn===index)return;drawn=index;
+        const sample=samples[index];
+        for(const view of views) {
+            for(const mesh of [...view.tools.children]){mesh.geometry.dispose();mesh.material.dispose();view.tools.remove(mesh);}
+            for(const id of ['catheter','wire']) {
+                const tool=sample.tools.find(t=>t.id===id),points=[];
+                for(let i=0;i<sample.coordinates.length;i++) {
+                    const s=sample.coordinates[i];if(s<0)continue;
+                    if(s>tool.insertion) {
+                        const t=(tool.insertion-sample.coordinates[i-1])/(s-sample.coordinates[i-1]);
+                        points.push(new THREE.Vector3(...sample.points[i-1]).lerp(new THREE.Vector3(...sample.points[i]),t));break;
+                    }
+                    points.push(new THREE.Vector3(...sample.points[i]));
+                }
+                if(points.length<2)continue;
+                const geometry=new THREE.TubeGeometry(new RodCurve(points),points.length*3,id==='wire'?.65:1.9,6,false);
+                const mesh=new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({color:id==='wire'?'#46ded0':'#efa457',depthTest:false}));
+                view.tools.add(mesh);
+            }
+            view.renderer.render(view.scene,view.camera);
+        }
+        const phases={'hold':'Utrzymanie pozycji','withdraw-both':'Cofanie','advance-both':'Ponowne wsuwanie','settle':'Uspokojenie ruchu'};
+        document.querySelector('#time').textContent=`${(sample.time-samples[0].time).toFixed(2)} s`;
+        status.textContent=`${phases[sample.phase]} · prowadnik ${sample.tools.find(t=>t.id==='wire').insertion.toFixed(1)} mm · cewnik ${sample.tools.find(t=>t.id==='catheter').insertion.toFixed(1)} mm. PASS: ograniczenia długości i kontaktu oraz dokładność solvera zachowane.`;
+    }
+    frame.max=samples.length-1;frame.disabled=play.disabled=false;draw(0);
+    let running=false,start=0;
+    frame.oninput=()=>{running=false;play.textContent='Odtwórz';draw(Number(frame.value));};
+    play.onclick=()=>{running=!running;play.textContent=running?'Wstrzymaj':'Odtwórz';start=performance.now();if(running){frame.value=0;requestAnimationFrame(tick);}};
+    function tick(now) {
+        if(!running)return;
+        const elapsed=(now-start)/1000;let i=samples.findIndex(s=>s.time-samples[0].time>elapsed);if(i<0)i=samples.length-1;
+        frame.value=i;draw(i);
+        if(elapsed>=samples.at(-1).time-samples[0].time){running=false;play.textContent='Odtwórz';}else requestAnimationFrame(tick);
+    }
+} catch(error){status.textContent='FAIL: '+error.message;throw error;}
+</script>
+</html>

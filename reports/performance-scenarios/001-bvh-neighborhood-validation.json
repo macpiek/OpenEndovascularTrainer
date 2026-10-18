@@ -1,0 +1,247 @@
+{
+  "recordedAt": "2026-10-14T13:38:12.583Z",
+  "goalAchieved": false,
+  "previousGoalTurn": "Progress: cross-fallback KKT working-set reuse was implemented and validated; current turn profiles the remaining contact cost.",
+  "change": "Exact static-mesh BVH neighborhood certificates. Cached winning/visited triangle distances and omitted-node bounds certify reuse under endpoint motion; ambiguous ties and expired bounds retain full original traversal. Coordinates, contact law and force/length tolerances are unchanged.",
+  "scope": "Default scalar static Float32 mesh path. Maximum 2048 neighborhoods and 256 faces each; other vertex formats retain complete traversal. Dynamic numeric cache bytes are included in VesselContactField.runtimeBytes.",
+  "pairedBenchmarks": [
+    {
+      "file": "001-bvh-winner-throughput.json",
+      "passed": true,
+      "stepsPerVersion": 600,
+      "sourceHashesMatchCurrent": true,
+      "summary": {
+        "before": {
+          "steps": 600,
+          "totalMs": 19366.87601199997,
+          "medianMs": 23.374459000006027,
+          "p95Ms": 73.44804099999965,
+          "maxMs": 417.9309159999998,
+          "cpuStepsPerSecond": 30.980732237260778,
+          "withinBudget": 28
+        },
+        "after": {
+          "steps": 600,
+          "totalMs": 18578.81500600007,
+          "medianMs": 22.434165999999095,
+          "p95Ms": 74.42154200000004,
+          "maxMs": 377.1372080000001,
+          "cpuStepsPerSecond": 32.294847642663356,
+          "withinBudget": 31
+        }
+      },
+      "cpuReductionPercent": 4.0691178355848905,
+      "runs": [
+        {
+          "version": "before",
+          "repeat": 0,
+          "maxWorldDifferenceMm": 0,
+          "bvhNeighborhood": {
+            "cumulative": true,
+            "winnerHits": 0,
+            "hits": 0,
+            "misses": 0,
+            "entries": 0,
+            "numericBytes": 0
+          }
+        },
+        {
+          "version": "after",
+          "repeat": 0,
+          "maxWorldDifferenceMm": 0,
+          "bvhNeighborhood": {
+            "cumulative": true,
+            "winnerHits": 96164,
+            "hits": 230481,
+            "misses": 21312,
+            "entries": 2048,
+            "numericBytes": 809052
+          }
+        },
+        {
+          "version": "before",
+          "repeat": 1,
+          "maxWorldDifferenceMm": 0,
+          "bvhNeighborhood": {
+            "cumulative": true,
+            "winnerHits": 0,
+            "hits": 0,
+            "misses": 0,
+            "entries": 0,
+            "numericBytes": 0
+          }
+        },
+        {
+          "version": "after",
+          "repeat": 1,
+          "maxWorldDifferenceMm": 0,
+          "bvhNeighborhood": {
+            "cumulative": true,
+            "winnerHits": 191959,
+            "hits": 461418,
+            "misses": 42168,
+            "entries": 2048,
+            "numericBytes": 804348
+          }
+        }
+      ]
+    },
+    {
+      "file": "001-bvh-winner-confirmation.json",
+      "passed": true,
+      "stepsPerVersion": 600,
+      "sourceHashesMatchCurrent": true,
+      "summary": {
+        "before": {
+          "steps": 600,
+          "totalMs": 19014.708916,
+          "medianMs": 22.379541000002064,
+          "p95Ms": 72.99379100000078,
+          "maxMs": 350.2957499999975,
+          "cpuStepsPerSecond": 31.5545193276731,
+          "withinBudget": 21
+        },
+        "after": {
+          "steps": 600,
+          "totalMs": 18342.79358700001,
+          "medianMs": 21.88616700000057,
+          "p95Ms": 73.35466699999961,
+          "maxMs": 340.7038750000029,
+          "cpuStepsPerSecond": 32.71039371152466,
+          "withinBudget": 41
+        }
+      },
+      "cpuReductionPercent": 3.5336608725816565,
+      "runs": [
+        {
+          "version": "before",
+          "repeat": 0,
+          "maxWorldDifferenceMm": 0,
+          "bvhNeighborhood": {
+            "cumulative": true,
+            "winnerHits": 0,
+            "hits": 0,
+            "misses": 0,
+            "entries": 0,
+            "numericBytes": 0
+          }
+        },
+        {
+          "version": "after",
+          "repeat": 0,
+          "maxWorldDifferenceMm": 0,
+          "bvhNeighborhood": {
+            "cumulative": true,
+            "winnerHits": 96164,
+            "hits": 230481,
+            "misses": 21312,
+            "entries": 2048,
+            "numericBytes": 809052
+          }
+        },
+        {
+          "version": "before",
+          "repeat": 1,
+          "maxWorldDifferenceMm": 0,
+          "bvhNeighborhood": {
+            "cumulative": true,
+            "winnerHits": 0,
+            "hits": 0,
+            "misses": 0,
+            "entries": 0,
+            "numericBytes": 0
+          }
+        },
+        {
+          "version": "after",
+          "repeat": 1,
+          "maxWorldDifferenceMm": 0,
+          "bvhNeighborhood": {
+            "cumulative": true,
+            "winnerHits": 191959,
+            "hits": 461418,
+            "misses": 42168,
+            "entries": 2048,
+            "numericBytes": 804348
+          }
+        }
+      ]
+    }
+  ],
+  "combined": {
+    "stepsPerVersion": 1200,
+    "cpuReductionPercent": 3.8038458748867576,
+    "maxWorldDifferenceMm": 0,
+    "identical": [
+      "force/contact certificate",
+      "iterations",
+      "factorizations",
+      "subdivisions",
+      "backtracks",
+      "geometry restarts",
+      "penetration",
+      "node count",
+      "constraint count"
+    ]
+  },
+  "benchmarkCorrection": "Baseline and current code now load separate contact fields, BVHs and scratch from their own checkout. The previous shared-field harness could not compare collision-kernel changes correctly.",
+  "validation": {
+    "targetedTests": {
+      "file": "001-bvh-winner-tests.log",
+      "passed": 31,
+      "failed": 0
+    },
+    "build": {
+      "file": "001-bvh-winner-build.log",
+      "passed": true,
+      "warning": "Existing bundle chunks >500 kB"
+    },
+    "diffCheckPassed": true,
+    "broaderTests": {
+      "file": "001-bvh-neighborhood-tests.log",
+      "passed": 36,
+      "failed": 3,
+      "baselineReproduction": "001-bvh-neighborhood-baseline-failures.log",
+      "findings": [
+        "Existing vesselContactField SDF error 0.2346 mm exceeds 0.22 mm, with one sign mismatch. Same output before and after.",
+        "Two historical vesselPhysicalCapsuleGap assertions also fail before this change: sample t 0 versus 0.5 and face 336610 versus 325170."
+      ],
+      "tolerancesUnchanged": true
+    },
+    "rejectedTestRepair": "Both available 2026-09-19 historical mesh bundles fail the old capsule snapshots too. The attempted loader change was fully reverted; original assertions remain. Logs: 001-bvh-neighborhood-historical-test.log and 001-bvh-neighborhood-historical-closed-test.log."
+  },
+  "browser": {
+    "file": "001-browser-bvh-neighborhood.json",
+    "screenshot": "001-browser-bvh-neighborhood.jpg",
+    "passed": true,
+    "steps": 300,
+    "acceptedPhysicsHz": 22.850875188270734,
+    "renderFps": 56.74634005087233,
+    "simulationSeconds": 5,
+    "wallSeconds": 13.12860000014305,
+    "stepCpuMs": {
+      "median": 25.50000023841858,
+      "p95": 76.90000009536743,
+      "max": 582.4000000953674
+    },
+    "bvhNeighborhood": {
+      "winnerHits": 94010,
+      "hits": 225547,
+      "misses": 21017,
+      "numericBytes": 808872
+    },
+    "consoleErrors": 0,
+    "goalAchieved": false
+  },
+  "earlierPrototypes": [
+    "001-bvh-neighborhood-experiment.json: neighborhood scan alone had negligible whole-step benefit",
+    "001-bvh-distance-neighborhood-experiment.json and 001-bvh-neighborhood-final-throughput.json: per-triangle lower bounds gave inconsistent 5.0% and 0.1% gains; strict winner separation was added afterward"
+  ],
+  "limitations": [
+    "Browser result is below 60 Hz; previous standalone browser samples are not paired performance comparisons.",
+    "The browser benchmark has a lightweight axis preview, not the full fluoroscopic renderer.",
+    "Continuation covers hold, withdrawal, advancement and settling from captured stage 05, not the entire manual crossover.",
+    "Runtime-byte accounting covers numeric buffers; JavaScript objects and map keys have additional bounded overhead."
+  ],
+  "nextWork": "Address dominant nonlinear/material assembly cost or a validated reduced mechanical representation; the BVH improvement alone is far too small to reach 60 accepted steps/s."
+}

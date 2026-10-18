@@ -22,6 +22,20 @@ test('PD band solve satisfies a coupled SPD system with exact prescribed vectors
     const other=factor.solve([[0,0,0],[0,0,0],[0,0,0]]);assert.notDeepEqual(other,x);
 });
 
+test('scratch Jacobi keeps loaded contact poses, material frames and dynamic histories bit-identical',()=>{
+    const states=[0,1].map(()=>create({tools:[{id:'wire',type:'glidewire',insertion:80},{id:'catheter',type:'pigtail',insertion:65}],
+        wallSample:({b})=>({gap:.5-b[1],jacobian:[0,0,0,0,-1,0]})}));
+    for(const s of states){s.loads[s.layout.positions.at(-1)+1]=1000;rotateSharedAxisNative(s,'catheter',.3);}
+    for(let step=0;step<6;step++) {
+        const results=states.map((s,i)=>finish(iterateSharedAxisProjective(s,1/60,{projective:{...strictClosure,reuseGeometry:true,scratchRotations:i===1}})));
+        assert.ok(results.every(r=>r.converged),JSON.stringify(results));
+        const snapshots=states.map(captureSharedAxisNative);
+        for(const key of ['positions','frames','multipliers'])assert.deepEqual(snapshots[0][key],snapshots[1][key]);
+        for(const key of ['velocities','angularVelocities'])assert.deepEqual(states[0][key],states[1][key]);
+        assert.deepEqual(results[0].quality,results[1].quality);
+    }
+});
+
 test('local projection recovers proper rotations including pi and distorted directors',()=>{
     for(const angle of [0,.4,2.5,Math.PI]) {
         const q=new Quaternion().setFromAxisAngle(new Vector3(1,2,3).normalize(),angle),columns=quaternionColumns(q);
@@ -124,4 +138,82 @@ test('a released contact clears both the stored reaction and published contact c
     s.definitions.forEach((r,i)=>{if(r.kind==='wall')s.multipliers[i]=10;});
     const r=finish(iterateSharedAxisProjective(s,1/60));assert.equal(r.converged,true);
     assert.equal(r.quality.contacts,0);assert.ok(s.multipliers.every(v=>v===0));
+});
+
+const strictClosure={hardClosure:true,maxLengthError:1e-5,maxPenetration:1e-5,maxShear:1e-5};
+test('PD hard closure corrects penalty stretch and wall penetration without moving prescribed nodes',()=>{
+    const s=create({wallSample:({b})=>({gap:.5-b[1],jacobian:[0,0,0,0,-1,0]})});
+    s.loads[s.layout.positions.at(-1)+1]=1000;
+    for(let i=2;i<s.positions.length;i++)s.positions[i][1]=.55;
+    s.geometryKey=Symbol('initial-contact');
+    const fixed=s.positions.slice(0,2).map(p=>p.slice());let corrected=false;
+    for(let i=0;i<10;i++) {
+        const r=finish(iterateSharedAxisProjective(s,1/60,{projective:strictClosure}));
+        assert.equal(r.converged,true,JSON.stringify(r));assert.deepEqual(s.positions.slice(0,2),fixed);
+        assert.ok(r.quality.maxPenetration<=1e-5);assert.ok(r.pd.maxLengthErrorMm<=1e-5);
+        assert.ok(r.pd.maxLengthError<=1e-5);assert.ok(r.pd.maxShear<=1e-5);
+        corrected ||= r.pd.closureCorrectionMm>.01&&r.pd.preClosureShear>1e-5;
+        assert.equal(r.pd.localGlobalConverged,false,'post-projection pose is not a converged PD equilibrium');
+        assert.equal(r.pd.equilibriumCertified,false);assert.equal(r.certificateBound,undefined);
+    }
+    assert.ok(corrected);assert.ok(s.positions.at(-1)[1]>.4,'closure must preserve the loaded response');
+});
+
+test('hard closure retains preferred tip curvature and exact rest geometry',()=>{
+    const s=create({tools:[{id:'catheter',type:'berenstein',insertion:70,shaftStiffness:2,tipStiffness:2}]});
+    for(let i=0;i<30;i++)assert.equal(finish(iterateSharedAxisProjective(s,1/60,{projective:strictClosure})).converged,true);
+    assert.ok(Math.hypot(s.positions.at(-1)[1],s.positions.at(-1)[2])>.05);
+    for(let i=0;i+1<s.positions.length;i++)close(new Vector3(...s.positions[i]).distanceTo(new Vector3(...s.positions[i+1])),s.coordinates[i+1]-s.coordinates[i],1e-5);
+});
+
+test('cancelling during hard closure restores pose and accepted dynamic history',()=>{
+    const s=create();s.positions.at(-1)[1]=2;s.geometryKey=Symbol('closure-cancellation');
+    s.velocities=s.positions.map(()=>[0,.2,0]);s.wallFrictionHistory=[{id:'saved'}];
+    const before=captureSharedAxisNative(s),velocities=s.velocities,history=s.wallFrictionHistory;
+    const iterator=iterateSharedAxisProjective(s,1/60,{projective:{...strictClosure,iterations:1}});
+    assert.equal(iterator.next().value.method,'projective-dynamics');
+    const closure=iterator.next();assert.equal(closure.done,false);assert.notEqual(closure.value.method,'projective-dynamics');
+    iterator.return();assert.deepEqual(captureSharedAxisNative(s),before);
+    assert.equal(s.velocities,velocities);assert.equal(s.wallFrictionHistory,history);assert.equal(s.dynamicStep,null);
+});
+
+test('optional PD cost profile measures work without changing the accepted trajectory',()=>{
+    const states=[create(),create()];
+    for(const s of states)s.loads[s.layout.positions.at(-1)+1]=1000;
+    for(let step=0;step<4;step++) {
+        const results=states.map((s,i)=>finish(iterateSharedAxisProjective(s,1/60,{projective:{...strictClosure,profile:i===1}})));
+        assert.equal(results[0].converged,true);assert.equal(results[1].converged,true);
+        const snapshots=states.map(captureSharedAxisNative);
+        for(const key of ['positions','frames','multipliers'])assert.deepEqual(snapshots[0][key],snapshots[1][key]);
+        assert.deepEqual(states[0].velocities,states[1].velocities);
+        assert.deepEqual(results[0].quality,results[1].quality);
+        assert.equal(results[0].timings.rotationMs,undefined);
+        for(const k of ['setupMs','constraintMs','rotationMs','closureSolveMs'])assert.ok(results[1].timings[k]>=0);
+        assert.ok(results[1].timings.constraintCalls>=results[1].iterations*2);
+    }
+});
+
+test('reusing unchanged PD geometry preserves contact, loaded poses and dynamic history exactly',()=>{
+    const states=[false,true].map(()=>create({wallSample:({b})=>({gap:.5-b[1],jacobian:[0,0,0,0,-1,0]})}));
+    for(const s of states){s.loads[s.layout.positions.at(-1)+1]=1000;for(let i=2;i<s.positions.length;i++)s.positions[i][1]=.55;s.geometryKey=Symbol('contact');}
+    for(let step=0;step<10;step++) {
+        const results=states.map((s,i)=>finish(iterateSharedAxisProjective(s,1/60,{projective:{...strictClosure,profile:true,reuseGeometry:i===1}})));
+        assert.ok(results.every(r=>r.converged));
+        const snapshots=states.map(captureSharedAxisNative);
+        for(const key of ['positions','frames','multipliers'])assert.deepEqual(snapshots[0][key],snapshots[1][key]);
+        assert.deepEqual(states[0].velocities,states[1].velocities);assert.deepEqual(results[0].quality,results[1].quality);
+        assert.ok(results[1].timings.constraintReuse>0);assert.ok(results[1].timings.constraintCalls<results[0].timings.constraintCalls);
+    }
+});
+
+test('fast PD rotations preserve curved-tip response with strict geometry and fixed inlet',()=>{
+    const states=[false,true].map(()=>create({tools:[{id:'catheter',type:'berenstein',insertion:70,shaftStiffness:2,tipStiffness:2}]}));
+    const fixed=states[0].positions[0].slice();
+    for(let step=0;step<30;step++) {
+        const results=states.map((s,i)=>finish(iterateSharedAxisProjective(s,1/60,{projective:{...strictClosure,fastRotations:i===1,reuseGeometry:i===1}})));
+        assert.ok(results.every(r=>r.converged));
+        states[0].positions.forEach((p,i)=>p.forEach((v,k)=>close(v,states[1].positions[i][k],1e-7)));
+        assert.deepEqual(states[1].positions[0],fixed);
+    }
+    assert.ok(Math.hypot(states[1].positions.at(-1)[1],states[1].positions.at(-1)[2])>.05);
 });

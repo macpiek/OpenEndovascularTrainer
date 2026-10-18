@@ -1,0 +1,100 @@
+{
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "currentCandidate": "007-distal-remap-passing.patch",
+  "recorderPatch": "004-configurable-shape-limit.patch",
+  "currentWorkspace": "/tmp/oet-fluidity-1mm-zb0gv7v4",
+  "url": "http://127.0.0.1:5181/?anatomy=infrarenal-aneurysm&panel=anatomy&crossoverScenario=1&crossoverBenchmark=full&crossoverWorker=1&crossoverDistalMesh=1",
+  "restoration": {
+    "passingSourceHashesMatched": true,
+    "retainedSolverExperimentsRemoved": true,
+    "wholeShapeSequenceIdenticalToPreviousPassingRun": true
+  },
+  "confirmed": {
+    "report": "008-distal-confirmation-full-browser.json.gz",
+    "validation": "008-distal-confirmation-validation.json",
+    "steps": 7507,
+    "maximumShapeDifferenceMm": 0.909750089299832,
+    "maximumCertificate": 9.950126695912331e-07,
+    "maximumPenetrationMm": 9.943140699686381e-09,
+    "maximumLengthErrorMm": 9.943140699686381e-09,
+    "motionHz": 42.527920250121646,
+    "lastStageMotionHz": 32.42595166049221,
+    "minimumMovingWindowHz": 14.605291983620335,
+    "performanceTargetMet": false
+  },
+  "sameCandidateRuns": {
+    "wholeMotionHz": [
+      40.344985599368734,
+      42.527920250121646
+    ],
+    "lastStageMotionHz": [
+      30.108859974688723,
+      32.42595166049221
+    ],
+    "note": "The code and shape sequence are identical. Timing variation between these runs is not a new implementation speedup."
+  },
+  "rejected": [
+    {
+      "name": "008-tail32-rejected.json.gz",
+      "steps": 1592,
+      "complete": false,
+      "firstDifference": 314,
+      "maxDifference": 1.2158248208608562,
+      "maxCertificate": 9.94819693289628e-07,
+      "maxPenetration": 2.7838390481704778e-09,
+      "maxLength": 2.7838390481704778e-09,
+      "motionHz": 59.86619596542458,
+      "lastStageMotionHz": null,
+      "error": "R\u00f3\u017cnica kszta\u0142tu 1.2158 mm przekracza 1 mm.",
+      "accepted": false
+    },
+    {
+      "name": "008-tail32-long-rejected.json.gz",
+      "steps": 7176,
+      "complete": false,
+      "firstDifference": 6128,
+      "maxDifference": 1.0698414081766212,
+      "maxCertificate": 9.982418589515873e-07,
+      "maxPenetration": 9.924170485398065e-09,
+      "maxLength": 9.924170485398065e-09,
+      "motionHz": 42.33419108527285,
+      "lastStageMotionHz": 36.83715023835937,
+      "error": "R\u00f3\u017cnica kszta\u0142tu 1.0698 mm przekracza 1 mm.",
+      "accepted": false
+    },
+    {
+      "name": "008-global-protected-rejected.json.gz",
+      "steps": 1608,
+      "complete": false,
+      "firstDifference": 544,
+      "maxDifference": 1.3793285906969217,
+      "maxCertificate": 9.94819693289628e-07,
+      "maxPenetration": 1.0409220291274224e-09,
+      "maxLength": 1.0409220291274224e-09,
+      "motionHz": 59.72555557469447,
+      "lastStageMotionHz": null,
+      "error": "R\u00f3\u017cnica kszta\u0142tu 1.3793 mm przekracza 1 mm.",
+      "accepted": false
+    }
+  ],
+  "regressions": {
+    "retainedLU": {
+      "log": "008-tail32-tests.log",
+      "passed": 31,
+      "skipped": 1
+    },
+    "optionalInsertionGate": {
+      "log": "008-tail32-long-app-tests.log",
+      "passed": 35
+    },
+    "restoredCandidate": {
+      "log": "007-distal-regressions.log",
+      "passed": 71,
+      "build": "007-distal-build.log",
+      "sourceHashesRestoredExactly": true
+    }
+  },
+  "decision": "Retained rank-32 LU, both immediate and gated to tools >=400 mm, and global contact-protected coarsening exceeded the authorized 1 mm trajectory limit. Keep them archived, not enabled. A second full distal-only run passes shape and physical gates but misses 60 Hz. The original live manual tab is preserved.",
+  "nextInvestigation": "Profile the expensive moving steps with exact reference equations. Existing profiles put constraint-row assembly near 19% inclusive and material assembly near 11%, so changing only LU cannot supply the entire missing budget. Investigate batched numeric assembly of length/contact derivatives without changing operation order or active-set choices; first measure its current share and avoid repeating the rejected retained-factor/coarsening policies."
+}

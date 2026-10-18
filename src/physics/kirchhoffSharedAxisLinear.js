@@ -1,18 +1,46 @@
+import {fallbackWorkingSetLease} from './kirchhoffSharedAxisRejectedLinearization.js';
 import {sharedAxisEffectiveGap} from './kirchhoffSharedAxisCompliance.js';
 import {canCondenseSharedAxisContact,assembleCondensedSharedAxisContacts,recoverCondensedSharedAxisReaction,measureUncondensedSharedAxisResidual} from './kirchhoffSharedAxisCondensation.js';
-import {materializeSharedAxisContacts,separatedSharedAxisContactDirection} from './kirchhoffSharedAxisInactiveContacts.js';
+import {materializeSharedAxisContacts,separatedSharedAxisContactDirection,isDeferredSharedAxisContact} from './kirchhoffSharedAxisInactiveContacts.js';
 import { assemblePreparedSharedAxisMatrix, applyPreparedSharedAxisFixedMask } from './kirchhoffSharedAxisMatrixAssembly.js';
 import { createBorderedContactUpdates } from './kirchhoffBorderedContactUpdates.js';
 import { createIncrementalContactLU } from './kirchhoffIncrementalContactLU.js';
 import { prepareSharedAxisActiveBasis, sharedAxisBasisLinearization } from './kirchhoffSharedAxisActiveBasis.js';
 import { createCoulombBandLU, createCoulombBandLUArena } from './kirchhoffCoulombBandLU.js';
+import {createBandRefinement} from './kirchhoffBandRefinement.js';
 
 // Band elimination is synchronous and overwrites its entire factor/RHS. All
 // shared-axis workspaces can use one arena; retaining a different WASM memory
 // for every active-set layout causes unnecessary browser allocation/GC work.
 const sharedLinearScratchArena=createCoulombBandLUArena();
+// Compact factorizations are synchronous and their outputs are copied into
+// the caller's private workspace before yielding. Reuse bounded structural
+// maps across callers and lend one numeric arena to changing layouts. The
+// previous per-state layout cache could not recycle an evicted matrix's arrays.
+// Retained/incremental factors must keep their own workspaces instead.
+const sharedCompactWorkspaces=new Map();
+const sharedCompactNumbers={};
+let compactNumericAllocations=0;
+function numericBuffers(w,arena) {
+    const lengths={matrix:w.band.entries,residual:w.count,scales:w.count,solution:w.count,correction:w.count,error:w.count,
+        fixed:w.count,increment:w.primal.length,multiplierIncrement:w.dual.length};
+    for(const key of Object.keys(lengths)) {
+        const size=lengths[key],Type=key==='fixed'?Uint8Array:Float64Array;
+        if(!arena){w[key]=new Type(size);continue;}
+        let buffer=arena[key];
+        if(!buffer||buffer.length<size) {
+            buffer=arena[key]=new Type(Math.ceil(size/(key==='matrix'?4096:128))*(key==='matrix'?4096:128));
+            compactNumericAllocations++;
+        }
+        // Layouts keep their structural maps, but borrow numerical storage
+        // only for a synchronous solve. Rebind after a larger layout grew it.
+        if(w[key]?.buffer!==buffer.buffer||w[key].length!==size)w[key]=buffer.subarray(0,size);
+    }
+}
 const noCondensedRows=Object.freeze([]);
-export const getSharedAxisLinearScratchStats=()=>({...sharedLinearScratchArena.diagnostics});
+export const getSharedAxisLinearScratchStats=()=>({...sharedLinearScratchArena.diagnostics,
+    compactLayouts:sharedCompactWorkspaces.size,compactNumericAllocations,
+    compactNumericBytes:Object.values(sharedCompactNumbers).reduce((n,v)=>n+v.byteLength,0)});
 
 const rowSupportKey = (rows,cache) => {
     if(!cache)return rows.map(r=>r.dofs.join('.')+(r.extraForceDofs?.length?':'+r.extraForceDofs.join('.'):'')).join(',');
@@ -78,7 +106,7 @@ export function createSharedAxisLayout(edgeTools) {
     return { positions, spins, dofCount, band };
 }
 
-export function createSharedAxisLinear(layout, definitions, {lazy=false}={}) {
+export function createSharedAxisLinear(layout, definitions, {lazy=false,numericArena=null,compactBand=true}={}) {
     // Interleave length/wall reactions locally; never form a dense contact
     // Schur complement. Reuse the tested production general-band LU kernel.
     definitions.forEach(r=>validateExtraForce(r,layout.dofCount));
@@ -91,34 +119,62 @@ export function createSharedAxisLinear(layout, definitions, {lazy=false}={}) {
         primal[i] = count++;
         for(const r of ending.get(i)??[])dual[r]=count++;
     }
-    let width = 0;
-    for (let i = 0; i < primal.length; i++) width = Math.max(width, primal[i] - primal[Math.max(0, i - layout.band + 1)]);
-    definitions.forEach((d, r) => {
-        d.dofs.forEach(i => { width = Math.max(width, Math.abs(dual[r] - primal[i])); });
-        d.extraForceDofs?.forEach(i => { width = Math.max(width, Math.abs(dual[r] - primal[i])); });
-    });
-    // This layout is rebuilt for changing contact sets. Fill all three band
-    // maps together; Array.from's per-entry callbacks and iterator machinery
-    // become expensive when long insertions add hundreds of unknowns.
     const starts = new Int32Array(count), ends = new Int32Array(count), offsets = new Int32Array(count);
-    let entries = 0;
-    for(let i=0;i<count;i++) {
-        const start=Math.max(0,i-width),end=Math.min(count-1,i+width);
-        starts[i]=start;ends[i]=end;offsets[i]=entries-start;entries+=end-start+1;
+    if(compactBand) {
+        // Keep the full physical Hessian stencil, including current zeros.
+        // Each constraint adds only its actual local row/column support. A
+        // crowded contact site need not widen every unrelated matrix row.
+        for(let i=0;i<count;i++)starts[i]=ends[i]=i;
+        for(let i=0;i<primal.length;i++) {
+            starts[primal[i]]=primal[Math.max(0,i-layout.band+1)];
+            ends[primal[i]]=primal[Math.min(primal.length-1,i+layout.band-1)];
+        }
+        for(let index=0;index<definitions.length;index++) {
+            const r=definitions[index],d=dual[index];
+            let first=d,last=d;
+            for(const p of r.dofs){first=Math.min(first,primal[p]);last=Math.max(last,primal[p]);}
+            starts[d]=first;ends[d]=last;
+            // The same support also covers a reaction-dependent geometric
+            // Hessian. Extra force columns have no constraint transpose.
+            for(const p of r.dofs){const row=primal[p];starts[row]=Math.min(starts[row],first);ends[row]=Math.max(ends[row],last);}
+            for(const p of r.extraForceDofs??[]){const row=primal[p];starts[row]=Math.min(starts[row],d);ends[row]=Math.max(ends[row],d);}
+        }
+    } else {
+        // Reference storage for equivalence tests and caller diagnostics.
+        let width=0;
+        for(let i=0;i<primal.length;i++)width=Math.max(width,primal[i]-primal[Math.max(0,i-layout.band+1)]);
+        definitions.forEach((d,r)=>{
+            for(const p of d.dofs)width=Math.max(width,Math.abs(dual[r]-primal[p]));
+            for(const p of d.extraForceDofs??[])width=Math.max(width,Math.abs(dual[r]-primal[p]));
+        });
+        for(let i=0;i<count;i++){starts[i]=Math.max(0,i-width);ends[i]=Math.min(count-1,i+width);}
     }
-    const band = { starts, ends, offsets, entries, kl: width, ku: width };
-    return { primal, dual, count, band, matrix: new Float64Array(entries), residual: new Float64Array(count),
-        scales: new Float64Array(count), solution: new Float64Array(count), correction: new Float64Array(count), error: new Float64Array(count), fixed: new Uint8Array(count),
-        increment: new Float64Array(primal.length), multiplierIncrement: new Float64Array(dual.length),
-        lu: createCoulombBandLU(band, count, {arena:sharedLinearScratchArena}) };
+    let entries=0,kl=0,ku=0;
+    for(let i=0;i<count;i++) {
+        offsets[i]=entries-starts[i];entries+=ends[i]-starts[i]+1;
+        kl=Math.max(kl,i-starts[i]);ku=Math.max(ku,ends[i]-i);
+    }
+    const band = { starts, ends, offsets, entries, kl, ku };
+    const workspace={primal,dual,count,band,lu:createCoulombBandLU(band,count,{arena:sharedLinearScratchArena})};
+    numericBuffers(workspace,numericArena);return workspace;
 }
 
-function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], condensedRows=[], incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly,wasmLinearAssembly=false }) {
+function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance = 1e-8, activeSet, inactiveRows=[], condensedRows=[], incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly,wasmLinearAssembly=false,supportsVerified=false }) {
     // Optional force support can appear after an originally normal-only
     // workspace was created. Rebuild the reference band when it no longer
     // contains that support; compact workspaces are keyed by both supports.
-    if(!w.primal||rows.some((r,index)=>r.extraForceDofs?.some(p=>
-        w.dual[index]<w.band.starts[w.primal[p]]||w.dual[index]>w.band.ends[w.primal[p]]))) {
+    if(!w.primal||!supportsVerified&&rows.some((r,index)=>{
+        const d=w.dual[index],{starts,ends}=w.band;
+        let first=d,last=d;
+        for(const p of r.dofs){first=Math.min(first,w.primal[p]);last=Math.max(last,w.primal[p]);}
+        if(first<starts[d]||last>ends[d])return true;
+        for(const p of r.dofs) {
+            const row=w.primal[p];
+            if(d<starts[row]||d>ends[row]||r.geometricHessian&&(first<starts[row]||last>ends[row]))return true;
+        }
+        for(const p of r.extraForceDofs??[])if(d<starts[w.primal[p]]||d>ends[w.primal[p]])return true;
+        return false;
+    })) {
         const key=rowSupportKey(rows,supportKeyCache);
         if(w.fullReferenceKey!==key){w.fullReference=createSharedAxisLinear(chain.layout,rows);w.fullReferenceKey=key;}
         return solveSharedAxisLinearOnce(w.fullReference,chain,{rows,gradient,fixed,tolerance,activeSet,inactiveRows,condensedRows,incrementalContext,modifiedNewtonContext,supportKeyCache,matrixAssembly,wasmLinearAssembly});
@@ -199,10 +255,10 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
             factorizations:retained?lu.diagnostics.factorizations-factorsBefore:1,residual:Infinity,converged:false,failure:'band-lu-rejected'};
     }
     for (let i = 0; i < w.count; i++) w.solution[i] *= w.scales[i];
-    let residual = Infinity, factorizations = 1;
+    let residual = Infinity, factorizations = 1, refinement;
     // Certify the original unscaled equations, refining the solution when
     // material stiffness / a short edge makes forward error significant.
-    for (let attempt = 0; attempt < 3; attempt++) {
+    try { for (let attempt = 0; attempt < 3; attempt++) {
         residual = wasmLinear?lu.measureOriginalResidual(w.solution,w.error,F):null;
         if(residual===null) {
         residual = 0;
@@ -218,10 +274,20 @@ function solveSharedAxisLinearOnce(w, chain, { rows, gradient, fixed, tolerance 
             }
         }
         if (residual <= tolerance || !solved || attempt === 2) break;
-        factorizations++;
-        if (!lu.solve(A, w.error, w.scales, 0, w.correction)) break;
+        if(wasmLinear&&!retained) {
+            // Only a failed certificate pays for retained factors. The second
+            // correction solves the same matrix with a new residual RHS.
+            refinement??=createBandRefinement(w.band,w.count,A,w.scales);
+            const before=refinement.diagnostics.factorizations;
+            const refined=refinement.solve(w.error,w.correction);
+            factorizations+=refinement.diagnostics.factorizations-before;
+            if(!refined)break;
+        } else {
+            factorizations++;
+            if (!lu.solve(A, w.error, w.scales, 0, w.correction)) break;
+        }
         for (let i = 0; i < w.count; i++) w.solution[i] += w.correction[i] * w.scales[i];
-    }
+    }} finally {refinement?.dispose();}
     primal.forEach((p, i) => { w.increment[i] = w.solution[p]; });
     dual.forEach((d, i) => { w.multiplierIncrement[i] = w.solution[d]; });
     return { increment: w.increment, multiplierIncrement: w.multiplierIncrement, factorizations:retained?lu.diagnostics.factorizations-factorsBefore:factorizations, residual,
@@ -264,22 +330,28 @@ function solveCompactWorkingSet(w,chain,options,activeSet) {
     const activeRows=condensedIndices.length?indices.map(i=>options.rows[i]):scratch?.rows??indices.map(i=>options.rows[i]);
     // Recheck actual supports even with a reused index map: contact/friction
     // derivatives can change their sparsity without changing the active mask.
-    const key=`${chain.layout.dofCount}/${chain.layout.band}/`+rowSupportKey(activeRows,options.supportKeyCache),cache=w.activeWorkspaces??=new Map();
+    const key=`${chain.layout.dofCount}/${chain.layout.band}/`+rowSupportKey(activeRows,options.supportKeyCache);
+    const shared=options.reuseConstraintWork&&options.reuseStructure!==false&&!context&&!options.modifiedNewtonContext&&options.reuseLinearBuffers!==false;
+    const cache=shared?sharedCompactWorkspaces:(w.activeWorkspaces??=new Map());
     let packed=cache.get(key);
     if(!packed) {
-        if(cache.size>=8)cache.delete(cache.keys().next().value);
-        packed=createSharedAxisLinear(chain.layout,activeRows);cache.set(key,packed);
-    }
+        if(cache.size>=(shared?16:8))cache.delete(cache.keys().next().value);
+        packed=createSharedAxisLinear(chain.layout,activeRows,{numericArena:shared?sharedCompactNumbers:null});cache.set(key,packed);
+    } else if(shared){cache.delete(key);cache.set(key,packed);}
+    if(shared)numericBuffers(packed,sharedCompactNumbers);
     const gradient=scratch?.gradient??Float64Array.from(options.gradient);
     // Inactive equations are delta-lambda = -lambda. Eliminate their force
     // columns exactly, retaining the physical geometric Hessian at entry.
-    for(const r of inactiveRows) {
-        r.dofs.forEach((p,k)=>{gradient[p]-=(r.kind==='wall'?-1:1)*r.multiplier*r.jacobian[k];});
-        r.extraForceDofs?.forEach((p,k)=>{gradient[p]-=r.multiplier*r.extraForceJacobian[k];});
+    for(const r of inactiveRows)if(r.multiplier!==0) {
+        const sign=r.kind==='wall'?-1:1;
+        for(let k=0;k<r.dofs.length;k++)gradient[r.dofs[k]]-=sign*r.multiplier*r.jacobian[k];
+        if(r.extraForceDofs)for(let k=0;k<r.extraForceDofs.length;k++)gradient[r.extraForceDofs[k]]-=r.multiplier*r.extraForceJacobian[k];
     }
     const result=solveSharedAxisLinearOnce(packed,chain,{...options,gradient,condensedRows,
         inactiveRows:condensedRows.length?[...inactiveRows,...condensedRows]:inactiveRows,
-        rows:activeRows,activeSet:packed.allActive??=new Uint8Array(indices.length).fill(1)});
+        // The key above checked every current primal/force support against
+        // this layout. Public workspaces still perform the full bounds check.
+        rows:activeRows,supportsVerified:true,activeSet:packed.allActive??=new Uint8Array(indices.length).fill(1)});
     if(options.modifiedNewtonContext&&result.converged)options.modifiedNewtonContext.record(packed,indices);
     if(context&&result.converged) {
         const lu=context.workspaces.get(packed);
@@ -317,6 +389,38 @@ function solveCompactWorkingSet(w,chain,options,activeSet) {
  * clamping negative reactions. A released wall changes the global direction;
  * merely clamping its multiplier leaves an unbalanced force in that direction.
  */
+// Nearly parallel wall equations can produce enormous opposing reactions.
+// Their cancellation may fail the linear residual certificate even after LU
+// refinement. A clearly negative wall reaction can still propose which
+// inequality to RELEASE in the private working set. Never apply that
+// uncertified direction: the new set must be solved and certified from scratch,
+// and every released inequality is checked again before returning success.
+function recoverNegativeContact(rows,result,dual,activeSet,primalContact,tolerance,trace) {
+    if(result.failure!=null||!Number.isFinite(result.residual)||
+        !result.increment?.every(Number.isFinite)||!result.multiplierIncrement?.every(Number.isFinite))return false;
+    let release=-1,fraction=1;
+    for(let i=0;i<rows.length;i++) {
+        const target=rows[i].multiplier+result.multiplierIncrement[i];
+        if(!Number.isFinite(target))return false;
+        if(rows[i].kind!=='wall'||!activeSet[i]||primalContact(rows[i]))continue;
+        // This is a pivot heuristic, not a certificate or a replacement for
+        // the requested tolerance. Avoid deciding from a tiny uncertain sign.
+        if(target < -Math.max(tolerance,32*result.residual)) {
+            const next=dual[i]/(dual[i]-target);
+            if(next<fraction){fraction=next;release=i;}
+        }
+    }
+    if(release<0)return false;
+    for(let i=0;i<rows.length;i++) {
+        dual[i]=(1-fraction)*dual[i]+fraction*(rows[i].multiplier+result.multiplierIncrement[i]);
+        if(rows[i].kind==='wall')dual[i]=Math.max(0,dual[i]);
+    }
+    dual[release]=0;activeSet[release]=0;
+    trace?.push({kind:'negative-reaction-recovery',release:rows[release].id??release,
+        residual:result.residual,predictedReaction:rows[release].multiplier+result.multiplierIncrement[release]});
+    return true;
+}
+
 function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
     const { rows, tolerance = 1e-8 } = options;
     const primalContact=r=>options.primalCompliantContacts&&r.kind==='wall'&&r.compliance>0;
@@ -325,13 +429,19 @@ function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
     // used to assemble the equations. Starting it at zero lets the batch path
     // release all initially negative target reactions at the same first blocker.
     // The single-pivot fallback retains the original physical starting dual.
-    let factorizations=0,result,activeSetAttempts=0,batchedRows=0,workingSetReuses=0;const visited=options.reuseConstraintWork?new Map():new Set(),dual=Float64Array.from(rows,r=>r.kind==='wall'?(options.zeroDualStart&&batchSize>1?0:Math.max(0,r.multiplier)):r.multiplier);
-    const finish=extra=>({...result,...extra,factorizations,activeSetAttempts,batchedRows,workingSetReuses});
+    let factorizations=0,result,activeSetAttempts=0,batchedRows=0,workingSetReuses=0,negativeReactionRecoveries=0;const visited=options.reuseConstraintWork?new Map():new Set(),dual=Float64Array.from(rows,r=>r.kind==='wall'?(options.zeroDualStart&&batchSize>1?0:Math.max(0,r.multiplier)):r.multiplier);
+    const finish=extra=>({...result,...extra,factorizations,activeSetAttempts,batchedRows,workingSetReuses,negativeReactionRecoveries});
     let basisRequired=!options.deferActiveBasis;
     for(let attempt=0;attempt<(options.maxActiveSetAttempts??Math.max(8,rows.length*2));attempt++) {
         yield {kind:'linear-active-set',attempt,batchSize};
         activeSetAttempts++;
-        const prepared=basisRequired?prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache,basisWorkspaceKey:options.basisWorkspaceKey,lazyBasisCoefficients:options.lazyBasisCoefficients}):{converged:true};
+        // Most deferred solves never need rank repair. Snapshot/compare the
+        // Jacobians only when a failed factorization actually requests it.
+        // Rows and the fixed mask are immutable for this linear call; the
+        // token is then shared by its later active-set and batch retries.
+        if(basisRequired&&options.basisCache===undefined)options.basisCache=options.reuseStructure===false?null:
+            options.reuseConstraintWork?sharedAxisBasisLinearization(rows,options.fixed):Symbol('linear-basis');
+        const prepared=basisRequired?prepareSharedAxisActiveBasis({rows,fixed:options.fixed,activeSet,dual,trace:options.trace,reuseStructure:options.reuseStructure,basisCache:options.basisCache,basisWorkspaceKey:options.basisWorkspaceKey,lazyBasisCoefficients:options.lazyBasisCoefficients,wasmBasis:options.wasmBasis}):{converged:true};
         if(!prepared.converged)return finish({converged:false,failure:prepared.failure});
         const setKey=activeSet.join('');
         if(options.reuseConstraintWork) {
@@ -352,7 +462,20 @@ function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
         } else {
             result=options.compactWorkingSet===false?solveSharedAxisLinearOnce(w,chain,{...options,activeSet}):
                 solveCompactWorkingSet(w,chain,options,activeSet);
-            if(solutionCache&&result.converged) {
+            // Numerical rejection is deterministic for these immutable
+            // equations too. Keep its rejection status and owned diagnostic
+            // direction across basis/batch retries; never treat it as a valid
+            // Newton step. Retained updates and condensation have their own
+            // changing factor state, so only ordinary uncondensed LU qualifies.
+            // A public full workspace may override its LU (e.g. a transient
+            // failure hook). Memoize factor rejection only for our private
+            // compact solver, whose factor and RHS are completely rebuilt.
+            const numericalRejection=result.failure==null&&Number.isFinite(result.residual)||
+                options.compactWorkingSet!==false&&result.failure==='band-lu-rejected';
+            const rejected=options.reuseRejectedWorkingSet!==false&&!result.converged&&numericalRejection&&
+                !options.incrementalContext&&!options.modifiedNewtonContext&&
+                !options.condenseCompliantContacts;
+            if(solutionCache&&(result.converged||rejected)) {
                 if(solutionCache.size>=32)solutionCache.delete(solutionCache.keys().next().value);
                 solutionCache.set(setKey,{...result,increment:result.increment.slice(),multiplierIncrement:result.multiplierIncrement.slice()});
             }
@@ -360,6 +483,10 @@ function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
         }
         if(!result.converged){
             if(!basisRequired){basisRequired=true;visited.clear();attempt--;continue;}
+            if(options.recoverNegativeContact===true&&
+                recoverNegativeContact(rows,result,dual,activeSet,primalContact,tolerance,options.trace)) {
+                negativeReactionRecoveries++;continue;
+            }
             return finish();
         }
         let worst=-tolerance,change=-1,alpha=1,activate=null;
@@ -426,14 +553,16 @@ function* iterateActiveSet(w, chain, options, batchSize, solutionCache) {
 }
 
 function* iterateWithFallback(w,chain,options,batchSize) {
-    // This cache never survives the linear call: geometry, coefficients and
-    // physical multipliers are fixed only for this one linearization. The
-    // reference activation fallback solves the same equations and may reuse it.
-    const solutionCache=options.reuseWorkingSet===false?null:new Map();
+    // A failed earlier strategy may have solved the very same fixed working
+    // sets. Only an exact coefficient/RHS match can lend those owned outputs;
+    // each strategy still performs its own pivots and complementarity checks.
+    const incomingOptions=options;
+    const failedCache=options.reuseWorkingSet!==false?options[fallbackWorkingSetLease]:null;
+    const solutionCache=options.reuseWorkingSet===false?null:failedCache?.find(chain,options)??new Map();
     // Numerical Jacobian prefixes may survive another solve only after exact
     // support/Jacobian/fixed-mask validation. Matrix and solution caches below
     // remain local to this immutable linearization.
-    options={...options,matrixAssembly:options.reuseMatrixAssembly?{rows:options.rows}:null,supportKeyCache:options.reuseConstraintWork?new Map():null,...(options.incrementalContacts?{...(options.incrementalContacts==='full'?{compactWorkingSet:false}:{}),incrementalContext:{maxRank:options.incrementalMaxRank??8,workspaces:new Map(),borderDiagnostics:[],allDiagnostics:[]}}:{}),basisCache:options.reuseStructure===false?null:options.reuseConstraintWork?sharedAxisBasisLinearization(options.rows,options.fixed):Symbol('linear-basis')};
+    options={...options,matrixAssembly:options.reuseMatrixAssembly?{rows:options.rows}:null,supportKeyCache:options.reuseConstraintWork?new Map():null,...(options.incrementalContacts?{...(options.incrementalContacts==='full'?{compactWorkingSet:false}:{}),incrementalContext:{maxRank:options.incrementalMaxRank??8,workspaces:new Map(),borderDiagnostics:[],allDiagnostics:[]}}:{}),basisCache:undefined};
     try {
         const first=yield* iterateActiveSet(w,chain,options,batchSize,solutionCache);
         const incrementalStats=()=>options.incrementalContext?{incrementalStats:structuredClone(options.incrementalContext.allDiagnostics),borderedStats:structuredClone(options.incrementalContext.borderDiagnostics)}:{};
@@ -444,10 +573,13 @@ function* iterateWithFallback(w,chain,options,batchSize) {
         const failedFactorizations=first.factorizations,failedAttempts=first.activeSetAttempts;
         options.trace?.push({kind:'batch-fallback',failure:first.failure});
         const reference=yield* iterateActiveSet(w,chain,{...options,deferActiveBasis:false},1,solutionCache);
-        return {...reference,...incrementalStats(),factorizations:failedFactorizations+reference.factorizations,
+        const result={...reference,...incrementalStats(),factorizations:failedFactorizations+reference.factorizations,
             activeSetAttempts:failedAttempts+reference.activeSetAttempts,workingSetReuses:first.workingSetReuses+reference.workingSetReuses,batchActivation:true,batchFallback:true,
+            negativeReactionRecoveries:first.negativeReactionRecoveries+reference.negativeReactionRecoveries,
             batchFailure:first.failure,batchFactorizations:failedFactorizations,referenceFactorizations:reference.factorizations,
             batchAttempts:failedAttempts,referenceAttempts:reference.activeSetAttempts};
+        failedCache?.remember(chain,incomingOptions,result,solutionCache);
+        return result;
     } finally {for(const lu of options.incrementalContext?.workspaces.values()??[])lu.dispose();}
 }
 
@@ -466,15 +598,52 @@ export function* iterateSharedAxisLinear(w,chain,options) {
     if(options.maxActiveSetAttempts!==undefined&&(!Number.isInteger(options.maxActiveSetAttempts)||options.maxActiveSetAttempts<1))throw new RangeError('Active-set attempt limit must be a positive integer');
     const batchSize=options.batchActivation===false?1:(options.batchActivationSize??8);
     if(!Number.isInteger(batchSize)||batchSize<1||batchSize>256)throw new RangeError('Batch activation size must be between 1 and 256');
-    const iterator=iterateWithFallback(w,chain,options,batchSize);let cpuMs=0,done=false;
+    const reductionStarted=performance.now(),reduced=constantRowReduction(w,chain,options);
+    let cpuMs=performance.now()-reductionStarted,done=false;
+    const iterator=iterateWithFallback(reduced?.workspace??w,chain,reduced?.options??options,batchSize);
     try {
         while(true) {
             const start=performance.now();let next;
             try{next=iterator.next();}finally{cpuMs+=performance.now()-start;}
-            if(next.done){done=true;return {...next.value,cpuMs,...(condensationStats?{condensationStats}:{})};}
+            if(next.done){
+                done=true;
+                const mapped=reduced&&next.value.increment&&next.value.multiplierIncrement;
+                if(mapped) {
+                    w.increment.set(next.value.increment);
+                    for(let i=0;i<options.rows.length;i++)w.multiplierIncrement[i]=-options.rows[i].multiplier;
+                    for(let i=0;i<reduced.indices.length;i++)w.multiplierIncrement[reduced.indices[i]]=next.value.multiplierIncrement[i];
+                    w.peakActiveEntries=Math.max(w.peakActiveEntries??0,reduced.workspace.peakActiveEntries??0);
+                }
+                return {...next.value,...(mapped?{increment:w.increment,multiplierIncrement:w.multiplierIncrement,
+                    constantRowsEliminated:options.rows.length-reduced.indices.length}:{}),cpuMs,...(condensationStats?{condensationStats}:{})};
+            }
             yield next.value;
         }
     }finally{if(!done)iterator.return();}
+}
+
+function constantRowReduction(w,chain,options) {
+    // Discovery still runs on the full physical row set. Its dummy inequality
+    // (and a sheath sample outside the sheath) has no force or derivative at
+    // this linearization. Omit only equations that are exactly constant and
+    // feasible, never a merely small coefficient or a deferred wall witness.
+    if(options.eliminateConstantRows===false||!options.reuseConstraintWork||options.compactWorkingSet===false||
+        options.incrementalContacts||options.modifiedNewtonContext||options.observeLinearSystem||options.trace)return null;
+    const rows=options.rows,indices=[];
+    for(let i=0;i<rows.length;i++) {
+        const r=rows[i];
+        const omit=r.kind==='wall'&&r.multiplier===0&&!r.compliance&&!r.geometricHessian&&!r.extraForceDofs?.length&&
+            Number.isFinite(r.gap)&&r.gap>=0&&r.jacobian.every(v=>v===0)&&!isDeferredSharedAxisContact(r);
+        if(!omit)indices.push(i);
+    }
+    if(indices.length===rows.length)return null;
+    const selected=indices.map(i=>rows[i]);
+    let workspace=w.constantRowWorkspace;
+    if(!workspace||workspace.multiplierIncrement.length!==selected.length)
+        workspace=w.constantRowWorkspace=createSharedAxisLinear(chain.layout,selected,{lazy:true});
+    return {workspace,indices,options:{...options,rows:selected,
+        // Removing tautologies must not shorten the reference search budget.
+        maxActiveSetAttempts:options.maxActiveSetAttempts??Math.max(8,rows.length*2)}};
 }
 
 export function solveSharedAxisLinear(w,chain,options) {

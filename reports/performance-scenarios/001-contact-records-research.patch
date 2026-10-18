@@ -1,0 +1,45 @@
+--- a/src/physics/kirchhoffSharedAxisConstraintRows.js
++++ b/src/physics/kirchhoffSharedAxisConstraintRows.js
+@@ -36,7 +36,7 @@
+ // are private to one nonlinear call. Contact scratch may span friction solves
+ // within a timestep: each bank copies its derivatives before retaining a row.
+ export function createSharedAxisConstraintRowPool(contacts=new Map()) {
+-    const banks=[],geometryCache={geometry:null,contactOutputs:[],contactOutputOwners:[]};
++    const banks=[],geometryCache={geometry:null,contactOutputs:[],contactOutputOwners:[],contactRecords:[],contactRecordOwners:[]};
+     return {banks,acquire(protectedRows=[]) {
+         let bank=banks.find(b=>!protectedRows.includes(b.rows));
+         if(!bank){bank={rows:[],rowBuffers:[],definitions:[],hessians:[],contacts,geometryCache};banks.push(bank);}
+@@ -57,6 +57,11 @@
+             if(bank.preparedContacts)bank.preparedContacts.length=0;
+         }
+         contacts.clear();
++        for(const record of geometryCache.contactRecords)if(record) {
++            record.key=null;record.withHessian=false;record.contact=null;record.output=null;
++            record.lowerKey=null;record.lowerGap=NaN;
++        }
++        geometryCache.contactRecordOwners.fill(undefined);
+         geometryCache.contactOutputOwners.fill(undefined);
+         if(geometryCache.geometry){geometryCache.geometry.key=null;geometryCache.geometry.positions=null;}
+         geometryCache.contactPose=null;
+@@ -148,11 +153,18 @@
+             gap=contact.gap;J=contact.jacobian;gapHessian=contact.hessian??null;
+         } else {
+             const owner=outerMaterialAt(s,e,def.witness?.t??1,def.witness?.owner),needHessian=(withTangent||retainWallHessians)&&(s.multipliers[index]!==0||(s.primalCompliantContacts&&def.witness));
+-            const cache=(s.cacheMechanicalAssembly||retainWallHessians)?(storage?.contacts??(s.wallGeometryCache??=new Map())):null,cached=cache?.get(def);
++            const cache=(s.cacheMechanicalAssembly||retainWallHessians)?(storage?.contacts??(s.wallGeometryCache??=new Map())):null;
++            const holder=cache&&storage?.geometryCache,recordOwners=holder?.contactRecordOwners,records=holder?.contactRecords;
++            const cached=recordOwners?.[index]===def?records[index]:cache?.get(def);
+             // A GN assembly without geometry caching must not overwrite the
+             // retained Newton contact/Hessian needed if that method is retried.
+-            let record=storage&&cache?cache.get(def):null;
+-            if(storage&&cache&&!record){record={key:null,withHessian:false,contact:null,output:null};cache.set(def,record);}
++            let record=storage&&cache?cached:null;
++            if(storage&&cache&&!record) {
++                record=records&&!recordOwners[index]?records[index]:null;
++                record??={key:null,withHessian:false,contact:null,output:null,lowerKey:null,lowerGap:NaN};
++                cache.set(def,record);
++            }
++            if(records&&record){records[index]=record;recordOwners[index]=def;}
+             let contact;
+             if(cached?.key===s.geometryKey&&(!needHessian||cached.withHessian)) {
+                 contact=cached.contact;s.wallGeometryCacheHits=(s.wallGeometryCacheHits??0)+1;

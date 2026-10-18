@@ -1,0 +1,433 @@
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -1,3 +1,4 @@
++import {createSharedAxisElasticReuse} from './kirchhoffSharedAxisElasticReuse.js';
+ import {directionProfileLease,recordSharedAxisDirection} from './kirchhoffSharedAxisDirectionProfile.js';
+ import {deliveryMaterialProfile} from '../devices/stentGraftDeliveryMechanics.js';
+ import {sharedAxisEffectiveGap,sharedAxisContactElasticEnergy} from './kirchhoffSharedAxisCompliance.js';
+@@ -366,7 +367,7 @@
+ /** Pull back the EXISTING native material rows, including each material's
+  * intrinsic curvature. All world position variables belong to the chain;
+  * only the spin about each material director remains independent. */
+-export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ?? 'newton', withTangent=true, promotion=null, wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,rowStorage=null,cullInactiveContacts=false,earlyContactPreflight=false,retainFrictionBase=false } = {}) {
++export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ?? 'newton', withTangent=true, promotion=null, wasmMaterial=false,reuseMaterialScratch=false,reuseConstraintWork=false,rowStorage=null,cullInactiveContacts=false,earlyContactPreflight=false,retainFrictionBase=false,elasticReuse=null } = {}) {
+     const { layout, chain } = s, { hessian: H, gradient: g } = chain;
+     H.fill(0); g.set(s.loads, 0); for (let i = 0; i < g.length; i++) g[i] = -g[i];
+     let energy = 0;
+@@ -398,7 +399,7 @@
+             // available for publication, even though its forces were skipped.
+             const friction=s.wallFrictionStep;
+             if(friction){friction.certified=false;friction.certificate=null;if(friction.liveNormalLoad)friction.normalForceColumns=[];}
+-            if(s.cacheMechanicalAssembly&&withTangent) {
++            if(!elasticReuse&&s.cacheMechanicalAssembly&&withTangent) {
+                 const cached=s.mechanicalAssemblyCache;
+                 if(!cached||cached.key!==s.geometryKey||cached.dynamicStep!==s.dynamicStep||cached.tangentMode!==tangentMode)
+                     s.mechanicalAssemblyCache=Object.assign(cached??{},{key:s.geometryKey,dynamicStep:s.dynamicStep,tangentMode,deferred:true});
+@@ -421,7 +422,7 @@
+             s.multipliers[i]=Math.max(0,-prepared.contacts[i].gap/s.wallCompliance);
+     }
+ 
+-    const cache=s.cacheMechanicalAssembly&&s.mechanicalAssemblyCache;
++    const cache=!elasticReuse&&s.cacheMechanicalAssembly&&s.mechanicalAssemblyCache;
+     const mechanicalMatches=cache&&withTangent&&cache.key===s.geometryKey&&cache.dynamicStep===s.dynamicStep&&cache.tangentMode===tangentMode;
+     const mechanicalReused=mechanicalMatches&&!cache.deferred;
+     if(mechanicalReused) {
+@@ -432,13 +433,13 @@
+             chain.tangent.set(cache.tangent);
+         } else chain.tangent=null;
+     } else {
+-    if (tangentMode !== 'gauss-newton') energy = assembleSharedAxisMaterialTangent(s,withTangent,promote?{reuse:promotion.hinges}:capture?{capture:promotion.hinges}:null,wasmMaterial,reuseMaterialScratch);
++    if (tangentMode !== 'gauss-newton') energy = assembleSharedAxisMaterialTangent(s,withTangent,promote?{reuse:promotion.hinges}:capture?{capture:promotion.hinges}:null,wasmMaterial,reuseMaterialScratch,elasticReuse);
+     else energy = assembleSharedAxisGaussNewton(s,withTangent);
+     energy+=assembleSharedAxisInertia(s,withTangent,wasmMaterial);
+     // External potentials must use the same fallback tangent as the rods;
+     // an indefinite fabric/crown block otherwise defeats the descent fallback.
+     for(const sample of s.wallSamples)if(sample.addPotential)energy+=sample.addPotential(s,withTangent,tangentMode);
+-    if(s.cacheMechanicalAssembly&&withTangent) {
++    if(!elasticReuse&&s.cacheMechanicalAssembly&&withTangent) {
+         // This cache belongs to the private timestep. Refill its owned arrays
+         // at a new pose instead of allocating another full matrix at every
+         // Newton/contact restart. Never borrow the live chain/WASM outputs:
+@@ -575,7 +576,7 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { [directionProfileLease]:directionProfile=null, [fallbackWorkingSetLease]:failedCache=null, maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, condenseCompliantContacts=false, primalCompliantContacts=false, stagnationResidualSearch=false, localContactRestarts = true, reuseWorkingSet = true,reuseRejectedWorkingSet=true,recoverNegativeContact=false,eliminateConstantRows=true,reuseRejectedNewton=true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,wasmBasis=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false,roundoffStagnation=false } = {}) {
++export function* iterateSharedAxisNative(s, { [directionProfileLease]:directionProfile=null, [fallbackWorkingSetLease]:failedCache=null, maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, condenseCompliantContacts=false, primalCompliantContacts=false, stagnationResidualSearch=false, localContactRestarts = true, reuseWorkingSet = true,reuseRejectedWorkingSet=true,recoverNegativeContact=false,eliminateConstantRows=true,reuseRejectedNewton=true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,wasmBasis=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false,roundoffStagnation=false,elasticTangentReuse=false } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+@@ -593,6 +594,8 @@
+     let lastOutsideContact=null;
+     let candidate = null, coupledFrictionRefreshes=0, frictionRefreshMs=0, retainedDiscoveryTrials=0;
+     const modified=modifiedNewton?createSharedAxisModifiedNewton():null;
++    const elasticEligible=elasticTangentReuse&&s.materials.every(m=>m.spec.insertion>=(elasticTangentReuse.minimumInsertionMm??0));
++    const elasticReuse=elasticEligible?createSharedAxisElasticReuse(elasticTangentReuse===true?{}:elasticTangentReuse):null;
+     let cycleGuard=null,detectedCycle=null,stagnationGuard=null,detectedStagnation=null;
+     let residualGuard=null,residualSearchActive=false,residualSearchActivation=null;
+     let tinyCorrections=0,detectedRoundoffStagnation=null;
+@@ -608,7 +611,7 @@
+     const observed=m=>rowPool?snapshotSharedAxisConstraintMeasure(m):m;
+     const assemble = (tangentMode,withTangent=true) => {
+         const start = performance.now();
+-        try{return assembleSharedAxisNative(s,{retainFrictionBase:reuseFrictionAssembly,tangentMode,withTangent,promotion,wasmMaterial,reuseMaterialScratch,reuseConstraintWork,earlyContactPreflight,cullInactiveContacts:cullInactiveContacts&&!modifiedNewton&&!incrementalContacts,rowStorage:rowPool?.acquire([base?.rows,protectedTrial?.rows])});}
++        try{return assembleSharedAxisNative(s,{retainFrictionBase:reuseFrictionAssembly,elasticReuse,tangentMode,withTangent,promotion,wasmMaterial,reuseMaterialScratch,reuseConstraintWork,earlyContactPreflight,cullInactiveContacts:cullInactiveContacts&&!modifiedNewton&&!incrementalContacts,rowStorage:rowPool?.acquire([base?.rows,protectedTrial?.rows])});}
+         finally{const elapsed=performance.now()-start;timings.assemblyMs+=elapsed;
+             timings[withTangent?'tangentAssemblyMs':'residualAssemblyMs']+=elapsed;
+             if(withTangent)fullAssemblies++;else residualAssemblies++;}
+@@ -616,7 +619,7 @@
+     let iterations = 0, factorizations = 0, workingSetReuses = 0, backtracks = 0, discoveryIterations = 0, geometryRestarts = 0, error = null, status = 'iteration-limit';
+     const discover = error => {
+         if(!localContactRestarts || error.message !== 'shared-axis-wall-discovery' || !s.pendingVesselRows?.size || geometryRestarts >= 64)return false;
+-        extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();modified?.invalidate();geometryRestarts++;cycleGuard=null;stagnationGuard=null;residualGuard=null;tinyCorrections=0;return true;
++        extendSharedAxisNativeRows(s,[...s.pendingVesselRows.values()]);s.pendingVesselRows.clear();modified?.invalidate();elasticReuse?.invalidate();geometryRestarts++;cycleGuard=null;stagnationGuard=null;residualGuard=null;tinyCorrections=0;return true;
+     };
+     const assembleDiscovered = () => {
+         while(true) {try{return assemble();}catch(error){if(!discover(error))throw error;}}
+@@ -666,7 +669,7 @@
+                 if(accepted)break;
+                 const isGaussNewton = method === 1, isModified=method === -1;
+                 if(!isModified)modified?.invalidate();
+-                if (method !== methods[0] || isGaussNewton) { restoreSharedAxisNative(s, snapshot); base = assemble(isGaussNewton ? 'gauss-newton' : undefined); }
++                if (method !== methods[0] || isGaussNewton) { elasticReuse?.invalidate();restoreSharedAxisNative(s, snapshot); base = assemble(isGaussNewton ? 'gauss-newton' : undefined); }
+                 const linearStart = performance.now();
+                 const linearOptions = { [fallbackWorkingSetLease]:fallbackFailures, recoverNegativeContact, reuseRejectedWorkingSet, eliminateConstantRows, batchActivationSize, simultaneousContactRelease, primalCompliantContacts, condenseCompliantContacts:condenseCompliantContacts||primalCompliantContacts, wasmLinearAssembly, lazyBasisCoefficients, wasmBasis, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
+                     observeLinearSystem,modifiedNewtonContext:method===0?modified:null,incrementalContacts:modified?false:incrementalContacts==='frozen'?!s.wallFrictionStep?.liveNormalLoad:incrementalContacts,trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet:modified?false:reuseWorkingSet,reuseStructure,reuseConstraintWork,reuseMatrixAssembly, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(linearToleranceCap,Math.min(forceTolerance, lengthTolerance) * .01), 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
+@@ -840,7 +843,7 @@
+         }
+     }
+     return { converged, status, error, ...(lastOutsideContact?{lastOutsideContact}:{}), coupledFrictionRefreshes, frictionRefreshMs, retainedDiscoveryTrials, iterations:iterations+discoveryIterations, factorizations, workingSetReuses, backtracks, geometryRestarts, ms: performance.now() - started,
+-        ...modified?.diagnostics,timings,fullAssemblies,residualAssemblies,promotedAssemblies:promotion?.hits??0, quality:converged?measureSharedAxisQuality(s,candidate.rows):null, residual: candidate ? { force: candidate.force, torque: candidate.torque, length: candidate.constraint } : null,
++        ...modified?.diagnostics,...elasticReuse?.diagnostics,timings,fullAssemblies,residualAssemblies,promotedAssemblies:promotion?.hits??0, quality:converged?measureSharedAxisQuality(s,candidate.rows):null, residual: candidate ? { force: candidate.force, torque: candidate.torque, length: candidate.constraint } : null,
+         ...(detectedRoundoffStagnation?{detectedRoundoffStagnation}:{}),...(residualSearchActivation?{residualSearchActivation}:{}),...(detectedCycle?{detectedCycle}:{}),...(detectedStagnation?{detectedStagnation}:{}),dofs: s.layout.dofCount, matrixEntries: s.mixed.peakActiveEntries??0, linearScratch:getSharedAxisLinearScratchStats(), interToolRows: 0 };
+ }
+ 
+--- a/src/physics/kirchhoffSharedAxisMaterialTangent.js
++++ b/src/physics/kirchhoffSharedAxisMaterialTangent.js
+@@ -118,7 +118,8 @@
+  * Off equilibrium this derivative need not be symmetric: spin is measured in
+  * a moving material frame. Preserve both triangles for the Newton solve.
+  */
+-export function assembleSharedAxisMaterialTangent(s,withTangent=true,promotion=null,wasmMaterial=false,reuseMaterialScratch=false) {
++export function assembleSharedAxisMaterialTangent(s,withTangent=true,promotion=null,wasmMaterial=false,reuseMaterialScratch=false,elasticReuse=null) {
++    if(withTangent&&elasticReuse)return elasticReuse.assemble(s,computeTangent=>assembleSharedAxisMaterialTangent(s,computeTangent,promotion,wasmMaterial,reuseMaterialScratch));
+     const {layout,chain}=s,n=layout.dofCount,width=2*layout.band-1,half=layout.band-1;
+     const kernel=withTangent&&wasmMaterial?sharedAxisMaterialKernelWorkspace(chain,s.materials.reduce((sum,m)=>sum+Math.max(0,m.last-1),0)):null;
+     const H=kernel?(chain.tangent=kernel.tangent):(chain.tangent??=new Float64Array(n*width)),g=chain.gradient;
+--- a/src/physics/kirchhoffSharedAxisElasticReuse.js
++++ b/src/physics/kirchhoffSharedAxisElasticReuse.js
+@@ -0,0 +1,50 @@
++// Research-only chord tangent for elastic material terms. The caller still
++// evaluates the current residual, inertia, wall geometry and friction. This
++// context belongs to one nonlinear solve, never to a shared/global cache.
++const parameters = ['restRotation1','restRotation2','restRotation3',
++    'kirchhoffBendCompliance1','kirchhoffBendCompliance2','kirchhoffTwistCompliance'];
++const orientations = ['orientationX','orientationY','orientationZ','orientationW'];
++
++export function createSharedAxisElasticReuse({maxAge=1,positionBudgetMm=.05,frameBudget=.002}={}) {
++    if(!Number.isInteger(maxAge)||maxAge<1||!(positionBudgetMm>0)||!Number.isFinite(positionBudgetMm)||
++        !(frameBudget>0)||!Number.isFinite(frameBudget))throw new RangeError('Invalid elastic reuse limits');
++    let saved=null,age=0;
++    const diagnostics={elasticFresh:0,elasticReused:0};
++    const invalidate=()=>{saved=null;age=0;};
++    function matches(s) {
++        if(!saved||age>=maxAge||saved.layout!==s.layout||saved.materials!==s.materials||
++            saved.positions.length!==s.positions.length)return false;
++        for(let i=0;i<s.positions.length;i++) {
++            let distance=0;
++            for(let k=0;k<3;k++)distance+=(s.positions[i][k]-saved.positions[i][k])**2;
++            if(!(distance<=positionBudgetMm**2))return false;
++        }
++        for(let t=0;t<s.materials.length;t++) {
++            const {body,last}=s.materials[t],old=saved.bodies[t];
++            if(old.body!==body||old.last!==last)return false;
++            for(const key of parameters)for(let i=1;i<last;i++)
++                if(!Object.is(body[key][i],old[key][i]))return false;
++            for(const key of orientations)for(let i=0;i<last;i++)
++                if(!(Math.abs(body[key][i]-old[key][i])<=frameBudget))return false;
++        }
++        return true;
++    }
++    return {diagnostics,invalidate,
++        assemble(s,evaluate) {
++            if(matches(s)) {
++                // evaluate(false) must recompute current energy and forces.
++                const energy=evaluate(false);
++                s.chain.tangent.set(saved.tangent);
++                age++;diagnostics.elasticReused++;
++                return energy;
++            }
++            const energy=evaluate(true);
++            diagnostics.elasticFresh++;
++            saved={layout:s.layout,materials:s.materials,positions:s.positions.map(p=>p.slice()),
++                tangent:s.chain.tangent.slice(),bodies:s.materials.map(({body,last})=>({body,last,
++                    ...Object.fromEntries([...parameters,...orientations].map(key=>[key,body[key].slice(0,last)]))}))};
++            age=0;
++            return energy;
++        }
++    };
++}
+--- a/src/physics/kirchhoffSharedAxisTimeStep.js
++++ b/src/physics/kirchhoffSharedAxisTimeStep.js
+@@ -45,7 +45,7 @@
+             applySharedAxisNativeIncrement(s,increment,new Float64Array(s.multipliers.length));predictedInitialPose=true;
+         }
+     }
+-    let result,friction,iterations=0,factorizations=0,workingSetReuses=0,backtracks=0,geometryRestarts=0,frictionIterations=0,coupledFrictionRefreshes=0,retainedDiscoveryTrials=0,fullAssemblies=0,residualAssemblies=0,promotedAssemblies=0,modifiedAttempts=0,modifiedAccepted=0,modifiedFallbacks=0;
++    let result,friction,iterations=0,factorizations=0,workingSetReuses=0,backtracks=0,geometryRestarts=0,frictionIterations=0,coupledFrictionRefreshes=0,retainedDiscoveryTrials=0,fullAssemblies=0,residualAssemblies=0,promotedAssemblies=0,modifiedAttempts=0,modifiedAccepted=0,modifiedFallbacks=0,elasticFresh=0,elasticReused=0;
+     const timings={assemblyMs:0,linearMs:0,frictionMs:0,tangentAssemblyMs:0,residualAssemblyMs:0,projectionMs:0};
+     // Intermediate friction equilibria are private. Only the final accepted
+     // step publishes exact gaps for remeshing/replay. Loaded contacts still
+@@ -59,7 +59,7 @@
+         iterations+=result.iterations;factorizations+=result.factorizations;workingSetReuses+=result.workingSetReuses??0;backtracks+=result.backtracks;geometryRestarts+=result.geometryRestarts;
+         for(const key of ['assemblyMs','linearMs','tangentAssemblyMs','residualAssemblyMs','projectionMs'])timings[key]+=result.timings[key]??0;
+         fullAssemblies+=result.fullAssemblies??0;residualAssemblies+=result.residualAssemblies??0;promotedAssemblies+=result.promotedAssemblies??0;
+-        modifiedAttempts+=result.modifiedAttempts??0;modifiedAccepted+=result.modifiedAccepted??0;modifiedFallbacks+=result.modifiedFallbacks??0;
++        elasticFresh+=result.elasticFresh??0;elasticReused+=result.elasticReused??0;modifiedAttempts+=result.modifiedAttempts??0;modifiedAccepted+=result.modifiedAccepted??0;modifiedFallbacks+=result.modifiedFallbacks??0;
+         if(!result.converged)break;
+         const start=performance.now();friction=refreshSharedAxisWallFriction(s,{forceTolerance:Math.max(0,tolerance-Math.max(result.residual.force,result.residual.torque))});timings.frictionMs+=performance.now()-start;
+         if(friction.converged) {
+@@ -73,11 +73,11 @@
+                 b.maxSpeed=Math.max(...s.velocities.slice(0,last+1).map(v=>Math.hypot(...v)));
+             }
+             committed=true;
+-            return {...result,predictedInitialPose,retainedDiscoveryTrials,coupledFrictionRefreshes,certificateBound:Math.max(result.residual.force,result.residual.torque)+friction.forceChange,iterations,factorizations,workingSetReuses,backtracks,geometryRestarts,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,friction,frictionIterations:outer+1,ms:performance.now()-started};
++            return {...result,predictedInitialPose,retainedDiscoveryTrials,coupledFrictionRefreshes,certificateBound:Math.max(result.residual.force,result.residual.torque)+friction.forceChange,iterations,factorizations,workingSetReuses,backtracks,geometryRestarts,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,elasticFresh,elasticReused,friction,frictionIterations:outer+1,ms:performance.now()-started};
+         }
+         result={...result,converged:false,status:'wall-friction-iteration-limit'};
+     }
+-    return {...result,predictedInitialPose,converged:false,retainedDiscoveryTrials,coupledFrictionRefreshes,frictionIterations,iterations,factorizations,workingSetReuses,backtracks,geometryRestarts,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,friction,ms:performance.now()-started};
++    return {...result,predictedInitialPose,converged:false,retainedDiscoveryTrials,coupledFrictionRefreshes,frictionIterations,iterations,factorizations,workingSetReuses,backtracks,geometryRestarts,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,elasticFresh,elasticReused,friction,ms:performance.now()-started};
+     } finally {
+         s.wallCompliance=previousCompliance;s.primalCompliantContacts=previousPrimal;
+         s.reuseTriangleKernel=previousTriangleKernel;
+@@ -114,7 +114,7 @@
+         if(attempt.converged||attempt.status==='roundoff-stagnation'||!attempt.predictedInitialPose)return attempt;
+         const reference=yield* iterateSharedAxisTimeStep(s,dt,{...options,velocityPredictor:0});
+         const out={...reference,predictorFallbacks:1+(attempt.predictorFallbacks??0)+(reference.predictorFallbacks??0),predictorRecovery:{attempted:true,predictorStatus:attempt.status,converged:reference.converged}};
+-        for(const key of ['wallNormalFallbacks','retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])
++        for(const key of ['wallNormalFallbacks','retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','elasticFresh','elasticReused','ms'])
+             out[key]=(attempt[key]??0)+(reference[key]??0);
+         out.timings=Object.fromEntries(Object.keys(reference.timings).map(key=>[key,(attempt.timings[key]??0)+reference.timings[key]]));
+         return out;
+@@ -137,7 +137,7 @@
+             const recovered=yield* iterateSharedAxisTimeStep(s,dt,{...options,velocityPredictor:0});
+             const result={...recovered,predictorFallbacks:1,
+                 predictorRecovery:{attempted:true,early:true,predictorStatus:experiment.status,converged:recovered.converged}};
+-            for(const key of ['wallNormalFallbacks','retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])
++            for(const key of ['wallNormalFallbacks','retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','elasticFresh','elasticReused','ms'])
+                 result[key]=(experiment[key]??0)+(recovered[key]??0);
+             result.timings=Object.fromEntries(Object.keys(recovered.timings).map(key=>[key,(experiment.timings[key]??0)+recovered.timings[key]]));
+             if(recovered.converged)return result;
+@@ -148,7 +148,7 @@
+             ...(experiment.predictorRecovery?.early?{earlyPredictorRecovery:experiment.predictorRecovery,
+                 predictorFallbacks:(experiment.predictorFallbacks??0)+(reference.predictorFallbacks??0)}:{}),
+             coupledFrictionRecovery:{attempted:true,experimentStatus:experiment.status,converged:reference.converged}};
+-        for(const key of ['retainedDiscoveryTrials','coupledFrictionRefreshes','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])
++        for(const key of ['retainedDiscoveryTrials','coupledFrictionRefreshes','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','elasticFresh','elasticReused','ms'])
+             result[key]=(experiment[key]??0)+(reference[key]??0);
+         result.timings=Object.fromEntries(Object.keys(reference.timings).map(key=>[key,(experiment.timings[key]??0)+reference.timings[key]]));
+         return result;
+@@ -161,7 +161,7 @@
+         // the original method before requesting smaller feed/time subdivisions.
+         const reference=yield* iterateSharedAxisTimeStep(s,dt,{...options,modifiedNewton:false});
+         const result={...reference,modifiedNewtonRecovery:{attempted:true,experimentStatus:experiment.status,converged:reference.converged}};
+-        for(const key of ['retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])
++        for(const key of ['retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','elasticFresh','elasticReused','ms'])
+             result[key]=(experiment[key]??0)+(reference[key]??0);
+         result.timings=Object.fromEntries(Object.keys(reference.timings).map(key=>[key,(experiment.timings[key]??0)+reference.timings[key]]));
+         return result;
+@@ -172,7 +172,7 @@
+     const fallback=yield* iterateTimeStepAttempt(s,dt,{...options,liveWallNormalLoad:false});
+     const result={...fallback,wallNormalFallbacks:1,wallNormalFallback:{attempted:true,liveFailure:first.status,converged:fallback.converged,
+         ...(first.detectedCycle?{detectedCycle:first.detectedCycle}:{}),...(first.detectedStagnation?{detectedStagnation:first.detectedStagnation}:{})}};
+-    for(const key of ['retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])result[key]=(first[key]??0)+(fallback[key]??0);
++    for(const key of ['retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','elasticFresh','elasticReused','ms'])result[key]=(first[key]??0)+(fallback[key]??0);
+     result.timings=Object.fromEntries(Object.keys(fallback.timings).map(key=>[key,(first.timings[key]??0)+fallback.timings[key]]));
+     if(first.status==='live-contact-stagnation'&&!fallback.converged) {
+         // A heuristic must not turn a solvable full step into a rejection or
+@@ -181,7 +181,7 @@
+         const recovered=yield* iterateSharedAxisTimeStep(s,dt,{...options,stagnationFallback:false});
+         const merged={...recovered,wallNormalFallbacks:1+(recovered.wallNormalFallbacks??0),
+             stagnationRecovery:{attempted:true,detectedStagnation:first.detectedStagnation,earlyFallbackStatus:fallback.status,converged:recovered.converged}};
+-        for(const key of ['retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])merged[key]=(result[key]??0)+(recovered[key]??0);
++        for(const key of ['retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','elasticFresh','elasticReused','ms'])merged[key]=(result[key]??0)+(recovered[key]??0);
+         merged.timings=Object.fromEntries(Object.keys(result.timings).map(key=>[key,result.timings[key]+(recovered.timings[key]??0)]));
+         return merged;
+     }
+--- a/src/physics/kirchhoffSharedAxisAppSystem.js
++++ b/src/physics/kirchhoffSharedAxisAppSystem.js
+@@ -264,7 +264,7 @@
+         const next=yield* advanceSharedAxis(starting,startingRotations,dt,tools,{...physicsOptions,[directionProfileLease]:directionProfile});
+         return {...next,result:{...next.result,directionProfile}};
+     }
+-    let last;const attempts=[];const totals={fallbackLinearizationReuses:0,predictorFallbacks:0,retainedDiscoveryTrials:0,coupledFrictionRefreshes:0,coupledFrictionFallbacks:0,iterations:0,factorizations:0,workingSetReuses:0,backtracks:0,geometryRestarts:0,frictionIterations:0,substepAttempts:0,wallNormalFallbacks:0,fullAssemblies:0,residualAssemblies:0,promotedAssemblies:0,modifiedAttempts:0,modifiedAccepted:0,modifiedFallbacks:0};
++    let last;const attempts=[];const totals={elasticFresh:0,elasticReused:0,fallbackLinearizationReuses:0,predictorFallbacks:0,retainedDiscoveryTrials:0,coupledFrictionRefreshes:0,coupledFrictionFallbacks:0,iterations:0,factorizations:0,workingSetReuses:0,backtracks:0,geometryRestarts:0,frictionIterations:0,substepAttempts:0,wallNormalFallbacks:0,fullAssemblies:0,residualAssemblies:0,promotedAssemblies:0,modifiedAttempts:0,modifiedAccepted:0,modifiedFallbacks:0};
+     const timings={assemblyMs:0,linearMs:0,frictionMs:0,tangentAssemblyMs:0,residualAssemblyMs:0,projectionMs:0};
+     const result=()=>({...last,...totals,timings,attempts});
+     let roundoffDetected=false,recenterAttempted=false;
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -229,6 +229,7 @@
+             pruneInactiveWitnesses:false,projectiveDynamics:false,
+             physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,forceTolerance:1e-6,lengthTolerance:1e-5,
+                 ...(new URLSearchParams(window.location.search).get('crossoverProfileDirections')==='1'?{profileDirections:true}:{}),
++                ...(new URLSearchParams(window.location.search).get('crossoverElasticReuse')==='1'?{elasticTangentReuse:true}:new URLSearchParams(window.location.search).get('crossoverElasticReuse')==='long'?{elasticTangentReuse:{minimumInsertionMm:400}}:{}),
+                 ...(crossoverBenchmarkMode==='wide'?{recoverNegativeContact:true}:{})}
+         }:{}),
+         onReady:()=>runIdlePhysicsCatchup(synchronizedStep.epoch,false),
+--- a/tests/kirchhoffSharedAxisElasticReuse.test.js
++++ b/tests/kirchhoffSharedAxisElasticReuse.test.js
+@@ -0,0 +1,73 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {createSharedAxisElasticReuse} from '../src/physics/kirchhoffSharedAxisElasticReuse.js';
++import {assembleSharedAxisMaterialTangent} from '../src/physics/kirchhoffSharedAxisMaterialTangent.js';
++import {createSharedAxisNative,applySharedAxisNativeIncrement,assembleSharedAxisNative,relaxSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
++
++const state=()=>createSharedAxisNative({tools:[{id:'wire',insertion:60},{id:'catheter',insertion:45,type:'pigtail'}],
++    samplePosition:x=>[200*Math.sin(x/200),200*(1-Math.cos(x/200)),.01*x]});
++const move=s=>applySharedAxisNativeIncrement(s,Float64Array.from({length:s.layout.dofCount},(_,i)=>.00001*Math.sin(i)),new Float64Array(s.multipliers.length));
++for(const wasm of [false,true])test(`elastic chord retains fresh forces, owns tangent and refreshes after one reuse (WASM=${wasm})`,()=>{
++    const s=state(),reuse=createSharedAxisElasticReuse();
++    assembleSharedAxisMaterialTangent(s,true,null,wasm,true,reuse);
++    const old=s.chain.tangent.slice(),oldGradient=s.chain.gradient.slice();
++    move(s);s.loads[15]+=.002;
++    const energy=assembleSharedAxisMaterialTangent(s,true,null,wasm,true,reuse),gradient=s.chain.gradient.slice();
++    assert.deepEqual(reuse.diagnostics,{elasticFresh:1,elasticReused:1});
++    assert.deepEqual(s.chain.tangent,old);
++    assert.notDeepEqual(gradient,oldGradient);
++    assert.equal(assembleSharedAxisMaterialTangent(s,true,null,wasm,true),energy);
++    assert.deepEqual(s.chain.gradient,gradient,'current loads and elastic forces must remain exact');
++    assert.notDeepEqual(s.chain.tangent,old,'pose changed the exact tangent');
++    const exact=s.chain.tangent.slice();
++    assembleSharedAxisMaterialTangent(s,true,null,wasm,true,reuse);
++    assert.deepEqual(s.chain.tangent,exact);
++    assert.deepEqual(reuse.diagnostics,{elasticFresh:2,elasticReused:1});
++});
++
++test('elastic reuse invalidates on position, frame, constitutive and material identity changes',()=>{
++    for(const change of [s=>s.positions[5][1]+=.1,s=>s.materials[0].body.orientationZ[3]+=.01,
++        s=>s.materials[0].body.restRotation1[3]+=.01,s=>s.materials[0].body.kirchhoffBendCompliance1[3]*=2,
++        s=>s.materials=s.materials.slice()]) {
++        const s=state(),reuse=createSharedAxisElasticReuse();
++        assembleSharedAxisMaterialTangent(s,true,null,true,true,reuse);change(s);
++        assembleSharedAxisMaterialTangent(s,true,null,true,true,reuse);
++        assert.deepEqual(reuse.diagnostics,{elasticFresh:2,elasticReused:0});
++    }
++});
++
++test('native assembly still evaluates current constraint rows and does not publish approximate mechanical caches',()=>{
++    const s=state(),reuse=createSharedAxisElasticReuse();s.cacheMechanicalAssembly=true;
++    assembleSharedAxisNative(s,{elasticReuse:reuse,wasmMaterial:true});
++    move(s);s.multipliers[1]=.2;
++    const chord=assembleSharedAxisNative(s,{elasticReuse:reuse,wasmMaterial:true});
++    const gradient=s.chain.gradient.slice();
++    assert.equal(s.mechanicalAssemblyCache,undefined);
++    const exact=assembleSharedAxisNative(s,{wasmMaterial:true});
++    assert.deepEqual(s.chain.gradient,gradient);
++    assert.equal(chord.energy,exact.energy);assert.equal(chord.force,exact.force);assert.equal(chord.torque,exact.torque);
++    assert.deepEqual(chord.rows,exact.rows);
++    assert.equal(reuse.diagnostics.elasticReused,1);
++});
++
++test('elastic chord solve retains the original force and geometry convergence gates',()=>{
++    const outputs=[];
++    for(const elasticTangentReuse of [false,true]) {
++        const s=createSharedAxisNative({tools:[{id:'wire',insertion:60}]});
++        s.loads[s.layout.positions.at(-1)+1]=.0001;
++        const result=relaxSharedAxisNative(s,{elasticTangentReuse,promoteTrialAssembly:true,wasmMaterial:true});
++        assert.ok(result.converged,JSON.stringify(result));
++        assert.ok(result.residual.force<=1e-6&&result.residual.torque<=1e-6&&result.residual.length<=1e-5);
++        if(elasticTangentReuse)assert.ok(result.elasticFresh>0);
++        outputs.push(s.positions);
++    }
++    assert.ok(Math.max(...outputs[0].map((p,i)=>Math.hypot(...p.map((v,k)=>v-outputs[1][i][k]))))<.001);
++});
++
++test('long-tool eligibility requires both materials to reach the configured insertion',()=>{
++    for(const lengths of [[59,60],[60,59],[60,60]]) {
++        const s=createSharedAxisNative({tools:[{id:'wire',insertion:lengths[0]},{id:'catheter',insertion:lengths[1]}]});
++        const result=relaxSharedAxisNative(s,{elasticTangentReuse:{minimumInsertionMm:60},maxIterations:0});
++        assert.equal((result.elasticFresh??0)>0,lengths.every(n=>n>=60));
++    }
++});
+--- a/scripts/benchmark-crossover-elastic-reuse.mjs
++++ b/scripts/benchmark-crossover-elastic-reuse.mjs
+@@ -0,0 +1,76 @@
++// Replay every recorded physical input from empty tools. This is a solver
++// profiler, not a substitute for the full app's wall-clock motion benchmark.
++import fs from 'node:fs';
++import {gunzipSync,gzipSync} from 'node:zlib';
++import {createHash} from 'node:crypto';
++import assert from 'node:assert/strict';
++import {validateCrossoverRecording,crossoverShapeDifference} from '../src/benchmark/crossoverScenarioRecording.js';
++import {createSharedAxisAppSystem,SHARED_AXIS_APP_PHYSICS_OPTIONS} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
++import {SHARED_AXIS_BODY_FIELDS} from '../src/physics/kirchhoffSharedAxisWorkerData.js';
++import {sharedAxisGeometryIdentity} from '../src/physics/kirchhoffSharedAxisGeometryIdentity.js';
++import {CROSSOVER_WIDE_CONTACT_MODEL} from '../src/physics/kirchhoffSharedAxisCrossoverPreset.js';
++import {loadCoupledRuntimeAnatomy} from '../tests/helpers/coupledRuntimeFixture.js';
++import {createCrossoverFlow} from '../tests/helpers/crossoverFlow.js';
++import {GUIDEWIRE_RADIUS_MM,PIGTAIL_CATHETER_RADIUS_MM,INTRODUCER_SHEATH_INNER_RADIUS_MM} from '../src/toolDimensions.js';
++import {DEFAULT_TOOL_PROFILES} from '../src/physics/endovascularPhysicsWorld.js';
++import {catheterNodeMass} from '../src/physics/catheterDiscretization.js';
++
++const input=process.argv[2]??'reports/performance-scenarios/003-crossover-full-user-inputs.json.gz';
++const output=process.argv[3]??'reports/performance-scenarios/003-full-solver-profile.json';
++const experiment=JSON.parse(process.argv[4]??'{}');
++const maxSteps=Number(process.argv[5]??Infinity);
++const bytes=fs.readFileSync(input),record=validateCrossoverRecording(JSON.parse(gunzipSync(bytes)));
++assert.equal(record.fullManeuverRecorded,true,'Require the complete user maneuver');
++const anatomy=await loadCoupledRuntimeAnatomy(undefined,record.configuration.anatomy);
++assert.equal(sharedAxisGeometryIdentity(anatomy.field.fallbackGeometry),record.configuration.geometry);
++const access=record.configuration.accesses.find(a=>a.id==='right');
++const flow=createCrossoverFlow();
++assert.deepEqual(flow.hemodynamics,record.configuration.flow.parameters);
++const sheath={start:Object.fromEntries(['x','y','z'].map((k,i)=>[k,access.sheath.start[i]])),
++    end:Object.fromEntries(['x','y','z'].map((k,i)=>[k,access.sheath.end[i]])),innerRadius:INTRODUCER_SHEATH_INNER_RADIUS_MM,proximalExtension:40};
++// Physical profiles used by simulator.js. Render sampling is omitted from
++// timing comparisons; these bodies only receive the provider's publication.
++const tools=[{id:'wire',type:'glidewire',mass:DEFAULT_TOOL_PROFILES.guidewire.mass,radius:GUIDEWIRE_RADIUS_MM,wallStaticFriction:access.friction[0],wallKineticFriction:access.friction[1]},
++    {id:'catheter',type:'pigtail',mass:catheterNodeMass(DEFAULT_TOOL_PROFILES.catheter.mass),radius:PIGTAIL_CATHETER_RADIUS_MM,wallStaticFriction:.002,wallKineticFriction:.002}].map((t,i)=>{
++    const count=208,body={count,segmentCount:count-1,...t};
++    for(const k of SHARED_AXIS_BODY_FIELDS)body[k]=new Float64Array(k.startsWith('orientation')?count-1:count);
++    return {...t,insertion:0,rotation:0,shaftStiffness:access.stiffness[i*2],tipStiffness:access.stiffness[i*2+1],body,
++        nodeCoordinates:Array.from({length:count},(_,n)=>-40+5*n)};
++});
++const system=createSharedAxisAppSystem({readTools:()=>tools,readSheath:()=>sheath,readBloodFlow:()=>record.configuration.flow.enabled?flow:null,
++    workSliceMs:Infinity,contactCandidateMargin:.01,lazyBasisCoefficients:true,wasmBasis:true,deferActiveBasis:true,
++    reuseFrictionAssembly:true,coupledFrictionNewton:true,predictiveNewton:true,
++    ...experiment,adaptiveMesh:experiment.adaptiveMesh==='wide'?CROSSOVER_WIDE_CONTACT_MODEL:experiment.adaptiveMesh??null,
++    physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,...experiment.physicsOptions,forceTolerance:1e-6,lengthTolerance:1e-5}});
++const world={contactField:anatomy.field},rows=[];
++const report={source:input,sha256:createHash('sha256').update(bytes).digest('hex'),experiment,dt:record.dt,
++    startedAt:new Date().toISOString(),passed:false,goalAchieved:false,rows,
++    scope:'Every recorded right-access physical target, from empty tools, compared to the browser shape at every step. CPU solver timing only; browser replay measures controls, rendering and both accesses.'};
++try {
++    for(const [index,reference] of record.steps.entries()) {
++        for(const tool of tools){tool.insertion=reference.tools[tool.id];tool.rotation=reference.tools[tool.id+'Rotation'];}
++        const start=performance.now(),result=system.step(world,record.dt),cpuMs=performance.now()-start;
++        assert.ok(result.accepted,`Step ${index+1}: ${result.status}`);
++        const d=system.diagnostics.last,pose=system.captureFlowSamplingState();
++        const shapeDifferenceMm=crossoverShapeDifference(reference.shape,{coordinates:pose.coordinates,
++            positions:pose.positions.flatMap(p=>p.map((x,k)=>x+pose.origin[k]))});
++        rows.push({shape:{coordinates:pose.coordinates,positions:pose.positions.flatMap(p=>p.map((x,k)=>x+pose.origin[k]))},step:index+1,stage:reference.stage,moving:reference.moving,cpuMs,shapeDifferenceMm,
++            nodes:system.diagnostics.mesh.nodes,rows:system.diagnostics.mesh.constraintRows,
++            ...Object.fromEntries(['elasticFresh','elasticReused','iterations','factorizations','backtracks','geometryRestarts','frictionIterations','substepAttempts','subdivisions',
++                'predictorFallbacks','coupledFrictionFallbacks','wallNormalFallbacks','recenteredRoundoff','replayCaptureMs','replayCaptureTimes','timings',
++                'certificateBound','residual','quality','attempts'].map(k=>[k,d[k]]))});
++        assert.ok(d.converged&&d.quality.finite&&d.certificateBound<=1e-6&&d.residual.length<=1e-5&&
++            d.quality.maxPenetration<=1e-5&&d.quality.bodies.every(b=>b.maxLengthError<=1e-5),`Physical gate at ${index+1}`);
++        assert.ok(shapeDifferenceMm<=1,`Shape ${shapeDifferenceMm} mm at ${index+1}`);
++        flow.update(record.dt);
++        if(index+1>=maxSteps)break;
++        if((index+1)%120===0)console.log(JSON.stringify({step:index+1,cpuMs,shapeDifferenceMm,nodes:system.diagnostics.mesh.nodes}));
++    }
++    report.passed=rows.length===record.steps.length;
++}catch(error){report.error=error.stack;process.exitCode=1;console.error(error.message);}
++finally {
++    report.maximumShapeDifferenceMm=Math.max(0,...rows.map(r=>r.shapeDifferenceMm));
++    report.finishedAt=new Date().toISOString();report.targetSteps=record.steps.length;report.complete=rows.length===record.steps.length;fs.writeFileSync(output,gzipSync(JSON.stringify(report)));
++    system.reset();anatomy.dispose();
++    console.log(JSON.stringify({steps:rows.length,passed:report.passed,maximumShapeDifferenceMm:report.maximumShapeDifferenceMm}));
++}

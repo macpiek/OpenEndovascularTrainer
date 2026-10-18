@@ -1,0 +1,73 @@
+--- a/src/physics/kirchhoffSharedAxisAppSystem.js
++++ b/src/physics/kirchhoffSharedAxisAppSystem.js
+@@ -264,6 +264,10 @@
+         const next=yield* advanceSharedAxis(starting,startingRotations,dt,tools,{...physicsOptions,[directionProfileLease]:directionProfile});
+         return {...next,result:{...next.result,directionProfile}};
+     }
++    const preferred=physicsOptions.preferredSubdivisions??1,minInsertion=physicsOptions.substepMinInsertionMm??0;
++    if(![1,2].includes(preferred)||!Number.isFinite(minInsertion)||minInsertion<0)throw new RangeError('Invalid preferred subdivision policy');
++    const eligible=preferred===2&&tools.every(t=>t.insertion>=minInsertion&&starting.materials.find(m=>m.spec.id===t.id).spec.insertion>=minInsertion);
++    const subdivisionOrder=eligible?[2,1,4,8]:[1,2,4,8];
+     let last;const attempts=[];const totals={fallbackLinearizationReuses:0,predictorFallbacks:0,retainedDiscoveryTrials:0,coupledFrictionRefreshes:0,coupledFrictionFallbacks:0,iterations:0,factorizations:0,workingSetReuses:0,backtracks:0,geometryRestarts:0,frictionIterations:0,substepAttempts:0,wallNormalFallbacks:0,fullAssemblies:0,residualAssemblies:0,promotedAssemblies:0,modifiedAttempts:0,modifiedAccepted:0,modifiedFallbacks:0};
+     const timings={assemblyMs:0,linearMs:0,frictionMs:0,tangentAssemblyMs:0,residualAssemblyMs:0,projectionMs:0};
+     const result=()=>({...last,...totals,timings,attempts});
+@@ -274,7 +278,7 @@
+     // A heuristic may save work, but may not remove a previously solvable case.
+     for(const roundoffStagnation of detectRoundoff?[true,false]:[false]) {
+         if(!roundoffStagnation&&detectRoundoff&&!roundoffDetected)break;
+-        for(const subdivisions of [1,2,4,8]) {
++        for(const subdivisions of subdivisionOrder) {
+             // Feed copies the rod, but used to share discovery samplers. Give
+             // every attempt private history too: rejection/cancellation and
+             // even a failed publication leave the accepted checkpoint intact.
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -227,7 +227,7 @@
+             contactCandidateMargin:.01,lazyBasisCoefficients:true,wasmBasis:true,deferActiveBasis:true,
+             reuseFrictionAssembly:true,coupledFrictionNewton:true,predictiveNewton:true,modifiedNewton:false,
+             pruneInactiveWitnesses:false,projectiveDynamics:false,
+-            physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,forceTolerance:1e-6,lengthTolerance:1e-5,
++            physicsOptions:{...(new URLSearchParams(window.location.search).get('crossoverSmallSteps')==='1'?{preferredSubdivisions:2,substepMinInsertionMm:400}:{}),...SHARED_AXIS_APP_PHYSICS_OPTIONS,forceTolerance:1e-6,lengthTolerance:1e-5,
+                 ...(new URLSearchParams(window.location.search).get('crossoverProfileDirections')==='1'?{profileDirections:true}:{}),
+                 ...(crossoverBenchmarkMode==='wide'?{recoverNegativeContact:true}:{})}
+         }:{}),
+--- a/tests/kirchhoffSharedAxisAppSystem.test.js
++++ b/tests/kirchhoffSharedAxisAppSystem.test.js
+@@ -698,3 +698,37 @@
+     assert.notEqual(instrumented.system.diagnostics.last.directionProfile,previous);
+     assert.deepEqual(previous,saved);
+ });
++
++
++test('preferred internal half steps preserve atomic publication, accepted dt and tool targets',()=>{
++    const f=fixture({workSliceMs:0,physicsOptions:{preferredSubdivisions:2,substepMinInsertionMm:0}});
++    finish(f);const views=f.tools.map(t=>t.body.jointStateView);
++    f.tools[0].insertion=3;f.tools[1].insertion=1;
++    const result=finish(f,{onPending:()=>f.tools.forEach((t,i)=>assert.equal(t.body.jointStateView,views[i]))});
++    assert.equal(result.dt,dt);assert.equal(f.system.diagnostics.last.subdivisions,2);
++    assert.equal(f.system.diagnostics.last.attempts.length,2);
++    assert.equal(f.system.diagnostics.last.attempts.reduce((sum,a)=>sum+a.dt,0),dt);
++    assert.ok(f.system.diagnostics.last.attempts.every(a=>a.converged));
++    assert.deepEqual(f.tools.map(t=>t.body.jointStateView.coordinates.at(-1)),[3,1]);
++    assert.ok(f.system.diagnostics.last.certificateBound<=1e-6);
++});
++
++test('internal subdivision preference is inactive before both tools reach its threshold',()=>{
++    const a=fixture({workSliceMs:Infinity}),b=fixture({workSliceMs:Infinity,physicsOptions:{preferredSubdivisions:2,substepMinInsertionMm:400}});
++    for(const f of [a,b]){finish(f);f.tools[0].insertion=3;f.tools[1].insertion=1;finish(f);}
++    assert.equal(b.system.diagnostics.last.subdivisions,1);
++    assert.deepEqual(b.tools.map(t=>positions(t.body)),a.tools.map(t=>positions(t.body)));
++});
++
++test('a rejected second half step rolls back before the ordinary whole-step fallback',()=>{
++    const a=fixture({workSliceMs:Infinity}),b=fixture({workSliceMs:Infinity,
++        physicsOptions:{preferredSubdivisions:2,substepMinInsertionMm:0}});
++    for(const f of [a,b])finish(f);
++    b.controls.failQueries=1;
++    for(const f of [a,b]){f.tools[0].insertion=11;finish(f);}
++    const attempts=b.system.diagnostics.last.attempts;
++    assert.equal(attempts[0].subdivisions,2);assert.equal(attempts[0].converged,true);
++    assert.equal(attempts[1].index,2);assert.equal(attempts[1].converged,false);
++    assert.equal(b.system.diagnostics.last.subdivisions,1);
++    assert.deepEqual(b.tools.map(t=>positions(t.body)),a.tools.map(t=>positions(t.body)));
++});

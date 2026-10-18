@@ -1,0 +1,62 @@
+--- a/src/physics/kirchhoffSharedAxisConstraintRows.js
++++ b/src/physics/kirchhoffSharedAxisConstraintRows.js
+@@ -106,16 +106,16 @@
+  * contact deferral. Its prepared results are consumed in the same synchronous
+  * assembly, before any pose/reaction changes or cooperative yield.
+  */
+-export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMaterialAt,retainWallHessians=false,reuseConstraintWork=false,storage=null,cullInactiveContacts=false,prepareOnly=null,prepared=null}={}) {
++export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMaterialAt,retainWallHessians=false,reuseConstraintWork=false,storage=null,cullInactiveContacts=false,prepareOnly=null,prepared=null,prepareRows=false}={}) {
+     if(prepared?.error&&prepared.index===undefined)throw prepared.error;
+-    const g=s.chain.gradient,geometry=sharedAxisConstraintEdgeGeometry(s,storage),rows=prepareOnly?null:(storage?.rows??new Array(s.definitions.length));
++    const g=s.chain.gradient,geometry=sharedAxisConstraintEdgeGeometry(s,storage),rows=prepareOnly&&!prepareRows?null:(storage?.rows??new Array(s.definitions.length));
+     if(rows)rows.length=s.definitions.length;
+     for(let index=0;index<s.definitions.length;index++) {
+         if(prepareOnly)prepareOnly.index=index;
+         if(prepared?.error&&prepared.index===index)throw prepared.error;
+         const def=s.definitions[index],e=def.edge,a=s.positions[e],b=s.positions[e+1],length=geometry.lengths[e];
+         let gap,J,gapHessian=null,row;
+-        if(storage&&!prepareOnly) {
++        if(storage&&(!prepareOnly||prepareRows)) {
+             row=rows[index]??storage.rowBuffers?.[index];
+             if(storage.definitions[index]!==def) {
+                 const jacobian=row?.jacobian?.length===def.dofs.length?row.jacobian:new Array(def.dofs.length);
+@@ -208,9 +208,9 @@
+             if(prepareOnly)prepareOnly.contacts[index]=contact;
+             gap=contact.gap;J=contact.jacobian;gapHessian=contact.hessian??null;
+         }
+-        if(prepareOnly)continue;
++        if(prepareOnly&&!prepareRows)continue;
+         const multiplier=s.multipliers[index],sign=def.kind==='wall'?-1:1;
+-        if(multiplier!==0)for(let i=0;i<def.dofs.length;i++)g[def.dofs[i]]+=sign*J[i]*multiplier;
++        if(!prepareOnly&&multiplier!==0)for(let i=0;i<def.dofs.length;i++)g[def.dofs[i]]+=sign*J[i]*multiplier;
+         let geometricHessian;
+         if(gapHessian&&multiplier!==0&&withTangent) {
+             geometricHessian=hessianBuffer(storage,index,gapHessian.length);
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -361,7 +361,11 @@
+         s.definitions.every(d=>d.kind==='length'||(d.evaluate??s.wallSamples[d.sample])?.sharedAxisGeometryOnly)) {
+         prepared={contacts:rowStorage.preparedContacts??=[]};
+         prepared.contacts.length=s.definitions.length;
+-        try{assembleSharedAxisConstraintRows(s,{...rowOptions,prepareOnly:prepared});}
++        try{
++            const prepareRows=!s.primalCompliantContacts&&!s.wallSamples.some(sample=>sample.addPotential);
++            const rows=assembleSharedAxisConstraintRows(s,{...rowOptions,prepareOnly:prepared,prepareRows});
++            if(prepareRows)prepared.rows=rows;
++        }
+         catch(error){prepared.error=error;}
+         if(!prepared.error&&s.pendingVesselRows?.size) {
+             // A rejected assembly cannot leave an old friction certificate
+@@ -437,7 +441,11 @@
+     // Gauss-Newton discards geometric constraint Hessians in its direction.
+     // Keep the same gaps, Jacobians and current reactions without building
+     // those unused matrices (or copying all rows merely to remove them).
+-    const rows=assembleSharedAxisConstraintRows(s,{...rowOptions,prepared});
++    const rows=prepared?.rows??assembleSharedAxisConstraintRows(s,{...rowOptions,prepared});
++    if(prepared?.rows)for(const r of rows)if(r.multiplier!==0) {
++        const sign=r.kind==='wall'?-1:1;
++        for(let i=0;i<r.dofs.length;i++)g[r.dofs[i]]+=sign*r.jacobian[i]*r.multiplier;
++    }
+     if(withTangent)for(const column of s.wallFrictionStep?.normalForceColumns??[]) {
+         rows[column.rowIndex].extraForceDofs=column.dofs;
+         rows[column.rowIndex].extraForceJacobian=column.values;

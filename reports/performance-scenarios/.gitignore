@@ -1,0 +1,20 @@
+# Keep reproducible inputs, validation summaries and research diffs in Git.
+# Full generated trajectories, profiles, logs, screenshots and source archives
+# remain local; see README.md for the scope of the committed evidence.
+*
+!.gitignore
+!README.md
+!*-validation.json
+!*-comparison.json
+!*-source-manifest.json
+!*-served-sources.json
+!*.patch
+!001-demonstration.json
+!001-checkpoint-result.json
+!001-continuation-result.json
+!001-stage-05-replay.json.gz
+!001-contact-tail-replay.json.gz
+!001-long-hold-replay.json.gz
+!001-temporal-step-99-replay.json.gz
+!003-crossover-full-user-inputs.json.gz
+!004-optimization-policy.json

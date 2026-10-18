@@ -1,0 +1,708 @@
+{
+  "date": "2026-10-18",
+  "parentRevision": "1adb1f84353a545c4e1686f09c4a1fb49516377e",
+  "nodeVersion": "v24.6.0",
+  "scope": "Commit validation of the existing optimization/replay work. The optimization goal remains paused; no new 60 Hz claim.",
+  "build": {
+    "command": "npm run build",
+    "exitCode": 0,
+    "warning": "Existing large-chunk warning"
+  },
+  "syntax": {
+    "checkedNewAndChangedJavaScriptFilesBeforeMemoryTestUpdate": 151,
+    "failures": 0,
+    "updatedMemoryProbeChecked": true
+  },
+  "defaultSuite": {
+    "command": "npm test",
+    "exitCode": 1,
+    "firstFailure": "tests/contrastCatheterFullTree.test.js:211, contracted connector count 3 versus expected 1",
+    "firstFailureReproducedAtParent": true,
+    "continuation": "All 58 remaining default-suite commands were run separately without fail-fast; shared-axis was run separately too.",
+    "remainingCommandResults": [
+      {
+        "command": [
+          "node",
+          "tests/automaticWithdrawalController.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/smoothTubeGeometry.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/browserBenchmarkScenario.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/patientMonitorTiming.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "--test",
+          "tests/patientSoftTissue.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/rodState.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/aortaPreprocess.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/scalarMeshBvhClosestPoint.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "--test",
+          "tests/scalarMeshBvhNeighborhood.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "--test",
+          "tests/kirchhoffSharedAxisAneurysmInterior.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/vesselContactSamplingReuse.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "--test",
+          "tests/vesselPhysicalCapsuleGap.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/vesselContactField.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/guidewireResistance.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/guidewireTransportVelocity.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/guidewireContinuousTransport.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/guidewireRelaxationRate.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/discreteKirchhoffRod.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffDirectSolver.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffDirectCoupling.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffCoupledConvergence.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/shortCatheterBenchmark.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffContactBlock.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffCenterlineSearch.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffDirectOptimization.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffMaterialProfile.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/applyKirchhoffMaterialProfile.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffOrientationBoundary.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffContactManifold.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffLumenContact.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffRodDiagnostics.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffWorldIntegration.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffContainmentIntegration.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffLengthClosure.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffActualToolMigration.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/standaloneCatheterKirchhoffParity.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffCatheterLoadingSupport.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffCatheterOverWireRegression.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "--test",
+          "tests/kirchhoffCoupledParameterMatrix.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffRuntimeRegression.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffStraightRecovery.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/pigtailElasticEnergyRegression.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/endovascularPhysicsWorld.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/catheterGuidewireCoupling.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/aortaXpbdRegression.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/guidewireTransport.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test:physics:coupled"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test:physics:composite"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "--check",
+          "scripts/extend-lower-limb-arteries.mjs"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "--check",
+          "src/lowerLimbArteries.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "--check",
+          "src/upperLimbArteries.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/lowerLimbPathDefinitions.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/upperLimbPathDefinitions.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/lowerLimbArteries.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "node",
+          "tests/upperLimbArteries.test.js"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test:anatomy:closures"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test:anatomy:aneurysm"
+        ],
+        "exitCode": 0
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test:stentgraft"
+        ],
+        "exitCode": 1
+      }
+    ]
+  },
+  "sharedAxis": {
+    "command": "npm run test:physics:shared-axis",
+    "initialRun": {
+      "tests": 565,
+      "pass": 556,
+      "fail": 8,
+      "skipped": 1
+    },
+    "remainingFailedCases": [
+      "145.75 mm anatomy checkpoint restores positions, frames, reactions and witness topology exactly",
+      "frozen terminal contacts expose an inconsistent equality subset independently of new-face discovery",
+      "cyclic catheter feed switches strategy early with identical certified physical output",
+      "a poor anatomical prediction recovers with substantially fewer factorizations and unchanged acceptance criteria",
+      "catheter withdrawal can rediscover a wire sample across a certified 20 mm wall-free path",
+      "actual pigtail withdrawal recovers live-load cycling with a certified atomic frozen fallback",
+      "early stagnation fallback preserves certified physical output: anatomy-berenstein-feed-492.27-stagnation"
+    ],
+    "remainingFailuresReproducedAtParent": true,
+    "fixedTest": {
+      "name": "shared-axis wasm releases superseded states while the newest simulation remains alive",
+      "cause": "The lifecycle probe required a per-state layout cache after optimized solves moved to a bounded shared numeric arena. All old-state/body/material-memory reachability checks already passed.",
+      "change": "Retain all WeakRef leak assertions; verify the actual shared arena and additionally exercise the owned-workspace path.",
+      "targetedFinalCommand": "node --test tests/kirchhoffSharedAxisMemory.test.js",
+      "targetedFinalResult": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "skipped": 0
+      },
+      "fullSuiteRerunAfterTestOnlyCorrection": false
+    }
+  },
+  "experimentalXpbd": {
+    "command": "node --test tests/sharedAxisXpbdExperimental.test.js tests/xpbdChainBlock.test.js tests/xpbdSurfaceFriction.test.js",
+    "result": {
+      "tests": 21,
+      "pass": 21,
+      "fail": 0,
+      "skipped": 0
+    }
+  },
+  "stentGraft": {
+    "command": "npm run test:stentgraft",
+    "result": {
+      "tests": 239,
+      "pass": 223,
+      "fail": 16,
+      "skipped": 0
+    },
+    "failedCases": [
+      "captured left-access rejection recovers with fabric CCD enabled and continues advancing",
+      "owning circular lumen cannot suppress real cloth contact during pigtail withdrawal",
+      "captured 92.5 mm contralateral insertion continues with catalogue delivery radius and full collisions",
+      "left: freed gate springs open with a stationary sheath and enables only matching contacts",
+      "right: freed gate springs open with a stationary sheath and enables only matching contacts",
+      "right: suprarenal peaks stay captured until the latch releases, then snap open",
+      "left: suprarenal peaks stay captured until the latch releases, then snap open",
+      "right: ipsilateral rim springs open at sleeve clearance without extra withdrawal",
+      "left: ipsilateral rim springs open at sleeve clearance without extra withdrawal",
+      "stent-graft-bifurcation-contact: captured rejection recovers and permits continued withdrawal",
+      "stent-graft-lost-indentation: captured rejection recovers and permits continued withdrawal",
+      "legacy exterior snapshot already crossing the vessel is rejected atomically by finite-radius discovery",
+      "higher continuous rounded stent waves retain thin wire and close each ring",
+      "right: delivery system slides both ways inside the released ipsilateral limb with an adaptive mesh",
+      "left: delivery system slides both ways inside the released ipsilateral limb with an adaptive mesh",
+      "sparse centreline fallback cannot create a phantom wall in the aneurysm or collapse a released body"
+    ],
+    "selectedFailuresOnParent": {
+      "tests": 16,
+      "pass": 0,
+      "fail": 16,
+      "skipped": 0
+    },
+    "allFailuresReproducedAtParent": true
+  },
+  "legacySolverComparisons": {
+    "test:physics:coupled": {
+      "currentFailedCases": [
+        "application actuation passes both former friction stalls with unchanged final gates and one history commit",
+        "explicit matrix format rejects incompatible seed, band LU and malformed input before solving",
+        "explicit symmetric-band format preserves default results and diagnostics exactly",
+        "loaded external mouth transition after 2 loads converges after physical release",
+        "loaded external translated-mouth transition after 1 loads converges after physical release",
+        "source-audited runtime defaults fail visibly if simulator constants drift",
+        "unfinished cone repair rejects and rolls back the entire timestep despite successful internal iterations"
+      ],
+      "parentFailedCases": [
+        "application actuation passes both former friction stalls with unchanged final gates and one history commit",
+        "captured Schur roundoff case converges against its untouched original equations",
+        "explicit matrix format rejects incompatible seed, band LU and malformed input before solving",
+        "explicit symmetric-band format preserves default results and diagnostics exactly",
+        "loaded external mouth transition after 2 loads converges after physical release",
+        "loaded external translated-mouth transition after 1 loads converges after physical release",
+        "source-audited runtime defaults fail visibly if simulator constants drift",
+        "unfinished cone repair rejects and rolls back the entire timestep despite successful internal iterations"
+      ],
+      "newFailedCases": [],
+      "parentFailuresNowPassing": [
+        "captured Schur roundoff case converges against its untouched original equations"
+      ]
+    },
+    "test:physics:composite": {
+      "currentFailedCases": [
+        "Float64 coordinate-change roundoff stays inside its arithmetic bound and preserves original Float32 publication",
+        "World preparation proves requested seams against current anatomy and binds them into its source proof",
+        "World preparation retains genuine immutable wall pose paths and owns their mutable declarations across retry",
+        "a changed original source in the fresh commit query rejects the complete candidate and both cone reactions",
+        "a second-body publication exception restores all first-body arrays and views before retry",
+        "accepted Float64 physics and complete views are independent of subsequent Float32 view corruption",
+        "accepted cone history survives the next physical dt and lazy/full original certificates agree",
+        "actual World runs the production shared Coulomb timestep for two dt and publishes both own material states",
+        "actual World spacing 5/4 imports the exact union with independent physical curves and original node roundtrip",
+        "actual anatomy branch chart uses the exact provider grid plane, not a near-seam local coordinate",
+        "actual captured native application keeps independent material history over45 fractional wire feeds and active-range growth",
+        "actual differently spaced World rods import once, solve two shared dt and retain all union subedge poses",
+        "actual exposed anatomy feed crosses the loaded SDF cell and source witness changes through 130mm",
+        "actual local slow catheter feed admits new distal rim on first hold and continues with original gates",
+        "actual44/52 application rates preserve the newborn catheter tip and activate the original containment window",
+        "adaptive search resolves initial wall penetration with the unchanged full physical certificate and next-dt history",
+        "budgets during stabilized wall search restore both bodies and prepared history; exact retry consumes dt once",
+        "captured step361 mixed-occupancy face admits a locally proved inside min intersection",
+        "constant local World view preserves actual anatomy witnesses, BVH differential and source identity guards",
+        "declared local seam keeps two normal reactions on the actual blocked material point",
+        "failed numerical budgets retain one prepared command and no geometry/history/time, then direct retry is identical",
+        "fresh frame alignment repairs actual non-axis Float32 source tangents once while preserving roll, rest and explicit winding",
+        "imported World union retains original command and complete material history across budget rejection and retry",
+        "interrupted seam discovery rolls back both private forces and allows a clean retry with reusable scratch",
+        "local physics publishes world positions without translating velocities or its owned state",
+        "original Aorta P1 two-face equilibrium retains the raw sparse query and passes the contact cone certificate",
+        "persistent local app state passes captured precision stalls and the 55mm valve-grid coincidence during wire feed",
+        "persistent local native state accepts actual slow catheter tiny-cell feed and budget retry without global history roundtrip",
+        "real Aorta P1 admits both SDF normal reactions in the whole joint dt with the separate wire unchanged",
+        "real P1 discovers both min branches without re-query; rejected discovery restores charts and retries cleanly",
+        "real P1 source query certifies the cone and release witnesses with literal sign/domain gates and owned history",
+        "seam discovery identifies the actual blocked anatomy face without a hardcoded axis",
+        "the original Aorta field and actual Float32 body radii enter the World bridge and certify their original capsule gap",
+        "the original free P1 timestep resolves both physical seam reactions and passes fresh original equations"
+      ],
+      "parentFailedCases": [
+        "Float64 coordinate-change roundoff stays inside its arithmetic bound and preserves original Float32 publication",
+        "World preparation proves requested seams against current anatomy and binds them into its source proof",
+        "World preparation retains genuine immutable wall pose paths and owns their mutable declarations across retry",
+        "a changed original source in the fresh commit query rejects the complete candidate and both cone reactions",
+        "a second-body publication exception restores all first-body arrays and views before retry",
+        "accepted Float64 physics and complete views are independent of subsequent Float32 view corruption",
+        "accepted cone history survives the next physical dt and lazy/full original certificates agree",
+        "actual World runs the production shared Coulomb timestep for two dt and publishes both own material states",
+        "actual World spacing 5/4 imports the exact union with independent physical curves and original node roundtrip",
+        "actual anatomy branch chart uses the exact provider grid plane, not a near-seam local coordinate",
+        "actual captured native application keeps independent material history over45 fractional wire feeds and active-range growth",
+        "actual differently spaced World rods import once, solve two shared dt and retain all union subedge poses",
+        "actual exposed anatomy feed crosses the loaded SDF cell and source witness changes through 130mm",
+        "actual fractional catheter step resolves in an introducer-relative frame with identical physical gates",
+        "actual local slow catheter feed admits new distal rim on first hold and continues with original gates",
+        "actual44/52 application rates preserve the newborn catheter tip and activate the original containment window",
+        "adaptive search resolves initial wall penetration with the unchanged full physical certificate and next-dt history",
+        "budgets during stabilized wall search restore both bodies and prepared history; exact retry consumes dt once",
+        "captured step361 mixed-occupancy face admits a locally proved inside min intersection",
+        "constant local World view preserves actual anatomy witnesses, BVH differential and source identity guards",
+        "declared local seam keeps two normal reactions on the actual blocked material point",
+        "failed numerical budgets retain one prepared command and no geometry/history/time, then direct retry is identical",
+        "fresh frame alignment repairs actual non-axis Float32 source tangents once while preserving roll, rest and explicit winding",
+        "imported World union retains original command and complete material history across budget rejection and retry",
+        "interrupted seam discovery rolls back both private forces and allows a clean retry with reusable scratch",
+        "local physics publishes world positions without translating velocities or its owned state",
+        "original Aorta P1 two-face equilibrium retains the raw sparse query and passes the contact cone certificate",
+        "persistent local app state passes captured precision stalls and the 55mm valve-grid coincidence during wire feed",
+        "persistent local native state accepts actual slow catheter tiny-cell feed and budget retry without global history roundtrip",
+        "real Aorta P1 admits both SDF normal reactions in the whole joint dt with the separate wire unchanged",
+        "real P1 discovers both min branches without re-query; rejected discovery restores charts and retries cleanly",
+        "real P1 source query certifies the cone and release witnesses with literal sign/domain gates and owned history",
+        "seam discovery identifies the actual blocked anatomy face without a hardcoded axis",
+        "the original Aorta field and actual Float32 body radii enter the World bridge and certify their original capsule gap",
+        "the original free P1 timestep resolves both physical seam reactions and passes fresh original equations"
+      ],
+      "newFailedCases": [],
+      "parentFailuresNowPassing": [
+        "actual fractional catheter step resolves in an introducer-relative frame with identical physical gates"
+      ]
+    }
+  },
+  "otherParentChecks": {
+    "aortaPreprocess": "Same off-center-node assertion fails on parent.",
+    "vesselPhysicalCapsuleGap": "Both failed cases reproduce on parent.",
+    "vesselContactField": "Fails on parent too.",
+    "additionalCommands": [
+      {
+        "command": [
+          "node",
+          "tests/guidewireTransportVelocity.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/guidewireContinuousTransport.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffContainmentIntegration.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffActualToolMigration.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/kirchhoffCatheterLoadingSupport.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/endovascularPhysicsWorld.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/catheterGuidewireCoupling.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "node",
+          "tests/aortaXpbdRegression.test.js"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test:physics:coupled"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test:physics:composite"
+        ],
+        "exitCode": 1
+      }
+    ]
+  },
+  "recordingSha256": "bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac",
+  "artifactScope": "Reproducible fixtures, original recording, historical validation summaries, manifests and research diffs are versioned. Large generated traces/source archives/logs/screenshots remain local.",
+  "logs": "Detailed logs from this run are local under /tmp/oet-commit-*.log.",
+  "conclusion": "Build passes. The complete default test inventory is not green. The discovered shared-memory test-contract mismatch is corrected; remaining shared-axis and stent-graft failures reproduce at the parent revision. No runtime physics changes were made during this commit preparation."
+}

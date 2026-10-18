@@ -1,0 +1,25 @@
+{
+  "experiment": "Paired optimized PD16 adaptive prefix250 versus fine mesh",
+  "sourceBase": "027-projective-app-source.tar.gz",
+  "harnessOverride": "028-projective-mesh-harness.html.txt",
+  "harnessSha256": "99ba178edc8e3e78efd324e636309e879ecaffa9f62e0da03f8302f34d651211",
+  "record": "028-projective-mesh-pair.json.gz",
+  "audit": "028-projective-mesh-comparison.json",
+  "candidateAcceptedSteps": 6431,
+  "candidateRejectedStep": 6432,
+  "rejection": "PD hard closure could not solve the contact projection; subdivisions 1, 2, 4 and 8 failed.",
+  "controlAcceptedThroughStep": 6432,
+  "controlCompleted": false,
+  "coarseMilestonesPassedBeforeRejection": 4,
+  "firstShapeChangeStep": 5347,
+  "matchedLong": {
+    "steps": 146,
+    "candidateMs": 49.79383560076152,
+    "controlMs": 31.376027401179485
+  },
+  "matchedLongCostReductionPercent": -58.700255338538085,
+  "decision": "Rejected. Do not promote adaptive250 PD with these kernels. Preserve manual PD16 fine-mesh preset.",
+  "goalAchieved": false,
+  "fullApplicationFpsVerified": false,
+  "nextInvestigation": "Geometry projection with an identity-primal Schur solve, strict unscaled KKT residual certificate and fallback to the existing solver; staged helper is untested and not connected."
+}

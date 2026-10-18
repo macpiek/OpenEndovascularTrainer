@@ -1,4 +1,5 @@
 import {createSharedAxisRealtimeSystem} from '../src/physics/kirchhoffSharedAxisRealtime.js';
+import {CROSSOVER_PROJECTIVE_MODEL} from '../src/physics/kirchhoffSharedAxisCrossoverPreset.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -18,7 +19,7 @@ const openSpaceGeometry=new BufferGeometry();
 openSpaceGeometry.setAttribute('position',new Float32BufferAttribute([1e7,0,0,1e7,1,0,1e7,0,1],3));
 openSpaceGeometry.boundsTree=new MeshBVH(openSpaceGeometry);
 test.after(()=>openSpaceGeometry.dispose());
-function fixture({workSliceMs=0,origin=[127,-83,29],adaptiveMesh=null,projectiveDynamics=false,coupledFrictionNewton=false,predictiveNewton=true,onRejectedStep=null,physicsOptions,realtime=false,retainDiscoveryCertificates=true,readBloodFlow}={}) {
+function fixture({workSliceMs=0,origin=[127,-83,29],adaptiveMesh=null,projectiveDynamics=false,coupledFrictionNewton=false,predictiveNewton=true,onRejectedStep=null,physicsOptions,realtime=false,retainDiscoveryCertificates=true,readBloodFlow,contactCandidateMargin,wasmBasis,lazyBasisCoefficients,reuseFrictionAssembly}={}) {
     const controls={reads:0,queries:0,throwQuery:false,failQueries:0};
     const world=new EndovascularPhysicsWorld({fixedDt:dt});
     const tools=['wire','catheter'].map(id=>{
@@ -32,7 +33,9 @@ function fixture({workSliceMs=0,origin=[127,-83,29],adaptiveMesh=null,projective
         if(controls.throwQuery)throw new Error('synthetic contact query failed');
         Object.assign(out,{signedDistance:100,signedGap:100-r[edge],segmentT:.5,faceIndex:0});return out;
     }};
-    const system=(realtime?createSharedAxisRealtimeSystem:createSharedAxisAppSystem)({readBloodFlow,workSliceMs,adaptiveMesh,projectiveDynamics,coupledFrictionNewton,predictiveNewton,onRejectedStep,physicsOptions,retainDiscoveryCertificates,
+    const system=(realtime?createSharedAxisRealtimeSystem:createSharedAxisAppSystem)({readBloodFlow,workSliceMs,adaptiveMesh,projectiveDynamics,coupledFrictionNewton,predictiveNewton,onRejectedStep,physicsOptions,retainDiscoveryCertificates,contactCandidateMargin,
+        ...(wasmBasis===undefined?{}:{wasmBasis}),...(lazyBasisCoefficients===undefined?{}:{lazyBasisCoefficients}),
+        ...(reuseFrictionAssembly===undefined?{}:{reuseFrictionAssembly}),
         readTools(){controls.reads++;return tools.map(t=>({...t,nodeCoordinates:t.nodeCoordinates.slice()}));},
         readSheath:()=>({start:origin,end:[origin[0]+10,origin[1],origin[2]],innerRadius:2,proximalExtension:40})});
     world.wholeStepSystem=system;
@@ -49,6 +52,49 @@ function finish(f,{maxSlices=1000,onPending=()=>{}}={}) {
 const positions=body=>Array.from({length:body.count},(_,i)=>[body.x[i],body.y[i],body.z[i]]);
 const frame=body=>new Quaternion(body.orientationX[0],body.orientationY[0],body.orientationZ[0],body.orientationW[0]);
 const close=(a,b,tol=1e-6)=>assert.ok(Math.abs(a-b)<tol,`${a} vs ${b}`);
+
+test('manual crossover preset runs PD closure on the fine mesh through the complete-step provider',()=>{
+    const f=fixture({...CROSSOVER_PROJECTIVE_MODEL,workSliceMs:Infinity});
+    for(const insertion of [0,1,6,14]) {
+        f.tools[0].insertion=insertion;f.tools[1].insertion=insertion*.8;
+        f.tools[1].rotation=insertion*.001;
+        const result=finish(f),diag=f.system.diagnostics;
+        assert.equal(result.accepted,true);assert.equal(diag.projectiveDynamics,true);
+        assert.equal(diag.mesh.adaptive,false);assert.ok(diag.mesh.maxSpacing<=5);
+        for(const [key,value] of Object.entries(CROSSOVER_PROJECTIVE_MODEL.physicsOptions.projective))
+            assert.equal(diag.last.pd.parameters[key],value,key);
+        assert.ok(diag.last.pd.maxLengthError<=1e-5);
+        assert.ok(diag.last.pd.maxShear<=1e-5);assert.ok(diag.last.quality.maxPenetration<=1e-5);
+        assert.ok(f.tools.every(t=>t.body.jointStateView));
+    }
+});
+
+test('accepted replay restoration publishes the saved pose and rejects mismatched or pending controls',()=>{
+    let replay;
+    const f=fixture({workSliceMs:Infinity,onRejectedStep:r=>replay=r});
+    f.tools[0].insertion=11;finish(f);
+    const expected=f.tools.map(t=>positions(t.body));
+    f.tools[0].insertion=12;f.controls.throwQuery=true;
+    assert.equal(f.system.step(f.world,dt).terminal,true);assert.ok(replay);
+    f.controls.throwQuery=false;f.tools[0].insertion=11;
+    const mesh=f.system.restoreReplay(replay,f.world);
+    assert.ok(mesh.nodes>0);assert.equal(f.system.diagnostics.acceptedSteps,0);
+    assert.deepEqual(f.tools.map(t=>positions(t.body)),expected);
+    const views=f.tools.map(t=>t.body.jointStateView);
+    f.tools[0].shaftStiffness=2;
+    assert.throws(()=>f.system.restoreReplay(replay,f.world),/controls do not match/);
+    f.tools.forEach((t,i)=>assert.equal(t.body.jointStateView,views[i]));
+    for(const value of [NaN,Infinity,undefined]){
+        f.tools[0].shaftStiffness=value;
+        assert.throws(()=>f.system.restoreReplay(replay,f.world),/controls do not match/);
+        f.tools.forEach((t,i)=>assert.equal(t.body.jointStateView,views[i]));
+    }
+    f.tools[0].shaftStiffness=1;finish(f);
+    f.tools[0].insertion=12;f.system.setWorkSliceBudget(0);
+    assert.equal(f.system.step(f.world,dt).pending,true);
+    assert.throws(()=>f.system.restoreReplay(replay,f.world),/prepared timestep/);
+    finish(f);
+});
 
 test('one-shot slice budgets preserve physical dt, prepared inputs and atomic publication',()=>{
     const a=fixture({workSliceMs:Infinity}),b=fixture({workSliceMs:Infinity});
@@ -67,6 +113,22 @@ test('one-shot slice budgets preserve physical dt, prepared inputs and atomic pu
     for(const value of [NaN,Infinity,-1])assert.throws(()=>b.system.setWorkSliceBudget(value),/Invalid/);
     b.system.setWorkSliceBudget(0);b.system.reset();
     assert.equal(b.system.step(b.world,dt).accepted,true,'reset discards the unused scheduling hint');
+});
+
+test('WASM basis option survives application recovery archives and preserves published positions',()=>{
+    const outputs=[];
+    for(const wasmBasis of [false,true]) {
+        const events=[],f=fixture({wasmBasis,lazyBasisCoefficients:true,onRejectedStep:event=>events.push(event),
+            physicsOptions:{liveWallNormalLoad:false}});
+        f.tools[0].insertion=11;finish(f);
+        f.tools[0].insertion=12;f.controls.failQueries=1;finish(f);
+        assert.equal(events.length,1);assert.equal(events[0].failure.recovered,true);
+        assert.equal(events[0].stepRequest.options.wasmBasis,wasmBasis);
+        assert.equal(events[0].stepRequest.options.lazyBasisCoefficients,true);
+        assert.equal(f.system.diagnostics.wasmBasis,wasmBasis);
+        outputs.push(f.tools.map(t=>positions(t.body)));
+    }
+    assert.deepEqual(outputs[1],outputs[0]);
 });
 
 test('adaptive provider publishes actual mechanical nodes atomically and clears mesh diagnostics on reset',()=>{
@@ -479,6 +541,21 @@ test('60 Hz experiment keeps its own discovery policy while both providers use v
     }
 });
 
+test('ordinary coupled friction reuses mechanical residuals by default and records an explicit opt-out',()=>{
+    for(const reuseFrictionAssembly of [undefined,false]) {
+        const events=[],f=fixture({coupledFrictionNewton:true,reuseFrictionAssembly,onRejectedStep:r=>events.push(r)});
+        f.tools[0].insertion=11;finish(f);
+        f.tools[0].insertion=12;f.controls.throwQuery=true;
+        let result;for(let i=0;i<500;i++){result=f.system.step(f.world,dt);if(!result.pending)break;}
+        assert.equal(result.accepted,false);assert.equal(result.terminal,true);
+        assert.equal(f.system.diagnostics.reuseFrictionAssembly,reuseFrictionAssembly!==false);
+        assert.equal(events.length,1);
+        assert.equal(events[0].stepRequest.options.reuseFrictionAssembly,reuseFrictionAssembly!==false);
+        assert.equal(f.tools[0].body.jointStateView.coordinates.at(-1),11,'A rejected step preserves its published pose');
+    }
+    assert.equal(fixture({coupledFrictionNewton:false}).system.diagnostics.reuseFrictionAssembly,false);
+});
+
 test('graft surface revisions wake sleeping physics and remain frozen through a cooperative step',()=>{
     const f=fixture({workSliceMs:0});finish(f);
     openSpaceGeometry.computeBoundingBox();
@@ -603,4 +680,16 @@ test('pulsatile forcing is frozen across cooperative yields, wakes sleeping tool
     assert.equal(result.status,'sleeping');
     enabled=true;n.time=2;assert.notEqual(finish(f).status,'sleeping');
     assert.equal(f.system.diagnostics.last.bloodFlow.time,2);
+});
+
+
+test('vessel candidate margin survives application initialization, recovery captures and replay',()=>{
+    const events=[],f=fixture({contactCandidateMargin:.01,onRejectedStep:r=>events.push(r),physicsOptions:{liveWallNormalLoad:false}});
+    f.tools[0].insertion=11;finish(f);f.tools[0].insertion=12;f.controls.failQueries=1;finish(f);
+    assert.equal(f.system.diagnostics.contactCandidateMargin,.01);
+    assert.equal(events.length,1);assert.equal(events[0].contactCandidateMargin,.01);
+    assert.equal(events[0].stepRequest.options.contactCandidateMargin,.01);
+    const restored=restoreSharedAxisReplay(JSON.parse(JSON.stringify(events[0])),f.world.contactField);
+    assert.equal(restored.wallSamples[1].candidateMargin,.01);
+    assert.equal(captureSharedAxisReplay(restored,events[0].sheath).contactCandidateMargin,.01);
 });

@@ -1,0 +1,97 @@
+{
+  "input": "reports/performance-scenarios/028-projective-mesh-pair.json.gz",
+  "stepsPerVariant": 6432,
+  "bothFullTrajectoriesAndCoarseRoutesPassed": false,
+  "firstChangedStep": 5347,
+  "maximumCandidateControlShapeDifferenceMm": 5.500911971292711,
+  "shapeComparisonRole": "diagnostic",
+  "profiles": {
+    "candidate": {
+      "moving": {
+        "steps": 2839,
+        "meanCpuMs": 16.517294821834934,
+        "meanNodes": 67.8989080662205,
+        "meanDofs": 1253.754843254667,
+        "meanClosureIterations": 2.2550193730186687,
+        "timings": {
+          "constraintMs": 4.683163090296386,
+          "linearMs": 1.4620641055515258,
+          "assemblyMs": 4.416731244285748,
+          "rotationMs": 2.3215921004921167,
+          "projectionMs": 3.1799577303695274,
+          "closureSolveMs": 2.1861923239776138
+        }
+      },
+      "longMoving": {
+        "steps": 146,
+        "meanCpuMs": 49.79383560076152,
+        "meanNodes": 111.05479452054794,
+        "meanDofs": 2121.8835616438355,
+        "meanClosureIterations": 2.1575342465753424,
+        "timings": {
+          "constraintMs": 12.584931527098565,
+          "linearMs": 4.094520585177696,
+          "assemblyMs": 10.422602733520613,
+          "rotationMs": 5.295205504926916,
+          "projectionMs": 8.386986306268875,
+          "closureSolveMs": 7.186986315740298
+        }
+      }
+    },
+    "control": {
+      "moving": {
+        "steps": 2840,
+        "meanCpuMs": 15.565422532592022,
+        "meanNodes": 68.29894366197183,
+        "meanDofs": 1261.119718309859,
+        "meanClosureIterations": 2.265492957746479,
+        "timings": {
+          "constraintMs": 4.534612677130901,
+          "linearMs": 1.4275704161382057,
+          "assemblyMs": 4.285598595041624,
+          "rotationMs": 2.2369014036487527,
+          "projectionMs": 3.1030985952263146,
+          "closureSolveMs": 2.0454577450181395
+        }
+      },
+      "longMoving": {
+        "steps": 147,
+        "meanCpuMs": 31.51700680596488,
+        "meanNodes": 115.95238095238095,
+        "meanDofs": 2224.1428571428573,
+        "meanClosureIterations": 2.1700680272108843,
+        "timings": {
+          "constraintMs": 9.976870713590765,
+          "linearMs": 3.2734693945670617,
+          "assemblyMs": 7.95578230643759,
+          "rotationMs": 4.131292490732102,
+          "projectionMs": 6.89727892356665,
+          "closureSolveMs": 4.610204099797878
+        }
+      }
+    }
+  },
+  "matchedLong": {
+    "steps": 146,
+    "candidateMs": 49.79383560076152,
+    "controlMs": 31.376027401179485
+  },
+  "longStageCostReductionPercent": -58.700255338538085,
+  "orderGroups": [
+    {
+      "first": "control",
+      "steps": 73,
+      "candidateMs": 61.20821916893737,
+      "controlMs": 30.901369872158522
+    },
+    {
+      "first": "candidate",
+      "steps": 73,
+      "candidateMs": 38.37945203258567,
+      "controlMs": 31.850684930200448
+    }
+  ],
+  "applicationFpsVerified": false,
+  "goalAchieved": false,
+  "caveat": "Independent full trajectories use alternating order on one browser thread. CPU ratios are not full-application FPS; route checks are coarse and require visual/functional review."
+}

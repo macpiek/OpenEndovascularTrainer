@@ -6,7 +6,7 @@ import {createSharedAxisContacts} from '../src/physics/kirchhoffSharedAxisContac
 import {createSharedAxisVesselWitness} from '../src/physics/kirchhoffSharedAxisVesselWitnesses.js';
 import {prepareSharedAxisDynamicStep} from '../src/physics/kirchhoffSharedAxisDynamics.js';
 import {stepSharedAxis} from '../src/physics/kirchhoffSharedAxisTimeStep.js';
-import {adaptiveMeshOptions,coarsenSharedAxisMesh,ADAPTIVE_SOLVE_OPTIONS} from '../src/physics/kirchhoffSharedAxisAdaptiveMesh.js';
+import {adaptiveMeshOptions,coarsenSharedAxisMesh,retainAdaptiveShapeSamples,ADAPTIVE_SOLVE_OPTIONS,CONTACT_PROTECTED_MESH} from '../src/physics/kirchhoffSharedAxisAdaptiveMesh.js';
 import {createSharedAxisAppSystem} from '../src/physics/kirchhoffSharedAxisAppSystem.js';
 import {captureSharedAxisReplay,restoreSharedAxisReplay} from './helpers/sharedAxisReplay.js';
 import {createCoupledSolverSelection,resolveAppCoupledSolver} from '../src/physics/coupledSolverSelection.js';
@@ -33,6 +33,25 @@ test('curvature refines the mesh and straightening permits coarsening again',()=
     const curved=run(xs.map(x=>[20*Math.sin(x/20),20*(1-Math.cos(x/20)),0]));
     assert.ok(curved.length>straight.length*2);
     assert.ok(curved.every((x,i)=>i===0||x-curved[i-1]===5));
+});
+
+test('optional fine prefix keeps the original proximal grid while the long shaft coarsens',()=>{
+    const extra={tools:tools.map(t=>({...t,insertion:t.id==='wire'?900:850}))};
+    const fine=make(false,extra),adaptive=make({finePrefixLength:250,tipLength:80,tipRefinementAhead:80},extra);
+    assert.deepEqual(adaptive.coordinates.filter(x=>x<=255),fine.coordinates.filter(x=>x<=255));
+    assert.ok(adaptive.coordinates.some((x,i)=>i>0&&x>255&&x-adaptive.coordinates[i-1]===20));
+    assert.deepEqual(adaptive.coordinates.filter(x=>x>=770),fine.coordinates.filter(x=>x>=770));
+    assert.equal(adaptiveMeshOptions({finePrefixLength:0}).finePrefixLength,0);
+    assert.throws(()=>adaptiveMeshOptions({finePrefixLength:-1}),/Invalid/);
+});
+
+test('fine prefix discards obsolete shape knots but retains required cloth contact bends',()=>{
+    const options=adaptiveMeshOptions({finePrefixLength:250,shapeTolerance:.01});
+    const previous={spacing:5,coordinates:[0,5,7.5,10,15],positions:[[0,0,0],[5,0,0],[7.5,.1,0],[10,0,0],[15,0,0]],wallSamples:[]};
+    const run=()=>{const xs=[0,5,10,15],ps=xs.map(x=>[x,0,0]);retainAdaptiveShapeSamples(xs,ps,previous,options);return xs;};
+    assert.deepEqual(run(),[0,5,10,15]);
+    previous.wallSamples=[{adaptiveContactKnots:()=>new Set([7.5])}];
+    assert.deepEqual(run(),[0,5,7.5,10,15]);
 });
 
 test('zero contact margin frees near-wall nodes but preserves touching and loaded contacts',()=>{
@@ -188,4 +207,57 @@ test('ahead refinement retains fine mechanics before an approaching catheter wit
     assert.ok(ahead.coordinates.length>ordinary.coordinates.length);
     assert.ok(ahead.coordinates.slice(1).some((x,i)=>x-ahead.coordinates[i]===20),'The distant shaft remains coarse');
     assert.throws(()=>create(-1),/budget/);
+});
+
+test('contact-protected shaft approximation retains the original fine spacing at a loaded wall site and ahead of the tip',()=>{
+    for(const spacing of [2,5]) {
+        const fine=make(false,{spacing}),edge=fine.coordinates.indexOf(100);
+        const geometry=new PlaneGeometry(2000,2000),field={fallbackGeometry:geometry};
+        try {
+            const row=createSharedAxisVesselWitness(field,{id:'loaded-protected',kind:'wall',edge,witness:{face:0,t:.4},
+                dofs:[fine.layout.positions[edge],fine.layout.positions[edge+1]].flatMap(p=>[p,p+1,p+2])});
+            extendSharedAxisNativeRows(fine,[row]);fine.multipliers[fine.multipliers.length-1]=2;
+            fine.acceptedWallGaps=new Map([[row.id,0]]);
+            const next=feedSharedAxisNative({...fine,adaptiveMesh:CONTACT_PROTECTED_MESH},{wire:300.7,catheter:240.4});
+            for(let x=100-spacing;x<=100+2*spacing;x+=spacing)assert.ok(next.coordinates.includes(x),`Loaded region ${x}/${spacing}`);
+            for(let x=Math.ceil(240.4/spacing)*spacing;x<=280.4;x+=spacing)assert.ok(next.coordinates.includes(x),`Ahead of tip ${x}/${spacing}`);
+            assert.ok(next.coordinates.length<fine.coordinates.length,'Only the distant shaft may be coarsened');
+            const mapped=next.definitions.findIndex(r=>r.id===row.id);
+            assert.ok(mapped>=0);assert.equal(next.multipliers[mapped],2,'The same wall equation keeps its reaction');
+        } finally {geometry.dispose();}
+    }
+});
+
+test('adaptive shaft keeps the reference grid around curved moving tips instead of accumulating short cells',()=>{
+    const tools=[{id:'wire',insertion:300.2,type:'glidewire'},{id:'catheter',insertion:240.6666666667,type:'pigtail'}];
+    const options=adaptiveMeshOptions({...CONTACT_PROTECTED_MESH,shapeTolerance:.005,tipLength:80,tipRefinementAhead:80});
+    const fine=createSharedAxisNative({tools,startCoordinate:-40,samplePosition:x=>[x,10*Math.sin(x/20),0]});
+    let reference=fine,reduced={...fine,adaptiveMesh:options};
+    for(let step=1;step<=20;step++) {
+        const offset=step<=10?-step*.5:-(20-step)*.5;
+        const targets={wire:300.2+offset,catheter:240.6666666667+offset};
+        reference=feedSharedAxisNative(reference,targets);reduced=feedSharedAxisNative(reduced,targets);
+        const first=targets.catheter-options.tipLength;
+        assert.deepEqual(reduced.coordinates.filter(x=>x>=first),reference.coordinates.filter(x=>x>=first),`Tip topology at feed ${step}`);
+        for(const m of reduced.materials) {
+            const r=reference.materials.find(t=>t.spec.id===m.spec.id);
+            for(let i=0;i<m.coordinates.length-1;i++)if(m.coordinates[i]>=first) {
+                const j=r.coordinates.indexOf(m.coordinates[i]);assert.ok(j>=0);
+                assert.equal(m.body.restLength[i],r.body.restLength[j]);
+            }
+        }
+    }
+});
+
+
+test('fine tip grid still retains physical cloth bends and distant adaptive shaft samples',()=>{
+    const tools=[{id:'catheter',insertion:240,type:'pigtail'}];
+    const options=adaptiveMeshOptions({...CONTACT_PROTECTED_MESH,tipLength:80});
+    const previous={coordinates:[0,2,5,235,237,240],positions:[[0,0,0],[2,.1,0],[5,0,0],[235,0,0],[237,.1,0],[240,0,0]],
+        wallSamples:[{adaptiveContactKnots:()=>[237]}]};
+    const saved=structuredClone(previous.positions),coordinates=[0,5,235,240],positions=coordinates.map(x=>[x,0,0]);
+    retainAdaptiveShapeSamples(coordinates,positions,previous,options,{tools});
+    assert.ok(coordinates.includes(2),'Distant shaft bend keeps its shape sample');
+    assert.ok(coordinates.includes(237),'A physical cloth bend is not dropped by the tip-grid rule');
+    assert.deepEqual(previous.positions,saved);
 });

@@ -1,0 +1,229 @@
+--- a/src/physics/kirchhoffIncrementalContactLU.js
++++ b/src/physics/kirchhoffIncrementalContactLU.js
+@@ -17,11 +17,15 @@
+ export function createIncrementalContactLU(layout,count,{maxRank=8}={}) {
+     if(!Number.isInteger(maxRank)||maxRank<0||maxRank>16)throw new RangeError('Invalid contact update rank');
+     const {starts,ends,offsets,kl,ku}=layout,stride=2*kl+ku+1;
+-    const lease=acquire(8*count*(stride+kl+4)+128),{kernel,buffer}=lease;
++    const lease=acquire(8*count*(stride+kl+8)+8*layout.entries+256),{kernel,buffer}=lease;
+     let cursor=0,disposed=false;
+     const alloc=(Type,length)=>{cursor=Math.ceil(cursor/8)*8;const v=new Type(buffer,cursor,length);cursor+=v.byteLength;return v;};
+     const factor=alloc(Float64Array,count*stride),rhs=alloc(Float64Array,count),
+-        right=alloc(Int32Array,count),pivots=alloc(Int32Array,count),lower=alloc(Float64Array,count*kl);
++        right=alloc(Int32Array,count),pivots=alloc(Int32Array,count),lower=alloc(Float64Array,count*kl),
++        original=alloc(Float64Array,layout.entries),input=alloc(Float64Array,count),
++        scaling=alloc(Float64Array,count),first=alloc(Int32Array,count),last=alloc(Int32Array,count),offset=alloc(Int32Array,count),
++        physical=alloc(Float64Array,count),error=alloc(Float64Array,count),norms=alloc(Float64Array,5);
++    first.set(starts);last.set(ends);offset.set(offsets);
+     const base=new Float64Array(layout.entries),scale=new Float64Array(count),x=new Float64Array(count);
+     let valid=false;const columns=new Map();
+     const diagnostics={factorizations:0,updates:0,reuses:0,backsolves:0,updateFailures:0,rankResets:0,
+@@ -32,22 +36,21 @@
+         diagnostics.backsolves++;
+     }
+     function certify(J,F) {
+-        let err=0,normA=0,normF=0,normX=0;
+-        for(let i=0;i<count;i++) {
+-            let v=F[i],row=0;
+-            for(let j=starts[i];j<=ends[i];j++){const a=J[offsets[i]+j];v+=a*x[j];row+=Math.abs(a);}
+-            err=Math.max(err,Math.abs(v));normA=Math.max(normA,row);normF=Math.max(normF,Math.abs(F[i]));normX=Math.max(normX,Math.abs(x[i]));
+-        }
+-        const error=err/Math.max(Number.MIN_VALUE,normA*normX+normF);
+-        if(Number.isFinite(error))diagnostics.maximumBackwardError=Math.max(diagnostics.maximumBackwardError,error);
+-        return Number.isFinite(error)&&error<=64*Math.max(1,count)*Number.EPSILON&&x.every(Number.isFinite);
++        original.set(J);input.set(F);
++        for(let i=0;i<count;i++)rhs[i]=x[i]/scale[i];
++        kernel.measureGeneralBandLU(original.byteOffset,input.byteOffset,scaling.byteOffset,
++            first.byteOffset,last.byteOffset,offset.byteOffset,factor.byteOffset,rhs.byteOffset,
++            right.byteOffset,count,stride,kl,norms.byteOffset,0);
++        const backward=norms[0]/Math.max(Number.MIN_VALUE,norms[1]*norms[3]+norms[2]);
++        if(Number.isFinite(backward))diagnostics.maximumBackwardError=Math.max(diagnostics.maximumBackwardError,backward);
++        return Number.isFinite(backward)&&backward<=64*Math.max(1,count)*Number.EPSILON&&x.every(Number.isFinite);
+     }
+     function fresh(J,F,scales) {
+         valid=false;columns.clear();base.set(J);scale.set(scales);factor.fill(0);right.set(ends);
+-        for(let i=0;i<count;i++) {
+-            rhs[i]=-F[i]*scale[i];const target=i*stride+kl-i;
+-            for(let j=starts[i];j<=ends[i];j++)factor[target+j]=J[offsets[i]+j]*scale[i]*scale[j];
+-        }
++        original.set(J);input.set(F);scaling.set(scale);
++        kernel.prepareGeneralBandLU(original.byteOffset,input.byteOffset,scaling.byteOffset,
++            first.byteOffset,last.byteOffset,offset.byteOffset,factor.byteOffset,rhs.byteOffset,
++            right.byteOffset,count,stride,kl,0);
+         diagnostics.factorizations++;
+         if(kernel.factorRetainedGeneralBandLU(factor.byteOffset,rhs.byteOffset,right.byteOffset,count,kl,ku,pivots.byteOffset,lower.byteOffset)<0)return false;
+         for(let i=0;i<count;i++)x[i]=rhs[i]*scale[i];
+@@ -82,7 +85,13 @@
+         if(!certify(J,F))return false;
+         diagnostics.updates++;return true;
+     }
+-    return {diagnostics,dispose() {if(!disposed){disposed=true;valid=false;if(idle.length<2&&lease.buffer.byteLength<=4*1024*1024)idle.push(lease);}},inverse(input,out) {
++    return {diagnostics,measureOriginalResidual(solution,out,F) {
++        if(disposed)throw new Error('Released incremental LU lease');
++        physical.set(solution);input.set(F);
++        const residual=kernel.measureOriginalBandResidual(original.byteOffset,input.byteOffset,physical.byteOffset,
++            first.byteOffset,last.byteOffset,offset.byteOffset,error.byteOffset,count);
++        out.set(error);return residual;
++    },dispose() {if(!disposed){disposed=true;valid=false;if(idle.length<2&&lease.buffer.byteLength<=4*1024*1024)idle.push(lease);}},inverse(input,out) {
+         if(!valid)return false;
+         for(let i=0;i<count;i++)rhs[i]=input[i]*scale[i];
+         backsolve(out);return out.every(Number.isFinite);
+--- a/src/physics/kirchhoffBorderedContactUpdates.js
++++ b/src/physics/kirchhoffBorderedContactUpdates.js
+@@ -6,7 +6,8 @@
+     const indexSet=new Set(indices),baseF=w.residual.slice(),matrix=w.matrix.slice(),{primal,dual,count,band}=w;
+     const {starts,ends,offsets}=band,invCache=new Map(),fixed=w.fixed.slice();
+     const diagnostics={updates:0,rejections:0,rankResets:0,ranks:{}};
+-    const dot=(a,b)=>{let v=0;for(let i=0;i<count;i++)v+=a[i]*b[i];return v;};
++    const sparse=a=>{const index=[],value=[];for(let i=0;i<a.length;i++)if(a[i]!==0){index.push(i);value.push(a[i]);}return {index,value};};
++    const dot=(a,b)=>{let v=0;for(let k=0;k<a.index.length;k++)v+=a.value[k]*b[a.index[k]];return v;};
+     function inverseColumn(key,column) {
+         let result=invCache.get(key);
+         if(!result){result=new Float64Array(count);if(!lu.inverse(column,result))return null;if(invCache.size<32)invCache.set(key,result);}
+@@ -34,15 +35,15 @@
+             const d=dual[i],column=new Float64Array(count),equation=new Float64Array(count);column[d]=1;
+             for(let j=starts[d];j<=ends[d];j++)equation[j]=-matrix[offsets[d]+j];equation[d]+=1;
+             F[d]=rows[indices[i]].multiplier;
+-            columns.push(column);equations.push(equation);responses.push(inverseColumn(`remove/${i}`,column));
++            columns.push(sparse(column));equations.push(sparse(equation));responses.push(inverseColumn(`remove/${i}`,column));
+         }
+         for(const index of added) {
+             const r=rows[index],column=new Float64Array(count),equation=new Float64Array(count),sign=r.kind==='wall'?-1:1;
+             for(let k=0;k<r.dofs.length;k++){const p=primal[r.dofs[k]];if(!fixed[p]){column[p]+=sign*r.jacobian[k];equation[p]+=r.jacobian[k];}}
+             for(let k=0;k<(r.extraForceDofs?.length??0);k++){const p=primal[r.extraForceDofs[k]];if(!fixed[p])column[p]+=r.extraForceJacobian[k];}
+             // This reaction was eliminated from the base's primal RHS.
+-            for(let i=0;i<count;i++)F[i]+=r.multiplier*column[i];
+-            columns.push(column);equations.push(equation);responses.push(inverseColumn(`add/${index}`,column));
++            for(let i=0;i<count;i++)if(column[i]!==0)F[i]+=r.multiplier*column[i];
++            columns.push(sparse(column));equations.push(sparse(equation));responses.push(inverseColumn(`add/${index}`,column));
+         }
+         if(responses.some(v=>v===null))return reject();
+         const small=new Float64Array(rank*rank);
+@@ -62,15 +63,32 @@
+         let residual=Infinity;
+         for(let attempt=0;attempt<3;attempt++) {
+             const error=new Float64Array(count),bottom=new Float64Array(added.length);residual=0;
+-            for(let i=0;i<count;i++) {
+-                let sum=F[i],correction=0;
+-                const add=v=>{const next=sum+v;correction+=Math.abs(sum)>=Math.abs(v)?(sum-next)+v:(v-next)+sum;sum=next;};
+-                for(let j=starts[i];j<=ends[i];j++)add(matrix[offsets[i]+j]*x[j]);
+-                for(let j=0;j<removed.length;j++)if(i===dual[removed[j]])add(dot(equations[j],x));
+-                for(let j=removed.length;j<rank;j++)add(columns[j][i]*c[j]);
+-                error[i]=sum+correction;residual=Math.max(residual,Math.abs(error[i]));
++            lu.measureOriginalResidual(x,error,F);
++            for(let j=0;j<removed.length;j++) {
++                const d=dual[removed[j]];error[d]=F[d]+x[d];
+             }
++            for(let j=removed.length;j<rank;j++) {
++                const col=columns[j];
++                for(let k=0;k<col.index.length;k++)error[col.index[k]]+=col.value[k]*c[j];
++            }
++            for(let i=0;i<count;i++)residual=Math.max(residual,Math.abs(error[i]));
+             for(let j=0;j<added.length;j++){bottom[j]=dot(equations[j+removed.length],x)+rows[added[j]].gap;residual=Math.max(residual,Math.abs(bottom[j]));}
++            if(residual>tolerance) {
++                // Recover cancellation accuracy before refining or rejecting;
++                // preserve the complete original physical equation certificate.
++                residual=0;
++                for(let i=0;i<count;i++) {
++                    let sum=F[i],correction=0;
++                    const add=v=>{const next=sum+v;correction+=Math.abs(sum)>=Math.abs(v)?(sum-next)+v:(v-next)+sum;sum=next;};
++                    for(let j=starts[i];j<=ends[i];j++)add(matrix[offsets[i]+j]*x[j]);
++                    for(let j=0;j<removed.length;j++)if(i===dual[removed[j]])add(dot(equations[j],x));
++                    for(let j=removed.length;j<rank;j++) {
++                        const col=columns[j],k=col.index.indexOf(i);if(k>=0)add(col.value[k]*c[j]);
++                    }
++                    error[i]=sum+correction;residual=Math.max(residual,Math.abs(error[i]));
++                }
++                for(let j=0;j<bottom.length;j++)residual=Math.max(residual,Math.abs(bottom[j]));
++            }
+             if(!Number.isFinite(residual))return reject();
+             if(residual<=tolerance)break;
+             if(attempt===2)return reject();
+--- a/src/physics/kirchhoffSharedAxisLinear.js
++++ b/src/physics/kirchhoffSharedAxisLinear.js
+@@ -259,7 +259,7 @@
+     // Certify the original unscaled equations, refining the solution when
+     // material stiffness / a short edge makes forward error significant.
+     try { for (let attempt = 0; attempt < 3; attempt++) {
+-        residual = wasmLinear?lu.measureOriginalResidual(w.solution,w.error,F):null;
++        residual = lu.measureOriginalResidual?.(w.solution,w.error,F)??null;
+         if(residual===null) {
+         residual = 0;
+         for (let i = 0; i < w.count; i++) {
+@@ -460,6 +460,10 @@
+             w.increment.set(saved.increment);w.multiplierIncrement.set(saved.multiplierIncrement);
+             result={...saved,increment:w.increment,multiplierIncrement:w.multiplierIncrement,factorizations:0};workingSetReuses++;
+         } else {
++            if(options.incrementalContacts==='tail'&&attempt>=8&&!options.incrementalContext) {
++                materializeSharedAxisContacts(options.rows);
++                options.incrementalContext=options.incrementalLease;
++            }
+             result=options.compactWorkingSet===false?solveSharedAxisLinearOnce(w,chain,{...options,activeSet}):
+                 solveCompactWorkingSet(w,chain,options,activeSet);
+             // Numerical rejection is deterministic for these immutable
+@@ -562,7 +566,7 @@
+     // Numerical Jacobian prefixes may survive another solve only after exact
+     // support/Jacobian/fixed-mask validation. Matrix and solution caches below
+     // remain local to this immutable linearization.
+-    options={...options,matrixAssembly:options.reuseMatrixAssembly?{rows:options.rows}:null,supportKeyCache:options.reuseConstraintWork?new Map():null,...(options.incrementalContacts?{...(options.incrementalContacts==='full'?{compactWorkingSet:false}:{}),incrementalContext:{maxRank:options.incrementalMaxRank??8,workspaces:new Map(),borderDiagnostics:[],allDiagnostics:[]}}:{}),basisCache:undefined};
++    options={...options,matrixAssembly:options.reuseMatrixAssembly?{rows:options.rows}:null,supportKeyCache:options.reuseConstraintWork?new Map():null,...(options.incrementalContacts?{...(options.incrementalContacts==='full'?{compactWorkingSet:false}:{}),[options.incrementalContacts==='tail'?'incrementalLease':'incrementalContext']:{maxRank:options.incrementalMaxRank??8,workspaces:new Map(),borderDiagnostics:[],allDiagnostics:[]}}:{}),basisCache:undefined};
+     try {
+         const first=yield* iterateActiveSet(w,chain,options,batchSize,solutionCache);
+         const incrementalStats=()=>options.incrementalContext?{incrementalStats:structuredClone(options.incrementalContext.allDiagnostics),borderedStats:structuredClone(options.incrementalContext.borderDiagnostics)}:{};
+@@ -580,7 +584,7 @@
+             batchAttempts:failedAttempts,referenceAttempts:reference.activeSetAttempts};
+         failedCache?.remember(chain,incomingOptions,result,solutionCache);
+         return result;
+-    } finally {for(const lu of options.incrementalContext?.workspaces.values()??[])lu.dispose();}
++    } finally {for(const lu of (options.incrementalContext??options.incrementalLease)?.workspaces.values()??[])lu.dispose();}
+ }
+ 
+ /** Yield between active-set/LU attempts while preserving the synchronous API.
+@@ -588,7 +592,7 @@
+ export function* iterateSharedAxisLinear(w,chain,options) {
+     const condensationStats=options.condenseCompliantContacts?{attempts:0,eliminatedRows:0,fallbacks:0}:null;
+     if(condensationStats)options={...options,condensationStats};
+-    if(options.compactWorkingSet===false||options.incrementalContacts||options.modifiedNewtonContext||options.observeLinearSystem)materializeSharedAxisContacts(options.rows);
++    if(options.compactWorkingSet===false||options.incrementalContacts&&options.incrementalContacts!=='tail'||options.modifiedNewtonContext||options.observeLinearSystem)materializeSharedAxisContacts(options.rows);
+     options.observeLinearSystem?.({chain,options});
+     options.rows.forEach(r=>{
+         validateExtraForce(r,chain.layout.dofCount);
+--- a/tests/kirchhoffIncrementalContactLU.test.js
++++ b/tests/kirchhoffIncrementalContactLU.test.js
+@@ -104,3 +104,36 @@
+         }
+     }finally{anatomy.dispose();}
+ });
++
++
++test('tail retention leaves short searches unchanged and reuses only after repeated contact pivots',()=>{
++    for(const n of [4,32]) {
++        const layout={dofCount:n,band:1},chain={layout,hessian:new Float64Array(n).fill(2)};
++        const rows=Array.from({length:n},(_,i)=>({id:i,kind:'wall',dofs:[i],jacobian:[1],gap:-1-i/10,multiplier:0}));
++        const options={rows,gradient:new Float64Array(n),fixed:new Uint8Array(n),batchActivation:false,wasmLinearAssembly:true};
++        const reference=solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,options);
++        const actual=solveSharedAxisLinear(createSharedAxisLinear(layout,rows,{lazy:true}),chain,{...options,incrementalContacts:'tail'});
++        assert.ok(actual.converged);assert.equal(actual.activeSetAttempts,reference.activeSetAttempts);
++        if(n<8)assert.equal(actual.factorizations,reference.factorizations);
++        else assert.ok(actual.factorizations<reference.factorizations);
++        for(const key of ['increment','multiplierIncrement'])for(let i=0;i<actual[key].length;i++)
++            assert.ok(Math.abs(actual[key][i]-reference[key][i])<1e-10);
++    }
++});
++
++test('retained residual uses the current original matrix and independent leases',()=>{
++    const f=fixture(),solver=createIncrementalContactLU(f.layout,f.n),direction=new Float64Array(f.n);
++    for(let step=0;step<3;step++) {
++        f.J[f.layout.offsets[2]+2]+=.1;
++        assert.ok(solver.solve(f.J,f.F,f.scales,0,direction));
++        const physical=Float64Array.from(direction,(v,i)=>v*f.scales[i]);physical[3]+=.1;
++        const error=new Float64Array(f.n),maximum=solver.measureOriginalResidual(physical,error,f.F);
++        let expectedMaximum=0;
++        for(let i=0;i<f.n;i++) {
++            let expected=f.F[i];for(let j=f.layout.starts[i];j<=f.layout.ends[i];j++)expected+=f.J[f.layout.offsets[i]+j]*physical[j];
++            assert.equal(error[i],expected);expectedMaximum=Math.max(expectedMaximum,Math.abs(expected));
++        }
++        assert.equal(maximum,expectedMaximum);
++    }
++    solver.dispose();assert.throws(()=>solver.measureOriginalResidual(direction,direction,f.F),/Released/);
++});

@@ -1,0 +1,84 @@
+{
+  "recordedAt": "2026-10-14T11:26:43.597Z",
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "change": "Revalidate the opt-in contact-protected shaft approximation after fixing late reference failures and adding the exact WASM basis path.",
+  "comparison": {
+    "report": "001-reduced-model-wasm-long.json",
+    "passed": true,
+    "steps": 300,
+    "mesh": {
+      "maxSpacing": 20,
+      "shapeTolerance": 0.03,
+      "maxArcLoss": 0.0002,
+      "maxTurn": 0.08,
+      "contactMargin": 0.01,
+      "tipLength": 40,
+      "tipRefinementAhead": 40
+    },
+    "summary": {
+      "reference": {
+        "steps": 300,
+        "totalMs": 10577.32416599998,
+        "medianMs": 23.549999999999272,
+        "p95Ms": 73.953125,
+        "maxMs": 512.1456249999974,
+        "cpuStepsPerSecond": 28.362560822738857,
+        "withinBudget": 2,
+        "minNodes": 204,
+        "maxNodes": 207,
+        "maxPenetrationMm": 9.09027297879561e-11,
+        "maxLengthError": 1.7639223415244487e-13,
+        "maxCertificateBound": 9.993825074161578e-7,
+        "maxSpeed": 21.613441219624374
+      },
+      "reduced": {
+        "steps": 300,
+        "totalMs": 8914.881378999997,
+        "medianMs": 21.965000000000146,
+        "p95Ms": 66.06254100000024,
+        "maxMs": 461.169417000001,
+        "cpuStepsPerSecond": 33.65159750826115,
+        "withinBudget": 20,
+        "minNodes": 170,
+        "maxNodes": 191,
+        "maxPenetrationMm": 1.6575629757653587e-13,
+        "maxLengthError": 7.938094625985339e-14,
+        "maxCertificateBound": 9.681015171736362e-7,
+        "maxSpeed": 21.600639609598698
+      }
+    },
+    "maxShapeDifferenceMm": 0.1203764880400181,
+    "maxTipDifferenceMm": 0.011979120752749525,
+    "totalCpuReductionPercent": 15.71704488687018
+  },
+  "browser": {
+    "report": "001-browser-reduced-model-wasm-long.json",
+    "screenshot": "001-browser-reduced-model-wasm-long.jpg",
+    "passed": true,
+    "steps": 300,
+    "physicsHz": 21.59733920758718,
+    "renderFps": 59.75263847432453,
+    "simulationSeconds": 5,
+    "wallSeconds": 13.890600000143051,
+    "stepCpuMs": {
+      "median": 25,
+      "p95": 79.7000002861023,
+      "max": 623.5000014305115
+    },
+    "options": {
+      "contactCandidateMargin": 0.01,
+      "deferActiveBasis": true,
+      "lazyBasisCoefficients": true,
+      "wasmBasis": true
+    },
+    "consoleErrors": 0
+  },
+  "limitations": [
+    "One 300-step continuation; no validation of all insertion, rotation and stent-graft procedures.",
+    "The exploratory 0.5 mm shape threshold is not a clinical accuracy criterion.",
+    "Paired CPU cost decreased by about 16%, but the separate browser runs did not show an accepted-step frequency gain (22.3 Hz full, 21.6 Hz reduced).",
+    "The earlier reference failure at step 203 is now resolved; this report supersedes that limitation of 001-reduced-model-validation.json only for this 300-step continuation.",
+    "Keep this approximation opt-in. Full mechanics remains the production default."
+  ]
+}

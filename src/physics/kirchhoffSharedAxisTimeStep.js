@@ -1,8 +1,10 @@
 import {materializeSharedAxisContacts} from './kirchhoffSharedAxisInactiveContacts.js';
+import {leaseSharedAxisConstraintRowPool} from './kirchhoffSharedAxisConstraintRows.js';
 import {captureSharedAxisNative,restoreSharedAxisNative,applySharedAxisNativeIncrement} from './kirchhoffSharedAxisNative.js';
 import {prepareSharedAxisDynamicStep,completeSharedAxisDynamicStep} from './kirchhoffSharedAxisDynamics.js';
 import {prepareSharedAxisWallFriction,refreshSharedAxisWallFriction,commitSharedAxisWallFriction} from './kirchhoffSharedAxisWallFriction.js';
 import {iterateSharedAxisWithContacts} from './kirchhoffSharedAxisVesselWitnesses.js';
+import {fallbackWorkingSetLease,createSharedAxisFallbackWorkingSetCache} from './kirchhoffSharedAxisRejectedLinearization.js';
 
 /** A full atomic dynamic step, including the external wall friction law.
  * Inter-tool constraints remain absent. Frozen friction modes are certified
@@ -17,6 +19,9 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
     if(wallCompliance&&(options.modifiedNewton||options.incrementalContacts))throw new RangeError('Compliant contacts require the ordinary linear solver');
     if(options.primalCompliantContacts&&(!wallCompliance||options.cullInactiveContacts))throw new RangeError('Primal contacts require positive compliance and explicit contact geometry');
     let committed=false;
+    const previousRowPool=s.constraintRowPool;
+    const rowLease=options.reuseRowBuffers?leaseSharedAxisConstraintRowPool():null;
+    if(rowLease)s.constraintRowPool=rowLease.pool;
     try {
     const tolerance=options.forceTolerance??1e-6;
     if(!(Number.isFinite(tolerance)&&tolerance>0))throw new RangeError('Positive force tolerance required');
@@ -77,6 +82,7 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
         s.wallCompliance=previousCompliance;s.primalCompliantContacts=previousPrimal;
         s.reuseTriangleKernel=previousTriangleKernel;
         s.cacheMechanicalAssembly=false;s.mechanicalAssemblyCache=null;s.wallGeometryCache=null;s.bufferedWallGeometryCache=null;
+        s.constraintRowPool=previousRowPool;rowLease?.release();
         if(!committed){restoreSharedAxisNative(s,incoming);s.acceptedSolves=acceptedSolves;s.acceptedWallGaps=gaps;
             s.wallFrictionHistory=history;s.velocities=velocities;s.angularVelocities=angularVelocities;s.wallFrictionStep=null;s.dynamicStep=null;}
     }
@@ -87,13 +93,25 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
  * outer corrections, retaining only discovered static geometry. Cancellation
  * cannot enter this fallback: generator.return unwinds the attempt's finally. */
 export function* iterateSharedAxisTimeStep(s,dt,options={}) {
+    // The experimental early predictor switch uses the factor count as its
+    // trigger. Keep its original work/path until it has an independent budget.
+    if(options.reuseFallbackWorkingSets!==false&&options.reuseConstraintWork===true&&
+        options.reuseWorkingSet!==false&&options.earlyPredictorFallback!==true&&
+        !options.observeIteration&&!options.observeTrial&&
+        !options.observeLinearSystem&&!options[fallbackWorkingSetLease]) {
+        const cache=createSharedAxisFallbackWorkingSetCache();
+        try {
+            const result=yield* iterateSharedAxisTimeStep(s,dt,{...options,[fallbackWorkingSetLease]:cache});
+            return {...result,fallbackLinearizationReuses:cache.hits};
+        } finally {cache.clear();}
+    }
     const predictor=options.velocityPredictor??0;
     if(!Number.isFinite(predictor)||predictor<0||predictor>1)throw new RangeError('Velocity predictor must be between zero and one');
     if(options.velocityPredictor&&options.predictorFallback!==false) {
         // A poor prediction is only a failed initial guess. The attempt's
         // finally restores pose, rates and history before an ordinary retry.
         const attempt=yield* iterateSharedAxisTimeStep(s,dt,{...options,predictorFallback:false});
-        if(attempt.converged||!attempt.predictedInitialPose)return attempt;
+        if(attempt.converged||attempt.status==='roundoff-stagnation'||!attempt.predictedInitialPose)return attempt;
         const reference=yield* iterateSharedAxisTimeStep(s,dt,{...options,velocityPredictor:0});
         const out={...reference,predictorFallbacks:1+(attempt.predictorFallbacks??0)+(reference.predictorFallbacks??0),predictorRecovery:{attempted:true,predictorStatus:attempt.status,converged:reference.converged}};
         for(const key of ['wallNormalFallbacks','retainedDiscoveryTrials','coupledFrictionRefreshes','coupledFrictionFallbacks','iterations','factorizations','workingSetReuses','backtracks','geometryRestarts','frictionIterations','fullAssemblies','residualAssemblies','promotedAssemblies','modifiedAttempts','modifiedAccepted','modifiedFallbacks','ms'])
@@ -109,7 +127,7 @@ export function* iterateSharedAxisTimeStep(s,dt,options={}) {
         // geometry. Other pre-factorization failures may recover and must retry.
         const outsideAtEntry=experiment.error==='Shared axis crossed the vessel surface'&&experiment.iterations===0&&
             !experiment.factorizations&&!experiment.coupledFrictionRefreshes&&!experiment.retainedDiscoveryTrials;
-        if(experiment.converged||outsideAtEntry)return experiment;
+        if(experiment.converged||experiment.status==='roundoff-stagnation'||outsideAtEntry)return experiment;
         // Preserve the usual direction sequence for ordinary failures. Only
         // a costly failed extrapolation tries the incoming pose before the
         // friction fallbacks. Full predicted recovery remains available if it
@@ -138,7 +156,7 @@ export function* iterateSharedAxisTimeStep(s,dt,options={}) {
 
     if(options.modifiedNewton&&options.modifiedNewtonFallback!==false) {
         const experiment=yield* iterateSharedAxisTimeStep(s,dt,{...options,modifiedNewtonFallback:false});
-        if(experiment.converged)return experiment;
+        if(experiment.converged||experiment.status==='roundoff-stagnation')return experiment;
         // A failed experiment has rolled back the full physical state. Retry
         // the original method before requesting smaller feed/time subdivisions.
         const reference=yield* iterateSharedAxisTimeStep(s,dt,{...options,modifiedNewton:false});
@@ -150,7 +168,7 @@ export function* iterateSharedAxisTimeStep(s,dt,options={}) {
     }
     const first=yield* iterateTimeStepAttempt(s,dt,{...options,
         earlyLiveFallback:options.earlyLiveFallback!==false&&options.liveWallNormalLoad===true&&(options.wallNormalFallback!==false||options.coupledFrictionNewton===true)});
-    if(first.converged||options.liveWallNormalLoad!==true||options.wallNormalFallback===false)return first;
+    if(first.converged||first.status==='roundoff-stagnation'||options.liveWallNormalLoad!==true||options.wallNormalFallback===false)return first;
     const fallback=yield* iterateTimeStepAttempt(s,dt,{...options,liveWallNormalLoad:false});
     const result={...fallback,wallNormalFallbacks:1,wallNormalFallback:{attempted:true,liveFailure:first.status,converged:fallback.converged,
         ...(first.detectedCycle?{detectedCycle:first.detectedCycle}:{}),...(first.detectedStagnation?{detectedStagnation:first.detectedStagnation}:{})}};

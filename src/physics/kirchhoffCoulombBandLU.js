@@ -29,10 +29,14 @@ export function createCoulombBandLUArena() {
                 if(kernel)grows++;
                 kernel=nextKernel;buffer=nextBuffer;capacityBytes=nextCapacity;allocations++;shapes.clear();
             }
-            const key=`${count}/${stride}/${assemblyEntries}`;
+            // Local row envelopes change the number of stored coefficients
+            // without changing the factor shape. Keep the largest assembly
+            // capacity seen for that shape; current offsets delimit every
+            // read, so unused tail entries need neither copies nor clearing.
+            const key=`${count}/${stride}/${assemblyEntries?1:0}`;
             let views=shapes.get(key);
-            if(!views) {
-                if(shapes.size>=32)shapes.delete(shapes.keys().next().value);
+            if(!views||assemblyEntries>(views.assembly?.matrix.length??0)) {
+                if(!views&&shapes.size>=32)shapes.delete(shapes.keys().next().value);
                 views={kernel,factor:new Float64Array(buffer,0,entries),rhs:new Float64Array(buffer,8*entries,count),
                     right:new Int32Array(buffer,8*(entries+count),count)};
                 if(assemblyEntries) {

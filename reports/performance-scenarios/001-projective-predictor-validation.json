@@ -1,0 +1,62 @@
+{
+  "recordedAt": "2026-10-14T15:08:18.571Z",
+  "researchOnly": true,
+  "productionDefaultsChanged": false,
+  "goalAchieved": false,
+  "report": "001-projective-predictor-screen.json",
+  "sourceHashesVerified": true,
+  "variants": [
+    {
+      "iterations": 1,
+      "cases": 7,
+      "betterPoseThanVelocity": 1,
+      "guessMedianMs": 13.803834000000279,
+      "guessMinMs": 8.388167000000976,
+      "guessMaxMs": 35.84741699999722,
+      "maxShapeDifferenceToFullStepMm": 0.20851732600989428,
+      "maxLengthErrorMm": 0.0036616456842965663,
+      "maxPenetrationMm": 0.006404333174356791
+    },
+    {
+      "iterations": 2,
+      "cases": 7,
+      "betterPoseThanVelocity": 1,
+      "guessMedianMs": 18.133208000000195,
+      "guessMinMs": 11.734458000000814,
+      "guessMaxMs": 19.653916999999637,
+      "maxShapeDifferenceToFullStepMm": 0.21508654642761665,
+      "maxLengthErrorMm": 0.004638386021549756,
+      "maxPenetrationMm": 0.002883091137599325
+    },
+    {
+      "iterations": 4,
+      "cases": 7,
+      "betterPoseThanVelocity": 1,
+      "guessMedianMs": 22.45979200000147,
+      "guessMinMs": 19.050375000000713,
+      "guessMaxMs": 24.859875000000102,
+      "maxShapeDifferenceToFullStepMm": 0.22348483918672635,
+      "maxLengthErrorMm": 0.0058664537312939306,
+      "maxPenetrationMm": 0.00446183553636148
+    },
+    {
+      "iterations": 8,
+      "cases": 7,
+      "betterPoseThanVelocity": 1,
+      "guessMedianMs": 35.1854170000006,
+      "guessMinMs": 32.38520799999969,
+      "guessMaxMs": 54.1582499999995,
+      "maxShapeDifferenceToFullStepMm": 0.22375597108137568,
+      "maxLengthErrorMm": 0.007312376825372802,
+      "maxPenetrationMm": 0.006401657457946852
+    }
+  ],
+  "decision": "Do not add PD as a default initial-guess stage. All iteration counts gave worse poses than the velocity predictor in 6 of 7 samples; even one iteration had substantial overhead.",
+  "limitations": [
+    "Single-pass screening timings include JIT and are not a speedup benchmark.",
+    "PD penalty contacts and chordal material forces are used only to propose a pose, never to certify a physical step.",
+    "Raw force residual is measured with zero reactions; it is not an equilibrium certificate.",
+    "This screen does not run Newton from the guess and cannot establish final trajectory accuracy."
+  ],
+  "nextRequirement": "Any alternative reduced predictor must demonstrate lower total time including the full original force/contact/friction certificate, on the unchanged dt and inertia/friction reference."
+}

@@ -1,0 +1,14 @@
+{
+  "productionDefaultChanged": false,
+  "files": {
+    "src/physics/xpbdChainBlock.js": "93fe12050f1beadf04f42b4b53659d4053fd5291ab98847ede046a7bf811bab9",
+    "src/physics/xpbdChainIteration.js": "321d0c0a96d3dd1686846b55e89fb18301d2451fedbb105e4e94e580f38a1609",
+    "src/physics/sharedAxisXpbdExperimental.js": "8e2627dfff0ce5763acdf2f1b45085f349dac6946b211d58fb36c828c10df6cd",
+    "src/benchmark/crossoverAlternativeSolvers.js": "56b5a284cee49ccb83e96eab664acc957d237f987563583fd053e039d19567a0",
+    "scripts/benchmark-crossover-alternative-solvers.mjs": "9b64c4d4d83e61c4f21e14876b1ff0598ab5a7d68b1da3f8a787a5392e208379",
+    "tests/xpbdChainBlock.test.js": "8836fd12b08faa483dcb26334aa7dbcc16adeb0bf46ad9e346736089f898173c",
+    "tests/xpbdSurfaceFriction.test.js": "41bf9af3e8e5bdd016467b545384d718d354d0add72925489fdfde9d1aceb89a"
+  },
+  "retiredVariantSource": "014-rejected-curvature-source.json",
+  "previousMeritSource": "014-chain-equality-merit.js"
+}

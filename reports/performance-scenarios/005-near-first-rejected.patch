@@ -1,0 +1,101 @@
+--- a/src/physics/kirchhoffSharedAxisLinear.js
++++ b/src/physics/kirchhoffSharedAxisLinear.js
+@@ -501,6 +501,25 @@
+                 if(fraction<alpha){alpha=fraction;change=i;worst=target;}
+             }
+         }
++        if(change>=0&&(options.contactReleaseFractionBand??0)>0&&batchSize>1) {
++            // Group only near-simultaneous first blockers. This is a private
++            // search acceleration; acceptance still checks the original LCP.
++            const releases=[];
++            for(let i=0;i<rows.length;i++)if(rows[i].kind==='wall'&&activeSet[i]&&!primalContact(rows[i])) {
++                const target=rows[i].multiplier+result.multiplierIncrement[i];
++                if(target < -tolerance) {
++                    const fraction=dual[i]/(dual[i]-target);
++                    if(fraction<=alpha+options.contactReleaseFractionBand)releases.push({i,fraction});
++                }
++            }
++            releases.sort((a,b)=>a.fraction-b.fraction||a.i-b.i);
++            for(let i=0;i<rows.length;i++) {
++                dual[i]+=alpha*(rows[i].multiplier+result.multiplierIncrement[i]-dual[i]);
++                if(rows[i].kind==='wall')dual[i]=Math.max(0,dual[i]);
++            }
++            for(const {i} of releases.slice(0,batchSize)){dual[i]=0;activeSet[i]=0;}
++            batchedRows+=Math.min(releases.length,batchSize);continue;
++        }
+         if(change>=0&&options.simultaneousContactRelease&&batchSize>1) {
+             // Semismooth working-set update. This changes only the private
+             // search path; the final original LCP certificate is unchanged.
+@@ -586,6 +605,7 @@
+ /** Yield between active-set/LU attempts while preserving the synchronous API.
+  * CPU timing excludes consumer pauses, including pauses before a fallback. */
+ export function* iterateSharedAxisLinear(w,chain,options) {
++    if(options.contactReleaseFractionBand!==undefined&&(!Number.isFinite(options.contactReleaseFractionBand)||options.contactReleaseFractionBand<0||options.contactReleaseFractionBand>1))throw new RangeError('Invalid contact release fraction band');
+     const condensationStats=options.condenseCompliantContacts?{attempts:0,eliminatedRows:0,fallbacks:0}:null;
+     if(condensationStats)options={...options,condensationStats};
+     if(options.compactWorkingSet===false||options.incrementalContacts||options.modifiedNewtonContext||options.observeLinearSystem)materializeSharedAxisContacts(options.rows);
+--- a/src/physics/kirchhoffSharedAxisNative.js
++++ b/src/physics/kirchhoffSharedAxisNative.js
+@@ -550,7 +550,7 @@
+ 
+ // incrementalContacts is an opt-in research path. Full-step timing and strict
+ // Pigtail parity gates have NOT passed; keep the application default false.
+-export function* iterateSharedAxisNative(s, { [fallbackWorkingSetLease]:failedCache=null, maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false, condenseCompliantContacts=false, primalCompliantContacts=false, stagnationResidualSearch=false, localContactRestarts = true, reuseWorkingSet = true,reuseRejectedWorkingSet=true,recoverNegativeContact=false,eliminateConstantRows=true,reuseRejectedNewton=true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,wasmBasis=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false,roundoffStagnation=false } = {}) {
++export function* iterateSharedAxisNative(s, { [fallbackWorkingSetLease]:failedCache=null, maxIterations = 160, forceTolerance = 1e-6, lengthTolerance = 1e-5, linearToleranceCap = Infinity, observeIteration = null, observeTrial = null, newtonActiveSetLimit = 16, batchActivationSize=8, simultaneousContactRelease=false,contactReleaseFractionBand=0, condenseCompliantContacts=false, primalCompliantContacts=false, stagnationResidualSearch=false, localContactRestarts = true, reuseWorkingSet = true,reuseRejectedWorkingSet=true,recoverNegativeContact=false,eliminateConstantRows=true,reuseRejectedNewton=true,reuseStructure=true,earlyLiveFallback=false,lazyTrialTangent=false,observeLinearSystem=null,incrementalContacts=false,promoteTrialAssembly=false,projectionMode=false,stagnationFallback=false,wasmMaterial=false,wasmLinearAssembly=false,reuseMaterialScratch=false,reuseConstraintWork=false,reuseMatrixAssembly=false,reuseRowBuffers=false,lazyBasisCoefficients=false,wasmBasis=false,deferActiveBasis=false,modifiedNewton=false,cullInactiveContacts=false,earlyContactPreflight=false,deferContactPublication=null,coupledFrictionNewton=false,batchRelease=false,reuseDiscoveryTrial=coupledFrictionNewton,zeroDualStart=false,reuseFrictionAssembly=false,roundoffStagnation=false } = {}) {
+     if (!Number.isInteger(maxIterations) || maxIterations < 0 ||
+         !(linearToleranceCap>0&&(Number.isFinite(linearToleranceCap)||linearToleranceCap===Infinity)) ||
+         ![forceTolerance, lengthTolerance].every(v => Number.isFinite(v) && v > 0) ||
+@@ -643,7 +643,7 @@
+                 if(!isModified)modified?.invalidate();
+                 if (method !== methods[0] || isGaussNewton) { restoreSharedAxisNative(s, snapshot); base = assemble(isGaussNewton ? 'gauss-newton' : undefined); }
+                 const linearStart = performance.now();
+-                const linearOptions = { [fallbackWorkingSetLease]:fallbackFailures, recoverNegativeContact, reuseRejectedWorkingSet, eliminateConstantRows, batchActivationSize, simultaneousContactRelease, primalCompliantContacts, condenseCompliantContacts:condenseCompliantContacts||primalCompliantContacts, wasmLinearAssembly, lazyBasisCoefficients, wasmBasis, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
++                const linearOptions = { [fallbackWorkingSetLease]:fallbackFailures, recoverNegativeContact, reuseRejectedWorkingSet, eliminateConstantRows, batchActivationSize, simultaneousContactRelease, contactReleaseFractionBand, primalCompliantContacts, condenseCompliantContacts:condenseCompliantContacts||primalCompliantContacts, wasmLinearAssembly, lazyBasisCoefficients, wasmBasis, deferActiveBasis, zeroDualStart, batchRelease:batchRelease||coupledFrictionNewton, rows: isGaussNewton&&!reuseConstraintWork ? base.rows.map(r => ({ ...r, geometricHessian: undefined })) : base.rows, gradient: s.chain.gradient,
+                     observeLinearSystem,modifiedNewtonContext:method===0?modified:null,incrementalContacts:modified?false:incrementalContacts==='frozen'?!s.wallFrictionStep?.liveNormalLoad:incrementalContacts,trace:s.linearTrace, fixed: s.fixed, reuseWorkingSet:modified?false:reuseWorkingSet,reuseStructure,reuseConstraintWork,reuseMatrixAssembly, ...(method === 0 && newtonActiveSetLimit !== Infinity ? {maxActiveSetAttempts:newtonActiveSetLimit} : {}), tolerance: Math.max(Math.min(linearToleranceCap,Math.min(forceTolerance, lengthTolerance) * .01), 1e-10 * Math.max(base.force, base.torque, base.constraint)) };
+                 if(method===2&&matchesRejectedSharedAxisLinearization(rejectedNewton,s.chain,linearOptions)) {
+                     // The first search already exhausted these exact equations
+--- a/src/physics/kirchhoffSharedAxisRejectedLinearization.js
++++ b/src/physics/kirchhoffSharedAxisRejectedLinearization.js
+@@ -62,7 +62,7 @@
+     // These flags only choose which working set is visited next. They do not
+     // enter a fixed working set's KKT equations, solution or residual test.
+     const searchKeys=new Set(['batchActivationSize','batchActivation','batchRelease',
+-        'zeroDualStart','simultaneousContactRelease','maxActiveSetAttempts',
++        'zeroDualStart','simultaneousContactRelease','contactReleaseFractionBand','maxActiveSetAttempts',
+         'recoverNegativeContact','deferActiveBasis']);
+     const configuration=options=>{
+         if(options.observeLinearSystem||options.trace||options.incrementalContacts||options.modifiedNewtonContext||
+--- a/tests/kirchhoffSharedAxisCompliance.test.js
++++ b/tests/kirchhoffSharedAxisCompliance.test.js
+@@ -77,3 +77,20 @@
+     assert.equal(s.acceptedWallGaps.get('test-plane'),-.02);
+     assert.equal(s.wallCompliance,undefined);
+ });
++
++
++test('near-first contact release batches close blockers while retaining original equilibrium',()=>{
++    const n=24,layout={dofCount:n,band:1},chain={layout,hessian:new Float64Array(n).fill(1)};
++    const rows=Array.from({length:n},(_,i)=>({kind:'wall',dofs:[i],jacobian:[1],gap:1,multiplier:2+i*.001}));
++    const options={rows,gradient:new Float64Array(n).fill(-2),fixed:new Uint8Array(n),batchActivationSize:8};
++    const run=extra=>solveSharedAxisLinear(createSharedAxisLinear(layout,rows),chain,{...options,...extra});
++    const reference=run({}),grouped=run({contactReleaseFractionBand:.01}),strict=run({contactReleaseFractionBand:0});
++    assert.ok(reference.converged&&grouped.converged&&strict.converged);
++    assert.ok(grouped.factorizations<reference.factorizations);
++    assert.equal(strict.factorizations,reference.factorizations);
++    for(let i=0;i<n;i++) {
++        assert.ok(Math.abs(grouped.increment[i]-reference.increment[i])<1e-9);
++        assert.ok(Math.abs(grouped.multiplierIncrement[i]-reference.multiplierIncrement[i])<1e-9);
++    }
++    for(const value of [-1,NaN,Infinity,1.1])assert.throws(()=>run({contactReleaseFractionBand:value}),/Invalid contact release/);
++});
+--- a/src/simulator.js
++++ b/src/simulator.js
+@@ -228,6 +228,8 @@
+             reuseFrictionAssembly:true,coupledFrictionNewton:true,predictiveNewton:true,modifiedNewton:false,
+             pruneInactiveWitnesses:false,projectiveDynamics:false,
+             physicsOptions:{...SHARED_AXIS_APP_PHYSICS_OPTIONS,forceTolerance:1e-6,lengthTolerance:1e-5,
++                simultaneousContactRelease:new URLSearchParams(window.location.search).get('crossoverSearch')==='simultaneous',
++                contactReleaseFractionBand:new URLSearchParams(window.location.search).get('crossoverSearch')==='near-first'?.01:0,
+                 ...(crossoverBenchmarkMode==='wide'?{recoverNegativeContact:true}:{})}
+         }:{}),
+         onReady:()=>runIdlePhysicsCatchup(synchronizedStep.epoch,false),

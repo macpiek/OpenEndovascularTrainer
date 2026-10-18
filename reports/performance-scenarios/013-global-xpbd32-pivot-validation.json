@@ -1,0 +1,36 @@
+{
+  "reference": "reports/performance-scenarios/003-crossover-full-user-inputs.json.gz",
+  "candidate": "reports/performance-scenarios/013-global-xpbd32-pivot.json.gz",
+  "referenceSha256": "bf2067e132ee933e052f39c4a68ba8d1f7e0c2fada445cedc86177a70324dbac",
+  "referenceDecodedSha256": "efe60d05b63ac7cc4323c54701a4fc7db318dcf890b116f5ec5c34a753d90b14",
+  "candidateSha256": "9e161ed442558e325d560fbdef5b0d69517677c8998cc2abdf1d67b8f91a710a",
+  "rightAccessTargetPrefixVerified": true,
+  "stepsChecked": 517,
+  "expectedSteps": 7507,
+  "summary": {
+    "attemptedSteps": 517,
+    "acceptedSteps": 516,
+    "targetSteps": 7507,
+    "complete": false,
+    "movingSteps": 413,
+    "maximumShapeDifferenceMm": 20.433502137529633,
+    "shapeWithinLimit": false,
+    "firstShapeLimitStep": 276,
+    "movingCpuCapacityHz": 2.8423673325729553,
+    "movingMedianCpuMs": 286.9994579999984,
+    "movingP95CpuMs": 1046.4874169999966,
+    "goalAchieved": false,
+    "applicationFpsVerified": false,
+    "equilibriumCertified": false
+  },
+  "observedWallThroughputHz": null,
+  "candidatePolylinesVerified": true,
+  "physicalForceCertificate": false,
+  "completeCommonStepReplay": false,
+  "goalAchieved": false,
+  "limitations": [
+    "Research harness directly applies recorded right-access targets, not the app input handler or both accesses.",
+    "CPU capacity and the simple browser test are not full-application physics FPS.",
+    "Incomplete/rejected trajectories cannot pass optimization acceptance."
+  ]
+}

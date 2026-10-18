@@ -1,0 +1,179 @@
+{
+  "createdAt": "2026-10-17T18:45:03.484Z",
+  "acceptanceMode": "functional",
+  "shapeDifferenceLimitMm": null,
+  "goalAchieved": false,
+  "productionDefaultChanged": false,
+  "change": "Opt-in Projective Dynamics followed by global Kirchhoff geometry closure; retains strict geometric gates and atomic rollback. No Newton force or PD equilibrium certificate.",
+  "scope": "Research browser harness, right access only, recorded targets from empty tools; not a full-application FPS measurement.",
+  "experiments": {
+    "4": {
+      "recording": "021-projective-4-rejected.json.gz",
+      "validation": "021-projective-4-validation.json",
+      "complete": false,
+      "acceptedSteps": 4083,
+      "routeChecksPassed": false,
+      "wallThroughputHz": 59.16525262252399,
+      "movingCpuCapacityHz": 141.32531752999282,
+      "maximumShapeDifferenceMm": 44.11130610351446,
+      "maxPenetrationMm": 0.000003452525190864031,
+      "maxLengthErrorMm": 0.0000045763397862330635,
+      "stages": [
+        {
+          "stage": 1,
+          "steps": 872,
+          "cpuCapacityHz": 178.12276603087778,
+          "meanNodes": 51.42545871559633,
+          "meanClosureIterations": 2.0424311926605503
+        },
+        {
+          "stage": 2,
+          "steps": 127,
+          "cpuCapacityHz": 156.51959565003546,
+          "meanNodes": 57.188976377952756,
+          "meanClosureIterations": 2
+        },
+        {
+          "stage": 3,
+          "steps": 115,
+          "cpuCapacityHz": 144.58134274664638,
+          "meanNodes": 55.278260869565216,
+          "meanClosureIterations": 2.0521739130434784
+        },
+        {
+          "stage": 4,
+          "steps": 461,
+          "cpuCapacityHz": 99.30636342238216,
+          "meanNodes": 65.43167028199566,
+          "meanClosureIterations": 2.3882863340563993
+        },
+        {
+          "stage": 5,
+          "steps": 0,
+          "cpuCapacityHz": null,
+          "meanNodes": null,
+          "meanClosureIterations": null
+        }
+      ],
+      "rejectedStep": 4084,
+      "error": "Shared axis crossed the vessel surface"
+    },
+    "8": {
+      "recording": "021-projective-8-full.json.gz",
+      "validation": "021-projective-8-validation.json",
+      "complete": true,
+      "acceptedSteps": 7507,
+      "routeChecksPassed": false,
+      "wallThroughputHz": 41.83116524898375,
+      "movingCpuCapacityHz": 44.823803716567724,
+      "maximumShapeDifferenceMm": 697.4594988301769,
+      "maxPenetrationMm": 0.000004978842779987391,
+      "maxLengthErrorMm": 0.000004975104392457297,
+      "stages": [
+        {
+          "stage": 1,
+          "steps": 872,
+          "cpuCapacityHz": 140.47749449314594,
+          "meanNodes": 51.42660550458716,
+          "meanClosureIterations": 2.0573394495412844
+        },
+        {
+          "stage": 2,
+          "steps": 127,
+          "cpuCapacityHz": 130.55098659253588,
+          "meanNodes": 57.181102362204726,
+          "meanClosureIterations": 1.9921259842519685
+        },
+        {
+          "stage": 3,
+          "steps": 115,
+          "cpuCapacityHz": 106.86739170525513,
+          "meanNodes": 55.2695652173913,
+          "meanClosureIterations": 2.130434782608696
+        },
+        {
+          "stage": 4,
+          "steps": 1579,
+          "cpuCapacityHz": 74.30273543156513,
+          "meanNodes": 74.99683343888537,
+          "meanClosureIterations": 2.846105129829006
+        },
+        {
+          "stage": 5,
+          "steps": 952,
+          "cpuCapacityHz": 18.374405534936336,
+          "meanNodes": 157.98214285714286,
+          "meanClosureIterations": 2.8728991596638656
+        }
+      ]
+    },
+    "16": {
+      "recording": "021-projective-closure-full.json.gz",
+      "validation": "021-projective-closure-validation.json",
+      "complete": true,
+      "acceptedSteps": 7507,
+      "routeChecksPassed": true,
+      "wallThroughputHz": 39.26166932434318,
+      "movingCpuCapacityHz": 39.17332989053427,
+      "maximumShapeDifferenceMm": 158.61288629254716,
+      "maxPenetrationMm": 0.0000049744837221227245,
+      "maxLengthErrorMm": 0.000004968840277896902,
+      "stages": [
+        {
+          "stage": 1,
+          "steps": 872,
+          "cpuCapacityHz": 95.08439824883943,
+          "meanNodes": 51.42660550458716,
+          "meanClosureIterations": 2.1009174311926606
+        },
+        {
+          "stage": 2,
+          "steps": 127,
+          "cpuCapacityHz": 73.30870465283668,
+          "meanNodes": 57.188976377952756,
+          "meanClosureIterations": 2.1181102362204722
+        },
+        {
+          "stage": 3,
+          "steps": 115,
+          "cpuCapacityHz": 72.55978285991756,
+          "meanNodes": 55.25217391304348,
+          "meanClosureIterations": 2.026086956521739
+        },
+        {
+          "stage": 4,
+          "steps": 1579,
+          "cpuCapacityHz": 49.041531570030536,
+          "meanNodes": 75.02406586447118,
+          "meanClosureIterations": 2.3945535148828374
+        },
+        {
+          "stage": 5,
+          "steps": 952,
+          "cpuCapacityHz": 19.684591635422034,
+          "meanNodes": 157.98214285714286,
+          "meanClosureIterations": 2.0714285714285716
+        }
+      ]
+    }
+  },
+  "motionDiagnostics": "021-projective-motion.json",
+  "regressionTests": {
+    "passed": 40,
+    "command": "node --test tests/kirchhoffSharedAxisProjective.test.js tests/kirchhoffSharedAxisProjection.test.js tests/crossoverScenarioRecording.test.js tests/crossoverFunctionalRoute.test.js tests/crossoverAppBenchmark.test.js"
+  },
+  "buildPassed": true,
+  "notes": [
+    "16 iterations completes all original commands and passes five coarse branch checks. Detailed seating/femoral entry and full app integration remain unverified.",
+    "4 iterations fails at step 4084; 8 completes commands but ends on the access side. Neither is a passing crossover replay.",
+    "Reduced iteration counts can produce smoother accepted tips while losing the intended route: smoothness alone is not sufficient.",
+    "The 16-iteration run has lower measured tip jumps than the reference but remains too slow at long insertion; max shape difference is diagnostic, not a rejection.",
+    "Production settings remain unchanged. The best complete full-app research result remains 020-relaxed-mesh: 46.89 Hz during movement, 38.44 Hz in the longest stage."
+  ],
+  "next": "Profile the successful 16-iteration PD variant before further changes. Investigate contact/length projection cost and local rotation projection without lowering iteration count. Test all 7507 commands and coarse route checks again, then both-access full app if faster. Alternative operator commands, if needed, must be saved separately from original.",
+  "reviewSliderRegression": {
+    "verifiedInBrowser": true,
+    "previousPartialRange": 4,
+    "newRunRange": 7507
+  }
+}

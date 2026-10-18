@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {BufferGeometry,Float32BufferAttribute} from 'three';
 import {createSharedAxisNative,assembleSharedAxisNative,applySharedAxisNativeIncrement,extendSharedAxisNativeRows,
     captureSharedAxisNative,restoreSharedAxisNative} from '../src/physics/kirchhoffSharedAxisNative.js';
-import {createSharedAxisConstraintRowPool,snapshotSharedAxisConstraintMeasure} from '../src/physics/kirchhoffSharedAxisConstraintRows.js';
+import {createSharedAxisConstraintRowPool,leaseSharedAxisConstraintRowPool,snapshotSharedAxisConstraintMeasure} from '../src/physics/kirchhoffSharedAxisConstraintRows.js';
 import {createSharedAxisVesselWitness} from '../src/physics/kirchhoffSharedAxisVesselWitnesses.js';
 import {iterateSharedAxisTimeStep,stepSharedAxis} from '../src/physics/kirchhoffSharedAxisTimeStep.js';
 const numeric=m=>({energy:m.energy,force:m.force,torque:m.torque,constraint:m.constraint,rows:m.rows.map(r=>({
@@ -35,6 +35,92 @@ test('three banks preserve base and uncorrected trial while repeated corrected p
  assert.equal(pool.banks.length,3);restoreSharedAxisNative(s,saved);compare(s,scratch);
  assert.deepEqual(numeric(base),baseSnapshot);
 });
+
+test('leased banks reuse numeric buffers across changed topology without retaining owners or sharing live rows',()=>{
+ const first=leaseSharedAxisConstraintRowPool(),other=leaseSharedAxisConstraintRowPool();
+ assert.notEqual(first.pool,other.pool);
+ const s=fixture(),bank=first.pool.acquire(),live=compare(s,other.pool.acquire());
+ s.multipliers.fill(.2);compare(s,bank);
+ const row=bank.rows[0],jacobian=row.jacobian,hessian=bank.hessians[0],liveCopy=numeric(live);
+ const observed=snapshotSharedAxisConstraintMeasure(compare(s,bank)),observedCopy=numeric(observed);
+ first.release();first.release();
+ assert.equal(bank.definitions[0],undefined);assert.equal(row.dofs,undefined);
+ assert.equal(bank.geometryCache.geometry.positions,null);assert.equal(bank.contacts.size,0);
+ const next=leaseSharedAxisConstraintRowPool();assert.equal(next.pool,first.pool);
+ try {
+  for(const insertion of [15,55,20]) {
+   const t=createSharedAxisNative({tools:[{id:'wire',insertion}]});t.multipliers.fill(.3);
+   const reused=next.pool.acquire();compare(t,reused);
+   assert.equal(reused.rows[0],row);assert.equal(row.jacobian,jacobian);assert.equal(reused.hessians[0],hessian);
+  }
+  assert.deepEqual(numeric(live),liveCopy);assert.deepEqual(numeric(observed),observedCopy);
+ }finally{next.release();other.release();}
+});
+
+test('native contact output buffers survive a lease while keys and custom owners do not',()=>{
+ const first=leaseSharedAxisConstraintRowPool(),concurrent=leaseSharedAxisConstraintRowPool();
+ const s=fixture(),other=fixture();s.cacheMechanicalAssembly=other.cacheMechanicalAssembly=true;
+ s.multipliers.fill(.2);other.multipliers.fill(.3);
+ const bank=first.pool.acquire(),otherBank=concurrent.pool.acquire();
+ compare(s,bank);compare(other,otherBank);
+ const index=s.definitions.findIndex(r=>r.subtype==='bend-limit'),definition=s.definitions[index];
+ const output=bank.contacts.get(definition).output,independent=otherBank.contacts.get(other.definitions[index]).output;
+ assert.notEqual(output,independent);assert.notEqual(output.contact.jacobian,independent.contact.jacobian);
+ const otherCopy=structuredClone(independent);
+ first.release();assert.equal(bank.contacts.size,0);
+ assert.ok(bank.geometryCache.contactOutputOwners.every(owner=>owner===undefined));
+ const next=leaseSharedAxisConstraintRowPool();assert.equal(next.pool,first.pool);
+ try{
+  const t=fixture();t.cacheMechanicalAssembly=true;t.multipliers.fill(-.4);
+  for(let i=0;i<t.positions.length;i++)t.positions[i][1]=.05*Math.sin(i);
+  t.geometryKey=Symbol('new-owner');const reused=next.pool.acquire();compare(t,reused);
+  assert.equal(reused.contacts.get(t.definitions[index]).output,output);
+  assert.equal(reused.contacts.has(definition),false);
+  assert.deepEqual(independent,otherCopy,'A concurrent live lease owns its scratch');
+  // A custom sampler can use its storage for owner-bearing scratch. Without
+  // the native numeric-only promise that output must die with the lease.
+  const def=t.definitions[index],custom=input=>{
+   const storage=input.contactStorage??{contact:{}};storage.owner=input.state;
+   return Object.assign(storage.contact,{gap:1,jacobian:new Array(9).fill(0),hessian:undefined});
+  };
+  custom.contactStorageSupported=true;
+  t.definitions[index]={...def,evaluate:custom};t.geometryKey=Symbol('custom');compare(t,reused);
+  const customOutput=reused.contacts.get(t.definitions[index]).output;
+  assert.equal(customOutput.owner,t);assert.notEqual(customOutput,output);
+  assert.equal(reused.geometryCache.contactOutputs.includes(customOutput),false);
+ }finally{next.release();concurrent.release();}
+});
+
+test('different definitions at the same row index cannot overwrite a live cached contact',()=>{
+ const a=fixture(),b=fixture(),pool=createSharedAxisConstraintRowPool();
+ for(const s of [a,b]){s.cacheMechanicalAssembly=true;s.multipliers.fill(.2);}
+ for(let i=0;i<b.positions.length;i++)b.positions[i][1]=.1*Math.sin(i);
+ b.geometryKey=Symbol('other-pose');
+ const bank=pool.acquire(),first=compare(a,bank),saved=numeric(first),index=a.definitions.findIndex(r=>r.subtype==='bend-limit');
+ const otherBank=pool.acquire([first.rows]);compare(b,otherBank);
+ assert.notEqual(bank.contacts.get(a.definitions[index]).output,otherBank.contacts.get(b.definitions[index]).output);
+ assert.deepEqual(numeric(first),saved);
+ assert.deepEqual(numeric(compare(a,bank)),saved,'Returning to the first pose must use its original exact derivatives');
+});
+
+test('interleaved timesteps retain exclusive contact banks through cancellation and acceptance',()=>{
+ const a=fixture(),b=fixture(),reference=fixture();
+ for(const s of [a,b,reference])s.loads[s.layout.positions.at(-1)+1]=.01;
+ const options={reuseRowBuffers:true,wasmMaterial:true,reuseConstraintWork:true,reuseMatrixAssembly:true};
+ const before=captureSharedAxisNative(a),first=iterateSharedAxisTimeStep(a,1/60,options),second=iterateSharedAxisTimeStep(b,1/60,options);
+ assert.equal(first.next().done,false);assert.equal(second.next().done,false);
+ assert.notEqual(a.constraintRowPool,b.constraintRowPool);
+ const secondPool=b.constraintRowPool;first.return();
+ assert.deepEqual(captureSharedAxisNative(a),before);assert.equal(b.constraintRowPool,secondPool);
+ const expected=stepSharedAxis(reference,1/60,options);
+ let next;do{next=second.next();}while(!next.done);
+ assert.ok(next.value.converged);assert.ok(expected.converged);
+ const {geometryKey:actualKey,...actualPose}=captureSharedAxisNative(b);
+ const {geometryKey:referenceKey,...referencePose}=captureSharedAxisNative(reference);
+ assert.deepEqual(actualPose,referencePose);
+ assert.deepEqual(b.acceptedWallGaps,reference.acceptedWallGaps);
+ assert.equal(b.constraintRowPool,undefined);assert.equal(a.constraintRowPool,undefined);
+});
 test('time step cancellation and completion release private contact storage and preserve atomic state',()=>{
  const s=fixture();s.loads[s.layout.positions.at(-1)+1]=.01;
  const before=captureSharedAxisNative(s),options={reuseRowBuffers:true,wasmMaterial:true,reuseConstraintWork:true,reuseMatrixAssembly:true};
@@ -53,6 +139,43 @@ test('reused rows clear inactive derivatives and update definitions after discov
  extendSharedAxisNativeRows(s,[{kind:'wall',edge:e,id:'new-buffered-contact',dofs,evaluate:()=>({gap:1,jacobian:[0,.3,0,0,.7,0]})}]);
  compare(s,bank);assert.equal(bank.rows.length,s.definitions.length);assert.equal(bank.rows.at(-1).id,'new-buffered-contact');
  assert.deepEqual(numeric(snapshot),expected);
+});
+
+test('rebound row storage replaces custom metadata and restores owned numerical fields',()=>{
+ const s=fixture(),pool=createSharedAxisConstraintRowPool(),bank=pool.acquire();
+ const def=s.definitions[0];def.extraLabel={owner:s};
+ def.gap=NaN;def.multiplier=NaN;def.jacobian=[NaN];def.penalty=NaN;
+ const first=compare(s,bank),row=first.rows[0],jacobian=row.jacobian;
+ assert.equal(row.extraLabel,def.extraLabel);assert.equal(row.penalty,1);
+ const next=fixture();compare(next,bank);
+ assert.equal(bank.rows[0],row);assert.equal(row.jacobian,jacobian);
+ assert.equal(row.extraLabel,undefined);assert.equal(row.penalty,1);
+ assert.equal(row.multiplier,0);assert.ok(Number.isFinite(row.gap));
+});
+
+for(const buffered of [false,true])test(`contact validation rejects missing and nonfinite derivatives, including retained cache values (buffered=${buffered})`,()=>{
+ const s=fixture(),pool=createSharedAxisConstraintRowPool(),bank=buffered?pool.acquire():null;
+ const e=1,dofs=[s.layout.positions[e],s.layout.positions[e+1]].flatMap(p=>[p,p+1,p+2]);
+ let output={gap:1,jacobian:[0,.3,0,0,.7,0]};
+ const sample=()=>output;sample.contactOutputOwned=true;
+ const def={kind:'wall',edge:e,id:'validation',dofs,evaluate:sample};
+ extendSharedAxisNativeRows(s,[def]);s.cacheMechanicalAssembly=true;
+ const run=()=>assembleSharedAxisNative(s,{rowStorage:bank,withTangent:false});
+ run();
+ // Even an owned result may be corrupted by a caller. A cache hit must not
+ // bypass the finite derivative certificate or preserve its valid pose key.
+ for(const bad of [NaN,Infinity,undefined]) {
+  output.jacobian[1]=bad;
+  assert.throws(run,/exact edge Jacobian/);
+  if(buffered)assert.equal(bank.contacts.get(def).key,null);
+  output.jacobian[1]=.3;run();
+ }
+ delete output.jacobian[1];assert.throws(run,/exact edge Jacobian/);
+ output.jacobian[1]=.3;run();
+ for(const bad of [null,{gap:NaN,jacobian:Array(6).fill(0)},{gap:1,jacobian:[0,0]}]) {
+  output=bad;s.geometryKey=Symbol();assert.throws(run,/exact edge Jacobian/);
+ }
+ output={gap:1,jacobian:Float64Array.of(0,.3,0,0,.7,0)};s.geometryKey=Symbol();run();
 });
 test('buffered finite-triangle contacts preserve retained rows across feature changes, Hessian promotion and throwing evaluations',()=>{
  const geometry=new BufferGeometry().setAttribute('position',new Float32BufferAttribute([0,0,0,10,0,0,0,10,0],3));
