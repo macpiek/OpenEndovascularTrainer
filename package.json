@@ -14,7 +14,7 @@
     "benchmark:browser:chrome": "node scripts/run-browser-acceptance.mjs",
     "benchmark:browser:safari": "node scripts/run-safari-acceptance.mjs",
     "centerline:diagnostics": "node scripts/centerline-diagnostics.mjs",
-    "test:contrast": "node --test tests/contrastAnatomicalVolume.test.js tests/contrastContinuousTransport.test.js tests/contrastOstialReservoir.test.js tests/contrastOstialVolume.test.js tests/contrastDilatedLumen.test.js && node tests/contrastHybridModel.test.js && node tests/contrastFullTree.test.js && node tests/contrastCatheterFullTree.test.js",
+    "test:contrast": "node --test tests/contrastAnatomicalVolume.test.js tests/contrastContinuousTransport.test.js tests/contrastOstialReservoir.test.js tests/contrastContainedSpurs.test.js tests/contrastOstialVolume.test.js tests/contrastDilatedLumen.test.js && node tests/contrastHybridModel.test.js && node tests/contrastFullTree.test.js && node tests/contrastCatheterFullTree.test.js",
     "test:contrast:visual": "node scripts/render-contrast-bifurcation-regression.mjs",
     "test:imaging": "node tests/dsaRoadmapState.test.js && node tests/detectorZoomModes.test.js && node tests/xrayDoseRate.test.js && node --test tests/dsaSimulationTiming.test.js && node --test tests/carmControls.test.js tests/carmPose.test.js tests/renderMetalProjection.test.js",
     "preview": "vite preview",

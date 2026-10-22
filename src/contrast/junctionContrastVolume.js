@@ -120,7 +120,9 @@ export function buildJunctionRegions(network) {
         if (
             parent.renderExcluded ||
             parent.transportExcluded ||
-            parent.radiusEnd < 3.5 ||
+            // Include iliac forks: their shared lumen must be integrated once
+            // just like the larger aortic bifurcation, not as overlapping blobs.
+            parent.radiusEnd < 2.5 ||
             parent.childEdgeIndices?.length !== 2
         )
             continue;

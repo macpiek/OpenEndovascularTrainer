@@ -57,13 +57,14 @@ assert.ok(
     aortoiliacAnchors?.rightInternalIliacRootEdgeIndex >= 0,
     'the full anatomy should expose the patient-right internal iliac root'
 );
+const renalSegmentCount = system.flowNetwork.edges.filter(edge => edge.renalSide).length;
 assert.equal(
-    topology.sourceSegmentCount,
+    topology.sourceSegmentCount - renalSegmentCount,
     asset.metadata.centerline.segmentCount,
     'every packed centerline segment must enter the contrast network'
 );
-assert.equal(topology.directedEdgeCount, asset.metadata.centerline.segmentCount);
-assert.equal(topology.nodeCount, asset.metadata.centerline.nodeCount);
+assert.equal(topology.directedEdgeCount - renalSegmentCount, asset.metadata.centerline.segmentCount);
+assert.equal(topology.nodeCount - renalSegmentCount, asset.metadata.centerline.nodeCount);
 assert.ok(topology.outletCount >= 100, 'the contrast tree should retain distal arterial outlets');
 assert.equal(
     topology.disconnectedSourceSegmentCount,
@@ -1068,10 +1069,16 @@ const postSheathArchDisplayPeaks = new Map(
     [
         topology.intraluminalAorticConnectors.connectors[0]
             .branchRootEdgeIndices,
-        topology.aorticBranchPrefixes.paths
-            .map(path => path.rootEdgeIndex)
+        // Only the major arch roots: other corrected prefixes include
+        // small terminal branches and abdominal/iliac ostia.
+        topology.intraluminalAorticConnectors.connectors
+            .flatMap(connector => connector.branchRootEdgeIndices)
+            .filter(index => system.flowNetwork.nodes.get(
+                system.flowNetwork.edges[index].endNodeId
+            ).terminalOutletCount > 3)
     ].flat().map(edgeIndex => [edgeIndex, 0])
 );
+assert.equal(postSheathArchDisplayPeaks.size, 3, 'observe all three major arch roots');
 // The physiological aortic root makes the arch-to-iliac residence time about
 // 4.1 s; observe beyond that transit instead of relying on the old reversed
 // root's artificially short path.

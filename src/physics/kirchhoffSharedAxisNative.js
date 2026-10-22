@@ -95,18 +95,22 @@ function interpolate(xs, values, x) {
 export function createSharedAxisNative({ tools, spacing = 5, samplePosition = x => [x, 0, 0],
     wallSample = null, wallSamples = wallSample ? [wallSample] : [], startCoordinate = 0, boundaryCoordinates = [], previous = null, minimumEdgeLength=.5, origin=[0,0,0], maxBendAngle=Infinity, rebaseNearTips=false, fractionalTipThreshold=1e-3, spatialKnots=[], adaptiveMesh=null,omitInactiveSampleRows=false }) {
     adaptiveMesh=adaptiveMeshOptions(adaptiveMesh);
-    if (!Array.isArray(tools) || !tools.length || tools.length > 2 || new Set(tools.map(t => t.id)).size !== tools.length)
-        throw new TypeError('One or two uniquely named materials are required');
+    if (!Array.isArray(tools) || !tools.length || tools.length > 3 || new Set(tools.map(t => t.id)).size !== tools.length)
+        throw new TypeError('One to three uniquely named materials are required');
     if (!(spacing > 0) || !Number.isFinite(spacing)) throw new RangeError('Positive finite spacing required');
     if (!Number.isFinite(startCoordinate) || startCoordinate > 0 || !boundaryCoordinates.every(Number.isFinite)) throw new RangeError('Invalid shared axis domain');
-    for (const t of tools) if (!['wire', 'catheter'].includes(t.id) || !(t.insertion >= 0 && t.insertion > startCoordinate) ||
+    for (const t of tools) if (!['wire', 'catheter', 'sheath'].includes(t.id) || !(t.insertion >= 0 && t.insertion > startCoordinate) ||
         !Number.isFinite(t.insertion) || t.insertion > (t.length ?? 1000)) throw new RangeError('Invalid material coverage');
     if (!Number.isFinite(minimumEdgeLength) || minimumEdgeLength < 0 || minimumEdgeLength > spacing) throw new RangeError('Invalid minimum edge length');
     if (!(maxBendAngle > 0 && maxBendAngle <= Math.PI) && maxBendAngle !== Infinity) throw new RangeError('Invalid bend limit');
     if(!(fractionalTipThreshold>=0&&Number.isFinite(fractionalTipThreshold)))throw new RangeError('Invalid fractional tip threshold');
     const end = Math.max(...tools.map(t => t.insertion));
     if(!Array.isArray(spatialKnots)||!spatialKnots.every(x=>Number.isFinite(x)&&x>=startCoordinate&&x<=end))throw new RangeError('Invalid spatial knots');
-    const physicalKnots=tools.map(t=>t.insertion).filter(x=>x===end||end-x>=fractionalTipThreshold);
+    // With three coaxial materials, two nearly coincident outlets may lie
+    // inside the third shaft. Merge every such cluster into its distal knot;
+    // endFraction still preserves each tool's exact physical coverage.
+    const tips=tools.map(t=>t.insertion).sort((a,b)=>a-b);
+    const physicalKnots=tips.filter((x,i)=>i===tips.length-1||tips[i+1]-x>=fractionalTipThreshold);
     const knots = [startCoordinate, end, ...physicalKnots, ...boundaryCoordinates.filter(x => x > startCoordinate && x < end && !tools.some(t=>Math.abs(t.insertion-x)<minimumEdgeLength))];
     const boundaries=knots.slice();
     // An adaptive replay supplies the exact mechanical grid. Ordinary feed
@@ -182,8 +186,9 @@ export function createSharedAxisNative({ tools, spacing = 5, samplePosition = x 
             // sampler without this explicit contract; no distance culling.
             if(omitInactiveSampleRows&&range&&(coordinates[e]>=range.max||coordinates[e+1]<=range.min))return;
             definitions.push({ kind: 'wall', edge: e, dofs, sample });
-            const catheter=materials.find(m=>m.spec.id==='catheter'&&m.last-1===e&&m.endFraction<1);
-            if(sampler.sharedAxisSheath&&catheter)definitions.push({kind:'wall',edge:e,dofs,sample,sampleT:catheter.endFraction});
+            if(sampler.sharedAxisSheath)for(const material of materials)
+                if(material.last-1===e&&material.endFraction<1)
+                    definitions.push({kind:'wall',edge:e,dofs,sample,sampleT:material.endFraction});
         });
     }
     const evaluateBendLimit=bendLimitEvaluator(maxBendAngle);
@@ -219,28 +224,37 @@ function contactMaterialAt(material,coordinate) {
     return core;
 }
 export function sharedAxisOuterMaterialAt(s,edge,t=1,preferredOwner=null) {
-    const catheter=s.materials.find(m=>m.spec.id==='catheter'&&edge<m.last);
-    if(catheter) {
-        const end=edge===catheter.last-1?catheter.endFraction:1;
-        if(t<end||t===end&&preferredOwner!=='wire'||end===1)
-            return contactMaterialAt(catheter,s.coordinates[edge]+t*(s.coordinates[edge+1]-s.coordinates[edge]));
+    const coordinate=s.coordinates[edge]+t*(s.coordinates[edge+1]-s.coordinates[edge]);
+    const preferred=preferredOwner&&s.materials.find(m=>m.spec.id===preferredOwner&&edge<m.last&&
+        (edge<m.last-1||t<=m.endFraction));
+    let outer=null;
+    for(const material of s.materials) {
+        if(edge>=material.last||edge===material.last-1&&t>material.endFraction)continue;
+        // At a fractional outlet discovery can request the downstream side.
+        if(preferred&&material!==preferred&&edge===material.last-1&&t===material.endFraction&&material.endFraction<1)continue;
+        const covered=contactMaterialAt(material,coordinate);
+        if(!outer||covered.body.radius>outer.body.radius)outer=covered;
     }
-    return s.materials.find(m=>m.spec.id==='wire'&&edge<m.last)??catheter;
+    return outer;
 }
 export function sharedAxisOuterIntervals(s,edge) {
-    const catheter=s.materials.find(m=>m.spec.id==='catheter'&&edge<m.last);
-    const wire=s.materials.find(m=>m.spec.id==='wire'&&edge<m.last);
-    const intervals=[];
-    if(catheter) {
-        const end=edge===catheter.last-1?catheter.endFraction:1;
-        const split=(catheter.spec.insertion-(catheter.spec.deliveryExposureMm??0)-s.coordinates[edge])/(s.coordinates[edge+1]-s.coordinates[edge]);
-        const knots=catheter.spec.type==='stentgraft-delivery'&&split>0&&split<end?[0,split,end]:[0,end];
-        for(let i=1;i<knots.length;i++) {
-            const start=knots[i-1],stop=knots[i],coordinate=s.coordinates[edge]+(start+stop)/2*(s.coordinates[edge+1]-s.coordinates[edge]);
-            intervals.push({start,end:stop,material:contactMaterialAt(catheter,coordinate)});
+    const span=s.coordinates[edge+1]-s.coordinates[edge],knots=[0,1];
+    for(const material of s.materials) {
+        if(edge>=material.last)continue;
+        if(edge===material.last-1&&material.endFraction<1)knots.push(material.endFraction);
+        if(material.spec.type==='stentgraft-delivery') {
+            const split=(material.spec.insertion-(material.spec.deliveryExposureMm??0)-s.coordinates[edge])/span;
+            if(split>0&&split<1)knots.push(split);
         }
-        if(end<1)intervals.push({start:end,end:1,material:wire});
-    } else intervals.push({start:0,end:1,material:wire});
+    }
+    const ordered=[...new Set(knots)].sort((a,b)=>a-b),intervals=[];
+    for(let i=1;i<ordered.length;i++) {
+        const start=ordered[i-1],end=ordered[i];
+        const material=sharedAxisOuterMaterialAt(s,edge,(start+end)/2);
+        const previous=intervals.at(-1);
+        if(previous?.material===material)previous.end=end;
+        else intervals.push({start,end,material});
+    }
     return intervals;
 }
 
@@ -277,6 +291,7 @@ export function feedSharedAxisNative(s, insertionById, {pruneInactiveWitnesses=f
     const dropped=pruneInactiveWitnesses?prunableSharedAxisWitnesses(s):null;
     const narrowCandidates=contactCandidateMargin!==undefined&&s.wallSamples.some(sample=>sample.sharedAxisCompleteDiscovery);
     const history=narrowCandidates?new Set((s.wallFrictionHistory??[]).map(h=>h.id.slice(h.id.indexOf('/')+1))):null;
+    const sheathEnd=s.wallSamples.find(sample=>sample.sharedAxisDiscovery)?.sheathLength ?? -Infinity;
     const retained = s.definitions.flatMap((r,i) => {
         if(!r.evaluate||r.subtype==='bend-limit'||!(s.multipliers[i]!==0||!(s.acceptedWallGaps?.get(r.id)>.75)))return [];
         if(dropped?.has(r))return [];
@@ -286,6 +301,9 @@ export function feedSharedAxisNative(s, insertionById, {pruneInactiveWitnesses=f
         if(narrowCandidates&&r.witness&&r.id?.startsWith('vessel/')&&s.multipliers[i]===0&&
             s.acceptedWallGaps?.get(r.id)>contactCandidateMargin&&!history.has(r.id))return [];
         const a=s.coordinates[r.edge],b=s.coordinates[r.edge+1];
+        // Advancing/exchanging an introducer replaces vessel contact by its
+        // lumen over the newly covered material; old wall rows cannot persist.
+        if(r.witness && r.id?.startsWith('vessel/') && a+(b-a)*r.witness.t<=sheathEnd)return [];
         const edge=candidate.coordinates.findIndex((x,i)=>x===a&&candidate.coordinates[i+1]===b);
         if(edge<0) {
             // Only loaded sites carry physical friction memory across a mesh

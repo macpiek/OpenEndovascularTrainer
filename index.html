@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Endovascular Trainer</title>
-    <link rel="stylesheet" href="style.css?v=20260922-stent-models-1">
+    <link rel="stylesheet" href="style.css?v=20261022-space-pause">
 </head>
 <body class="system-initializing">
 <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
@@ -52,7 +52,6 @@
     </div>
     <div id="perfStats">FPS: 0 | Mem: N/A</div>
     <div class="control-readout-strip">
-        <div class="control-readout" id="activeAccessReadout">Prawa koszulka</div>
         <div class="control-readout" id="insertedLength">Wire 0 cm</div>
         <div class="control-readout" id="catheterLength">Catheter 0 cm</div>
         <div class="control-readout" id="currentDose">Contrast 0 ml</div>
@@ -64,6 +63,10 @@
     </div>
 </div>
 <div id="bottom-control-panel" aria-hidden="true"></div>
+<div id="simulation-pause-banner" role="status" hidden>
+    <strong>Symulacja wstrzymana</strong>
+    <button id="simulation-resume" type="button">Wznów · Spacja</button>
+</div>
 <div id="controls">
     <div class="control-tabs" role="tablist" aria-label="Simulator controls">
         <button class="control-tab active" type="button" data-control-tab="toolSelection" role="tab" aria-selected="true">Tool selection</button>
@@ -83,6 +86,16 @@
                 <button type="button" data-femoral-access="left" aria-pressed="false">Lewa koszulka</button>
                 <span id="femoralAccessStatus" role="status">Aktywna: prawa · oba solvery działają</span>
                 <span id="toolMotionRecoveryStatus" role="status"></span>
+            </div>
+            <div class="sheath-exchange-controls">
+                <label for="introducerLength">Długość koszulki</label>
+                <select id="introducerLength"><option value="70">Krótka · 7 cm</option><option value="450">Długa · 45 cm</option><option value="900">Długa · 90 cm</option></select>
+                <label for="introducerFrench">Rozmiar koszulki (średnica wewnętrzna)</label>
+                <select id="introducerFrench"><option value="6">6F</option><option value="7">7F</option><option value="8">8F</option><option value="9">9F</option><option value="10">10F</option><option value="12">12F</option><option value="14">14F</option><option value="16">16F</option><option value="18">18F</option><option value="20">20F</option><option value="22">22F</option><option value="24">24F</option></select>
+                <output id="introducerStatus" role="status">7 cm · 6F</output>
+                <div class="sheath-motion-controls"><button id="introducerWithdraw" type="button">Wycofaj koszulkę [G]</button><button id="introducerAdvance" type="button">Wsuń koszulkę [H]</button></div>
+                <output id="introducerInsertion">Wsunięcie: 7,0 cm</output>
+                <small>Przytrzymaj G / H lub przycisk, aby wycofać / wsunąć koszulkę. Długość i średnicę możesz zmienić po całkowitym wycofaniu (0 cm), a następnie ręcznie wsunąć nową koszulkę. Cewnik i prowadnik mogą pozostać na miejscu.</small>
             </div>
             <div class="control-section">
                 <div class="section-header"><span class="collapse-triangle">▼</span> Tool selection</div>
@@ -202,11 +215,13 @@
                                 <span class="tool-tip-preview" aria-hidden="true">
                                     <svg viewBox="0 0 72 64" aria-hidden="true" focusable="false">
                                         <path data-guidewire-tip="glidewire" />
+                                        <path data-guidewire-tip="glidewire-angled" />
                                         <path data-guidewire-tip="steel-j-035" />
                                     </svg>
                                 </span>
                                 <select id="guidewireType">
-                                    <option value="glidewire" selected>Glidewire</option>
+                                    <option value="glidewire" selected>Glidewire prosty</option>
+                                    <option value="glidewire-angled">Glidewire zagięty · 45°</option>
                                     <option value="steel-j-035">Steel J-wire 0.035&quot;</option>
                                 </select>
                             </div>
@@ -219,6 +234,11 @@
                                 disabled
                             >Wysuń</button>
                         </div>
+                        <label for="guidewireLength">Długość prowadnika</label>
+                        <select id="guidewireLength">
+                            <option value="1000">100 cm</option><option value="1500">150 cm</option>
+                            <option value="1800">180 cm</option><option value="2000">200 cm</option>
+                        </select>
                         <span id="guidewireTypeStatus" class="tool-select-status">Ready</span>
                         <label class="guidewire-stiffness-control" for="stiffness">
                             <span class="guidewire-stiffness-heading">Sztywność shaftu prowadnika</span>
@@ -606,12 +626,12 @@
                         <span>6.3 mPa·s</span>
                     </label>
                     <label class="parameter-label">Sheath length (mm)
-                        <input id="sheathHydraulicLength" type="range" min="50" max="300" step="5" value="110">
+                        <input id="sheathHydraulicLength" type="range" min="50" max="900" step="5" value="110">
                         <span>110 mm</span>
                     </label>
                     <label class="parameter-label">Sheath ID (mm)
-                        <input id="sheathInnerDiameter" type="range" min="1" max="3" step="0.05" value="1.8">
-                        <span>1.80 mm</span>
+                        <input id="sheathInnerDiameter" type="range" min="1" max="8" step="0.05" value="2">
+                        <span>2.00 mm</span>
                     </label>
                     <label class="parameter-label">Sheath rating (psi)
                         <input id="sheathPressureRating" type="range" min="50" max="1200" step="25" value="300">
@@ -646,7 +666,7 @@
             </details>
             <div id="toolDiameters" class="tool-diameters" aria-label="Tool diameters">
                 <div><span>Guidewire</span><strong id="guidewireDiameter">0.035&quot; · 0.889 mm</strong></div>
-                <div><span>Sheath</span><strong id="sheathDiameter">6F · 2.000 mm</strong></div>
+                <div><span>Sheath</span><strong id="sheathDiameter">6F · światło 2.00 mm · zew. 2.20 mm</strong></div>
                 <div><span>Pigtail</span><strong id="catheterDiameter">5F · 1.667 mm</strong></div>
             </div>
             <div class="debug-layer-controls" aria-label="Debug layers">
@@ -755,9 +775,20 @@
 </div>
 
 <div id="carm-preview"></div>
-<aside id="control-help-panel" aria-label="Opis sterowania">
-    <div class="control-help-title">Sterowanie</div>
+<dialog id="control-help-panel" aria-labelledby="control-help-title">
+    <div class="control-help-header">
+        <h1 id="control-help-title">Sterowanie</h1>
+        <button id="control-help-close" type="button" autofocus>Wróć do symulacji · Esc</button>
+    </div>
     <div class="control-help-grid">
+        <section class="control-help-section">
+            <h2>Pauza</h2>
+            <p><kbd>Spacja</kbd> zatrzymaj lub wznów symulację.</p>
+        </section>
+        <section class="control-help-section">
+            <h2>Koszulka</h2>
+            <p><kbd>H</kbd> wsuń, <kbd>G</kbd> wycofaj. Przytrzymaj klawisz, aby przesuwać koszulkę.</p>
+        </section>
         <section class="control-help-section">
             <h2>Prowadnik</h2>
             <p><kbd>W</kbd>/<kbd>↑</kbd> wsuń, <kbd>S</kbd>/<kbd>↓</kbd> wycofaj, <kbd>Z</kbd>/<kbd>X</kbd> obróć.</p>
@@ -780,7 +811,7 @@
             <p>Przytrzymaj <kbd>R</kbd>. Po krótkim przygotowaniu ramię pobierze nową maskę, nagra DSA i automatycznie wybierze najlepszą klatkę roadmapy.</p>
         </section>
     </div>
-</aside>
+</dialog>
 <div id="carm-controls">
     <div class="carm-panel-title">C-arm / table</div>
     <div class="carm-controls-body">

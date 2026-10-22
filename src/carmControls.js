@@ -586,6 +586,8 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     }
 
     window.addEventListener('blur', stopMotion);
+    document.addEventListener('simulation-controls-help-open', stopMotion);
+    document.addEventListener('simulation-pause', stopMotion);
     document.addEventListener('visibilitychange', () => {
         lastTime = null;
         if (document.visibilityState === 'hidden') stopMotion();

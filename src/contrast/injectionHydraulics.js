@@ -1,3 +1,4 @@
+import {INTRODUCER_SHEATH_INNER_DIAMETER_MM} from '../toolDimensions.js';
 const ML_PER_SECOND_TO_M3_PER_SECOND = 1e-6;
 const MM_TO_M = 1e-3;
 const MICROMETER_TO_M = 1e-6;
@@ -15,7 +16,7 @@ export const DEFAULT_DEVICE_HYDRAULIC_PROFILES = Object.freeze({
         id: 'sheath-6f-training',
         label: '6F introducer sheath',
         lengthMm: 110,
-        innerDiameterMm: 1.8,
+        innerDiameterMm: INTRODUCER_SHEATH_INNER_DIAMETER_MM,
         roughnessMicrometer: 1.5,
         outletDischargeCoefficient: 0.82,
         maximumPressurePsi: 300

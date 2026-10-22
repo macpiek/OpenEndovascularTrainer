@@ -1,3 +1,4 @@
+import {sheathLength as pathLength} from './sheathPath.js';
 import {createSharedAxisAppSystem} from './kirchhoffSharedAxisAppSystem.js';
 import {createSharedAxisNative} from './kirchhoffSharedAxisNative.js';
 import {createSharedAxisContacts} from './kirchhoffSharedAxisContacts.js';
@@ -47,7 +48,7 @@ export function createSharedAxisWorkerSystem({readTools,readSheath,readBloodFlow
         requireSupported(world);
         const tools=readTools(),sheath=structuredClone(readSheath()),messages=tools.map(sharedAxisToolMessage);
         const xyz=p=>Array.isArray(p)?p:[p.x,p.y,p.z];
-        const length=Math.hypot(...xyz(sheath.end).map((v,k)=>v-xyz(sheath.start)[k]));
+        const length=pathLength(sheath);
         if(!flowState) {
             const empty=createSharedAxisNative({...createSharedAxisContacts({sheath,localCoordinates:true}),
                 tools:messages.map(t=>({...t,...t.body,body:undefined,insertion:0})),adaptiveMesh:options.adaptiveMesh});

@@ -192,3 +192,45 @@ test('display does not fill long clear intervals between separate boluses', () =
         r.dispose();
     }
 });
+
+test('a flowing bolus develops a diluted front and tail across one-cell vessel fragments',()=>{
+    const net=chain(Array.from({length:101},(_,i)=>i*2),{axialDispersionMm2PerS:10});
+    net.setFlowOverride(net.edges.map(e=>e.index),area*40);
+    const initial=.3*net.edges[30].volumes[0];
+    net.depositIodine(30,0,initial);
+    for(let i=0;i<30;i++)net.update(1/60);
+    const concentrations=net.edges.map(e=>e.massMg[0]/e.volumes[0]);
+    const peak=Math.max(...concentrations),peakIndex=concentrations.indexOf(peak);
+    assert.ok(peak<.1,'the peak must dilute rather than retain the stock concentration');
+    assert.ok(concentrations[peakIndex-3]>peak*.1,'a visible trailing gradient remains');
+    assert.ok(concentrations[peakIndex+3]>peak*.1,'a visible leading gradient forms');
+    assert.ok(Math.abs(centroid(net)-81)<1,'mixing must not change bolus travel speed');
+    assert.ok(Math.abs(sum(net)-initial)<1e-9);
+    assert.ok(concentrations.every(c=>c>=0));
+});
+
+test('axial mixing in a selected daughter does not stain its parent or sibling',()=>{
+    const net=new ContrastFlowNetwork([
+        segment(0,0,1,[0,0,0],[20,0,0]),
+        segment(1,1,2,[20,0,0],[120,20,0]),
+        segment(2,1,3,[20,0,0],[120,-20,0])
+    ],{rootPoint:new THREE.Vector3(),cellLengthMm:2,axialDispersionMm2PerS:40});
+    net.setFlowOverride([0],area*10);net.setFlowOverride([1,2],area*5);
+    net.depositIodine(1,0,1);
+    for(let i=0;i<60;i++)net.update(1/60);
+    assert.ok(net.edges[0].massMg.every(m=>m===0));
+    assert.ok(net.edges[2].massMg.every(m=>m===0));
+    assert.ok(Math.abs(sum(net)-1)<1e-10);
+});
+
+test('normal-vessel mixing does not cross an excluded cell or graft barrier',()=>{
+    for(const excluded of [false,true]) {
+        const net=chain(Array.from({length:8},(_,i)=>i),{axialDispersionMm2PerS:40});
+        net.setFlowOverride(net.edges.map(e=>e.index),0);
+        if(excluded)net.edges[3].transportExcluded=true;
+        else net.edges[3].graftSections=new Uint8Array([1]);
+        net.depositIodine(2,0,1);net.update(.1);
+        assert.ok(net.edges.slice(3).every(e=>e.massMg.every(m=>m===0)));
+        assert.ok(Math.abs(sum(net)-1)<1e-10);
+    }
+});

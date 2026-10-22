@@ -60,7 +60,7 @@ export function buildGuidewireTipPreviewPath(type) {
 }
 
 export function renderGuidewireTipPreviews(root = document) {
-  for (const type of ['glidewire', 'steel-j-035']) {
+  for (const type of ['glidewire', 'glidewire-angled', 'steel-j-035']) {
     const path = root.querySelector(`[data-guidewire-tip="${type}"]`);
     if (path) path.setAttribute('d', buildGuidewireTipPreviewPath(type));
   }

@@ -80,7 +80,7 @@ function profileMap(input, coordinateOrigin, materialOrigin) {
         shaftStiffnessScale:positive(input.shaftStiffnessScale ?? 1,'Shaft stiffness scale'),
         tipStiffnessScale:positive(input.tipStiffnessScale ?? 1,'Tip stiffness scale'),
         coordinateOrigin:finite(coordinateOrigin,'Profile chart origin'),materialOrigin:finite(materialOrigin,'Profile label origin')});
-    const wire = ['glidewire','steel-j-035'].includes(profile.id), old = wire ? guidewireMaterialProfile(profile.id) : null,
+    const wire = ['glidewire','glidewire-angled','steel-j-035'].includes(profile.id), old = wire ? guidewireMaterialProfile(profile.id) : null,
         core = wire ? old.tipCoreLength : profile.naturalTipLengthMm,
         transition = wire ? old.tipTransitionLength : profile.id === 'berenstein' ? 6 : 8;
     // This is the same independent shaft/tip scale field used by

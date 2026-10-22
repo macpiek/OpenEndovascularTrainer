@@ -21,9 +21,9 @@ const RADIUS_VALLEY_WINDOW_MM = 28;
 const RADIUS_VALLEY_SUPPORT_MM = 6;
 const RADIUS_VALLEY_RATIO = 0.78;
 const RADIUS_VALLEY_RESTORE_RATIO = 0.92;
-const AORTIC_PREFIX_MIN_PARENT_RADIUS_MM = 10;
+const AORTIC_PREFIX_MIN_PARENT_RADIUS_MM = 3;
 const AORTIC_PREFIX_START_RADIUS_RATIO = 0.78;
-const AORTIC_PREFIX_EXIT_RADIUS_RATIO = 0.65;
+const AORTIC_PREFIX_EXIT_RADIUS_RATIO = 0.85;
 const AORTIC_PREFIX_MAX_LENGTH_MM = 35;
 const AORTIC_PREFIX_CALIBER_PROBE_MM = 4;
 const AORTIC_PREFIX_OSTIAL_FLARE_RATIO = 1.35;
@@ -44,7 +44,8 @@ export const DEFAULT_HEMODYNAMICS = Object.freeze({
     cardiacOutputMlPerMin: 5000,
     bloodDensityKgPerM3: 1060,
     bloodViscosityPaS: 0.0035,
-    axialDispersionMm2PerS: 10
+    axialDispersionMm2PerS: 10,
+    axialFlowDispersionFactor: 0.04
 });
 
 function endpointRadius(segment, nodeId) {
@@ -167,6 +168,8 @@ function orientedEdge(source, sourceIndex, startNode, endNode, edgeIndex, {
         index: edgeIndex,
         sourceIndex,
         sourceId: source.id ?? sourceIndex,
+        renalSide: source.renalSide ?? null,
+        renalSector: source.renalSector ?? -1,
         startNodeId: startNode.id,
         endNodeId: endNode.id,
         start,
@@ -299,8 +302,10 @@ export class ContrastFlowNetwork {
         this._buildDirectedTree();
         this._contractIntraluminalAorticBranchConnectors();
         this._suppressIntraluminalAorticDeadEnds();
+        this._suppressContainedTerminalSpurs();
         this._regularizeShortRadiusValleys();
         this._regularizeAorticBranchPrefixes();
+        this._regularizeSideJunctionRadiusPeaks();
         this._regularizeIntraluminalAorticConnectorVolumes();
         this._flowOverridesMm3PerS = new Float64Array(this.edges.length);
         this._flowOverridesMm3PerS.fill(Number.NaN);
@@ -317,7 +322,7 @@ export class ContrastFlowNetwork {
         );
         this._updateMaximumMeanVelocity();
         this._advection = new FlowAdvection(this);
-        this.dilatedLumenMixing = new DilatedLumenMixing(this);
+        this.dilatedLumenMixing = new DilatedLumenMixing(this, {includeNormal:true});
     }
 
     _updateMaximumMeanVelocity() {
@@ -798,6 +803,35 @@ export class ContrastFlowNetwork {
             candidate.transportVolumeMm3 = connector.totalVolume;
             candidate.removedVolumeMm3 = removed;
         }
+        // A connector can have a longer shared stem before its final split.
+        // Correct that stem bottom-up too, but stop as soon as one daughter
+        // is the uncorrected continuing aorta. Otherwise each nested split
+        // retains another aorta-sized reservoir upstream of the repaired mouths.
+        const supported = new Set(diagnostics.connectors.map(c => c.connectorEdgeIndex));
+        const distance = new Float64Array(this.edges.length);
+        diagnostics.sharedStems = [];
+        for (let order = this.nodeOrder.length - 1; order >= 0; order--) {
+            const node = this.nodes.get(this.nodeOrder[order]);
+            const edge = this.edges[node.parentEdgeIndex];
+            if (!edge || edge.transportExcluded || supported.has(edge.index) ||
+                edge.renalSide || !node.childEdgeIndices.length) continue;
+            if (!node.childEdgeIndices.every(i => supported.has(i))) continue;
+            const children = node.childEdgeIndices.map(i => this.edges[i]);
+            const length = edge.length + Math.max(...children.map(e => distance[e.index]));
+            if (length > AORTIC_PREFIX_MAX_LENGTH_MM ||
+                Math.min(edge.rawRadiusStart, edge.rawRadiusEnd) < AORTIC_DUPLICATE_MIN_PARENT_RADIUS_MM) continue;
+            const radius = Math.max(...children.map(e => e.radiusStart));
+            const before = edge.totalVolume;
+            edge.radiusStart = Math.min(edge.radiusStart, radius);
+            edge.radiusEnd = Math.min(edge.radiusEnd, radius);
+            edge.lumenMappingUsesCorrectedRadius = true;
+            this._rebuildEdgeTransportGeometry(edge);
+            supported.add(edge.index);
+            distance[edge.index] = length;
+            const removed = before - edge.totalVolume;
+            removedVolumeMm3 += removed;
+            diagnostics.sharedStems.push({edgeIndex: edge.index, removedVolumeMm3: removed});
+        }
         diagnostics.excludedVolumeMm3 = removedVolumeMm3;
     }
 
@@ -955,6 +989,85 @@ export class ContrastFlowNetwork {
             suppressedEdgeCount: suppressedEdgeIndices.size,
             roots: suppressedRoots
         };
+    }
+
+    _suppressContainedTerminalSpurs() {
+        // Short TEASAR strands can taper to an artificial outlet while staying
+        // entirely inside another artery. They are duplicate blood volume,
+        // not a side vessel: their low terminal flow leaves an isolated plug.
+        const roots = [];
+        const downstreamLength = new Float64Array(this.edges.length);
+        for (let i = this.nodeOrder.length - 1; i >= 0; i--) {
+            const node = this.nodes.get(this.nodeOrder[i]);
+            if (node.parentEdgeIndex < 0) continue;
+            const e = this.edges[node.parentEdgeIndex];
+            downstreamLength[e.index] = e.length + Math.max(0,
+                ...node.childEdgeIndices.map(index => downstreamLength[index]));
+        }
+        const longestContinuation = (a, b) => downstreamLength[b.index] - downstreamLength[a.index];
+        for (const node of this.nodes.values()) {
+            const parent = this.edges[node.parentEdgeIndex];
+            if (!parent || parent.renalSide || parent.transportExcluded ||
+                node.childEdgeIndices.length < 2) continue;
+            for (const rootIndex of [...node.childEdgeIndices]) {
+                const path = [];
+                let edge = this.edges[rootIndex], length = 0;
+                while (edge && !edge.renalSide && !edge.transportExcluded) {
+                    path.push(edge);
+                    length += edge.length;
+                    if (length > 80 ||
+                        edge.childEdgeIndices.length !== 1) break;
+                    edge = this.edges[edge.childEdgeIndices[0]];
+                }
+                if (!path.length || path[path.length - 1] !== edge || edge.childEdgeIndices.length ||
+                    length > 80) continue;
+                const main = node.childEdgeIndices.filter(i => i !== rootIndex)
+                    .map(i => this.edges[i]).sort(longestContinuation)[0];
+                if (!main || main.transportExcluded) continue;
+                // The real artery may fork again alongside the duplicate, or
+                // share a junction a few samples upstream. Check the connected
+                // neighbourhood, not just the longest daughter at each fork.
+                let anchor = parent, upstream = 0;
+                while (anchor.parentEdgeIndex >= 0 && upstream < Math.max(4, parent.rawRadiusEnd * 2)) {
+                    upstream += anchor.length;
+                    anchor = this.edges[anchor.parentEdgeIndex];
+                }
+                const continuation = [], queue = [{edge: anchor, distance: 0}];
+                const candidateIndices = new Set(path.map(e => e.index));
+                for (let q = 0; q < queue.length; q++) {
+                    const {edge: current, distance} = queue[q];
+                    if (candidateIndices.has(current.index) || current.transportExcluded || current.renalSide) continue;
+                    continuation.push(current);
+                    if (distance > upstream + length * 2 + parent.rawRadiusEnd) continue;
+                    for (const index of current.childEdgeIndices) {
+                        queue.push({edge: this.edges[index], distance: distance + current.length});
+                    }
+                }
+                if (downstreamLength[anchor.index] - upstream < length * 1.5) continue;
+                const contained = path.every(e => [0, 0.5, 1].every(t => {
+                    const point = e.start.clone().lerp(e.end, t);
+                    return continuation.some(trunk => {
+                        const axial = point.clone().sub(trunk.start).dot(trunk.axis);
+                        if (axial < -1e-6 || axial > trunk.length + 1e-6 ||
+                            e.axis.dot(trunk.axis) < 0.7) return false;
+                        const radius = THREE.MathUtils.lerp(trunk.rawRadiusStart,
+                            trunk.rawRadiusEnd, axial / trunk.length);
+                        return point.distanceTo(trunk.start.clone().addScaledVector(trunk.axis, axial))
+                            < radius * 0.5;
+                    });
+                }));
+                if (!contained) continue;
+                node.childEdgeIndices.splice(node.childEdgeIndices.indexOf(rootIndex), 1);
+                for (const e of path) {
+                    e.transportExcluded = true;
+                    e.renderExcluded = true;
+                    e.lumenMappingExcluded = true;
+                }
+                roots.push({rootEdgeIndex: rootIndex, mainContinuationEdgeIndex: main.index,
+                    edgeIndices: path.map(e => e.index), lengthMm: length});
+            }
+        }
+        this.containedTerminalSpurDiagnostics = {roots};
     }
 
     _regularizeShortRadiusValleys() {
@@ -1218,14 +1331,14 @@ export class ContrastFlowNetwork {
                     path.push(edge);
                     pathLengthMm += edge.length;
                     if (
-                        edge.rawRadiusEnd <= Math.min(
+                        edge.radiusEnd <= Math.min(
                             parentRadius * AORTIC_PREFIX_EXIT_RADIUS_RATIO,
                             AORTIC_PREFIX_MAX_BRANCH_RADIUS_MM
                         )
                     ) {
                         branchRadiusMm = Math.max(
                             MIN_RADIUS_MM,
-                            edge.rawRadiusEnd
+                            edge.radiusEnd
                         );
                         break;
                     }
@@ -1244,19 +1357,41 @@ export class ContrastFlowNetwork {
                     path.push(edge);
                     pathLengthMm += edge.length;
                     probeDistanceMm += edge.length;
-                    branchRadiusMm = Math.min(
-                        branchRadiusMm,
-                        Math.max(MIN_RADIUS_MM, edge.rawRadiusEnd)
-                    );
+                    // Use the repaired downstream lumen at the join. A raw
+                    // medial-axis valley must not narrow a whole iliac limb
+                    // and then jump back to its real radius after this prefix.
+                    branchRadiusMm = Math.max(MIN_RADIUS_MM, edge.radiusEnd);
                 }
                 if (
                     branchRadiusMm >
                         AORTIC_PREFIX_MAX_BRANCH_RADIUS_MM
                 ) continue;
 
+                // Identify a side ostium by its downstream calibre, not by an
+                // aneurysm-sized parent. At a balanced fork both daughters
+                // naturally taper; neither may be mistaken for a side pocket.
+                const siblingProbeDistance=Math.min(AORTIC_PREFIX_MAX_LENGTH_MM,
+                    Math.max(pathLengthMm,parentRadius*4));
+                // A technical connector lies inside the aorta and may split
+                // into two genuine side vessels. Compare both with the aorta,
+                // not with each other, or their inherited aortic-sized mouths
+                // are incorrectly protected as a balanced bifurcation.
+                const siblingRadius = Math.max(parent.intraluminalAorticConnector ? parentRadius : 0,...node.childEdgeIndices
+                    .filter(index=>index!==rootEdgeIndex)
+                    .map(index=>{
+                        let sibling=this.edges[index],distance=0;
+                        while(sibling && distance+sibling.length<siblingProbeDistance && sibling.childEdgeIndices.length){
+                            distance+=sibling.length;
+                            sibling=sibling.childEdgeIndices.map(i=>this.edges[i])
+                                .reduce((a,b)=>a.radiusEnd>b.radiusEnd?a:b);
+                        }
+                        return sibling?Math.max(sibling.rawRadiusEnd,sibling.radiusEnd):0;
+                    }));
+                if(branchRadiusMm>siblingRadius*.80)continue;
+
                 const ostialRadiusMm = Math.min(
                     parentRadius,
-                    branchRadiusMm * AORTIC_PREFIX_OSTIAL_FLARE_RATIO
+                    branchRadiusMm * (parentRadius < 10 ? 1.15 : AORTIC_PREFIX_OSTIAL_FLARE_RATIO)
                 );
                 let distanceMm = 0;
                 let pathRemovedVolumeMm3 = 0;
@@ -1311,6 +1446,61 @@ export class ContrastFlowNetwork {
             removedVolumeMm3,
             paths: correctedPaths
         };
+    }
+
+    _regularizeSideJunctionRadiusPeaks() {
+        // Medial-axis samples near a side mouth can alternate between the
+        // trunk wall and the shared junction envelope. Remove local peaks
+        // along the continuing artery, using intact lumen at both ends.
+        // Apply this to transport and display together: a visual-only fix
+        // would leave the same oversized reservoir in the flow model.
+        const diagnostics = [];
+        for (const prefix of this.aorticBranchPrefixDiagnostics.paths) {
+            const side = this.edges[prefix.rootEdgeIndex];
+            const parent = this.edges[side.parentEdgeIndex];
+            if (!parent || parent.radiusEnd < 3 || parent.radiusEnd > 6.5 ||
+                parent.childEdgeIndices.length !== 2) continue;
+            const main = this.edges[parent.childEdgeIndices.find(i => i !== side.index)];
+            const reach = THREE.MathUtils.clamp(parent.radiusEnd * 3, 8, 16);
+            const upstream = [], downstream = [];
+            let edge = parent, distance = 0;
+            while (edge) {
+                upstream.unshift(edge);
+                distance += edge.length;
+                const previous = this.edges[edge.parentEdgeIndex];
+                if (distance >= reach || !previous || previous.childEdgeIndices.length !== 1) break;
+                edge = previous;
+            }
+            edge = main;
+            distance = 0;
+            while (edge) {
+                downstream.push(edge);
+                distance += edge.length;
+                if (distance >= reach || edge.childEdgeIndices.length !== 1) break;
+                edge = this.edges[edge.childEdgeIndices[0]];
+            }
+            const path = [...upstream, ...downstream];
+            const length = path.reduce((sum, e) => sum + e.length, 0);
+            const startRadius = path[0].radiusStart, endRadius = path.at(-1).radiusEnd;
+            // A side junction correction must never flatten a large dilatation.
+            if (Math.max(startRadius, endRadius) > 6.5) continue;
+            distance = 0;
+            let removedVolumeMm3 = 0;
+            for (const e of path) {
+                const volume = e.totalVolume;
+                e.radiusStart = Math.min(e.radiusStart,
+                    THREE.MathUtils.lerp(startRadius, endRadius, distance / length));
+                distance += e.length;
+                e.radiusEnd = Math.min(e.radiusEnd,
+                    THREE.MathUtils.lerp(startRadius, endRadius, distance / length));
+                this._rebuildEdgeTransportGeometry(e);
+                if (e.totalVolume < volume - 1e-9) e.lumenMappingUsesCorrectedRadius = true;
+                removedVolumeMm3 += volume - e.totalVolume;
+            }
+            diagnostics.push({ parentEdgeIndex: parent.index, edgeIndices: path.map(e => e.index),
+                startRadius, endRadius, lengthMm: length, removedVolumeMm3 });
+        }
+        this.sideJunctionRadiusDiagnostics = diagnostics;
     }
 
     _computeHydraulicDistribution() {
@@ -1885,32 +2075,29 @@ export class ContrastFlowNetwork {
         const count = Math.max(1, Math.ceil(dt*30)), step = dt/count;
         this.lastTransportSubstepCount = count;
         for (let i = 0; i < count; i++) {
-            this._advection.prepare(arterialWaveform(
-                this.time + step * 0.5,
-                this.hemodynamics.heartRateBpm
-            ));
-            this._transportSubstep(step);
+            const waveform=arterialWaveform(this.time+step*.5,this.hemodynamics.heartRateBpm);
+            this._advection.prepare(waveform);
+            this._transportSubstep(step,waveform);
             this.stentGraftRemodeling?.sac?.update(step);
             this.time += step;
         }
         this._updateEdgeConcentrations(true);
     }
 
-    _transportSubstep(dt) {
+    _transportSubstep(dt,waveform=1) {
         const touched = this._advection.update(dt), marks = this._advection.edgeMarks;
         // Diffusion can enter a clear daughter after the directed sweep.
         const reached = touched.length;
         for (let k = 0; k < reached; k++) {
             const edge = this.edges[touched[k]];
             edge.active = true;
-            this._applyAxialDispersion(edge, dt);
             for (const childIndex of edge.childEdgeIndices) if (!marks[childIndex]) {
                 marks[childIndex] = 1; touched.push(childIndex);
                 this.edges[childIndex].nextMassMg.set(this.edges[childIndex].massMg);
             }
         }
         this._applyJunctionDispersion(dt, touched, reached);
-        this.dilatedLumenMixing.update(dt, touched, marks);
+        this.dilatedLumenMixing.update(dt, touched, marks,waveform);
         this._activeEdgeIndices.clear();
         for (const edgeIndex of touched) {
             const edge = this.edges[edgeIndex];
@@ -1938,7 +2125,9 @@ export class ContrastFlowNetwork {
             const edgeIndex = touchedEdgeIndices[i];
             const edge = this.edges[edgeIndex];
             if (!edge.childEdgeIndices.length) continue;
-            if (edge.childEdgeIndices.length === 1 && this.dilatedLumenMixing.weights[edge.index] && this.dilatedLumenMixing.weights[edge.childEdgeIndices[0]]) continue;
+            // The chain solver handles ordinary degree-two nodes in both
+            // directions. Only real bifurcations need the directed exchange.
+            if (edge.childEdgeIndices.length === 1) continue;
             if (!edge.active && !edge.childEdgeIndices.some(
                 childIndex => this.edges[childIndex].active
             )) continue;
@@ -2013,25 +2202,6 @@ export class ContrastFlowNetwork {
                 transferredMassMg += transfer;
             }
             edge.nextMassMg[parentIndex] -= transferredMassMg;
-        }
-    }
-
-    _applyAxialDispersion(edge, dt) {
-        if (this.dilatedLumenMixing.weights[edge.index]) return;
-        const coefficient = Math.max(0, this.hemodynamics.axialDispersionMm2PerS);
-        if (!(coefficient > 0) || edge.cellCount < 2) return;
-        const mass = edge.nextMassMg, volumes = edge.volumes, areas = edge.areas;
-        // Exact two-volume exchange is positive and mass-conservative at any
-        // cell size. Symmetric sweeps avoid a directional bias and remove the
-        // global diffusion timestep imposed by tiny atlas segments.
-        for (let pass = 0; pass < 2; pass++) for (let n = 0; n < edge.cellCount-1; n++) {
-            const i = pass ? edge.cellCount-2-n : n, j = i+1;
-            const a = Math.max(1e-9, volumes[i]), b = Math.max(1e-9, volumes[j]);
-            const rate = coefficient*(areas[i]+areas[j])*.5/edge.cellLength;
-            const effectiveVolume = a*b/(a+b);
-            const transfer = (mass[i]/a-mass[j]/b)*effectiveVolume *
-                (-Math.expm1(-rate/effectiveVolume*dt*.5));
-            mass[i] -= transfer; mass[j] += transfer;
         }
     }
 

@@ -1,8 +1,9 @@
-// Reduced axial mixing in a dilation. The scalar transport remains 1D;
-// conservative implicit exchange models unresolved mixing inside the expanded
-// lumen without a tiny-cell timestep or a separate reservoir of iodine.
+// Conservative axial mixing along continuous vessel chains, with extra
+// dispersion in dilations. Artificial degree-two centerline nodes do not
+// interrupt mixing; actual bifurcations remain separate selective territories.
 export class DilatedLumenMixing {
-    constructor(network) {
+    constructor(network, {includeNormal=false} = {}) {
+        this.includeNormal=includeNormal;
         this.network = network;
         this.weights = new Float32Array(network.edges.length);
         for (const edge of network.edges) {
@@ -24,16 +25,18 @@ export class DilatedLumenMixing {
             const size = Math.max(0, Math.min(1, (radius - 6) / 4));
             this.weights[edge.index] = t * t * (3 - 2 * t) * size;
         }
+        const eligible=edge=>edge && !edge.transportExcluded && !edge.renderExcluded &&
+            (includeNormal || this.weights[edge.index]>0);
         this.regions = [];
         const visited = new Set();
         for (const root of network.edges) {
-            if (!this.weights[root.index] || visited.has(root.index)) continue;
+            if (!eligible(root) || visited.has(root.index)) continue;
             const parent = network.edges[root.parentEdgeIndex];
-            if (parent && this.weights[parent.index] && parent.childEdgeIndices.length === 1)
+            if (eligible(parent) && parent.childEdgeIndices.length === 1)
                 continue;
             const cells = [];
             let edge = root;
-            while (edge && this.weights[edge.index] && !visited.has(edge.index)) {
+            while (eligible(edge) && !visited.has(edge.index)) {
                 visited.add(edge.index);
                 for (let cell = 0; cell < edge.cellCount; cell++) cells.push({ edge, cell });
                 edge =
@@ -51,17 +54,22 @@ export class DilatedLumenMixing {
         }
     }
 
-    update(dt, touched, marks) {
+    update(dt, touched, marks, waveform=1) {
         const base = Math.max(0, this.network.hemodynamics.axialDispersionMm2PerS);
         if (!base) return;
+        const shear=this.includeNormal
+            ? Math.max(0,this.network.hemodynamics.axialFlowDispersionFactor??.04)
+            : 0;
         for (const { cells, upper, rhs, conductance } of this.regions) {
             let mass = 0;
             for (let i = 0; i < cells.length; i++) {
                 const { edge, cell } = cells[i];
                 rhs[i] = marks[edge.index] ? edge.nextMassMg[cell] : edge.massMg[cell];
                 mass += rhs[i];
-                conductance[i] = 0;
-                if (!i) continue;
+            }
+            if (!mass) continue;
+            conductance.fill(0);
+            for(let i=1;i<cells.length;i++) {
                 const a = cells[i - 1],
                     b = cells[i];
                 // Do not diffuse through excluded lumen or deployed fabric.
@@ -74,28 +82,44 @@ export class DilatedLumenMixing {
                     continue;
                 const area = Math.min(a.edge.areas[a.cell], b.edge.areas[b.cell]);
                 const radius = Math.sqrt(area / Math.PI);
-                const speed = Math.abs(b.edge.meanFlowMm3PerS) / Math.max(1e-9, area);
+                const flow=this.network.getFaceSignedFlowMm3PerS
+                    ? this.network.getFaceSignedFlowMm3PerS(b.edge.index,b.cell,waveform)
+                    : b.edge.meanFlowMm3PerS;
+                const speed = Math.abs(flow) / Math.max(1e-9, area);
                 const weight = Math.min(this.weights[a.edge.index], this.weights[b.edge.index]);
-                const diffusion = base + 0.12 * speed * radius * weight;
+                // Reduced unresolved shear dispersion: broaden the front and
+                // tail in flowing blood, including ordinary-calibre vessels.
+                const diffusion = base + (shear + 0.12 * weight) * speed * radius;
                 conductance[i] =
                     (dt * diffusion * area) / ((a.edge.cellLength + b.edge.cellLength) * 0.5);
             }
-            if (!mass) continue;
-            // Solve (V + dt L)c = mass. This M-matrix preserves nonnegativity
-            // and its column sums equal V, so exchange cannot create iodine.
-            for (let i = 0; i < cells.length; i++) {
-                const { edge, cell } = cells[i];
-                const left = conductance[i],
-                    right = conductance[i + 1] || 0;
-                const diagonal =
-                    Math.max(1e-9, edge.volumes[cell]) +
-                    left +
-                    right -
-                    (i ? left * upper[i - 1] : 0);
-                upper[i] = right / diagonal;
-                rhs[i] = (rhs[i] + (i ? left * rhs[i - 1] : 0)) / diagonal;
+            // Two volumes have a closed-form solution, including the stiff
+            // limit. Use it for either representation (one edge or two).
+            if(cells.length===2) {
+                const va=Math.max(1e-9,cells[0].edge.volumes[cells[0].cell]);
+                const vb=Math.max(1e-9,cells[1].edge.volumes[cells[1].cell]);
+                const effectiveVolume=va*vb/(va+vb);
+                const transfer=(rhs[0]/va-rhs[1]/vb)*effectiveVolume*
+                    (-Math.expm1(-conductance[1]/effectiveVolume));
+                rhs[0]=(rhs[0]-transfer)/va;
+                rhs[1]=(rhs[1]+transfer)/vb;
+            } else {
+                // Solve (V + dt L)c = mass. This M-matrix preserves nonnegativity
+                // and its column sums equal V, so exchange cannot create iodine.
+                for (let i = 0; i < cells.length; i++) {
+                    const { edge, cell } = cells[i];
+                    const left = conductance[i],
+                        right = conductance[i + 1] || 0;
+                    const diagonal =
+                        Math.max(1e-9, edge.volumes[cell]) +
+                        left +
+                        right -
+                        (i ? left * upper[i - 1] : 0);
+                    upper[i] = right / diagonal;
+                    rhs[i] = (rhs[i] + (i ? left * rhs[i - 1] : 0)) / diagonal;
+                }
+                for (let i = cells.length - 2; i >= 0; i--) rhs[i] += upper[i] * rhs[i + 1];
             }
-            for (let i = cells.length - 2; i >= 0; i--) rhs[i] += upper[i] * rhs[i + 1];
             for (let i = 0; i < cells.length; i++) {
                 const { edge, cell } = cells[i];
                 if (!marks[edge.index]) {

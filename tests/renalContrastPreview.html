@@ -1,0 +1,53 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Kontrast nerkowy — podgląd regresji</title>
+<style>body{margin:0;background:#151d25;color:#e9eef2;font:16px system-ui}header{padding:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}button{padding:10px;border:1px solid #59717e;border-radius:6px;background:#273a45;color:inherit}canvas{display:block;margin:auto;max-width:100%}output{padding:18px;display:block}</style>
+<header><strong>Kontrast nerkowy</strong><button id="arterial">Faza tętnicza</button><button id="bounds">Naczynia + obrys nerki</button><button id="fine">Drobne naczynia</button><button id="tissue">Miąższ nerki</button><button id="earlyClear">Po 6 s</button><button id="clear">Wypłukanie</button><button id="side">Obie nerki / tylko lewa</button></header>
+<output id="status"></output><script type="module">
+import * as THREE from 'three';
+import {HybridContrastSystem} from '../src/contrast/hybridContrastSystem.js';
+import {ContrastVolumeRenderer} from '../src/contrast/contrastVolumeRenderer.js';
+import {RENAL_HALF_SIZE,renalSphereLevelBound} from '../src/renalShape.js';
+const p=(x,y,z)=>new THREE.Vector3(x,y,z), source=[
+ {id:0,start:p(0,-100,0),end:p(0,-185,0),radiusStart:8,radiusEnd:8,nodeStartId:0,nodeEndId:1},
+ {id:1,start:p(0,-185,0),end:p(27.49,-194.19,-6.70),radiusStart:2.5,radiusEnd:.6,nodeStartId:1,nodeEndId:2},
+ {id:2,start:p(0,-185,0),end:p(-12.73,-189.20,-8.18),radiusStart:2.5,radiusEnd:.6,nodeStartId:1,nodeEndId:3}];
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setSize(980,630);document.body.append(renderer.domElement);
+const camera=new THREE.OrthographicCamera(-125,125,80,-80,.1,2000);camera.position.set(0,-189,500);camera.lookAt(0,-189,0);
+const scene=new THREE.Scene(),target=new THREE.WebGLRenderTarget(980,630,{type:THREE.HalfFloatType});
+const displayScene=new THREE.Scene(),displayCamera=new THREE.Camera();
+const display=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:{map:{value:target.texture}},vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=vec4(position,1.);}',fragmentShader:'uniform sampler2D map;varying vec2 v;void main(){float d=texture2D(map,v).r;gl_FragColor=vec4(vec3(.93*exp(-d*8.)),1.);}'}));displayScene.add(display);
+let current,system,selective=false,phase=2,outlines=[];
+function show(seconds,withOutline=false){
+ for(const line of outlines){scene.remove(line);line.geometry.dispose();line.material.dispose();}outlines=[];
+ phase=seconds;if(current){scene.remove(current.group);current.dispose();}
+ system=new HybridContrastSystem({centerlineSegments:source,hemodynamics:{cardiacOutputMlPerMin:500,heartRateBpm:72}});
+ const network=system.flowNetwork;
+ const roots=(selective?['left']:['left','right']).map(side=>network.edges.find(e=>e.renalSide===side&&!network.edges[e.parentEdgeIndex]?.renalSide));
+ for(let t=0;t<seconds-1e-8;t+=1/60) {
+  const dt=Math.min(1/60,seconds-t);network.clearFlowOverrides();
+  // Controlled continuous inlet pulses, using the same characteristic solver.
+  if(t<.75)for(const root of roots){
+   network._branchInletFlowMm3PerS[root.index]=1700;
+   network._branchInletConcentrationMgPerMm3[root.index]=.35;
+   network._branchInletEdgeIndices.add(root.index);
+   system.totalInjectedIodineMassMg+=1700*.35*dt;
+  }
+  network.update(dt);network.outletIodineMassMg+=system.renalPerfusion.update(dt);system.simulationTimeSeconds+=dt;
+ }
+
+ current=new ContrastVolumeRenderer(system);scene.add(current.group);current.update();
+ if(withOutline)for(const kidney of system.renalPerfusion.kidneys){
+  const points=[];
+  for(let i=0;i<256;i++){
+   const angle=i/256*Math.PI*2;let lo=0,hi=1.1;
+   const at=r=>kidney.center.clone().add(p(Math.cos(angle)*r*RENAL_HALF_SIZE[0],Math.sin(angle)*r*RENAL_HALF_SIZE[1],0));
+   for(let j=0;j<24;j++){const mid=(lo+hi)/2;if(renalSphereLevelBound(at(mid),0,kidney)<1)lo=mid;else hi=mid;}
+   points.push(at((lo+hi)/2));
+  }
+  const line=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:new THREE.Color(.04,.04,.04),depthTest:false,depthWrite:false}));
+  outlines.push(line);scene.add(line);
+ }
+ renderer.setRenderTarget(target);renderer.setClearColor(0);renderer.clear();renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(displayScene,displayCamera);
+ document.getElementById('status').textContent=`${seconds.toFixed(1)} s · ${selective?'Podanie selektywne do lewej tętnicy':'Obie tętnice nerkowe'} · Jod w nerkach: ${system.renalPerfusion.massMg.toFixed(1)} mg · Błąd bilansu: ${system.getMetrics().balanceErrorMg.toFixed(6)} mg`;
+}
+document.getElementById('arterial').onclick=()=>show(.4);document.getElementById('fine').onclick=()=>show(1.1,true);document.getElementById('bounds').onclick=()=>show(.8,true);document.getElementById('earlyClear').onclick=()=>show(6);document.getElementById('tissue').onclick=()=>show(2);document.getElementById('clear').onclick=()=>show(30);document.getElementById('side').onclick=()=>{selective=!selective;show(phase);};show(2);
+</script></html>

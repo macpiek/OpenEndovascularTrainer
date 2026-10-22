@@ -73,4 +73,14 @@ for (const hint of [-1, previousFace]) {
 }
 geometry.dispose();
 
+// Collapsed Boolean seam triangles must retain their finite edge distance.
+const collapsed=new THREE.BufferGeometry();
+collapsed.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,0,0,0,1,0,0],3));
+collapsed.boundsTree=new MeshBVH(collapsed);
+const collapsedTarget={point:new THREE.Vector3(),distance:Infinity,faceIndex:-1};
+assert.equal(closestPointToPointScalarBvh(collapsed.boundsTree,.5,1,0,collapsedTarget,createScalarMeshBvhScratch()),true);
+assert.equal(collapsedTarget.distance,1);
+assert.deepEqual(collapsedTarget.point.toArray(),[.5,0,0]);
+assert.equal(collapsedTarget.faceIndex,0);
+collapsed.dispose();
 console.log('Scalar MeshBVH closest-point tests passed');

@@ -177,3 +177,27 @@ test('native volume keeps iodine visible below the former 4–6 mm surface trans
         volume.dispose();
     }
 });
+
+test('normal-vessel mixing crosses artificial segment boundaries without changing the bolus mass', () => {
+    function normal(fragmented) {
+        const net=dilation(fragmented,40);
+        // Keep identical cells but remove the dilation that used to be the
+        // only region with a coupled, bidirectional diffusion solve.
+        for(const e of net.edges) {
+            e.radiusStart=e.radiusEnd=2;
+            e.areas.fill(Math.PI*4);
+            e.volumes.fill(Math.PI*4*e.cellLength);
+            e.meanFlowMm3PerS=0;
+        }
+        net.dilatedLumenMixing=new DilatedLumenMixing(net,{includeNormal:true});
+        return net;
+    }
+    const a=normal(false),b=normal(true);
+    a.edges[1].massMg[3]=1;b.edges[4].massMg[0]=1;
+    const ma=mix(a,.02),mb=mix(b,.02);
+    assert.equal(ma.length,8,'the normal inlet and all downstream cells share the same solve');
+    assert.ok(ma.every(m=>m>0),'both the leading edge and the trailing edge dilute gradually');
+    assert.ok(Math.abs(ma.reduce((sum,m)=>sum+m,0)-1)<1e-12);
+    ma.forEach((m,i)=>assert.ok(Math.abs(m-mb[i])<1e-12,'fragmenting a vessel must not trap its contrast'));
+    assert.ok(Math.max(...ma)<.7,'one cell must not retain nearly all of the iodine');
+});

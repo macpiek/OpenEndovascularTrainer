@@ -210,8 +210,8 @@ const aorticConnectorDiagnostics =
     network.getTopologyDiagnostics().intraluminalAorticConnectors;
 assert.equal(
     aorticConnectorDiagnostics.contractedConnectorCount,
-    1,
-    'the false aorta-calibre connector between arch branches should be contracted'
+    3,
+    'all three false aorta-calibre connectors between arch branches should be contracted'
 );
 const [contractedArchConnector] =
     aorticConnectorDiagnostics.connectors;
@@ -437,7 +437,11 @@ const selectiveCarotidSiblingRootEdgeIndices = [
     selectiveCarotidAnchors.leftSubclavianRootEdgeIndex
 ];
 const selectiveCarotidUpstreamEdges = [];
-let selectiveCarotidUpstreamEdge = selectiveCarotidEdge;
+// Local dispersion may mix with neighbouring cells in the same carotid.
+// Measure escape beyond its origin, not ordinary intravascular mixing.
+let selectiveCarotidUpstreamEdge = selectiveCarotidNetwork.edges[
+    selectiveCarotidAnchors.leftCommonCarotidRootEdgeIndex
+];
 while (selectiveCarotidUpstreamEdge.parentEdgeIndex >= 0) {
     selectiveCarotidUpstreamEdge = selectiveCarotidNetwork.edges[
         selectiveCarotidUpstreamEdge.parentEdgeIndex
@@ -850,20 +854,18 @@ catheterPort.direction.copy(catheterSourceEdge.axis);
 
 const mainPathEdges = [];
 const sideBranchEdges = [];
+// Follow the anatomical aortic path. A daughter supplying a large territory
+// can carry more flow than the continuing aorta and is not its continuation.
+const aorticContinuationByParent = new Map();
+for (let edge = aortoiliacParent; edge.parentEdgeIndex >= 0;
+    edge = network.edges[edge.parentEdgeIndex]) {
+    aorticContinuationByParent.set(edge.parentEdgeIndex, edge.index);
+}
 let pathEdge = catheterSourceEdge;
 while (pathEdge && pathEdge.index !== aortoiliacParent.index) {
     mainPathEdges.push(pathEdge);
     if (!pathEdge.childEdgeIndices.length) break;
-    const nextEdgeIndex = pathEdge.childEdgeIndices.reduce(
-        (bestIndex, childIndex) => {
-            if (bestIndex < 0) return childIndex;
-            return network.edges[childIndex].meanFlowMm3PerS >
-                network.edges[bestIndex].meanFlowMm3PerS
-                ? childIndex
-                : bestIndex;
-        },
-        -1
-    );
+    const nextEdgeIndex = aorticContinuationByParent.get(pathEdge.index);
     for (const childIndex of pathEdge.childEdgeIndices) {
         if (childIndex !== nextEdgeIndex) {
             sideBranchEdges.push(network.edges[childIndex]);

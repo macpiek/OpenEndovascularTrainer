@@ -1,0 +1,55 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Ujścia odgałęzień — przepływ kontrastu</title>
+<style>body{margin:0;padding:18px;background:#151e26;color:#eaf2f8;font:14px sans-serif}header{display:flex;gap:10px;align-items:center;flex-wrap:wrap}button,select{padding:10px;background:#293d4b;color:inherit;border:1px solid #637985;border-radius:6px}output{display:block;margin:16px 0}canvas{max-width:100%;height:auto;display:block;margin:auto}</style>
+<header><strong>Ujścia odgałęzień</strong><select id="anatomy" aria-label="Anatomia"><option value="Aorta_plain">Model bazowy</option><option value="Aorta_infrarenal_aneurysm">Tętniak</option></select><select id="region" aria-label="Obszar"><option value="arch">Łuk aorty</option><option value="aortic">Odgałęzienia aorty</option><option value="iliac" selected>Tętnice biodrowe</option></select><select id="source" aria-label="Podanie"><option value="aorta">Bolus w aorcie</option><option value="sheath" selected>Koszulka · 10 ml / 15 ml/s</option></select><button data-time="0.8">Bolus · 0,8 s</button><button data-time="1.2">Rozwidlenia · 1,2 s</button><button data-time="2">Po 2 s</button><button data-time="3">Po 3 s</button><button data-time="6">Po 6 s</button><button data-time="20">Po 20 s</button></header>
+<output id="status" role="status">Wczytywanie anatomii…</output>
+<script type="module">
+import * as THREE from 'three';
+import {decodeCollisionAsset} from '../src/physics/collision/collisionAssetFormat.js';
+import {HybridContrastSystem} from '../src/contrast/hybridContrastSystem.js';
+import {VesselContactField} from '../src/physics/collision/vesselContactField.js';
+import {ContrastVolumeRenderer} from '../src/contrast/contrastVolumeRenderer.js';
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setSize(900,720);document.body.append(renderer.domElement);
+const target=new THREE.WebGLRenderTarget(900,720,{type:THREE.HalfFloatType}),scene=new THREE.Scene();
+const camera=new THREE.OrthographicCamera(-65,65,52,-52,.1,2000);camera.position.set(0,-280,500);camera.lookAt(0,-280,0);
+const screen=new THREE.Scene(),screenCamera=new THREE.Camera();
+screen.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:{map:{value:target.texture}},vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=vec4(position,1.);}',fragmentShader:'uniform sampler2D map;varying vec2 v;void main(){gl_FragColor=vec4(vec3(.93*exp(-texture2D(map,v).r*8.)),1.);}'})));
+let segments,display,contactField;
+async function load(){
+ document.querySelectorAll('button,select').forEach(el=>el.disabled=true);
+ document.getElementById('status').textContent='Wczytywanie anatomii…';
+ const response=await fetch(`/res/${document.getElementById('anatomy').value}_renal.collision.bin`);
+ const asset=decodeCollisionAsset(await response.arrayBuffer()),d=asset.arrays.centerlineSegments,e=asset.arrays.centerlineEdges;
+ segments=Array.from({length:e.length/2},(_,i)=>({id:i,start:new THREE.Vector3().fromArray(d,i*9),end:new THREE.Vector3().fromArray(d,i*9+3),radiusStart:d[i*9+6],radiusEnd:d[i*9+7],nodeStartId:e[2*i],nodeEndId:e[2*i+1]}));
+ contactField=new VesselContactField(asset);
+ for(const r of asset.metadata.renal.segments)Object.assign(segments[r.index],{renalSide:r.side,renalSector:r.sector,renalHilar:r.hilar,renalLateral:r.lateral});
+ show(3);document.querySelectorAll('button,select').forEach(el=>el.disabled=false);
+}
+function show(seconds){
+ if(display){scene.remove(display.group);display.dispose();}
+ const system=new HybridContrastSystem({centerlineSegments:segments,contactField,localOptions:{capacity:4000}}),net=system.flowNetwork;
+ const iliac=document.getElementById('region').value==='iliac',arch=document.getElementById('region').value==='arch';
+ const cy=arch?65:iliac?-335:-280;camera.left=arch?-105:-65;camera.right=-camera.left;camera.top=-camera.left*.8;camera.bottom=-camera.top;camera.updateProjectionMatrix();camera.position.set(0,cy,500);camera.lookAt(0,cy,0);
+ let source=net.findNearestLocation(iliac?new THREE.Vector3(-4,-285,5):new THREE.Vector3(3,-212,0),{});
+ if(arch)document.getElementById('source').value='aorta';
+ const sheath=!arch&&document.getElementById('source').value==='sheath';
+ if(arch){let e=net.edges[net.intraluminalAorticConnectorDiagnostics.connectors.find(c=>net.edges[c.parentEdgeIndex].start.y>0).parentEdgeIndex],distance=0;while(e.parentEdgeIndex>=0&&distance<20){distance+=e.length;e=net.edges[e.parentEdgeIndex];}source={edgeIndex:e.index,cellIndex:0};}
+ if(sheath){
+  const location=net.findNearestLocation(new THREE.Vector3(-73,-383,14),{}),edge=net.edges[location.edgeIndex];
+  const tip=edge.start.clone().lerp(edge.end,location.t);
+  system.setAccess({start:tip.clone().addScaledVector(edge.axis,70),end:tip,innerRadius:.9},null);
+  system.startInjection({source:'sheath',volumeMl:10,rateMlPerSec:15});
+ }
+ for(let frame=0;frame<Math.round(seconds*60);frame++){
+  if(!sheath&&frame<30){net.depositIodine(source.edgeIndex,source.cellIndex,20);system.totalInjectedIodineMassMg+=20;}
+  system.advanceSynchronized(1/60);
+ }
+ display=new ContrastVolumeRenderer(system);scene.add(display.group);display.update();
+ renderer.setRenderTarget(target);renderer.setClearColor(0);renderer.clear();renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(screen,screenCamera);
+ const paths=net.aorticBranchPrefixDiagnostics.paths.filter(p=>{const y=net.edges[p.rootEdgeIndex].start.y;return arch?y>0&&net.edges[net.edges[p.rootEdgeIndex].parentEdgeIndex].intraluminalAorticConnector:iliac?y< -325&&y> -336:y< -253&&y> -254;});
+ const mass=paths.reduce((sum,p)=>sum+p.edgeIndices.reduce((sum,i)=>sum+net.edges[i].massMg.reduce((a,b)=>a+b,0),0),0);
+ document.getElementById('status').textContent=`${seconds.toFixed(1)} s · ${arch?'Bolus w łuku · Jod w ujściach':'Jod w dwóch ujściach'}: ${mass.toFixed(3)} mg · Błąd bilansu: ${system.getMetrics().balanceErrorMg.toFixed(6)} mg`;
+}
+function scheduleShow(time){document.getElementById('status').textContent='Obliczanie bolusa…';setTimeout(()=>show(time),0);}
+document.querySelectorAll('[data-time]').forEach(button=>button.onclick=()=>scheduleShow(Number(button.dataset.time)));
+document.getElementById('source').onchange=()=>scheduleShow(2);document.getElementById('anatomy').onchange=load;document.getElementById('region').onchange=()=>scheduleShow(.8);load();
+</script></html>

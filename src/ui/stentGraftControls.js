@@ -133,6 +133,8 @@ export function initStentGraftControls({system,activeSide,ui,root=document}) {
     });
     listen(root,'keyup',event=>{if(keys[event.code])stopRelease(`key-${event.code}`);});
     listen(root.defaultView,'blur',()=>stopRelease());
+    listen(root,'simulation-controls-help-open',()=>stopRelease());
+    listen(root,'simulation-pause',()=>stopRelease());
     listen(root,'visibilitychange',()=>{if(root.hidden)stopRelease();});
     remove.addEventListener('click',()=>{
         const side=activeSide(),result=system.removeDelivery(side);

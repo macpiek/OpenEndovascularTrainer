@@ -1,3 +1,4 @@
+import {sheathLength, sampleSheathPath} from './sheathPath.js';
 import { clamp } from '../mathUtils.js';
 import { snapshotNodePositions } from './pointBuffer.js';
 import { SHEATH_BOUNDARY_EPSILON } from './sheathBoundary.js';
@@ -90,7 +91,7 @@ export class GuidewireTransport {
             y: sheath.end.y - sheath.start.y,
             z: sheath.end.z - sheath.start.z
         };
-        this.sheathLength = Math.hypot(axis.x, axis.y, axis.z) || 1;
+        this.sheathLength = sheathLength(sheath);
         this.sheathDir = normalizeVector(axis, { x: 1, y: 0, z: 0 });
         this.externalTailStart = {
             x: sheath.start.x - this.sheathDir.x * guidewireLength,
@@ -217,27 +218,16 @@ export class GuidewireTransport {
     }
 
     sheathAxisPoint(inserted) {
-        return {
-            x: this.sheath.start.x + this.sheathDir.x * inserted,
-            y: this.sheath.start.y + this.sheathDir.y * inserted,
-            z: this.sheath.start.z + this.sheathDir.z * inserted
-        };
+        const p = sampleSheathPath(this.sheath, inserted);
+        return {x:p.x,y:p.y,z:p.z};
     }
 
     routeSample(inserted) {
-        if (this.#isInSheath(inserted)) {
-            return {
-                point: this.sheathAxisPoint(inserted),
-                tangent: { ...this.sheathDir },
-                radius: this.sheath.radius || 2
-            };
-        }
-        if (!this.lumenSampler) {
-            return {
-                point: this.sheathAxisPoint(inserted),
-                tangent: { ...this.sheathDir },
-                radius: Infinity
-            };
+        const inSheath = this.#isInSheath(inserted);
+        if (inSheath || !this.lumenSampler) {
+            const p = sampleSheathPath(this.sheath, inserted);
+            return {point:{x:p.x,y:p.y,z:p.z},tangent:{x:p.tx,y:p.ty,z:p.tz},
+                radius:inSheath ? this.sheath.radius || 2 : Infinity};
         }
         return this.lumenSampler(Math.max(0, inserted - this.sheathLength));
     }
@@ -250,12 +240,9 @@ export class GuidewireTransport {
             for (let i = 0; i < firstOutside; i++) {
                 const inserted = this.insertedCoordinate(i);
                 pinned[i] = 1;
-                x[i] = this.sheath.start.x + this.sheathDir.x * inserted;
-                y[i] = this.sheath.start.y + this.sheathDir.y * inserted;
-                z[i] = this.sheath.start.z + this.sheathDir.z * inserted;
-                vx[i] = this.sheathDir.x * feedSpeed;
-                vy[i] = this.sheathDir.y * feedSpeed;
-                vz[i] = this.sheathDir.z * feedSpeed;
+                const p = sampleSheathPath(this.sheath, inserted);
+                x[i] = p.x; y[i] = p.y; z[i] = p.z;
+                vx[i] = p.tx * feedSpeed; vy[i] = p.ty * feedSpeed; vz[i] = p.tz * feedSpeed;
             }
             pinned.fill(0, firstOutside);
             return;
@@ -268,12 +255,9 @@ export class GuidewireTransport {
             node.pinned = inSheath;
             if (!inSheath) continue;
 
-            node.x = this.sheath.start.x + this.sheathDir.x * inserted;
-            node.y = this.sheath.start.y + this.sheathDir.y * inserted;
-            node.z = this.sheath.start.z + this.sheathDir.z * inserted;
-            node.vx = this.sheathDir.x * feedSpeed;
-            node.vy = this.sheathDir.y * feedSpeed;
-            node.vz = this.sheathDir.z * feedSpeed;
+            const p = sampleSheathPath(this.sheath, inserted);
+            node.x = p.x; node.y = p.y; node.z = p.z;
+            node.vx = p.tx * feedSpeed; node.vy = p.ty * feedSpeed; node.vz = p.tz * feedSpeed;
         }
     }
 

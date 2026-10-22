@@ -66,6 +66,8 @@ function createAssetCenterlineBroadPhase(contactField) {
             aabb: null
         });
     }
+    for(const renal of contactField.metadata.renal?.segments??[])Object.assign(segments[renal.index],{
+        renalSide:renal.side,renalSector:renal.sector,renalHilar:renal.hilar??false,renalLateral:renal.lateral??false,source:'renal-mesh'});
     return {
         type: 'centerline-capsule-broadphase',
         source: 'medial-slice-teasar',

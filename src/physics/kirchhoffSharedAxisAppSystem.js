@@ -1,3 +1,4 @@
+import {sheathLength as pathLength} from './sheathPath.js';
 import {captureBloodFlow} from './bloodFlowCoupling.js';
 import {createCapturePotential} from '../devices/stentGraftCapture.js';
 import {captureSharedAxisReplay} from './kirchhoffSharedAxisReplay.js';
@@ -116,7 +117,12 @@ export function createSharedAxisAppSystem({readTools,readSheath,readBloodFlow=()
         const graft=surface?createStentGraftContacts(surface,state):null;
         if(graft)wallSamples.push(graft);
         if(pending.capture)wallSamples.push(createCapturePotential(pending.capture));
-        const source = {...state,wallSamples,graftRevision:surface?.revision??0,graftRecovery:graft?.recovery,adaptiveMesh:pending.adaptiveMesh};
+        const oldDiscovery=wallSamples.find(sample=>sample.sharedAxisDiscovery);
+        if(oldDiscovery && oldDiscovery.sheathLength!==Math.max(pending.sheathLength,pending.sheath.entryLength??0)) {
+            const replacement=createSharedAxisContacts({sheath:pending.sheath,contactField:world.contactField,localCoordinates:true,retainDiscoveryCertificates,continuousDiscoverySign,certifiedDiscoverySamples,continuousSegmentContacts,contactCandidateMargin});
+            wallSamples[wallSamples.indexOf(oldDiscovery)]=replacement.wallSamples[1];
+        }
+        const source = {...state,boundaryCoordinates:[0,pending.sheathLength],wallSamples,graftRevision:surface?.revision??0,graftRecovery:graft?.recovery,adaptiveMesh:pending.adaptiveMesh};
         return yield* advanceSharedAxis(source,{...rotations},dt,tools,pending.physicsOptions);
     }
     const system={id:diagnostics.solver,diagnostics,
@@ -148,8 +154,8 @@ export function createSharedAxisAppSystem({readTools,readSheath,readBloodFlow=()
             if(pending||!state||!failedResult)return false;
             // Rejected candidates were private. Keep accepted positions, frames,
             // contacts and feed; discard momentum that would repeat the collision.
-            state={...state,velocities:state.velocities.map(v=>v.map(()=>0)),
-                angularVelocities:Object.fromEntries(Object.entries(state.angularVelocities).map(([id,values])=>[id,values.map(v=>v.map(()=>0))]))};
+            state={...state,...(state.velocities?{velocities:state.velocities.map(v=>v.map(()=>0)),
+                angularVelocities:Object.fromEntries(Object.entries(state.angularVelocities).map(([id,values])=>[id,values.map(v=>v.map(()=>0))]))}:{})};
             failedKey=null;failedResult=null;lastKey=null;sleepFrames=0;recoveryMode=true;
             diagnostics.recoveryPending=true;
             return true;
@@ -190,10 +196,10 @@ export function createSharedAxisAppSystem({readTools,readSheath,readBloodFlow=()
                 const capture=structuredClone(world.readStentGraftCapture?.()??null);
                 const tools=readTools(),graftSurface=world.readStentGraftSurface?.();
                 const sheath=structuredClone(readSheath()),xyz=p=>Array.isArray(p)?p:[p.x,p.y,p.z];
-                const sheathLength=Math.hypot(...xyz(sheath.end).map((v,k)=>v-xyz(sheath.start)[k]));
+                const sheathLength=pathLength(sheath);
                 const flowNetwork=tools.some(t=>t.insertion>sheathLength)?readBloodFlow():null;
                 const frozenBloodFlow=readFrozenBloodFlow();
-                const key=JSON.stringify({bloodFlow:frozenBloodFlow?.time??flowNetwork?.time??null,capture,graftRevision:graftSurface?.revision??0,tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
+                const key=JSON.stringify({sheath,bloodFlow:frozenBloodFlow?.time??flowNetwork?.time??null,capture,graftRevision:graftSurface?.revision??0,tools:tools.map(t=>({...profile(t),insertion:t.insertion,rotation:t.rotation})),adaptiveMesh});
                 if(key===failedKey)return failedResult;
                 if(state&&key===lastKey&&sleepFrames>=10)return {accepted:true,dt,status:'sleeping',diagnostics:{...diagnostics}};
                 pending={iterator:solve(world,dt,tools),tools,dt,key,graftSurface,capture,adaptiveMesh,physicsOptions:recoveryMode?{...physicsOptions,velocityPredictor:0,zeroDualStart:true}:physicsOptions,started:performance.now(),cpuMs:0,

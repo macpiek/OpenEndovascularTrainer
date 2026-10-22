@@ -1,3 +1,4 @@
+import {RenalParenchymaRenderer} from './renalParenchymaRenderer.js';
 import { AnatomicalContrastVolume } from './anatomicalContrastVolume.js';
 import { ContrastDebugPass } from './contrastDebugPass.js';
 import {FlowContrastVolume} from './flowContrastVolume.js';
@@ -2121,6 +2122,11 @@ export class ContrastVolumeRenderer {
         this._flowVolume = anatomy?.sdfInsideBits && anatomy?.sdfBrickLookup
             ? new AnatomicalContrastVolume(system.flowNetwork, this._flowCellOffset, anatomy)
             : new FlowContrastVolume(system.flowNetwork, this._flowCellOffset);
+        // Small renal branches use centerline tubes for subvoxel iodine detail.
+        // Their wall collision still comes from the connected renal STL.
+        for(const edge of system.flowNetwork.edges) if(edge.renalSide) this._flowVolume.weights[edge.index]=0;
+        this.renalRenderer = system.renalPerfusion ? new RenalParenchymaRenderer(system.renalPerfusion) : null;
+        if(this.renalRenderer) this.group.add(this.renalRenderer.group);
         this._createFlowLumen();
         this._createLocalPlume();
         this.group.add(this.flowMesh, this.plumeMesh, this._flowVolume.mesh);
@@ -2387,6 +2393,7 @@ export class ContrastVolumeRenderer {
         volumeUniforms.debugMode.value = this._debugMode;
         volumeUniforms.signalGain.value = this.flowTubeMaterial.uniforms.signalGain.value;
         if(reuseUnchanged&&this._lastDisplayTime===time&&this._graftRevision===revision&&this._lastUsedSamples&&this._lastDisplayStats)return this._lastDisplayStats;
+        const renalVisible=this.renalRenderer?.update(this._debugMode,this.flowTubeMaterial.uniforms.signalGain.value) ?? false;
         const advanceHistory=this._lastDisplayTime!==time;
         this._lastDisplayTime=time;this._lastUsedSamples=reuseUnchanged;
         if(reuseUnchanged)for(const i of this._flowTrueJunctionConnectorVertexIndices)this._previousFlowConcentration[i]=this._flowVertexConcentration[i];
@@ -2611,9 +2618,9 @@ export class ContrastVolumeRenderer {
         this.flowMesh.geometry.attributes.flowOpticalWeight.needsUpdate =
             this._flowDynamicOpticalVertexIndices.length > 0;
         this._flowVolume.update(this._flowCellLocalPlumeMassMg, mediumConcentrationMgPerMm3, advanceHistory, !!((remodeling?.surface.sealed || remodeling?.surface.openGate) && this._graftMeshes.length));
-        // Native contrast is drawn once by the filled volume. Keep the surface
-        // geometry for graft/sac reconstruction without submitting invisible triangles.
-        this.flowMesh.visible = false;
+        // Native tubes are masked by volumeBlend=1; fine renal tubes provide
+        // the subvoxel vascular signal alongside the parenchymal volume.
+        this.flowMesh.visible = edges.some(edge => edge.renalSide && edge.active);
 
         this.plumeMesh.geometry.instanceCount = solver.count;
         for (const attributeName of [
@@ -2628,7 +2635,7 @@ export class ContrastVolumeRenderer {
                 solver.count > 0;
         }
         this.plumeMesh.visible = solver.count > 0 && this._debugMode;
-        this.group.visible = activeFlowEdges > 0 || solver.count > 0 || !!this._trappedMesh?.visible || this._flowVolume.mesh.visible;
+        this.group.visible = renalVisible || activeFlowEdges > 0 || solver.count > 0 || !!this._trappedMesh?.visible || this._flowVolume.mesh.visible;
         return this._lastDisplayStats={
             activeFlowEdges,
             flowChainCount: this.flowChainCount,
@@ -2938,6 +2945,7 @@ export class ContrastVolumeRenderer {
 
     setDebugMode(enabled) {
         this._debugMode = !!enabled;
+        this.renalRenderer?.update(this._debugMode,this.flowTubeMaterial.uniforms.signalGain.value);
         this._flowVolume.mesh.material.uniforms.debugMode.value = this._debugMode;
         for(const mesh of this._graftMeshes??[])mesh.material.uniforms.debugMode.value=this._debugMode;
         for(const material of this._trappedMesh?.material??[])material.uniforms.debugMode.value=this._debugMode;
@@ -2960,6 +2968,7 @@ export class ContrastVolumeRenderer {
     }
 
     dispose() {
+        this.renalRenderer?.dispose();
         this._debugPass?.dispose();
         this._flowVolume.dispose();
         this._flowSampleTexture?.dispose();

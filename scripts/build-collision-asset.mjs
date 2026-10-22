@@ -33,6 +33,7 @@ const CENTERLINE_STRIDE = 9;
 // thousand sparse SDF bricks. Keep the existing 0.5 mm voxel resolution and a
 // bounded ceiling while allowing the complete fingers-and-toes collision field.
 const MAX_DECODED_BYTES = 64 * 1024 * 1024;
+let renalSdfReuse = null;
 
 function nowMs() {
     return globalThis.performance?.now?.() ?? Date.now();
@@ -291,6 +292,11 @@ function buildSdfInsideBits(sdf, packedLumen) {
     const valuesPerBrick = BRICK_SIZE ** 3;
     const insideBits = new Uint8Array(Math.ceil(sdf.distances.length / 8));
     for (let brickIndex = 0; brickIndex < sdf.brickKeys.length; brickIndex++) {
+        const previous=sdf.reusedBrickIndices?.[brickIndex]??-1;
+        if(previous>=0) {
+            insideBits.set(renalSdfReuse.asset.arrays.sdfInsideBits.subarray(previous*64,(previous+1)*64),brickIndex*64);
+            continue;
+        }
         const [brickX, brickY, brickZ] = decodeGridIndex(sdf.brickKeys[brickIndex], sdf.dimensions);
         for (let localZ = 0; localZ < BRICK_SIZE; localZ++) {
             for (let localY = 0; localY < BRICK_SIZE; localY++) {
@@ -493,9 +499,22 @@ function buildSparseSdf(geometry) {
     const point = new THREE.Vector3();
     const target = { point: new THREE.Vector3(), distance: Infinity, faceIndex: -1 };
     const clampDistance = Math.min(255 * SDF_QUANTIZATION, SDF_BAND + VOXEL_SIZE * 2);
+    const reusable=renalSdfReuse&&JSON.stringify(origin)===JSON.stringify(renalSdfReuse.asset.metadata.sdf.origin)&&
+        JSON.stringify(dimensions)===JSON.stringify(renalSdfReuse.asset.metadata.sdf.dimensions)?renalSdfReuse:null;
+    const reusedBrickIndices=reusable?new Int32Array(brickKeys.length).fill(-1):null;
 
     for (let brickIndex = 0; brickIndex < brickKeys.length; brickIndex++) {
         const [brickX, brickY, brickZ] = decodeGridIndex(brickKeys[brickIndex], dimensions);
+        if(reusable) {
+            const lower=[brickX,brickY,brickZ].map((v,k)=>origin[k]+v*BRICK_WORLD_SIZE);
+            const outside=lower.some((v,k)=>v>reusable.max[k]||v+BRICK_WORLD_SIZE<reusable.min[k]);
+            const previous=outside?reusable.indices.get(brickKeys[brickIndex]):undefined;
+            if(previous!==undefined) {
+                distances.set(reusable.asset.arrays.sdfDistances.subarray(previous*valuesPerBrick,(previous+1)*valuesPerBrick),brickIndex*valuesPerBrick);
+                reusedBrickIndices[brickIndex]=previous;
+                continue;
+            }
+        }
         for (let localZ = 0; localZ < BRICK_SIZE; localZ++) {
             for (let localY = 0; localY < BRICK_SIZE; localY++) {
                 for (let localX = 0; localX < BRICK_SIZE; localX++) {
@@ -524,6 +543,7 @@ function buildSparseSdf(geometry) {
         dimensions,
         brickKeys,
         distances,
+        reusedBrickIndices,
         candidateBrickCount: candidateKeys.length
     };
 }
@@ -636,7 +656,18 @@ if(deformationReport) {
     const baselinePath=deformationReport.sourcePath.replace(/\.stl$/i,'.collision.bin');
     const baselineAsset=decodeCollisionAsset(arrayBufferFromBuffer(fs.readFileSync(baselinePath)));
     if(baselineAsset.metadata.source.stlSha256!==deformationReport.sourceSha256)throw Error('Deformation baseline is stale');
-    if (deformationReport.kind === 'surface-repair') {
+    if (deformationReport.kind === 'renal-extension') {
+        transportedCenterline={segments:deformationReport.segments.map(s=>({...s,start:new THREE.Vector3(...s.start),end:new THREE.Vector3(...s.end)})),diagnostics:{...baselineAsset.metadata.centerline.diagnostics,source:'renal-extension'}};
+        // Boolean editing is confined to the renal tree and its 14 mm root
+        // overlaps. Keep a generous 30 mm halo (also exceeding the SDF band).
+        // Unsigned distances and inside bits outside it describe unchanged
+        // physical geometry; face indices are always queried from the new BVH.
+        const points=deformationReport.segments.filter(s=>s.renalSide).flatMap(s=>[s.start,s.end]);
+        const oldSdf=baselineAsset.metadata.sdf;
+        if(oldSdf.voxelSize===VOXEL_SIZE&&oldSdf.brickSize===BRICK_SIZE&&baselineAsset.arrays.sdfInsideBits)
+            renalSdfReuse={asset:baselineAsset,indices:new Map(Array.from(baselineAsset.arrays.sdfBrickKeys,(key,i)=>[key,i])),
+                min:[0,1,2].map(k=>Math.min(...points.map(p=>p[k]))-30),max:[0,1,2].map(k=>Math.max(...points.map(p=>p[k]))+30)};
+    } else if (deformationReport.kind === 'surface-repair') {
         // Retriangulation repairs seams without changing the anatomical graph.
         // Keep branch identities stable; validate all segments against the new
         // wall below and rebuild the lumen and distance field from the STL.
@@ -702,14 +733,16 @@ const decodedBytes = centerlineArrays.data.byteLength + centerlineArrays.edges.b
     packedLumen.axisBases.byteLength + packedLumen.axisSliceOffsets.byteLength +
     packedLumen.sliceContourOffsets.byteLength + packedLumen.contourPointOffsets.byteLength +
     packedLumen.contourBounds.byteLength + packedLumen.contourSamples.byteLength + packedLumen.points.byteLength;
-if (decodedBytes > MAX_DECODED_BYTES) {
+const decodedLimit=deformationReport?.kind==='renal-extension'?72*1024*1024:MAX_DECODED_BYTES;
+if (decodedBytes > decodedLimit) {
     throw new Error(
         `Decoded collision asset is ${(decodedBytes / 1048576).toFixed(2)} MB; ` +
-        `limit is ${MAX_DECODED_BYTES / 1048576} MB`
+        `limit is ${decodedLimit / 1048576} MB`
     );
 }
 
 const metadata = {
+    ...(deformationReport?.kind==='renal-extension'?{renal:{kidneys:deformationReport.kidneys,segments:deformationReport.segments.map((s,index)=>s.renalSide?{index,side:s.renalSide,sector:s.renalSector,hilar:!!s.renalHilar,lateral:!!s.renalLateral}:null).filter(Boolean)}}:{}),
     source: {
         path: SOURCE_PATH,
         byteLength: sourceBytes.byteLength,

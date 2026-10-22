@@ -6,6 +6,7 @@ import {
 } from '../src/physics/endovascularPhysicsWorld.js';
 
 import { applyKirchhoffMaterialProfile } from '../src/physics/applyKirchhoffMaterialProfile.js';
+import { TOOL_MAX_BEND_ANGLE_DEGREES } from '../src/physics/kirchhoffToolRuntime.js';
 import { GUIDEWIRE_TYPE_GLIDEWIRE } from '../src/physics/guidewireMaterialProfile.js';
 
 const EPSILON = 1e-8;
@@ -349,13 +350,13 @@ sheathWorld.addSheath({
 });
 for (let step = 0; step < 8; step++) sheathWorld.stepFixed();
 for (let index = 0; index < sheathRod.count; index++) {
-    assert.ok(Math.hypot(sheathRod.y[index], sheathRod.z[index]) <= 0.451, 'sheath should enforce its analytic lumen');
+    assert.ok(Math.hypot(sheathRod.y[index], sheathRod.z[index]) <= DEFAULT_TOOL_PROFILES.sheath.innerRadius - sheathRod.radius + .001, 'sheath should enforce its analytic lumen');
 }
 
 assert.equal(DEFAULT_TOOL_PROFILES.catheter.innerDiameter, 0.97,
     'the default catheter profile should expose a configurable 0.97 mm ID');
-assert.equal(DEFAULT_TOOL_PROFILES.sheath.innerDiameter, 1.80,
-    'the default sheath profile should expose a configurable 1.80 mm ID');
+assert.equal(DEFAULT_TOOL_PROFILES.sheath.innerDiameter, 2.00,
+    'the default sheath profile should expose a 2.00 mm ID for a 6F catheter');
 
 const sharedSheathWorld = new EndovascularPhysicsWorld();
 const sheathWire = sharedSheathWorld.createRod('sheath-wire', 4, 1, DEFAULT_TOOL_PROFILES.guidewire);
@@ -627,16 +628,21 @@ profiledRod.syncFromRodState(
     { nodeStorage: profiledStorage, nodes: new Array(5) },
     { resetVelocity: false }
 );
-assert.equal(
-    profiledRod.maxBendAngleByNode[1],
-    18,
-    'the stiff guidewire shaft should reject tight local coils'
-);
-assert.equal(
-    profiledRod.maxBendAngleByNode[3],
-    135,
-    'the final 20 mm should retain the permissive soft-tip bend limit'
-);
+assert.equal(profiledRod.inheritRodStateBendLimit, false);
+assert.equal(TOOL_MAX_BEND_ANGLE_DEGREES, 45);
+for (const limit of profiledRod.maxBendAngleByNode) {
+    assert.equal(limit, TOOL_MAX_BEND_ANGLE_DEGREES,
+        'Kirchhoff rods keep their anti-fold guard independently of legacy positional limits');
+}
+// Explicit legacy opt-in must still copy the per-node limits. This checks both
+// branches of the transport contract without restoring old defaults in the app.
+profiledRod.inheritRodStateBendLimit = true;
+profiledRod.syncFromRodState({nodeStorage:profiledStorage,nodes:new Array(5)});
+assert.equal(profiledRod.maxBendAngleByNode[1],18);
+assert.equal(profiledRod.maxBendAngleByNode[3],135);
+profiledRod.inheritRodStateBendLimit = false;
+profiledRod.syncFromRodState({nodeStorage:profiledStorage,nodes:new Array(5)});
+assert.ok(profiledRod.maxBendAngleByNode.every(limit=>limit===TOOL_MAX_BEND_ANGLE_DEGREES));
 
 const toolWorld = new EndovascularPhysicsWorld();
 const toolA = toolWorld.createRod('tool-a', 3, 2, { radius: 0.5, stretchCompliance: 0 });

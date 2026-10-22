@@ -1,3 +1,4 @@
+import {sheathLength, sampleSheathPath, closestSheathAxis} from './sheathPath.js';
 import {sharedAxisOuterMaterialAt} from './kirchhoffSharedAxisNative.js';
 import { createSharedAxisVesselDiscovery } from './kirchhoffSharedAxisVesselWitnesses.js';
 
@@ -12,17 +13,26 @@ const xyz=p=>Array.isArray(p)?p:[p.x,p.y,p.z];
 export function createSharedAxisContacts({sheath,contactField=null,localCoordinates=false,retainDiscoveryCertificates=false,continuousDiscoverySign=false,certifiedDiscoverySamples=false,continuousSegmentContacts=false,contactCandidateMargin}) {
     const worldStart=xyz(sheath.start),end=xyz(sheath.end),delta=end.map((v,i)=>v-worldStart[i]);
     const origin=localCoordinates?worldStart:[0,0,0],start=worldStart.map((v,i)=>v-origin[i]);
-    const length=Math.hypot(...delta),axis=delta.map(v=>v/length),extension=sheath.proximalExtension??40;
-    if (!(length>0) || !(sheath.innerRadius>0) || !(extension>=10)) throw new RangeError('Invalid shared axis introducer');
+    const length=sheathLength(sheath),straightAxis=delta.map(v=>v/length),extension=sheath.proximalExtension??40;
+    if (!(length>=0) || !(sheath.innerRadius>0) || !(extension>=10)) throw new RangeError('Invalid shared axis introducer');
     const wallSamples=[1].map(endpoint=>({state,a,b,edge,radius,coordinateA,coordinateB,needHessian=true,sampleT})=>{
         if(coordinateA>=length)return inactive();
         const outletT=Math.min(1,(length-coordinateA)/(coordinateB-coordinateA));
         if(sampleT!==undefined&&sampleT>=outletT)return inactive();
         const t=Math.min(sampleT??1,outletT);
         if(state?.materials&&Number.isInteger(edge))radius=sharedAxisOuterMaterialAt(state,edge,t).body.radius;
-        const localStart=state?.origin?worldStart.map((v,k)=>v-state.origin[k]):start;
-        const p=a.map((v,k)=>(1-t)*v+t*b[k]),relative=p.map((v,i)=>v-localStart[i]),along=relative.reduce((v,x,i)=>v+x*axis[i],0);
-        const radial=relative.map((v,i)=>v-along*axis[i]),rho=Math.hypot(...radial),clearance=sheath.innerRadius-radius;
+        let axis,radial,rho;
+        if(sheath.path) {
+            const currentOrigin=state?.origin??origin;
+            const p=a.map((v,k)=>(1-t)*v+t*b[k]+currentOrigin[k]);
+            ({axis,radial,rho}=closestSheathAxis(sheath,p));
+        } else {
+            axis=straightAxis;
+            const localStart=state?.origin?worldStart.map((v,k)=>v-state.origin[k]):start;
+            const p=a.map((v,k)=>(1-t)*v+t*b[k]),relative=p.map((v,i)=>v-localStart[i]),along=relative.reduce((v,x,i)=>v+x*axis[i],0);
+            radial=relative.map((v,i)=>v-along*axis[i]);rho=Math.hypot(...radial);
+        }
+        const clearance=sheath.innerRadius-radius;
         if(clearance<=0)throw new RangeError('Tool does not fit the introducer');
         if(rho<1e-10)return {gap:clearance,jacobian:[0,0,0,0,0,0]};
         const unit=radial.map(v=>v/rho),jacobian=[0,0,0,0,0,0],hessian=needHessian?new Float64Array(36):undefined;
@@ -38,7 +48,9 @@ export function createSharedAxisContacts({sheath,contactField=null,localCoordina
     // row for every spatial pose. This is independent of wall clearance.
     wallSamples[0].sharedAxisCoordinateRange=Object.freeze({min:-Infinity,max:length});
     wallSamples[0].contactOutputOwned=true;
-    if(contactField) wallSamples.push(createSharedAxisVesselDiscovery(contactField,length,{retainDiscoveryCertificates,continuousDiscoverySign,certifiedDiscoverySamples,continuousSegmentContacts,candidateMargin:contactCandidateMargin}));
+    // The fixed access tract is outside the imported vessel mesh. Withdrawal
+    // removes sheath support there, but must not turn it into a vessel wall.
+    if(contactField) wallSamples.push(createSharedAxisVesselDiscovery(contactField,Math.max(length,sheath.entryLength??0),{retainDiscoveryCertificates,continuousDiscoverySign,certifiedDiscoverySamples,continuousSegmentContacts,candidateMargin:contactCandidateMargin}));
     return {rebaseNearTips:localCoordinates,startCoordinate:-extension,boundaryCoordinates:[0,length],wallSamples,length,origin,
-        samplePosition:coordinate=>start.map((v,i)=>v+coordinate*axis[i])};
+        samplePosition:coordinate=>{const p=sampleSheathPath(sheath,coordinate);return [p.x-origin[0],p.y-origin[1],p.z-origin[2]];}};
 }

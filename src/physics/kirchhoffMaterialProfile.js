@@ -1,6 +1,8 @@
 import { BERENSTEIN_NATURAL_BEND_ANGLE_RAD, BERENSTEIN_TIP_SHAPE_LENGTH_MM, integrateBerensteinIntrinsicTurn, integratePigtailIntrinsicTurn, integrateSim1IntrinsicTurn, PIGTAIL_NATURAL_ARC_LENGTH_MM, PIGTAIL_NATURAL_TURNS, SIM1_TIP_SHAPE_LENGTH_MM, SIM1_TOTAL_TURN_RAD, berensteinIntrinsicCurvature, pigtailIntrinsicCurvature, sim1IntrinsicCurvature } from './catheterMaterialProfile.js';
 import {
     GUIDEWIRE_TYPE_GLIDEWIRE,
+    GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED, GLIDEWIRE_ANGLED_TIP_LENGTH_MM, GLIDEWIRE_ANGLED_TURN_RAD,
+    angledGlidewireIntrinsicCurvature, integrateAngledGlidewireIntrinsicTurn,
     GUIDEWIRE_TYPE_STEEL_J_035,
     STEEL_J_GUIDEWIRE_CURVED_TIP_LENGTH_MM,
     STEEL_J_GUIDEWIRE_NATURAL_TURN_RAD,
@@ -266,6 +268,13 @@ const steelJRigidity = guidewireRigiditySamplers(GUIDEWIRE_TYPE_STEEL_J_035);
 
 export const KIRCHHOFF_MATERIAL_PROFILES = Object.freeze({
     ...catheterProfiles(),
+    // Flexible polymer shaft with a gradual distal softening. Like the catheter
+    // presets these are simulation units; radius scaling is applied by the caller.
+    'introducer-sheath': defineKirchhoffMaterialProfile({
+        id:'introducer-sheath',
+        sampleEI1:s=>geometricTransition(600_000,2_000_000,s/35),
+        sampleGJ:s=>geometricTransition(600_000,2_000_000,s/35)/1.4
+    }),
     'stentgraft-delivery': defineKirchhoffMaterialProfile({
         id:'stentgraft-delivery',sampleEI1:()=>8_000_000,sampleGJ:()=>8_000_000/1.4
     }),
@@ -275,6 +284,16 @@ export const KIRCHHOFF_MATERIAL_PROFILES = Object.freeze({
         sampleEI1: glidewireRigidity.EI,
         sampleGJ: glidewireRigidity.GJ,
         integrateKappa01: zeroIntegral,
+        integrateKappa02: zeroIntegral,
+        integrateTau0: zeroIntegral
+    }),
+    [GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED]: defineKirchhoffMaterialProfile({
+        id: GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED,
+        naturalTipLengthMm: GLIDEWIRE_ANGLED_TIP_LENGTH_MM,
+        sampleKappa01: angledGlidewireIntrinsicCurvature,
+        sampleEI1: glidewireRigidity.EI,
+        sampleGJ: glidewireRigidity.GJ,
+        integrateKappa01: exactIntrinsicIntegral(integrateAngledGlidewireIntrinsicTurn),
         integrateKappa02: zeroIntegral,
         integrateTau0: zeroIntegral
     }),
@@ -291,19 +310,23 @@ export const KIRCHHOFF_MATERIAL_PROFILES = Object.freeze({
 });
 
 export const KIRCHHOFF_PROFILE_EXPECTED_TURNS = Object.freeze({
+    'introducer-sheath': 0,
     'stentgraft-delivery': 0,
     pigtail: -PIGTAIL_NATURAL_TURNS * TWO_PI,
     berenstein: BERENSTEIN_NATURAL_BEND_ANGLE_RAD,
     sim1: -SIM1_TOTAL_TURN_RAD,
     [GUIDEWIRE_TYPE_GLIDEWIRE]: 0,
+    [GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED]: GLIDEWIRE_ANGLED_TURN_RAD,
     [GUIDEWIRE_TYPE_STEEL_J_035]: STEEL_J_GUIDEWIRE_NATURAL_TURN_RAD
 });
 
 export function normalizeKirchhoffMaterialType(type) {
+    if (type === 'introducer-sheath') return type;
     if (type === 'stentgraft-delivery') return type;
     if (type === 'bernstein') return 'berenstein';
     if (type === 'sim-1' || type === 'simmons-1') return 'sim1';
     if (type === 'pigtail' || type === 'berenstein' || type === 'sim1') return type;
+    if (type === GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED) return type;
     if (type === GUIDEWIRE_TYPE_STEEL_J_035) return GUIDEWIRE_TYPE_STEEL_J_035;
     return GUIDEWIRE_TYPE_GLIDEWIRE;
 }

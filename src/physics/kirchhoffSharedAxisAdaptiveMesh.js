@@ -28,7 +28,7 @@ function tipLength(tool, options) {
     const type = tool.type ?? (tool.id === 'wire' ? 'glidewire' : 'berenstein');
     const profile = kirchhoffMaterialProfile(type);
     let length = profile.naturalTipLengthMm + 10;
-    if (profile.id === 'glidewire' || profile.id === 'steel-j-035') {
+    if (profile.id === 'glidewire' || profile.id === 'glidewire-angled' || profile.id === 'steel-j-035') {
         const wire = guidewireMaterialProfile(profile.id);
         length = Math.max(length, wire.tipCoreLength + wire.tipTransitionLength);
     }

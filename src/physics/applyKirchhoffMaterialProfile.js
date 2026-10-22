@@ -4,6 +4,7 @@ import {
 } from './kirchhoffMaterialProfile.js';
 import {
     GUIDEWIRE_TYPE_GLIDEWIRE,
+    GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED,
     GUIDEWIRE_TYPE_STEEL_J_035,
     guidewireMaterialProfile
 } from './guidewireMaterialProfile.js';
@@ -39,6 +40,7 @@ function independentRigidityScaleAtDistance(
     let transitionLength;
     if (
         profile.id !== GUIDEWIRE_TYPE_GLIDEWIRE &&
+        profile.id !== GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED &&
         profile.id !== GUIDEWIRE_TYPE_STEEL_J_035
     ) {
         if (

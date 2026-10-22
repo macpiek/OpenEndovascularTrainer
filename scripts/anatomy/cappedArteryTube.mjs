@@ -19,7 +19,7 @@ export function taperedTubeGeometry(pathDefinition) {
     const controlLength = controlDistances.at(-1);
     const tubularSegments = Math.max(
         12,
-        Math.ceil(curve.getLength() / AXIAL_SAMPLE_SPACING_MM)
+        Math.ceil(curve.getLength() / (pathDefinition.axialSpacing ?? AXIAL_SAMPLE_SPACING_MM))
     );
     const frames = curve.computeFrenetFrames(tubularSegments, false);
     const ringSize = RADIAL_SEGMENTS;

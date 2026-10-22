@@ -21,7 +21,7 @@ function equalMaterial(actual, expected) {
 }
 
 test('unchanged feed preserves exact manufactured profiles for every built-in tool', () => {
-    for (const type of ['glidewire', 'steel-j-035', 'pigtail', 'berenstein', 'sim1']) {
+    for (const type of ['glidewire', 'glidewire-angled', 'steel-j-035', 'pigtail', 'berenstein', 'sim1']) {
         const input = { tools: [{ ...tools()[type.includes('wire') || type === 'steel-j-035' ? 0 : 1], type }] };
         const expected = createSharedAxisNative(input);
         let state = createSharedAxisNative(input);

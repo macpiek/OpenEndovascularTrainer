@@ -1,5 +1,6 @@
 {
   "default": [
+    ["node", "--test", "tests/renalAndIntroducer.test.js", "tests/introducerFlexibleTip.test.js", "tests/introducerTriaxial.test.js", "tests/renalMechanicalAnatomy.test.js"],
     ["node", "--test", "tests/bloodFlowCoupling.test.js"],
     ["node", "--check", "vite.config.js"],
     ["node", "--check", "scripts/run-browser-acceptance.mjs"],
@@ -61,7 +62,7 @@
     ["node", "tests/vesselBroadPhaseFlowDebug.test.js"],
     ["node", "tests/injectionHydraulics.test.js"],
     ["node", "tests/injectionShortcut.test.js"],
-    ["node", "--test", "tests/contrastContinuousTransport.test.js", "tests/contrastOstialReservoir.test.js", "tests/contrastDilatedLumen.test.js"],
+    ["node", "--test", "tests/contrastContinuousTransport.test.js", "tests/contrastOstialReservoir.test.js", "tests/contrastContainedSpurs.test.js", "tests/contrastDilatedLumen.test.js"],
     ["node", "tests/contrastHybridModel.test.js"],
     ["node", "tests/contrastFullTree.test.js"],
     ["node", "tests/contrastCatheterFullTree.test.js"],

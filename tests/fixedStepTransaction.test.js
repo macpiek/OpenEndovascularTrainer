@@ -124,7 +124,7 @@ const simulatorSource=fs.readFileSync(new URL('../src/simulator.js',import.meta.
 function schedulerHarness(outcomes,{shared=false,fixedDt=dt,sliceMs=1,realtime=false}={}) {
     const world=stubWorld(outcomes,fixedDt),queue=[],errors=[];let clock=0;
     const originalAdvance=world.advance.bind(world);world.advance=(...args)=>{clock+=sliceMs;return originalAdvance(...args);};
-    const state={world,queue,errors,activeAccessId:'right',isControlledAccess:()=>true,accessController:{applyRequested:()=>false,values:()=>[{activeAccessId:'right'}],run:(_id,operation)=>operation()},runPhysicsFrameBudget,runPhysicsIdleBudget,selectedCoupledSolver:realtime?'shared-axis-realtime':'shared-axis-adaptive',performance:{now:()=>clock},console:{error:(...args)=>errors.push(args)},
+    const state={world,queue,errors,applyIntroducerExchange:()=>{},activeAccessId:'right',isControlledAccess:()=>true,accessController:{applyRequested:()=>false,values:()=>[{activeAccessId:'right'}],run:(_id,operation)=>operation()},runPhysicsFrameBudget,runPhysicsIdleBudget,selectedCoupledSolver:realtime?'shared-axis-realtime':'shared-axis-adaptive',performance:{now:()=>clock},console:{error:(...args)=>errors.push(args)},
         fixedDt,WIRE60_BENCHMARK_MODE:'wire60-catheter',FULL_CYCLE_BENCHMARK_MODE:'full-cycle-60hz',MAX_PHYSICS_STEPS_PER_FRAME:2,MAX_IDLE_PHYSICS_STEPS:6,
         TARGET_RENDER_FRAME_MS:1000/60,PHYSICS_IDLE_GUARD_MS:.75,PHYSICS_RENDER_RESERVE_MS:3.5,
         PHYSICS_MIN_SLICE_MS:.5,PHYSICS_MAX_SLICE_MS:4,simulationRenderReserveMs:3.5,sliceBudgets:[],
@@ -134,7 +134,7 @@ function schedulerHarness(outcomes,{shared=false,fixedDt=dt,sliceMs=1,realtime=f
         simulationStepEstimateMs:1,simulationCatchupPending:false,simulationLastAttempt:null,
         compositeAppSystem:null,sharedAxisAppSystem:shared?{diagnostics:{acceptedSteps:0},getLastFailure:()=>null}:null,wholeAxisAppSystem:null,
         compositeStatus:null,compositePhysicsClockStarted:false,endovascularWorld:world,
-        synchronizedInputs:null,completedSimulationTime:0,simulationPendingStepCpuMs:0,browserBenchmarkEpoch:0,simulationAbandonedBacklog:0,
+        simulationPaused:false,synchronizedInputs:null,completedSimulationTime:0,simulationPendingStepCpuMs:0,browserBenchmarkEpoch:0,simulationAbandonedBacklog:0,
         browserConstraintStageProfile:{record:()=>{}},loadingAssetsReady:()=>true,
         browserBenchmarkScenario:{running:false},crossoverScenario:null,shortCatheterBenchmarkMetrics:null,guidewireTransport:{progress:0},
         flushSimulationChanges:()=>{},recordBrowserFrame:()=>{},recoveryButtons:[],document:{visibilityState:'visible',getElementById:()=>({textContent:''})},runtime:{timeout:cb=>queue.push(cb)},
@@ -304,7 +304,7 @@ test('actual benchmark sampler advances no clock; lifecycle reset runs before Wo
 
 test('actual post-commit credits only the originating benchmark epoch without advancing shared contrast from an individual access',()=>{
     const calls={sync:0,metrics:0,envelope:0,resistance:0,contrast:0,dose:0};
-    const state={activeAccessId:'right',stentGraftSystem:null,isControlledAccess:()=>true,xpbdWireBody:{syncToRodState:()=>calls.sync++},xpbdCatheterBody:{},wire:{},
+    const state={sharedAxisAppSystem:null,activeAccessId:'right',stentGraftSystem:null,isControlledAccess:()=>true,xpbdWireBody:{syncToRodState:()=>calls.sync++},xpbdCatheterBody:{},wire:{},
         xpbdContainment:{outerStartNode:0,innerRadius:1,closestSegment:null},spatiallyCapturedContainmentEnd:()=>0,
         browserBenchmarkEpoch:2,browserBenchmarkScenario:{running:true,simulationElapsedMs:0},
         simulationAccumulator:3*dt,shortCatheterBenchmarkMetrics:{recordStep:()=>calls.metrics++},

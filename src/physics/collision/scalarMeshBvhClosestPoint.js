@@ -211,6 +211,18 @@ function considerTriangle(
             }
         }
     }
+    // Boolean vessel junctions can contain collapsed or almost collinear
+    // triangles. A 0/0 barycentric result must never poison the BVH winner.
+    // The degenerate triangle's closure is exactly its three finite edges.
+    if (!Number.isFinite(closestX+closestY+closestZ)) {
+        let best=Infinity;
+        for(const [sx,sy,sz,ex,ey,ez] of [[ax,ay,az,bx,by,bz],[bx,by,bz,cx,cy,cz],[cx,cy,cz,ax,ay,az]]) {
+            const ux=ex-sx,uy=ey-sy,uz=ez-sz,denominator=ux*ux+uy*uy+uz*uz;
+            const t=denominator>0?Math.max(0,Math.min(1,((pointX-sx)*ux+(pointY-sy)*uy+(pointZ-sz)*uz)/denominator)):0;
+            const x=sx+t*ux,y=sy+t*uy,z=sz+t*uz,d=(pointX-x)**2+(pointY-y)**2+(pointZ-z)**2;
+            if(d<best){best=d;closestX=x;closestY=y;closestZ=z;}
+        }
+    }
     const dx = pointX - closestX;
     const dy = pointY - closestY;
     const dz = pointZ - closestZ;

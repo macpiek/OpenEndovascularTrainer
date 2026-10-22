@@ -1,3 +1,4 @@
+import {sheathLength, sampleSheathPath} from './physics/sheathPath.js';
 import {deliveryMaterialProfile} from './devices/stentGraftDeliveryMechanics.js';
 import { CATHETER_PHYSICS_SPACING_MM } from './physics/catheterDiscretization.js';
 import { configureKirchhoffToolRuntime } from './physics/kirchhoffToolRuntime.js';
@@ -2110,15 +2111,21 @@ export class PigtailCatheter {
             : catheterMaterialProfile(this.type).naturalArcLength;
     }
 
+    setSheath(sheath) {
+        this.vessel.sheath = sheath;
+        this.sheathPath = this.#buildSheathPath(sheath);
+    }
+
     #buildSheathPath(sheath) {
         if (!sheath?.start || !sheath?.end) return null;
         const start = nodePosition(sheath.start);
         const end = nodePosition(sheath.end);
         const dir = new TypedVector3().subVectors(end, start);
         const length = dir.length();
-        if (length < 1e-6) return null;
-        dir.multiplyScalar(1 / length);
-        return { start, end, dir, length };
+        if (length < 1e-6 && !sheath.path) return null;
+        if(length>0)dir.multiplyScalar(1 / length);
+        if(sheath.path) {const p=sampleSheathPath(sheath,0);dir.set(p.tx,p.ty,p.tz);}
+        return { start, end, dir, length: sheathLength(sheath) };
     }
 
     #sheathSupportEnd() {
@@ -2129,7 +2136,8 @@ export class PigtailCatheter {
     #sampleSheathPath(insertedDistance, out = new TypedVector3()) {
         if (!this.sheathPath) return null;
         const d = clamp(insertedDistance, 0, this.sheathPath.length);
-        return out.copy(this.sheathPath.start).addScaledVector(this.sheathPath.dir, d);
+        const p = sampleSheathPath(this.vessel.sheath, d);
+        return out.set(p.x,p.y,p.z);
     }
 
     #recordGuidewirePath(targetDistance) {

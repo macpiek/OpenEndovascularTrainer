@@ -1,3 +1,6 @@
+import {extendRenalArteries} from '../renalArteries.js';
+import {RenalPerfusion} from './renalPerfusion.js';
+import {sheathLength, sampleSheathPath, closestSheathAxis} from '../physics/sheathPath.js';
 import * as THREE from 'three';
 import {applyStentGraftFlow,graftFluidContactField} from './stentGraftFlow.js';
 import {
@@ -87,10 +90,13 @@ export class HybridContrastSystem {
         this.deviceHydraulicProfiles = mergeDeviceHydraulicProfiles(
             deviceHydraulicProfiles
         );
-        this.flowNetwork = new ContrastFlowNetwork(centerlineSegments, {
+        const renalAnatomy = extendRenalArteries(centerlineSegments ?? []);
+        this.renalPerfusion = new RenalPerfusion(renalAnatomy.kidneys);
+        this.flowNetwork = new ContrastFlowNetwork(renalAnatomy.segments, {
             ...hemodynamics,
             ...flowOptions
         });
+        this.flowNetwork.receiveOutletIodine = (nodeId,mass) => this.renalPerfusion.receive(nodeId,mass);
         this.localSolver = new LocalContrastInjectionSolver({
             flowNetwork: this.flowNetwork,
             contactField,
@@ -143,15 +149,20 @@ export class HybridContrastSystem {
         };
     }
 
-    setAccess(sheath, catheter) {
+    setAccess(sheath, catheter, {preserveInjection=false} = {}) {
         // An in-progress injection belongs to the old access, never teleport it.
-        this.stopInjection();
+        if(!preserveInjection)this.stopInjection();
         this.sheath = sheath;
         this.catheter = catheter;
         this._sheathStart = cloneVector(sheath.start);
         this._sheathEnd = cloneVector(sheath.end);
-        this._sheathDirection = this._sheathEnd.clone().sub(this._sheathStart).normalize();
-        this._sheathLength = this._sheathStart.distanceTo(this._sheathEnd);
+        const tip = sampleSheathPath(sheath, sheathLength(sheath));
+        this._sheathDirection = new THREE.Vector3(tip.tx,tip.ty,tip.tz);
+        this._sheathLength = sheathLength(sheath);
+        const radius = sheath.innerRadius ?? INTRODUCER_SHEATH_INNER_RADIUS_MM;
+        Object.assign(this._sheathPort, {radiusMm:radius,areaMm2:Math.PI*radius*radius,weight:Math.PI*radius*radius});
+        this.deviceHydraulicProfiles.sheath = {...this.deviceHydraulicProfiles.sheath,
+            lengthMm:sheath.length??this._sheathLength,innerDiameterMm:2*radius};
         this._sheathPort.position = this._sheathEnd;
         this._sheathPort.direction = this._sheathDirection;
         this._hydraulicRevision++;
@@ -283,7 +294,7 @@ export class HybridContrastSystem {
                 : this.getSourceStatus(source);
         const deviceKey = sourceStatus.deviceKey;
         if (!sourceStatus.valid) {
-            const nominalPorts = NOMINAL_HYDRAULIC_PORTS[deviceKey];
+            const nominalPorts = deviceKey === 'sheath' ? [this._sheathPort] : NOMINAL_HYDRAULIC_PORTS[deviceKey];
             let maximumAchievableRateMlPerSec = null;
             if (nominalPorts?.length && this.deviceHydraulicProfiles[deviceKey]) {
                 maximumAchievableRateMlPerSec =
@@ -477,6 +488,7 @@ export class HybridContrastSystem {
         if (this.injection) this._updateInjection(dt);
         this.localSolver.update(dt);
         this.flowNetwork.update(dt);
+        this.flowNetwork.outletIodineMassMg += this.renalPerfusion.update(dt);
         this.pressureDrivenRetrogradeColumn.updateDiagnostics(
             this.medium.iodineMgPerMl
         );
@@ -565,6 +577,10 @@ export class HybridContrastSystem {
 
     _isPortInsideSheath(point) {
         if (!this._sheathStart || !this._sheathEnd || this._sheathLength <= 0) return false;
+        if (this.sheath?.path) {
+            const nearest=closestSheathAxis(this.sheath,[point.x,point.y,point.z]);
+            return nearest.coordinate >= -0.5 && nearest.coordinate < this._sheathLength-0.5 && nearest.rho <= this.sheath.radius+0.5;
+        }
         const relX = point.x - this._sheathStart.x;
         const relY = point.y - this._sheathStart.y;
         const relZ = point.z - this._sheathStart.z;
@@ -587,7 +603,7 @@ export class HybridContrastSystem {
     hasVisibleContrast(thresholdMg = 0.02) {
         const flowMass = this.flowNetwork.getIodineMassMg();
         const localMass = this.localSolver.getIodineMassMg();
-        return flowMass + localMass + (this.flowNetwork.stentGraftRemodeling?.trappedIodineMassMg??0) > thresholdMg;
+        return flowMass + localMass + this.renalPerfusion.massMg + (this.flowNetwork.stentGraftRemodeling?.trappedIodineMassMg??0) > thresholdMg;
     }
 
     get isInjecting() {
@@ -603,7 +619,7 @@ export class HybridContrastSystem {
             this.continuousInjectionFlowCoupler.getDiagnostics();
         const accountedMass =
             flow.intravascularIodineMassMg +
-            flow.outletIodineMassMg +
+            flow.outletIodineMassMg + this.renalPerfusion.massMg +
             local.localIodineMassMg + (this.flowNetwork.stentGraftRemodeling?.trappedIodineMassMg??0);
         const balanceErrorMg = this.totalInjectedIodineMassMg - accountedMass;
         return {
@@ -618,6 +634,7 @@ export class HybridContrastSystem {
             totalDeliveredVolumeMl: this.totalDeliveredVolumeMl,
             simulationTimeSeconds: this.simulationTimeSeconds,
             totalInjectedIodineMassMg: this.totalInjectedIodineMassMg,
+            renalParenchymalIodineMassMg: this.renalPerfusion.massMg,
             intravascularIodineMassMg: flow.intravascularIodineMassMg,
             localIodineMassMg: local.localIodineMassMg,
             outletIodineMassMg: flow.outletIodineMassMg,

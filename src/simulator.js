@@ -1,3 +1,6 @@
+import {initializeElasticIntroducer, introducerAccessBoundary, elasticIntroducerTool, prepareElasticIntroducer, publishElasticIntroducer} from './devices/introducerMechanics.js';
+import {canSelectIntroducer, GUIDEWIRE_LENGTHS_MM} from './devices/introducerSheath.js';
+import {sheathLength, sampleSheathPath} from './physics/sheathPath.js';
 import {createSharedAxisWorkerSystem} from './physics/kirchhoffSharedAxisWorkerSystem.js';
 import {sharedAxisGeometryIdentity} from './physics/kirchhoffSharedAxisGeometryIdentity.js';
 import {createDebugVesselSurface} from './debugVesselSurface.js';
@@ -138,6 +141,7 @@ let simulationStepTransaction = null;
 let synchronizedStep = null;
 let synchronizedInputs = null;
 let completedSimulationTime = 0;
+let simulationPaused = false;
 let monitorPublishedTime = 0;
 const deferredSimulationChanges = new Map();
 function changePhysicsSetting(key, apply) {
@@ -236,15 +240,16 @@ function initializeAccessSolver(accessId='right') {
         onReady:()=>runIdlePhysicsCatchup(synchronizedStep.epoch,false),
         onRejectedStep:report=>ui.updateSolverFailure({...report, accessId:activeAccessId,anatomy:selectedAnatomy.id}),
         readBloodFlow: () => document.getElementById('bloodFlowCoupling')?.checked ? contrastSystem?.flowNetwork : null,
-        readSheath: () => ({...activeSheath, innerRadius: pigtailCatheter?.type==='stentgraft-delivery'?(pigtailCatheter.deliveryRadiusMm??3)+.2:INTRODUCER_SHEATH_INNER_RADIUS_MM, proximalExtension: 40}),
+        readSheath: () => introducerAccessBoundary(activeSheath, pigtailCatheter?.type==='stentgraft-delivery'?(pigtailCatheter.deliveryRadiusMm??3):0),
         readTools: () => [
-            {id:'wire',body:xpbdWireBody,insertion:guidewireTransport.progress,rotation:guidewireRotation,
+            {id:'wire',body:xpbdWireBody,length:guidewireLength,insertion:guidewireTransport.progress,rotation:guidewireRotation,
                 type:activeGuidewireType,shaftStiffness:guidewireShaftStiffnessScale,tipStiffness:guidewireTipStiffnessScale,
                 nodeCoordinates:Array.from({length:xpbdWireBody.count},(_,i)=>guidewireTransport.insertedCoordinate(i))},
             {id:'catheter',body:xpbdCatheterBody,insertion:pigtailCatheter.progress,rotation:pigtailCatheter.rotation,
                 type:pigtailCatheter.type,shaftStiffness:pigtailCatheter.shaftStiffnessScale,tipStiffness:pigtailCatheter.tipStiffnessScale,
                 deliveryExposureMm:pigtailCatheter.deliveryExposureMm??0,
-                nodeCoordinates:Array.from(xpbdCatheterBody.materialCoordinate)}
+                nodeCoordinates:Array.from(xpbdCatheterBody.materialCoordinate)},
+            elasticIntroducerTool(activeSheath,xpbdSheathBody)
         ]
     }) : null;
     wholeAxisAppSystem = sharedAxisAppSystem ?? compositeAppSystem;
@@ -684,6 +689,7 @@ let guidewireTransport = null;
 let endovascularWorld = null;
 let xpbdWireBody = null;
 let xpbdCatheterBody = null;
+let xpbdSheathBody = null;
 let xpbdContainment = null;
 let xpbdExternalToolContact = null;
 let xpbdPortalInnerDriven = true;
@@ -704,6 +710,15 @@ let xpbdContactNormalLines = null;
 let xpbdActiveBranchLines = null;
 
 function createSheathGeometry(sheath, radiusScale = 1) {
+    if (sheath.path) {
+        const curve = new THREE.Curve();
+        curve.getPoint = (t, out = new THREE.Vector3()) => {
+            const length=sheath.length??sheathLength(sheath);
+            const p = sampleSheathPath(sheath, sheathLength(sheath)-length+t*length);
+            return out.set(p.x,p.y,p.z);
+        };
+        return new THREE.TubeGeometry(curve, Math.max(1,Math.ceil((sheath.length??sheathLength(sheath))/4)), sheath.radius*radiusScale, 12, false);
+    }
     const start = new THREE.Vector3(sheath.start.x, sheath.start.y, sheath.start.z);
     const end = new THREE.Vector3(sheath.end.x, sheath.end.y, sheath.end.z);
     const axis = new THREE.Vector3().subVectors(end, start);
@@ -838,7 +853,8 @@ function createSheathEntryDebugMarker(collision, sheath) {
 const sheathDebugMeshes = Object.fromEntries(Object.entries(vessel.sheaths).map(([id, sheath]) => [id, createSheathMesh(sheath)]));
 vesselGroup.add(...Object.values(sheathDebugMeshes));
 const sheathFluoroMesh = new THREE.Group();
-sheathFluoroMesh.add(...Object.values(vessel.sheaths).map(createSheathFluoroMesh));
+const sheathFluoroMeshes = Object.fromEntries(Object.entries(vessel.sheaths).map(([id, sheath])=>[id,createSheathFluoroMesh(sheath)]));
+sheathFluoroMesh.add(...Object.values(sheathFluoroMeshes));
 sheathFluoroMesh.visible = true;
 alignVascularRenderObject(sheathFluoroMesh);
 scene.add(sheathFluoroMesh);
@@ -949,7 +965,7 @@ let contrastHydraulicParameters = null;
 
 // Guidewire physical model (discrete elastic rod)
 const segmentLength = 5;
-const nodeCount = 201;
+const nodeCount = 401;
 const guidewireLength = segmentLength * (nodeCount - 1);
 const GUIDEWIRE_ADVANCE_RATE = 44;
 const GUIDEWIRE_ROTATION_SPEED = Math.PI * 0.9;
@@ -957,7 +973,6 @@ let activeGuidewireType = GUIDEWIRE_TYPE_GLIDEWIRE;
 let guidewireRotation = 0;
 let guidewireShaftAxis, guidewireIntrinsicReferenceAxis, guidewireMaterialCoordinates, wire;
 let tailProgress = 0;
-const maxInsert = guidewireLength;
 const minInsert = 0;
 function initializeAccessWire() {
     guidewireShaftAxis = new THREE.Vector3(
@@ -984,7 +999,7 @@ function initializeAccessWire() {
     tailProgress = 0;
     guidewireTransport = new GuidewireTransport({
         rod: wire, segmentLength, guidewireLength, sheath: activeSheath,
-        advanceRate: GUIDEWIRE_ADVANCE_RATE, minInsert, maxInsert,
+        advanceRate: GUIDEWIRE_ADVANCE_RATE, minInsert, maxInsert: 1000,
         lumenClearance: GUIDEWIRE_RADIUS_MM, meshClearance: GUIDEWIRE_RADIUS_MM
     });
 
@@ -1829,6 +1844,10 @@ function initializeAccessWorld() {
             mass: catheterNodeMass(DEFAULT_TOOL_PROFILES.catheter.mass)
         });
     pigtailCatheter.syncXpbdBody(xpbdCatheterBody);
+    initializeElasticIntroducer(activeSheath);
+    xpbdSheathBody = sharedAxisAppSystem ? endovascularWorld.createRod('sheath', 191, 5, {
+        radius:activeSheath.radius,mass:1.6,wallStaticFriction:.08,wallKineticFriction:.04
+    }) : null;
     endovascularWorld.addSheath({
         start: activeSheath.start,
         end: activeSheath.end,
@@ -1897,6 +1916,7 @@ globalThis.__OET_PHYSICS__ = {
         blocked: simulationStepTransaction?.blocked ?? false,
         abandonedBacklogSeconds: simulationAbandonedBacklog }),
     getGuidewireType: () => activeGuidewireType,
+    getGuidewireLength: () => guidewireTransport.maxInsert,
     getGuidewireStiffnessScale: () => guidewireShaftStiffnessScale,
     getGuidewireStiffnessScales: () => ({
         shaft: guidewireShaftStiffnessScale,
@@ -3432,7 +3452,7 @@ function updateGuidewireResistance() {
     guidewireResistanceOptions.dt = fixedDt;
     guidewireResistanceOptions.command = lastGuidewireAdvanceCommand;
     guidewireResistanceOptions.atMaximumInsertion =
-        tailProgress >= maxInsert - 1e-6;
+        tailProgress >= guidewireTransport.maxInsert - 1e-6;
     const resistance = guidewireResistanceEstimator.update(
         xpbdWireBody,
         guidewireResistanceOptions,
@@ -3485,11 +3505,11 @@ function initializeAccessTransaction() {
         recovery: sharedAxisAppSystem ? {
             readKey: () => isControlledAccess()
                 ? [ui.getAdvance(),ui.getGuidewireRotation(),ui.getCatheterAdvance(),ui.getCatheterRotation(),
-                    ui.getSelectedGuidewireType(),ui.getSelectedCatheterType(),browserBenchmarkEpoch]
+                    ui.getSelectedGuidewireType(),ui.getSelectedCatheterType(),introducerCommand,JSON.stringify(pendingIntroducerExchange),browserBenchmarkEpoch]
                 : ['background', activeAccessId,ui.getAutomaticWithdrawal(activeAccessId).guidewireAdvance,ui.getAutomaticWithdrawal(activeAccessId).catheterAdvance],
             retry: () => {
                 if(browserBenchmarkScenario.running)return false;
-                if(isControlledAccess()) {ui.releaseToolInputs();stentGraftControls?.stopRelease();}
+                if(isControlledAccess()) {ui.releaseToolInputs();stopIntroducer();stentGraftControls?.stopRelease();}
                 ui.cancelAccessAutomaticWithdrawal(activeAccessId);
                 return sharedAxisAppSystem.retryFromLastAccepted();
             },
@@ -3534,7 +3554,7 @@ function captureToolAccess() {
         wholeAxisAppSystem, coupledSolverSelection, compositeStepCommands, compositeInitialEpoch,
         wire, guidewireTransport, guidewireShaftAxis, guidewireIntrinsicReferenceAxis,
         guidewireMaterialCoordinates, guidewireRotation, activeGuidewireType, tailProgress,
-        pigtailCatheter, endovascularWorld, xpbdWireBody, xpbdCatheterBody,
+        pigtailCatheter, endovascularWorld, xpbdWireBody, xpbdCatheterBody, xpbdSheathBody,
         xpbdContainment, xpbdExternalToolContact, xpbdPortalInnerDriven, catheterShaftStiffnessScale,
         catheterTipStiffnessScale, guidewireShaftStiffnessScale, guidewireTipStiffnessScale, guidewireStaticWallFriction,
         guidewireKineticWallFriction, guidewireResistanceEstimator, lastGuidewireAdvanceCommand, wireMesh,
@@ -3550,7 +3570,7 @@ function restoreToolAccess(state) {
         wholeAxisAppSystem, coupledSolverSelection, compositeStepCommands, compositeInitialEpoch,
         wire, guidewireTransport, guidewireShaftAxis, guidewireIntrinsicReferenceAxis,
         guidewireMaterialCoordinates, guidewireRotation, activeGuidewireType, tailProgress,
-        pigtailCatheter, endovascularWorld, xpbdWireBody, xpbdCatheterBody,
+        pigtailCatheter, endovascularWorld, xpbdWireBody, xpbdCatheterBody, xpbdSheathBody,
         xpbdContainment, xpbdExternalToolContact, xpbdPortalInnerDriven, catheterShaftStiffnessScale,
         catheterTipStiffnessScale, guidewireShaftStiffnessScale, guidewireTipStiffnessScale, guidewireStaticWallFriction,
         guidewireKineticWallFriction, guidewireResistanceEstimator, lastGuidewireAdvanceCommand, wireMesh,
@@ -3611,12 +3631,109 @@ for (const access of accessController.values()) {
     scene.add(access.rodNodes.group);
     runtime.onDispose(() => access.rodNodes.dispose());
 }
+let pendingIntroducerExchange = null;
+const introducerStatus = document.getElementById('introducerStatus');
+const introducerLengthSelect = document.getElementById('introducerLength');
+const introducerFrenchSelect = document.getElementById('introducerFrench');
+function syncIntroducerControls() {
+    introducerLengthSelect.value = String(Math.round(activeSheath.length??70));
+    introducerFrenchSelect.value = String(activeSheath.french ?? 6);
+    const locked = !canSelectIntroducer(activeSheath) || !!pendingIntroducerExchange;
+    introducerLengthSelect.disabled = introducerFrenchSelect.disabled = locked;
+    document.getElementById('guidewireLength').value = String(guidewireTransport.maxInsert);
+    const label = `${((activeSheath.length??70)/10).toFixed(0)} cm · ${activeSheath.french??6}F`;
+    introducerStatus.textContent = label;
+    document.getElementById('introducerInsertion').textContent = `Wsunięcie: ${(sheathLength(activeSheath)/10).toFixed(1)} cm`;
+    document.getElementById('sheathDiameter').textContent = `${label} · światło ${(2*activeSheath.innerRadius).toFixed(2)} mm · zew. ${(2*activeSheath.radius).toFixed(2)} mm`;
+}
+document.getElementById('guidewireLength').addEventListener('change', event => {
+    const length = Number(event.target.value);
+    if (guidewireTransport.progress <= 0.01 && GUIDEWIRE_LENGTHS_MM.includes(length))
+        guidewireTransport.maxInsert = length;
+    event.target.value = String(guidewireTransport.maxInsert);
+});
+for (const select of [introducerLengthSelect, introducerFrenchSelect]) select.addEventListener('change', () => {
+    if (!canSelectIntroducer(activeSheath) || accessController.switchRequested || pendingIntroducerExchange) {
+        syncIntroducerControls();
+        return;
+    }
+    pendingIntroducerExchange = {accessId:activeAccessId,
+        length:Number(introducerLengthSelect.value),
+        french:Number(introducerFrenchSelect.value)};
+    stopIntroducer();
+    ui.releaseToolInputs();
+    introducerLengthSelect.disabled = introducerFrenchSelect.disabled = true;
+    introducerStatus.textContent = 'Wybieranie koszulki…';
+});
+let introducerCommand = 0;
+const stopIntroducer = () => { introducerCommand=0; };
+for(const [id,direction] of [['introducerWithdraw',-1],['introducerAdvance',1]]) {
+    const button=document.getElementById(id);
+    button.addEventListener('pointerdown',e=>{if(accessController.switchRequested)return;introducerCommand=direction;button.setPointerCapture(e.pointerId);e.preventDefault();});
+    for(const event of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(event,stopIntroducer);
+}
+document.addEventListener('keydown',e=>{
+    if(e.repeat||e.target?.matches?.('input,select,textarea,[contenteditable=true]')||document.querySelector('dialog[open]'))return;
+    if(e.code==='KeyG'||e.code==='KeyH'){introducerCommand=e.code==='KeyH'?1:-1;e.preventDefault();}
+});
+document.addEventListener('keyup',e=>{if(e.code==='KeyG'||e.code==='KeyH')stopIntroducer();});
+window.addEventListener('blur',stopIntroducer);
+document.addEventListener('simulation-controls-help-open',stopIntroducer);
+document.addEventListener('simulation-pause',stopIntroducer);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopIntroducer();});
+
+function setSimulationPaused(paused) {
+    simulationPaused = paused;
+    // Do not accumulate wall time spent paused, or abandon a prepared shared
+    // solver step. It resumes from the same publication barrier on unpause.
+    lastRenderTime = performance.now();
+    document.getElementById('simulation-pause-banner').hidden = !paused;
+    for (const id of ['controls', 'carm-controls']) document.getElementById(id).inert = paused;
+    if (paused) document.dispatchEvent(new Event('simulation-pause'));
+}
+document.getElementById('simulation-resume').addEventListener('click',()=>setSimulationPaused(false));
+runtime.listen(window,'keydown',event=>{
+    if(event.code==='Space') {
+        if(event.ctrlKey||event.metaKey||event.altKey||document.querySelector('dialog[open]')||
+            event.target?.closest?.('input,select,textarea,button,a,[contenteditable]:not([contenteditable="false"])'))return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if(!event.repeat)setSimulationPaused(!simulationPaused);
+    } else if(simulationPaused&&['KeyW','KeyS','ArrowUp','ArrowDown','KeyA','KeyD','KeyQ','KeyE',
+        'KeyZ','KeyX','KeyG','KeyH','KeyI','KeyR','KeyJ','KeyK','KeyL','KeyN'].includes(event.code)) {
+        event.preventDefault();event.stopImmediatePropagation();
+    }
+},{capture:true});
+function prepareIntroducerStep(dt,command) {
+    const request=isControlledAccess()?pendingIntroducerExchange:null;
+    if(!request&&!command)return false;
+    if(request)pendingIntroducerExchange=null;
+    try {
+        if(!sharedAxisAppSystem)throw new Error('Sterowanie koszulką wymaga solvera Shared axis.');
+        if(request&&request.accessId!==activeAccessId)return false;
+        return prepareElasticIntroducer(activeSheath,{delta:command*30*dt,selection:request,
+            catheterProgress:pigtailCatheter.progress,
+            catheterRadius:pigtailCatheter.type==='stentgraft-delivery'?pigtailCatheter.deliveryRadiusMm:5/6});
+    }catch(error){stopIntroducer();syncIntroducerControls();introducerStatus.textContent=error.message;return false;}
+}
+function publishIntroducer() {
+    for(const mesh of [sheathDebugMeshes[activeAccessId],sheathFluoroMeshes[activeAccessId]]) {
+        const old=mesh.geometry;mesh.geometry=createSheathGeometry(activeSheath);old.dispose();
+    }
+    if(isControlledAccess()) {
+        contrastSystem?.setAccess(activeSheath,pigtailCatheter,{preserveInjection:true});
+        document.getElementById('sheathHydraulicLength').value=String(Math.round(activeSheath.length??70));
+        document.getElementById('sheathInnerDiameter').value=String(2*activeSheath.innerRadius);
+        syncIntroducerControls();
+    }
+}
 function updateAccessAppearance() {
     for (const [id, mesh] of Object.entries(sheathDebugMeshes)) {
         mesh.material.color.setHex(id === activeAccessId ? 0xffd24a : LUMEN_DEBUG_COLOR);
         mesh.material.opacity = id === activeAccessId ? 0.65 : 0.34;
     }
     ui.setActiveAccess(activeAccessId);
+    syncIntroducerControls();
 }
 updateAccessAppearance();
 stentGraftSystem = new StentGraftSystem({
@@ -3633,6 +3750,7 @@ for(const access of accessController.values())access.endovascularWorld.readStent
 stentGraftControls=initStentGraftControls({system:stentGraftSystem,activeSide:()=>accessController.activeId,ui});
 function requestAccessSwitch(id) {
     if (!accessController || id === activeAccessId) return;
+    stopIntroducer();pendingIntroducerExchange=null;
     if (browserBenchmarkScenario.running) stopBrowserBenchmarkScenario('access-changed');
     stopCatheterAortaSetup(catheterAortaSetup);
     ui.updateCatheterAortaSetupStatus?.(getCatheterAortaSetupStatus());
@@ -3773,6 +3891,7 @@ function isControlledAccess() {
 
 function sampleSynchronizedInputs() {
     return {
+        introducerAdvance:isControlledAccess()?introducerCommand:0,
         advance: ui.getAdvance(), rotation: ui.getGuidewireRotation(),
         catheterAdvance: ui.getCatheterAdvance(), catheterRotation: ui.getCatheterRotation(),
         wireType: ui.getSelectedGuidewireType(), catheterType: ui.getSelectedCatheterType(),
@@ -3799,14 +3918,15 @@ function prepareSimulationStep(dt) {
         pigtailCatheter.setStiffnessScales({shaftStiffnessScale:catheterShaftStiffnessScale,tipStiffnessScale:catheterTipStiffnessScale});
         pigtailCatheter.deliveryExposureMm=0;
     }
-    for(const sheath of endovascularWorld.sheaths)sheath.innerRadius=deliveryDevice?pigtailCatheter.deliveryRadiusMm+.2:INTRODUCER_SHEATH_INNER_RADIUS_MM;
+    for(const sheath of endovascularWorld.sheaths)sheath.innerRadius=deliveryDevice?pigtailCatheter.deliveryRadiusMm+.2:(activeSheath.innerRadius??INTRODUCER_SHEATH_INNER_RADIUS_MM);
     if(sharedInputCheckpoint) {
         sharedInputScalars={tailProgress,guidewireRotation,lastGuidewireAdvanceCommand,xpbdPortalInnerDriven};
-        sharedInputCheckpoint.capture([wire.nodeStorage,guidewireTransport,guidewireTransport.performanceStats,
-            xpbdWireBody,xpbdCatheterBody,pigtailCatheter,pigtailCatheter._sheathFeed ??= {},
+        sharedInputCheckpoint.capture([activeSheath,wire.nodeStorage,guidewireTransport,guidewireTransport.performanceStats,
+            xpbdWireBody,xpbdCatheterBody,xpbdSheathBody,pigtailCatheter,pigtailCatheter._sheathFeed ??= {},
             pigtailCatheter._kirchhoffMaterialOptions,pigtailCatheter._kirchhoffBoundaryOptions,
             xpbdContainment,xpbdExternalToolContact]);
     }
+    const introducerChanged=prepareIntroducerStep(dt,controlled?(inputs.introducerAdvance??0):0);
     const backgroundWithdrawal=inputs.automatic;
     const advance = controlled ? automatedCommands?.guidewireAdvance ?? inputs.advance : backgroundWithdrawal.guidewireAdvance;
     const guidewireRotationCommand = controlled ? inputs.rotation : 0;
@@ -3955,7 +4075,7 @@ function prepareSimulationStep(dt) {
         // and withdrawal. Only their material/geometric profiles differ.
         configureKirchhoffToolRuntime(xpbdWireBody);
         configureKirchhoffToolRuntime(xpbdCatheterBody);
-        return { dt, automatedCommands, inserted, firstContainedNode, materialEndNode, stentGraftCommand,
+        return { dt, automatedCommands, inserted, firstContainedNode, materialEndNode, stentGraftCommand, introducerChanged,
             benchmarkEpoch: browserBenchmarkEpoch,
             benchmarkRunning: controlled && browserBenchmarkScenario.running,
             benchmarkClockAdvances: controlled && browserBenchmarkScenario.running && !browserBenchmarkScenario.memorySettling };
@@ -3968,6 +4088,12 @@ function stepSimulation(dt = fixedDt) {
 
 function commitSimulationStep(context) {
     const { dt, firstContainedNode, materialEndNode } = context;
+    const sheathMoved=sharedAxisAppSystem&&publishElasticIntroducer(activeSheath,xpbdSheathBody);
+    if(sheathMoved||context.introducerChanged) {
+        guidewireTransport.sheathLength=sheathLength(activeSheath);
+        pigtailCatheter.setSheath(activeSheath);
+        context.presentIntroducer=true;
+    }
     const spatialRenderEnd = spatiallyCapturedContainmentEnd({
         innerBody: xpbdWireBody,
         outerBody: xpbdCatheterBody,
@@ -3994,6 +4120,7 @@ function commitSimulationStep(context) {
 
 function presentSimulationStep(context) {
     const {dt, inserted, automatedCommands} = context;
+    if(context.presentIntroducer)publishIntroducer();
     // Publish accepted lengths for both sheaths: a background withdrawal must
     // stop at the inlet without touching the foreground UI or trial state.
     ui.updateAutomaticWithdrawalLengths(activeAccessId,inserted/10,
@@ -4406,6 +4533,7 @@ synchronizedStep = createSynchronizedStep({
 });
 
 function executeAccumulatedPhysicsStep(idle = false, sliceBudgetMs = null) {
+    if (simulationPaused) return false;
     if (wholeAxisAppSystem && (!loadingAssetsReady() || !endovascularWorld.contactField)) return false;
     if (accessController.switchRequested && !synchronizedStep.pending) return false;
     try {
@@ -4423,7 +4551,7 @@ function runIdlePhysicsCatchup(epoch = synchronizedStep.epoch, scheduled = true)
     // budget directly instead of adding another timer between physical steps.
     // Preserve the pending timer flag when entering from that message.
     if(scheduled)simulationCatchupPending = false;
-    if (epoch !== synchronizedStep.epoch || document.visibilityState !== 'visible') return;
+    if (simulationPaused || epoch !== synchronizedStep.epoch || document.visibilityState !== 'visible') return;
     const deadline = (lastRenderTime ?? performance.now()) + TARGET_RENDER_FRAME_MS;
     runPhysicsIdleBudget({deadline,now:()=>performance.now(),guardMs:PHYSICS_IDLE_GUARD_MS,maxSliceMs:PHYSICS_MAX_SLICE_MS,
         hasDebt:()=>simulationAccumulator+1e-9>=fixedDt,
@@ -4433,7 +4561,7 @@ function runIdlePhysicsCatchup(epoch = synchronizedStep.epoch, scheduled = true)
 }
 
 function scheduleIdlePhysicsCatchup() {
-    if (simulationCatchupPending || !synchronizedStep.canAttempt() ||
+    if (simulationPaused || simulationCatchupPending || !synchronizedStep.canAttempt() ||
         simulationAccumulator + 1e-9 < fixedDt || document.visibilityState !== 'visible') return;
     simulationCatchupPending = true;
     const epoch = synchronizedStep.epoch;
@@ -4446,6 +4574,7 @@ function animate(time) {
     // Render loop: updates geometry, handles fluoroscopy accumulation, and UI
     flushSimulationChanges();
     accessController.applyRequested();
+    document.getElementById('guidewireLength').disabled = guidewireTransport.progress > 0.01;
     synchronizedStep.beginFrame();
     const blockedAccess = accessController.values().find(access =>
         accessController.run(access.activeAccessId, () => simulationStepTransaction.blocked));
@@ -4486,7 +4615,7 @@ function animate(time) {
     recordBrowserFrame(frameMs);
     if (browserBenchmarkScenario.running) shortCatheterBenchmarkMetrics?.recordFrame(frameMs);
     const compositeReady = !wholeAxisAppSystem || loadingAssetsReady() && !!endovascularWorld.contactField;
-    const physicsDt = wholeAxisAppSystem && (!compositeReady || !compositePhysicsClockStarted) ||
+    const physicsDt = simulationPaused || wholeAxisAppSystem && (!compositeReady || !compositePhysicsClockStarted) ||
         !synchronizedStep.canAttempt() ? 0 : dt;
     if (compositeReady) compositePhysicsClockStarted = true;
     simulationAcceptedTime += physicsDt;
@@ -4511,7 +4640,7 @@ function animate(time) {
         (adaptiveSlices?simulationRenderReserveMs:PHYSICS_RENDER_RESERVE_MS)-PHYSICS_IDLE_GUARD_MS;
     runPhysicsFrameBudget({
         hasDebt:()=>simulationAccumulator+1e-9>=fixedDt,
-        canAttempt:()=>synchronizedStep.canAttempt() && (!accessController.switchRequested || synchronizedStep.pending),
+        canAttempt:()=>!simulationPaused && synchronizedStep.canAttempt() && (!accessController.switchRequested || synchronizedStep.pending),
         canFit:()=>sliceRoom()>(adaptiveSlices ? PHYSICS_MIN_SLICE_MS : simulationStepEstimateMs),
         attempt:()=>({accepted:executeAccumulatedPhysicsStep(false,
             Math.max(PHYSICS_MIN_SLICE_MS,Math.min(PHYSICS_MAX_SLICE_MS,sliceRoom()))),
@@ -4658,7 +4787,7 @@ function animate(time) {
     }
     const frameUpdateEndedAt = performance.now();
     if (fluoroscopy) {
-        updateAutoExposure(dt);
+        updateAutoExposure(simulationPaused ? 0 : dt);
         updateXrayTechniqueReadout();
         const pulseRate = Math.max(1, displayMaterial.uniforms.pulseRate.value || 15);
         const pulseInterval = 1000 / pulseRate;
@@ -4891,7 +5020,7 @@ runtime.onDispose(() => {
     contrastSystem = null;
     vesselCollisionTarget = vessel;
     pigtailCatheter = guidewireTransport = endovascularWorld = null;
-    xpbdWireBody = xpbdCatheterBody = xpbdContainment = xpbdExternalToolContact = null;
+    xpbdWireBody = xpbdCatheterBody = xpbdSheathBody = xpbdContainment = xpbdExternalToolContact = null;
     delete globalThis.__OET_MONITOR__;
     delete globalThis.__OET_PHYSICS__;
     delete globalThis.__OET_BENCHMARK__;

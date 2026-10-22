@@ -18,6 +18,7 @@ import {
   GUIDEWIRE_DIAMETER_IN,
   GUIDEWIRE_DIAMETER_MM,
   INTRODUCER_SHEATH_DIAMETER_MM,
+  INTRODUCER_SHEATH_INNER_DIAMETER_MM,
   INTRODUCER_SHEATH_FRENCH,
   PIGTAIL_CATHETER_DIAMETER_MM,
   PIGTAIL_CATHETER_FRENCH
@@ -268,7 +269,7 @@ export function initUI(options) {
     guidewireDiameterEl.textContent = `${GUIDEWIRE_DIAMETER_IN.toFixed(3)}" · ${GUIDEWIRE_DIAMETER_MM.toFixed(3)} mm`;
   }
   if (sheathDiameterEl) {
-    sheathDiameterEl.textContent = `${INTRODUCER_SHEATH_FRENCH}F · ${INTRODUCER_SHEATH_DIAMETER_MM.toFixed(3)} mm`;
+    sheathDiameterEl.textContent = `${INTRODUCER_SHEATH_FRENCH}F · światło ${INTRODUCER_SHEATH_INNER_DIAMETER_MM.toFixed(2)} mm · zew. ${INTRODUCER_SHEATH_DIAMETER_MM.toFixed(2)} mm`;
   }
   if (catheterDiameterEl) {
     catheterDiameterEl.textContent = `${PIGTAIL_CATHETER_FRENCH}F · ${PIGTAIL_CATHETER_DIAMETER_MM.toFixed(3)} mm`;
@@ -626,7 +627,7 @@ export function initUI(options) {
             sheathHydraulicLengthSlider?.value || '110'
           ),
           innerDiameterMm: parseFloat(
-            sheathInnerDiameterSlider?.value || '1.8'
+            sheathInnerDiameterSlider?.value || String(INTRODUCER_SHEATH_INNER_DIAMETER_MM)
           ),
           maximumPressurePsi: parseFloat(
             sheathPressureRatingSlider?.value || '300'
@@ -1260,8 +1261,6 @@ export function initUI(options) {
     ({guidewire:guidewireAutoWithdraw,catheter:catheterAutoWithdraw}=automaticWithdrawals.forAccess(id));
     updateAutoWithdrawButton(guidewireAutoWithdrawButton,guidewireAutoWithdraw);
     updateAutoWithdrawButton(catheterAutoWithdrawButton,catheterAutoWithdraw);
-    const readout = document.getElementById('activeAccessReadout');
-    if (readout) readout.textContent = id === 'left' ? 'Lewa koszulka' : 'Prawa koszulka';
     accessSwitchPending = false;
     accessButtons.forEach(button => {
       button.disabled = false;
@@ -1317,7 +1316,26 @@ export function initUI(options) {
   wireHoldButton(guidewireRotateLeftButton, () => setGuidewireRotation(-1), stopGuidewireRotation);
   wireHoldButton(guidewireRotateRightButton, () => setGuidewireRotation(1), stopGuidewireRotation);
 
+  const controlHelp = document.getElementById('control-help-panel');
+  document.addEventListener('simulation-pause', () => {
+    releaseToolInputs();
+    stopDsaHold();
+  });
+  document.getElementById('control-help-close')?.addEventListener('click', () => controlHelp.close());
   document.addEventListener('keydown', e => {
+    if (e.code === 'Escape' && controlHelp) {
+      if (document.querySelector('dialog[open]') && !controlHelp.open) return;
+      e.preventDefault();
+      if (e.repeat) return;
+      if (controlHelp.open) controlHelp.close();
+      else {
+        releaseToolInputs();
+        stopDsaHold();
+        document.dispatchEvent(new Event('simulation-controls-help-open'));
+        controlHelp.showModal();
+      }
+      return;
+    }
     if (e.repeat || accessSwitchPending || document.querySelector('dialog[open]') || e.target?.matches?.('input, select, textarea, [contenteditable=true]')) return;
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
       stopGuidewireAutoWithdraw();

@@ -10,6 +10,22 @@ export const GUIDEWIRE_SOFT_TIP_LENGTH_MM =
 export const GUIDEWIRE_BODY_MAX_BEND_ANGLE_DEGREES = 10;
 export const GUIDEWIRE_TIP_MAX_BEND_ANGLE_DEGREES = 30;
 export const GUIDEWIRE_TYPE_GLIDEWIRE = 'glidewire';
+export const GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED = 'glidewire-angled';
+export const GLIDEWIRE_ANGLED_TIP_LENGTH_MM = 15;
+export const GLIDEWIRE_ANGLED_TURN_RAD = Math.PI / 4;
+// A smooth manufactured bend, integrated exactly over each material cell.
+export function angledGlidewireIntrinsicCurvature(distance) {
+    if (distance < 0 || distance > GLIDEWIRE_ANGLED_TIP_LENGTH_MM) return 0;
+    return GLIDEWIRE_ANGLED_TURN_RAD / GLIDEWIRE_ANGLED_TIP_LENGTH_MM *
+        (1 - Math.cos(2 * Math.PI * distance / GLIDEWIRE_ANGLED_TIP_LENGTH_MM));
+}
+export function integrateAngledGlidewireIntrinsicTurn(center, width) {
+    const length = GLIDEWIRE_ANGLED_TIP_LENGTH_MM;
+    const a = Math.max(0, Math.min(length, center - Math.max(0, width) / 2));
+    const b = Math.max(0, Math.min(length, center + Math.max(0, width) / 2));
+    const primitive = x => GLIDEWIRE_ANGLED_TURN_RAD * (x / length - Math.sin(2 * Math.PI * x / length) / (2 * Math.PI));
+    return primitive(b) - primitive(a);
+}
 export const GUIDEWIRE_TYPE_STEEL_J_035 = 'steel-j-035';
 export const STEEL_J_GUIDEWIRE_BODY_BENDING_STIFFNESS = 32768;
 export const STEEL_J_GUIDEWIRE_TIP_BENDING_STIFFNESS = 128;
@@ -113,6 +129,20 @@ export const GUIDEWIRE_MATERIAL_PROFILES = Object.freeze({
         intrinsicCurvature: ZERO_INTRINSIC_CURVATURE,
         integrateIntrinsicTurn: ZERO_INTRINSIC_TURN
     }),
+    [GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED]: Object.freeze({
+        id: GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED,
+        bodyBendingStiffness: GUIDEWIRE_BODY_BENDING_STIFFNESS,
+        tipBendingStiffness: GUIDEWIRE_TIP_BENDING_STIFFNESS,
+        tipCoreLength: GUIDEWIRE_TIP_CORE_LENGTH_MM,
+        tipTransitionLength: GUIDEWIRE_TIP_TRANSITION_LENGTH_MM,
+        bodyMaxBendAngle: GUIDEWIRE_BODY_MAX_BEND_ANGLE_DEGREES,
+        tipMaxBendAngle: GUIDEWIRE_TIP_MAX_BEND_ANGLE_DEGREES,
+        naturalArcLength: GLIDEWIRE_ANGLED_TIP_LENGTH_MM,
+        naturalTurn: GLIDEWIRE_ANGLED_TURN_RAD,
+        frameNormalSign: 1,
+        intrinsicCurvature: angledGlidewireIntrinsicCurvature,
+        integrateIntrinsicTurn: integrateAngledGlidewireIntrinsicTurn
+    }),
     [GUIDEWIRE_TYPE_STEEL_J_035]: Object.freeze({
         id: GUIDEWIRE_TYPE_STEEL_J_035,
         bodyBendingStiffness: STEEL_J_GUIDEWIRE_BODY_BENDING_STIFFNESS,
@@ -130,6 +160,7 @@ export const GUIDEWIRE_MATERIAL_PROFILES = Object.freeze({
 });
 
 export function normalizeGuidewireType(type) {
+    if (type === GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED) return type;
     return type === GUIDEWIRE_TYPE_STEEL_J_035
         ? GUIDEWIRE_TYPE_STEEL_J_035
         : GUIDEWIRE_TYPE_GLIDEWIRE;

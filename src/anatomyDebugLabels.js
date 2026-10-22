@@ -176,9 +176,16 @@ function aorticPathFromRoot(flowNetwork, distalEdge) {
 function diagnosticSupraAorticRoots(flowNetwork) {
     const prefixPaths = flowNetwork.getTopologyDiagnostics?.()
         ?.aorticBranchPrefixes?.paths
-        ?.filter(path =>
-            path.branchRadiusMm >= MIN_AORTIC_ARCH_BRANCH_RADIUS_MM
-        );
+        ?.filter(path => {
+            const root = flowNetwork.edges[path.rootEdgeIndex];
+            const parent = flowNetwork.edges[root?.parentEdgeIndex];
+            // Prefix correction also covers small terminal strands and
+            // abdominal/iliac ostia. Only the three major arch territories
+            // belong in the supra-aortic label set.
+            return path.branchRadiusMm >= MIN_AORTIC_ARCH_BRANCH_RADIUS_MM &&
+                root?.start.y > 0 && parent?.intraluminalAorticConnector &&
+                flowNetwork.nodes.get(root.endNodeId)?.terminalOutletCount > 3;
+        });
     if (prefixPaths?.length !== 3) return null;
 
     const prefixRoots = prefixPaths

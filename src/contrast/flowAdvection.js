@@ -26,6 +26,7 @@ export class FlowAdvection {
         const count = cellCount + nodes.length;
         const nodeIndex = new Map(nodes.map((node, i) => [node.id, cellCount + i]));
         this.open = new Uint8Array(count);
+        this.nodeIds = nodes.map(node => node.id);
         nodes.forEach((node, i) => {
             this.open[cellCount + i] =
                 node.parentEdgeIndex < 0 || node.childEdgeIndices.length === 0;
@@ -182,7 +183,10 @@ export class FlowAdvection {
                         targetEvents.push(outgoing[i], outgoing[i + 1], outgoing[i + 2] * fraction);
                     this.linkMass[link] = amount;
                 }
-            } else if (this.open[vertex]) net.outletIodineMassMg += outgoingMass;
+            } else if (this.open[vertex]) {
+                const retained = net.receiveOutletIodine?.(this.nodeIds[vertex-this.cellCount],outgoingMass);
+                if(!retained) net.outletIodineMassMg += outgoingMass;
+            }
             else if (vertex >= this.cellCount) this._returnClosedNodeMass(vertex);
         }
         for (const edgeIndex of this.touchedEdges) {

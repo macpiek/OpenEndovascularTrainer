@@ -380,6 +380,12 @@ export class VesselContactField {
 
         const sdf = decoded.metadata.sdf;
         this.voxelSize = sdf.voxelSize;
+        this.fineRenalSegments = new Uint8Array(centerlineSegmentCount);
+        for (const {index} of decoded.metadata.renal?.segments ?? []) {
+            const offset = index * this.centerlineStride;
+            if (Math.min(this.centerline[offset + 6], this.centerline[offset + 7]) < this.voxelSize * 2)
+                this.fineRenalSegments[index] = 1;
+        }
         this.brickSize = sdf.brickSize;
         this.valuesPerBrick = this.brickSize ** 3;
         this.sdfQuantization = sdf.distanceQuantization ?? sdf.quantization;
@@ -2782,9 +2788,14 @@ export class VesselContactField {
         const boundsTree = this.fallbackGeometry?.boundsTree;
         const stateValues = state.values;
         const signedGap = stateValues[DISTANCE_SIGNED_DISTANCE] - radius;
-        const validationDistance = radius > 0
+        let validationDistance = radius > 0
             ? this.capsuleBvhValidationDistance
             : this.bvhValidationDistance;
+        // Submillimetre renal lumens can be narrower than two SDF voxels.
+        // Resolve near-wall clearance against the actual hollow mesh instead
+        // of letting interpolation falsely close a patent distal branch.
+        if (this.fineRenalSegments[stateValues[DISTANCE_BRANCH_ID]])
+            validationDistance = Math.max(validationDistance, this.voxelSize);
         if (
             !boundsTree ||
             (!force && !this._finiteMeshContacts && Math.abs(signedGap) > validationDistance && (radius <= 0 || signedGap >= -0.2))
