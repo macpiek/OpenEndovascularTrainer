@@ -4,7 +4,7 @@ import {createSharedAxisInsideContinuation} from './kirchhoffSharedAxisInsideCon
 import {createSharedAxisDiscoveryCache} from './kirchhoffSharedAxisDiscoveryCache.js';
 import { createContactResult } from './collision/vesselContactField.js';
 import { createKirchhoffWallWitnessGeometryWorkspace, evaluateKirchhoffWallWitnessGeometry } from './kirchhoffWallWitnessGeometry.js';
-import { extendSharedAxisNativeRows, iterateSharedAxisNative, sharedAxisOuterIntervals } from './kirchhoffSharedAxisNative.js';
+import { extendSharedAxisNativeRows, iterateSharedAxisNative, sharedAxisOuterIntervals,sharedAxisOuterMaterialAt } from './kirchhoffSharedAxisNative.js';
 
 const NEED_ROWS='shared-axis-wall-discovery';
 const outsideError=message=>Object.assign(new Error(message),{code:'trial-outside-vessel'});
@@ -80,7 +80,7 @@ export function createSharedAxisVesselWitness(field, definition,{reuseBuffers=tr
     evaluate.contactStorageSupported=reuseBuffers;
     evaluate.contactStorageReusable=reuseBuffers;
     evaluate.retarget=next=>createSharedAxisVesselWitness(field,next,{reuseBuffers});
-    return {...definition,evaluate};
+    return {...definition,vesselElasticContact:true,evaluate};
 }
 
 /** Discover with the current mesh/BVH kernel, retain each finite surface
@@ -107,7 +107,11 @@ function createVesselDiscovery(field,sheathLength,{allSamples=true,queryReuse=tr
         for(const interval of intervals) {
             const start=Math.max(exposedStart,interval.start),end=interval.end;
             if(end<=start)continue;
-            const radius=interval.material.body.radius;
+            // The tapered dilator is widest at the proximal end. Search with
+            // that conservative envelope; each retained witness evaluates its
+            // exact radius at t, so the tip never collides as a blunt cylinder.
+            const radius=['introducer-dilator','reliant-balloon'].includes(interval.material.spec?.type)?
+                Math.max(interval.material.body.radius,sharedAxisOuterMaterialAt(state,edge,start).body.radius,sharedAxisOuterMaterialAt(state,edge,end).body.radius):interval.material.body.radius;
             if(query) {
                 for(let k=0;k<3;k++) {
                     query.a[k]=(1-start)*a[k]+start*b[k]+origin[k];

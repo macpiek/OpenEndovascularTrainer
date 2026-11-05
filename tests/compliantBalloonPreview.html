@@ -1,0 +1,26 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Reliant — podgląd podatnego balonu</title>
+<style>body{margin:0;background:#101923;color:#edf5fa;font:16px system-ui}main{max-width:1050px;margin:24px auto}canvas{width:100%;border-radius:16px}button,input{font:inherit;margin:8px;padding:8px}output{display:block;margin:10px}p{color:#b4c3cf}</style>
+<main><h1>Balon podatny · Reliant</h1><p>Światło naczynia jest zwężone i niesymetryczne. To izolowany podgląd obrysu balonu. Sprzężenie z prowadnikiem, cewnikiem i podatną ścianą działa w głównej symulacji.</p>
+<canvas id="preview"></canvas><label>Objętość zadana (ml) <input id="volume" type="number" min="0" max="60" value="41"></label><button id="inflate">Napełnij</button><button id="deflate">Opróżnij</button><button id="pause">Pauza</button><output id="status"></output></main>
+<script type="module">
+import * as T from 'three';import {MeshBVH} from 'three-mesh-bvh';
+import {sampleCompliantBalloon,stepCompliantBalloon,updateBalloonGeometry} from '../src/devices/compliantBalloon.js';
+const canvas=document.querySelector('canvas'),renderer=new T.WebGLRenderer({canvas,antialias:true});renderer.setSize(1000,480);renderer.setPixelRatio(devicePixelRatio);
+const scene=new T.Scene(),camera=new T.OrthographicCamera(-65,65,31.2,-31.2,.1,1000);camera.position.set(160,45,0);camera.lookAt(0,0,0);
+scene.add(new T.HemisphereLight(0xffffff,0x34526a,3));
+const points=[];for(let i=0;i<=50;i++){const z=-70+i*2.8;points.push(new T.Vector3(2*Math.sin(z/25),2*Math.sin(z/35),z));}
+const axis=new T.CatmullRomCurve3(points),tube=new T.TubeGeometry(axis,100,1,48,false),p=tube.attributes.position,center=new T.Vector3(),pos=new T.Vector3();
+for(let i=0;i<=100;i++){axis.getPointAt(i/100,center);const z=center.z,r=11-5*Math.exp(-((z-6)**2)/250);for(let j=0;j<=48;j++){const at=i*49+j;pos.fromBufferAttribute(p,at).sub(center);pos.x*=r;pos.y*=r*.72;pos.add(center);p.setXYZ(at,pos.x,pos.y,pos.z);}}
+tube.computeVertexNormals();const tree=new MeshBVH(tube);const wall=new T.Mesh(tube,new T.MeshBasicMaterial({color:0x52a8d4,transparent:true,opacity:.14,side:T.DoubleSide,depthWrite:false}));scene.add(wall);
+scene.add(new T.Mesh(new T.TubeGeometry(axis,100,8/6,12,false),new T.MeshStandardMaterial({color:0xc9d7df,roughness:.5})));
+const balloon=new T.Mesh(new T.BufferGeometry(),new T.MeshStandardMaterial({color:0xffc064,transparent:true,opacity:.8,roughness:.3,side:T.DoubleSide}));scene.add(balloon);balloon.visible=false;
+const guide=new T.Line(new T.BufferGeometry().setFromPoints(points),new T.LineBasicMaterial({color:0xffffff}));scene.add(guide);
+const state={},ray=new T.Ray(),view={getPointAt:(u,out)=>axis.getPointAt(u,out),getTangentAt:(u,out)=>axis.getTangentAt(u,out)};
+let target=0,paused=false,last=performance.now();
+document.querySelector('#inflate').onclick=()=>{const v=document.querySelector('#volume').valueAsNumber;if(Number.isFinite(v))target=Math.max(0,Math.min(60,v));};
+document.querySelector('#deflate').onclick=()=>target=0;document.querySelector('#pause').onclick=()=>{paused=!paused;document.querySelector('#pause').textContent=paused?'Wznów':'Pauza';};
+function frame(now){const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;
+if(!paused){const previous=state.sample;stepCompliantBalloon(state,target,dt,volumeMl=>sampleCompliantBalloon({path:view,coordinates:[0,140],volumeMl,wallDistance:(c,d)=>{ray.origin.copy(c);ray.direction.copy(d);return tree.raycastFirst(ray,T.DoubleSide,0,100)?.distance??NaN;}}));balloon.visible=!!state.sample;if(state.sample!==previous&&state.sample)updateBalloonGeometry(balloon.geometry,state.sample);}
+document.querySelector('#status').textContent=`W balonie: ${(state.sample?.volumeMl??0).toFixed(1)} ml · szerokość: ${(state.sample?.maxDiameter??0).toFixed(1)} mm${state.sample?.limited?' · ograniczone ścianą':''}${state.invalid?' · błąd geometrii':''}`;
+renderer.render(scene,camera);requestAnimationFrame(frame);}requestAnimationFrame(frame);
+</script></html>

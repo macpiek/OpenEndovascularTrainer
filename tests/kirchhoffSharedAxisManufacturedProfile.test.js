@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {GUIDEWIRE_MATERIAL_PROFILES, isGuidewireType} from '../src/physics/guidewireMaterialProfile.js';
 import test from 'node:test';
 import { createSharedAxisNative, feedSharedAxisNative } from '../src/physics/kirchhoffSharedAxisNative.js';
 import { defineKirchhoffMaterialProfile } from '../src/physics/kirchhoffMaterialProfile.js';
@@ -21,8 +22,8 @@ function equalMaterial(actual, expected) {
 }
 
 test('unchanged feed preserves exact manufactured profiles for every built-in tool', () => {
-    for (const type of ['glidewire', 'glidewire-angled', 'steel-j-035', 'pigtail', 'berenstein', 'sim1']) {
-        const input = { tools: [{ ...tools()[type.includes('wire') || type === 'steel-j-035' ? 0 : 1], type }] };
+    for (const type of [...Object.keys(GUIDEWIRE_MATERIAL_PROFILES), 'pigtail', 'berenstein', 'sim1']) {
+        const input = { tools: [{ ...tools()[isGuidewireType(type) ? 0 : 1], type }] };
         const expected = createSharedAxisNative(input);
         let state = createSharedAxisNative(input);
         for (let step = 0; step < 4; step++) {

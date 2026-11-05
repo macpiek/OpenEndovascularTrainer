@@ -1,4 +1,5 @@
 import {clearDeferredSharedAxisContact,releaseDeferredSharedAxisContact,deferSharedAxisContact,materializeSharedAxisContacts} from './kirchhoffSharedAxisInactiveContacts.js';
+import {applyVesselElasticity} from './vesselElasticity.js';
 // Geometry is immutable for a pose token. It contains no reactions: multiplier
 // updates at an unchanged pose must still assemble fresh forces and tangents.
 const poseGeometry = new WeakMap(), positionMasks = new WeakMap();
@@ -50,6 +51,7 @@ export function createSharedAxisConstraintRowPool(contacts=new Map()) {
                 if(!row)continue;
                 if(def)for(const key of Object.keys(def))row[key]=undefined;
                 row.compliance=undefined;row.geometricHessian=undefined;
+                row.geometricGap=undefined;row.wallDisplacement=undefined;row.wallElasticEnergy=undefined;row.balloonCompression=undefined;
                 row.extraForceDofs=undefined;row.extraForceJacobian=undefined;
                 releaseDeferredSharedAxisContact(row);
             }
@@ -136,6 +138,7 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
             }
             // No force column or Hessian from the preceding use may survive.
             clearDeferredSharedAxisContact(row);
+            row.geometricGap=undefined;row.wallDisplacement=undefined;row.wallElasticEnergy=undefined;row.balloonCompression=undefined;
             if(s.wallCompliance&&def.witness)row.compliance=s.wallCompliance;
             else row.compliance=undefined;
             row.geometricHessian=undefined;row.extraForceDofs=undefined;row.extraForceJacobian=undefined;
@@ -235,6 +238,8 @@ export function assembleSharedAxisConstraintRows(s,{withTangent=true,outerMateri
             rows[index]={...def,gap,jacobian:J,multiplier,penalty:1,geometricHessian};
             if(s.wallCompliance&&def.witness)rows[index].compliance=s.wallCompliance;
         }
+        if(s.vesselElasticity&&def.vesselElasticContact)
+            applyVesselElasticity(rows[index],s.vesselElasticity,outerMaterialAt(s,e,def.witness.t,def.witness.owner).body);
     }
     return rows;
 }

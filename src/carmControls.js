@@ -1,7 +1,10 @@
 import * as THREE from 'three';
 import {applyAnteriorCArmPose} from './carmPose.js';
+import {applyCArmProjection} from './imaging/carmProjection.js';
 import {
-    getDetectorZoomMode
+    DEFAULT_DETECTOR_SIDE_MM,
+    getDetectorZoomMode,
+    normalizeDetectorSideMm
 } from './imaging/detectorZoomModes.js';
 
 // The perspective camera is placed at the X-ray source so that the rendered
@@ -29,7 +32,9 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         document.querySelectorAll('[data-detector-zoom]')
     );
     const detectorZoomStatus = document.getElementById('detectorZoomStatus');
+    const detectorSizeSelect = document.getElementById('detectorSize');
     const detectorZoomBadge = document.getElementById('detectorZoomBadge');
+    const carmGeometryStatus = document.getElementById('carmGeometryStatus');
 
     const sliders = [
         carmXSlider,
@@ -49,7 +54,8 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     let carmY = parseFloat(carmYSlider.value);
     let carmZ = parseFloat(carmZSlider.value);
     let detectorRadius = parseFloat(carmDetDistSlider.value);
-    let detectorZoomMode = getDetectorZoomMode('none');
+    let detectorSideMm = normalizeDetectorSideMm(detectorSizeSelect?.value);
+    let detectorZoomMode = getDetectorZoomMode('none', detectorSideMm);
     let detectorZoomBadgeTimer = null;
     let locked = false;
     let revision = 0;
@@ -65,6 +71,8 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     const previewYawQuat = new THREE.Quaternion();
     const previewPitchQuat = new THREE.Quaternion();
     const previewRollQuat = new THREE.Quaternion();
+    const fieldNumberFormat = new Intl.NumberFormat('pl-PL', { maximumFractionDigits: 1 });
+    const formatFieldCm = cm => fieldNumberFormat.format(cm);
 
     function getPivotPoint() {
         const fluoroscopyZ = initialZ - (carmZ - initialZ);
@@ -99,14 +107,22 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     }
 
     function updateDetectorZoomUi({ announce = false } = {}) {
+        if (detectorSizeSelect) detectorSizeSelect.value = String(detectorSideMm);
         for (const button of detectorZoomButtons) {
             const active = button.dataset.detectorZoom === detectorZoomMode.id;
             button.classList.toggle('active', active);
             button.setAttribute('aria-pressed', String(active));
+            const fieldLabel = button.querySelector('span');
+            if (fieldLabel) {
+                const mode = getDetectorZoomMode(button.dataset.detectorZoom, detectorSideMm);
+                const fieldCm = formatFieldCm(mode.inputFieldCm);
+                fieldLabel.textContent = `${fieldCm} × ${fieldCm} cm detektora`;
+            }
         }
+        const fieldCm = formatFieldCm(detectorZoomMode.inputFieldCm);
         if (detectorZoomStatus) {
             detectorZoomStatus.textContent =
-                `${detectorZoomMode.label} · ${detectorZoomMode.inputFieldCm} cm FOV · ` +
+                `${detectorZoomMode.label} · ${fieldCm} × ${fieldCm} cm detektora · ` +
                 `${detectorZoomMode.zoomFactor.toFixed(2)}× · ` +
                 `dose ≈${detectorZoomMode.referenceDoseRateMultiplier.toFixed(1)}×`;
         }
@@ -122,7 +138,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         detectorZoomBadge.textContent = detectorZoomMode.id === 'none'
             ? 'NO ZOOM · FULL FIELD'
             : `${detectorZoomMode.label.toUpperCase()} · ` +
-                `${detectorZoomMode.inputFieldCm} cm · ` +
+                `${fieldCm} cm · ` +
                 `${detectorZoomMode.zoomFactor.toFixed(2)}×`;
         detectorZoomBadge.hidden = false;
         detectorZoomBadgeTimer = window.setTimeout(() => {
@@ -136,6 +152,15 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         ({yaw: carmYaw, pitch: carmPitch, roll: carmRoll} = applyAnteriorCArmPose(
             camera, pivot, cameraRadius, carmYaw, carmPitch, carmRoll
         ));
+        const projection = applyCArmProjection(
+            camera, cameraRadius, detectorRadius, detectorZoomMode.zoomFactor, detectorSideMm
+        );
+        if (carmGeometryStatus) {
+            const fieldCm = formatFieldCm(projection.isocenterFieldMm / 10);
+            carmGeometryStatus.textContent =
+                `Lampa–detektor: ${formatFieldCm(projection.sourceToDetectorMm / 10)} cm · ` +
+                `pole w izocentrum: ${fieldCm} × ${fieldCm} cm`;
+        }
 
         const previewDx = carmX - initialX;
         const previewDy = carmY - initialY;
@@ -196,14 +221,22 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         detectorRadius = parseFloat(e.target.value);
         updateCamera();
     });
+    detectorSizeSelect?.addEventListener('change', () => {
+        if (locked) return;
+        const nextSideMm = normalizeDetectorSideMm(detectorSizeSelect.value);
+        if (nextSideMm === detectorSideMm) return;
+        detectorSideMm = nextSideMm;
+        detectorZoomMode = getDetectorZoomMode(detectorZoomMode.id, detectorSideMm);
+        updateDetectorZoomUi();
+        updateCamera();
+        detectorSizeSelect.blur();
+    });
     for (const button of detectorZoomButtons) {
         button.addEventListener('click', () => {
             if (locked) return;
-            const nextMode = getDetectorZoomMode(button.dataset.detectorZoom);
+            const nextMode = getDetectorZoomMode(button.dataset.detectorZoom, detectorSideMm);
             if (nextMode.id === detectorZoomMode.id) return;
             detectorZoomMode = nextMode;
-            camera.zoom = detectorZoomMode.zoomFactor;
-            camera.updateProjectionMatrix();
             updateDetectorZoomUi({ announce: true });
             updateCamera();
         });
@@ -574,9 +607,8 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         carmY = initialY;
         carmZ = initialZ;
         detectorRadius = initialDetectorRadius;
-        detectorZoomMode = getDetectorZoomMode('none');
-        camera.zoom = detectorZoomMode.zoomFactor;
-        camera.updateProjectionMatrix();
+        detectorSideMm = DEFAULT_DETECTOR_SIDE_MM;
+        detectorZoomMode = getDetectorZoomMode('none', detectorSideMm);
         carmXSlider.value = String(Math.round(carmX));
         carmYSlider.value = String(Math.round(carmY));
         carmZSlider.value = String(Math.round(carmZ));
@@ -599,6 +631,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         getDetectorZoomMode: () => ({ ...detectorZoomMode }),
         setLocked(value) {
             locked = value === true;
+            if (detectorSizeSelect) detectorSizeSelect.disabled = locked;
             for (const button of detectorZoomButtons) button.disabled = locked;
             if (locked) stopMotion();
         }

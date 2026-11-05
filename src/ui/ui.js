@@ -86,7 +86,6 @@ export function initUI(options) {
       spo2Elem: document.getElementById('spo2Value'),
       mapElem: document.getElementById('mapValue'),
       rrElem: document.getElementById('rrValue'),
-      rhythmElem: document.getElementById('monitorRhythm'),
       clockElem: document.getElementById('monitorClock'),
     }
   );
@@ -1095,6 +1094,7 @@ export function initUI(options) {
   const rigidityOutputs = ['catheterShaftRigidity', 'catheterTipRigidity',
     'guidewireShaftRigidity', 'guidewireTipRigidity'].map(id => document.getElementById(id));
   function updateRigidityReadouts() {
+    if(catheterDiameterEl)catheterDiameterEl.textContent=selectedCatheterType==='reliant-balloon'?'8F · 2.667 mm':`${PIGTAIL_CATHETER_FRENCH}F · ${PIGTAIL_CATHETER_DIAMETER_MM.toFixed(3)} mm`;
     // Read the same base material profiles as the solver, at the shaft and
     // distal tip plateaus; the transition between them varies along the tool.
     const catheter = kirchhoffMaterialProfile(selectedCatheterType === 'pigtail-calibrated'
@@ -1750,7 +1750,7 @@ export function initUI(options) {
   let perfElapsed = 0;
   let perfFrames = 0;
   let perfPhysicsStepsStart = {};
-  function updatePerfStats(dtSeconds, completedPhysicsSteps, simulationTimeSeconds) {
+  function updatePerfStats(dtSeconds, completedPhysicsSteps) {
     if (!perfStatsEl) return;
     perfElapsed += dtSeconds;
     perfFrames++;
@@ -1767,7 +1767,7 @@ export function initUI(options) {
     if (performance.memory) {
       mem = (performance.memory.usedJSHeapSize / 1048576).toFixed(1) + ' MB';
     }
-    perfStatsEl.textContent = `FPS: ${fps} | Fizyka: ${physicsHz} Hz${Number.isFinite(simulationTimeSeconds) ? ` | Czas: ${simulationTimeSeconds.toFixed(2)} s` : ''} | Mem: ${mem}`;
+    perfStatsEl.textContent = `FPS: ${fps} | Fizyka: ${physicsHz} Hz | Mem: ${mem}`;
     perfPhysicsStepsStart = {...counts};
     perfElapsed = 0;
     perfFrames = 0;

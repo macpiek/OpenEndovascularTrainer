@@ -75,7 +75,8 @@ export class FlowAdvection {
             // are already in range and ordered when the topology is compiled.
             const delta = edge.faceFlowDeltaMm3PerS;
             const override = net._flowOverridesMm3PerS[edge.index];
-            const base = Number.isFinite(override) ? override : edge.meanFlowMm3PerS * waveform;
+            const base = (Number.isFinite(override) ? override : edge.meanFlowMm3PerS * waveform) +
+                net._edgeFlowDeltasMm3PerS[edge.index];
             for (let face = 0; face <= edge.cellCount; face++, link++) {
                 const q = edge.transportExcluded ? 0 : base + delta[face];
                 const sign = Math.sign(q),

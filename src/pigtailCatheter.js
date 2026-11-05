@@ -1,3 +1,4 @@
+import {balloonMaterialProfile} from './devices/balloonMechanics.js';
 import {sheathLength, sampleSheathPath} from './physics/sheathPath.js';
 import {deliveryMaterialProfile} from './devices/stentGraftDeliveryMechanics.js';
 import { CATHETER_PHYSICS_SPACING_MM } from './physics/catheterDiscretization.js';
@@ -456,14 +457,14 @@ export class PigtailCatheter {
         this.physicsActiveCount = body.count;
         this.physicsLumenStartNode = feed.lumenStart;
         this.physicsLumenOrigin = feed.lumenOrigin;
-        body.radius=this.type==='stentgraft-delivery'?(this.deliveryRadiusMm??3):CATHETER_RADIUS;
+        body.radius=this.type==='reliant-balloon'?8/6:this.type==='stentgraft-delivery'?(this.deliveryRadiusMm??3):CATHETER_RADIUS;
         body.nodeRadius.fill(body.radius);
         const material = this._kirchhoffMaterialOptions;
         material.activeStart = body.activeStart;
         material.activeEnd = body.activeEnd;
         material.materialCoordinates = body.materialCoordinate;
         material.tipCoordinate = this.progress;
-        applyKirchhoffMaterialProfile(body, this.type==='stentgraft-delivery'?deliveryMaterialProfile(this.deliveryExposureMm):this.type, material);
+        applyKirchhoffMaterialProfile(body, this.type==='reliant-balloon'?balloonMaterialProfile(this.balloonDriveMl??0,this.shaftStiffnessScale,this.tipStiffnessScale):this.type==='stentgraft-delivery'?deliveryMaterialProfile(this.deliveryExposureMm):this.type, material);
         this._kirchhoffBoundaryOptions.twist = this.rotation;
         this._kirchhoffBoundaryOptions.segment = body.activeStart;
         applyProximalTwistBoundary(body, this._kirchhoffBoundaryOptions);
@@ -1370,7 +1371,7 @@ export class PigtailCatheter {
             previousGeometry,
             this._renderPoints,
             {
-                radius: PIGTAIL_CATHETER_RENDER_RADIUS_MM,
+                radius: this.type==='reliant-balloon'?8/6:PIGTAIL_CATHETER_RENDER_RADIUS_MM,
                 path: physicalPath,
                 samplesPerSegment: 3,
                 radialSegments: 14
@@ -1383,6 +1384,8 @@ export class PigtailCatheter {
         const coordinates = body?.jointStateView?.continuousCurve?.coordinates
             ?? body?.jointStateView?.coordinates;
         const spanMm = coordinates ? coordinates.at(-1) - coordinates[0] : undefined;
+        const markerScale=this.type==='reliant-balloon'?(8/6)/TIP_MARKER_RADIUS:1;
+        this.tipMarker.scale.set(markerScale,1,markerScale);
         this.#updateTipMarker(renderPointCount, this.calibrated ? physicalPath : null, spanMm);
         this.graduationMarkers.update({
             enabled: this.calibrated,
@@ -1396,7 +1399,7 @@ export class PigtailCatheter {
 
     getInjectionPorts(out = []) {
         out.length = 0;
-        if(this.type==='stentgraft-delivery')return out;
+        if(this.type==='stentgraft-delivery'||this.type==='reliant-balloon')return out;
         const body = this.physicsBody;
         const points = body ? null : this.#buildCenterline();
         const pointCount = body ? this.physicsActiveCount : this._centerlinePointCount;
@@ -2279,7 +2282,7 @@ export class PigtailCatheter {
     }
 
     #normalizeType(type) {
-        if(type==='stentgraft-delivery')return type;
+        if(type==='stentgraft-delivery'||type==='reliant-balloon')return type;
         if (
             type === CATHETER_TYPE_SIM1 ||
             type === 'sim-1' ||

@@ -82,8 +82,8 @@ export class DilatedLumenMixing {
                     continue;
                 const area = Math.min(a.edge.areas[a.cell], b.edge.areas[b.cell]);
                 const radius = Math.sqrt(area / Math.PI);
-                const flow=this.network.getFaceSignedFlowMm3PerS
-                    ? this.network.getFaceSignedFlowMm3PerS(b.edge.index,b.cell,waveform)
+                const flow=this.network.getFaceDispersionFlowMm3PerS
+                    ? this.network.getFaceDispersionFlowMm3PerS(b.edge.index,b.cell,waveform)
                     : b.edge.meanFlowMm3PerS;
                 const speed = Math.abs(flow) / Math.max(1e-9, area);
                 const weight = Math.min(this.weights[a.edge.index], this.weights[b.edge.index]);

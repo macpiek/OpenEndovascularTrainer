@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 // Resolve depth within the vessel itself without writing into the scene depth
 // buffer: instruments inside its translucent wall must remain visible.
-export function createDebugVesselSurface(geometry, color = 0x4f8dff) {
+export function createDebugVesselSurface(geometry, color = 0x4f8dff, deformation = null) {
     const target = new THREE.WebGLRenderTarget(1, 1);
     target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
     const material = new THREE.ShaderMaterial({
@@ -23,6 +23,7 @@ export function createDebugVesselSurface(geometry, color = 0x4f8dff) {
     const mesh=new THREE.Mesh(geometry,material);
     const legacyMaterial=new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,transparent:true,opacity:0.18,depthWrite:false});
     const depthMaterial=new THREE.MeshDepthMaterial({side:THREE.FrontSide,colorWrite:false,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
+    for(const m of [material,legacyMaterial,depthMaterial])deformation?.attach(m);
     const depthMesh=new THREE.Mesh(geometry,depthMaterial);depthMesh.matrixAutoUpdate=false;
     const depthScene=new THREE.Scene();depthScene.add(depthMesh);
     const size=new THREE.Vector2();let previousKey='';
@@ -33,7 +34,7 @@ export function createDebugVesselSurface(geometry, color = 0x4f8dff) {
             if(mesh.material===legacyMaterial)return;
             mesh.updateWorldMatrix(true,false);camera.updateMatrixWorld(true);
             renderer.getDrawingBufferSize(size);
-            const key=[size.x,size.y,...camera.matrixWorld.elements,...camera.projectionMatrix.elements,...mesh.matrixWorld.elements].join(',');
+            const key=[deformation?.revision??0,size.x,size.y,...camera.matrixWorld.elements,...camera.projectionMatrix.elements,...mesh.matrixWorld.elements].join(',');
             if(key===previousKey)return;
             target.setSize(size.x,size.y);material.uniforms.resolution.value.copy(size);
             depthMesh.matrix.copy(mesh.matrixWorld);

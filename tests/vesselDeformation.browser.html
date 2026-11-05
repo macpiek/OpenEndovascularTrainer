@@ -1,0 +1,40 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Sprężystość naczyń — test GPU</title>
+<style>body{background:#15212b;color:#eef4f8;font:16px system-ui;padding:20px}pre{white-space:pre-wrap}canvas{width:480px;height:480px}</style>
+<h1>Odkształcenie ściany i kontrastu</h1><pre id="results">Uruchamianie…</pre><main></main>
+<script type="module">
+import * as THREE from 'three';
+import {surfaceFixture} from './helpers/contrastSurfaceFixture.js';
+import {VesselDeformation} from '../src/vesselDeformation.js';
+import {createDebugVesselSurface} from '../src/debugVesselSurface.js';
+const renderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});renderer.setSize(512,512);document.querySelector('main').append(renderer.domElement);
+const target=new THREE.WebGLRenderTarget(512,512,{type:THREE.HalfFloatType}),pixels=new Uint16Array(512*512*4);
+const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-3,3,3,-3,.1,200);camera.position.set(0,0,40);camera.lookAt(0,0,0);
+function draw(){renderer.setRenderTarget(target);renderer.setClearColor(0);renderer.clear();renderer.render(scene,camera);renderer.readRenderTargetPixels(target,0,0,512,512,pixels);return Float32Array.from({length:512*512},(_,i)=>THREE.DataUtils.fromHalfFloat(pixels[i*4]));}
+function assert(ok,message){if(!ok)throw Error(message);}
+const lines=[];
+try {
+ const f=surfaceFixture(1),v=f.volume,e=f.network.edges[0],deformation=new VesselDeformation();
+ const rest=Array.from(f.geometry.attributes.position.array);
+ deformation.attach(v.material);for(let i=0;i<e.cellCount;i++)e.massMg[i]=e.volumes[i]*.3;v.update(f.plume,.3,false);scene.add(v.mesh);
+ const before=draw();
+ deformation.update([{center:[1,0,0],normal:[1,0,0],width:2,displacement:.3}]);
+ const after=draw();let moved=0;for(let i=0;i<after.length;i++)if(after[i]>0&&before[i]===0)moved++;
+ assert(moved>100,'Brak widocznego ugięcia ściany');lines.push(`PASS: widoczna zmiana obrysu (${moved} pikseli)`);
+ const inner=f.geometry.clone();inner.setDrawRange(0,f.geometry.attributes.position.count/2);
+ const wall=new THREE.Mesh(inner,new THREE.MeshBasicMaterial({side:THREE.DoubleSide}));deformation.attach(wall.material);
+ v.mesh.visible=false;scene.add(wall);const mask=draw();let outside=0,missing=0;
+ for(let i=0;i<mask.length;i++){if(mask[i]===0&&after[i]>1e-6)outside++;if(mask[i]>0&&after[i]<=0)missing++;}
+ assert(outside===0&&missing===0,`Niezgodność ściana/kontrast: ${outside} poza obrysem, ${missing} ubytków`);
+ lines.push('PASS: odkształcony kontrast dokładnie pokrywa odkształconą ścianę');
+ scene.remove(wall);v.mesh.visible=true;deformation.update([]);const restored=draw();assert(restored.every((v,i)=>v===before[i]),'Ściana nie wróciła po odciążeniu');
+ assert(rest.every((v,i)=>v===f.geometry.attributes.position.array[i]),'Zmieniono geometrię odniesienia');lines.push('PASS: odciążenie przywraca pierwotny obrys');
+ // Compile and draw both debug paths, including their separate depth pass.
+ v.mesh.visible=false;const debug=createDebugVesselSurface(f.geometry,0x4f8dff,deformation);scene.add(debug.mesh);
+ deformation.update([{center:[1,0,0],normal:[1,0,0],width:2,displacement:.3}]);
+ renderer.setRenderTarget(null);debug.prepare(renderer,camera);renderer.render(scene,camera);
+ debug.setLegacyViewEnabled(true);renderer.render(scene,camera);
+ assert(renderer.info.programs.every(p=>p.diagnostics?.runnable!==false),'Błąd kompilacji shadera');lines.push('PASS: shader kontrastu, ściany i głębi działa na GPU');
+ scene.remove(debug.mesh);debug.dispose();v.mesh.visible=true;renderer.render(scene,camera);
+ document.querySelector('#results').textContent=lines.join('\n');
+}catch(error){document.querySelector('#results').textContent=lines.join('\n')+'\nFAIL: '+error.message;throw error;}
+</script></html>

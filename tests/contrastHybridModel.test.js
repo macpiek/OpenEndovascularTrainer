@@ -135,7 +135,7 @@ const nearest = network.findNearestLocation(new THREE.Vector3(-10, 78, 0));
 assert.ok(nearest.edgeIndex >= 0);
 assert.ok(nearest.distance < 1);
 
-const continuousSplitNetwork = new ContrastFlowNetwork(straightTree(), {
+const continuousSplitNetwork = new ContrastFlowNetwork(symmetricBranchingTree(), {
     cardiacOutputMlPerMin: 900,
     heartRateBpm: 72
 });
@@ -144,8 +144,8 @@ const continuousSplitCoupler = new ContinuousInjectionFlowCoupler(
 );
 const upstreamPort = {
     kind: 'sheath-end',
-    position: new THREE.Vector3(0, 70, 0),
-    direction: new THREE.Vector3(0, -1, 0),
+    position: continuousSplitNetwork.edges[1].start.clone().lerp(continuousSplitNetwork.edges[1].end, .6),
+    direction: continuousSplitNetwork.edges[1].axis.clone().negate(),
     weight: 1,
     valid: true
 };
@@ -172,8 +172,8 @@ for (let index = 1; index < signedProximalFlows.length; index++) {
     assert.ok(
         Math.abs(
             signedProximalFlows[index] -
-            signedProximalFlows[index - 1] +
-            2850
+            signedProximalFlows[index - 1] -
+            (signedProximalFlows[1] - signedProximalFlows[0])
         ) < 1e-9,
         `proximal flow must vary continuously with injection rate (${signedProximalFlows})`
     );
@@ -261,7 +261,10 @@ function runRetrogradeSheathInjection(rateMlPerSec) {
             sum + system.flowNetwork.edges[edgeIndex].totalVolume,
         0
     ) / 1000;
-    const injectionVolumeMl = Math.max(3, pathVolumeMl * 1.4);
+    // The bolus must displace the opposing blood flow as well as fill the
+    // path. Allow at least two seconds for transit through the broad selected
+    // iliac; the slow injection must still remain distal.
+    const injectionVolumeMl = Math.max(3, pathVolumeMl * 3, rateMlPerSec * 2);
     assert.equal(system.startInjection({
         source: CONTRAST_SOURCE_SHEATH,
         volumeMl: injectionVolumeMl,
@@ -309,7 +312,9 @@ function runRetrogradeSheathInjection(rateMlPerSec) {
 }
 
 const slowRetrogradeInjection = runRetrogradeSheathInjection(1);
-const fastRetrogradeInjection = runRetrogradeSheathInjection(15);
+// A low-resistance selected iliac needs a genuinely dominant volume source
+// to reverse; nozzle orientation alone no longer forces bulk reversal.
+const fastRetrogradeInjection = runRetrogradeSheathInjection(60);
 assert.ok(
     slowRetrogradeInjection.maximumOppositeIliacMassMg < 1e-6,
     'a slow sheath injection should be carried down the cannulated iliac'

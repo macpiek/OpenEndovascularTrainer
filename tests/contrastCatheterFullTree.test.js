@@ -6,7 +6,7 @@ import {
     HybridContrastSystem
 } from '../src/contrast/hybridContrastSystem.js';
 import { ContrastVolumeRenderer } from '../src/contrast/contrastVolumeRenderer.js';
-import { ContrastFlowNetwork } from '../src/contrast/flowNetwork.js';
+import { ContrastFlowNetwork, arterialWaveform } from '../src/contrast/flowNetwork.js';
 import { decodeCollisionAsset } from '../src/physics/collision/collisionAssetFormat.js';
 import { findAorticArchDebugAnchors } from '../src/anatomyDebugLabels.js';
 
@@ -318,7 +318,14 @@ const retrogradeArchBranchPeaks = new Map([
     retrogradeArchAnchors.leftCommonCarotidRootEdgeIndex,
     retrogradeArchAnchors.leftSubclavianRootEdgeIndex
 ].map(edgeIndex => [edgeIndex, 0]));
+const retrogradeArchBranchSupply = new Map([...retrogradeArchBranchPeaks.keys()].map(edgeIndex => [edgeIndex, {
+    parentIndex: retrogradeArchNetwork.edges[edgeIndex].parentEdgeIndex,
+    parentPeak: 0, branchPeak: 0, rawBranchPeak: 0, plumeMassPeak: 0, parentArrival: Infinity, branchArrival: Infinity
+}]));
 let retrogradeArchAortaPeak = 0;
+let retrogradeArchMaximumSourceVolumeError = 0;
+let retrogradeArchMaximumCardiacFlowError = 0;
+let retrogradeArchSourceFlowSamples = 0;
 assert.equal(retrogradeArchSystem.startInjection({
     source: CONTRAST_SOURCE_CATHETER,
     volumeMl: 43.5,
@@ -327,8 +334,22 @@ assert.equal(retrogradeArchSystem.startInjection({
 for (let frame = 0; frame < 720; frame++) {
     retrogradeArchSystem.update(1 / 120);
     retrogradeArchRenderer.update();
-    const sourceEdgeIndex =
-        retrogradeArchSystem.getMetrics().lastCatheterSourceEdgeIndex;
+    const frameMetrics = retrogradeArchSystem.getMetrics();
+    const sourceEdgeIndex = frameMetrics.lastCatheterSourceEdgeIndex;
+    if (frameMetrics.continuousFlowSplit.active && sourceEdgeIndex >= 0) {
+        const sourceCell = frameMetrics.lastSourceCellIndex;
+        const proximal = retrogradeArchNetwork.getFaceSignedFlowMm3PerS(sourceEdgeIndex, sourceCell, 1);
+        const distal = retrogradeArchNetwork.getFaceSignedFlowMm3PerS(sourceEdgeIndex, sourceCell + 1, 1);
+        const injectedFlow = frameMetrics.injectionHydraulics.actualRateMlPerSec * 1000;
+        retrogradeArchMaximumSourceVolumeError = Math.max(retrogradeArchMaximumSourceVolumeError,
+            Math.abs(distal - proximal - injectedFlow));
+        for (const index of retrogradeArchNetwork.rootNode.childEdgeIndices) {
+            const edge = retrogradeArchNetwork.edges[index];
+            retrogradeArchMaximumCardiacFlowError = Math.max(retrogradeArchMaximumCardiacFlowError,
+                Math.abs(retrogradeArchNetwork.getFaceSignedFlowMm3PerS(index, 0, 1) - edge.meanFlowMm3PerS));
+        }
+        retrogradeArchSourceFlowSamples++;
+    }
     if (sourceEdgeIndex >= 0) {
         const flatIndex =
             retrogradeArchRenderer._flowCellOffset[sourceEdgeIndex];
@@ -338,8 +359,22 @@ for (let frame = 0; frame < 720; frame++) {
         );
     }
     for (const [edgeIndex, peak] of retrogradeArchBranchPeaks) {
+        const supply = retrogradeArchBranchSupply.get(edgeIndex);
+        const branch = retrogradeArchNetwork.edges[edgeIndex];
+        const parent = retrogradeArchNetwork.edges[supply.parentIndex];
+        const parentCell = parent.cellCount - 1;
+        const parentC = parent.massMg[parentCell] / parent.volumes[parentCell];
+        const branchC = branch.massMg[0] / branch.volumes[0];
+        supply.parentPeak = Math.max(supply.parentPeak, parentC);
+        supply.branchPeak = Math.max(supply.branchPeak, branchC);
+        if (parentC > 1e-8) supply.parentArrival = Math.min(supply.parentArrival, frame);
+        if (branchC > 1e-8) supply.branchArrival = Math.min(supply.branchArrival, frame);
         const flatIndex =
             retrogradeArchRenderer._flowCellOffset[edgeIndex];
+        supply.rawBranchPeak = Math.max(supply.rawBranchPeak,
+            retrogradeArchRenderer._flowCellRawConcentration[flatIndex]);
+        supply.plumeMassPeak = Math.max(supply.plumeMassPeak,
+            retrogradeArchRenderer._flowCellLocalPlumeMassMg[flatIndex]);
         retrogradeArchBranchPeaks.set(
             edgeIndex,
             Math.max(
@@ -361,11 +396,14 @@ assert.equal(
     0,
     'the continuous signed-flow model must not teleport a parcel core to a preselected arch junction'
 );
-assert.ok(
-    retrogradeArchMetrics.continuousFlowSplit.maximumUpstreamRateMlPerSec >
-        retrogradeArchMetrics.continuousFlowSplit.maximumDownstreamRateMlPerSec,
-    'an upstream-facing catheter should continuously bias its volume source proximally even when aortic blood flow prevents whole-lumen reversal'
-);
+assert.ok(retrogradeArchSourceFlowSamples > 0,
+    'the high-rate arch case must exercise the hydraulic volume source');
+assert.ok(retrogradeArchMaximumSourceVolumeError < 1e-7,
+    `the resistive arch split must conserve the delivered fluid source (${retrogradeArchMaximumSourceVolumeError} mm³/s)`);
+assert.ok(retrogradeArchMaximumCardiacFlowError < 1e-7,
+    `catheter orientation must not suppress the prescribed cardiac blood supply (${retrogradeArchMaximumCardiacFlowError} mm³/s)`);
+assert.ok(Math.abs(retrogradeArchMetrics.relativeBalanceError) < .005,
+    `the resistive arch source must conserve iodine (${retrogradeArchMetrics.relativeBalanceError})`);
 assert.ok(
     retrogradeArchMetrics.catheterSourceHandoffIodineMassMg > 0,
     'blood entrainment must mix part of the bolus locally instead of sending the complete injection as one ballistic core'
@@ -389,10 +427,21 @@ assert.equal(
     0,
     'a pressure-limited Berenstein injection should not reverse the higher-flow aortic strand'
 );
-assert.ok(
-    Math.max(...retrogradeArchBranchPeaks.values()) < 0.04,
-    `a subcritical retrograde jet must not teleport contrast into supra-aortic branches (${JSON.stringify(Object.fromEntries(retrogradeArchBranchPeaks))})`
-);
+for (const [edgeIndex, supply] of retrogradeArchBranchSupply) {
+    assert.ok(supply.branchArrival >= supply.parentArrival,
+        `arch branch ${edgeIndex} cannot opacify before its supplying aorta (${JSON.stringify(supply)})`);
+    assert.ok(supply.branchPeak <= supply.parentPeak + 1e-8,
+        `arch branch ${edgeIndex} cannot concentrate its parent supply (${JSON.stringify(supply)})`);
+    // The production STL surface reads raw cell + pending plume mass, not
+    // the legacy smoothed display field. An overlapping technical prefix
+    // must not receive aortic parcels from a nearest-axis rendering query.
+    if (supply.parentPeak < 1e-12) {
+        assert.ok(supply.branchPeak < 1e-12,
+            `an unreached arch branch ${edgeIndex} must contain no transported iodine`);
+        assert.ok(supply.rawBranchPeak < 1e-12 && supply.plumeMassPeak < 1e-12,
+            `aortic plume reconstruction must not paint an unreached arch branch ${edgeIndex} (${JSON.stringify(supply)})`);
+    }
+}
 retrogradeArchRenderer.dispose();
 
 const selectiveCarotidSystem = new HybridContrastSystem({
@@ -424,10 +473,21 @@ const selectiveCarotidPort = {
     valid: true
 };
 activeCatheterPorts = [selectiveCarotidPort];
+const carotidUnitSplit = selectiveCarotidSystem.continuousInjectionFlowCoupler.configure({
+    ports: [selectiveCarotidPort], rateMlPerSec: 1
+})[0];
+selectiveCarotidNetwork.clearFlowOverrides();
+selectiveCarotidSystem.continuousInjectionFlowCoupler.beginStep();
+const minimumCarotidWaveform = Math.min(...Array.from({length: 721}, (_, i) =>
+    arterialWaveform(i / 720 * 60 / selectiveCarotidNetwork.hemodynamics.heartRateBpm,
+        selectiveCarotidNetwork.hemodynamics.heartRateBpm)));
+const carotidRefluxThresholdMlPerSec = selectiveCarotidEdge.meanFlowMm3PerS / 1000 *
+    minimumCarotidWaveform / carotidUnitSplit.upstreamFraction;
+const selectiveCarotidRateMlPerSec = carotidRefluxThresholdMlPerSec * .5;
 assert.equal(selectiveCarotidSystem.startInjection({
     source: CONTRAST_SOURCE_CATHETER,
-    volumeMl: 20,
-    rateMlPerSec: 22.6
+    volumeMl: selectiveCarotidRateMlPerSec,
+    rateMlPerSec: selectiveCarotidRateMlPerSec
 }).ok, true);
 let selectiveCarotidPeakMassMg = 0;
 let selectiveCarotidAortaPeakMassMg = 0;
@@ -488,6 +548,30 @@ assert.ok(
         selectiveCarotidSiblingPeakMassMg < 1e-12,
     `selective carotid injection must not fill the aorta or sibling arch branches (${selectiveCarotidAortaPeakMassMg}, ${selectiveCarotidSiblingPeakMassMg})`
 );
+
+// The same carotid source becomes nonselective above its hydraulic reflux
+// threshold. Preserve this high-rate case instead of forbidding real reflux
+// just because the nozzle points distally.
+activeCatheterPorts = [selectiveCarotidPort];
+assert.equal(selectiveCarotidSystem.startInjection({
+    source: CONTRAST_SOURCE_CATHETER, volumeMl: 20, rateMlPerSec: 22.6
+}).ok, true);
+let highRateCarotidAortaMassMg = 0, highRateCarotidSiblingMassMg = 0;
+for (let frame = 0; frame < 480; frame++) {
+    selectiveCarotidSystem.update(1 / 120);
+    for (const edge of selectiveCarotidUpstreamEdges)
+        highRateCarotidAortaMassMg = Math.max(highRateCarotidAortaMassMg, ...edge.massMg);
+    for (const index of selectiveCarotidSiblingRootEdgeIndices)
+        highRateCarotidSiblingMassMg = Math.max(highRateCarotidSiblingMassMg,
+            ...selectiveCarotidNetwork.edges[index].massMg);
+}
+const highRateCarotidMetrics = selectiveCarotidSystem.getMetrics();
+assert.ok(highRateCarotidMetrics.continuousFlowSplit.maximumReversedEdgeCount > 0 &&
+    highRateCarotidAortaMassMg > 1e-3 && highRateCarotidSiblingMassMg > 1e-3,
+    'a sufficiently strong source in the same carotid must cause real reflux and downstream crossover');
+assert.ok(Math.abs(highRateCarotidMetrics.relativeBalanceError) < .005,
+    `high-rate carotid reflux must conserve iodine (${highRateCarotidMetrics.relativeBalanceError})`);
+activeCatheterPorts = [catheterPort];
 
 const connectorBranchFlowMm3PerS =
     contractedArchConnector.branchRootEdgeIndices.reduce(

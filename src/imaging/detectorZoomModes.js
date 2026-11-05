@@ -1,9 +1,17 @@
-export const DETECTOR_ZOOM_MODES = Object.freeze([
+// Physical side lengths of the square detectors, before electronic field zoom.
+export const DETECTOR_SIDES_MM = Object.freeze([210, 300]);
+export const DEFAULT_DETECTOR_SIDE_MM = 300;
+
+export function normalizeDetectorSideMm(value = DEFAULT_DETECTOR_SIDE_MM) {
+    const sideMm = Number(value);
+    return DETECTOR_SIDES_MM.includes(sideMm) ? sideMm : DEFAULT_DETECTOR_SIDE_MM;
+}
+
+const ZOOM_PRESETS = Object.freeze([
     Object.freeze({
         id: 'none',
         label: 'No zoom',
         displayLabel: 'Full field',
-        inputFieldCm: 21,
         zoomFactor: 1,
         fieldOfViewPercent: 100,
         kvOffset: 0,
@@ -17,7 +25,6 @@ export const DETECTOR_ZOOM_MODES = Object.freeze([
         id: 'medium',
         label: 'Zoom 1',
         displayLabel: 'Medium',
-        inputFieldCm: 15,
         zoomFactor: 1.4,
         fieldOfViewPercent: 71,
         kvOffset: 5,
@@ -31,7 +38,6 @@ export const DETECTOR_ZOOM_MODES = Object.freeze([
         id: 'maximum',
         label: 'Zoom 2',
         displayLabel: 'Maximum',
-        inputFieldCm: 10,
         zoomFactor: 2.1,
         fieldOfViewPercent: 48,
         kvOffset: 10,
@@ -43,14 +49,28 @@ export const DETECTOR_ZOOM_MODES = Object.freeze([
     })
 ]);
 
-export function getDetectorZoomMode(modeId = 'none') {
-    return DETECTOR_ZOOM_MODES.find(mode => mode.id === modeId) ||
-        DETECTOR_ZOOM_MODES[0];
+// Preserve the existing electronic magnification and exposure presets when
+// switching hardware; the physical field is derived from the selected panel.
+const MODES_BY_DETECTOR = new Map(DETECTOR_SIDES_MM.map(detectorSideMm => [
+    detectorSideMm,
+    Object.freeze(ZOOM_PRESETS.map(preset => Object.freeze({
+        ...preset,
+        detectorSideMm,
+        inputFieldCm: detectorSideMm / (10 * preset.zoomFactor)
+    })))
+]));
+
+export const DETECTOR_ZOOM_MODES = MODES_BY_DETECTOR.get(DEFAULT_DETECTOR_SIDE_MM);
+
+export function getDetectorZoomMode(modeId = 'none', detectorSideMm = DEFAULT_DETECTOR_SIDE_MM) {
+    const modes = MODES_BY_DETECTOR.get(normalizeDetectorSideMm(detectorSideMm));
+    return modes.find(mode => mode.id === modeId) || modes[0];
 }
 
-export function nextDetectorZoomMode(modeId = 'none') {
-    const index = DETECTOR_ZOOM_MODES.findIndex(mode => mode.id === modeId);
-    return DETECTOR_ZOOM_MODES[(Math.max(0, index) + 1) % DETECTOR_ZOOM_MODES.length];
+export function nextDetectorZoomMode(modeId = 'none', detectorSideMm = DEFAULT_DETECTOR_SIDE_MM) {
+    const modes = MODES_BY_DETECTOR.get(normalizeDetectorSideMm(detectorSideMm));
+    const index = modes.findIndex(mode => mode.id === modeId);
+    return modes[(Math.max(0, index) + 1) % modes.length];
 }
 
 export function applyDetectorZoomTechnique(
@@ -59,7 +79,7 @@ export function applyDetectorZoomTechnique(
 ) {
     const mode = typeof modeOrId === 'string'
         ? getDetectorZoomMode(modeOrId)
-        : getDetectorZoomMode(modeOrId?.id);
+        : getDetectorZoomMode(modeOrId?.id, modeOrId?.detectorSideMm);
     return {
         kv: Math.max(0, Number(kv) || 0) + mode.kvOffset,
         ma: Math.max(0, Number(ma) || 0) * mode.maMultiplier,

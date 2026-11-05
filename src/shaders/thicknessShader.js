@@ -10,7 +10,8 @@ void main() {
 
 export const fragmentShader = `
 // Thickness estimation shader.
-// Front/back textures store linear camera-space depth normalized to camera far.
+// Front/back textures store linear camera-space depth in a fixed encoding range
+// (independent of the C-arm's physical detector/far plane).
 // Their difference is an approximation of X-ray path length through bone for
 // the current C-arm projection.
 uniform sampler2D frontDepth;

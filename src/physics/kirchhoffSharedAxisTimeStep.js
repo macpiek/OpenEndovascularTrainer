@@ -1,6 +1,7 @@
 import {materializeSharedAxisContacts} from './kirchhoffSharedAxisInactiveContacts.js';
 import {leaseSharedAxisConstraintRowPool} from './kirchhoffSharedAxisConstraintRows.js';
-import {captureSharedAxisNative,restoreSharedAxisNative,applySharedAxisNativeIncrement} from './kirchhoffSharedAxisNative.js';
+import {captureSharedAxisNative,restoreSharedAxisNative,applySharedAxisNativeIncrement,sharedAxisOuterMaterialAt} from './kirchhoffSharedAxisNative.js';
+import {validateVesselElasticity,captureVesselElasticPatches} from './vesselElasticity.js';
 import {prepareSharedAxisDynamicStep,completeSharedAxisDynamicStep} from './kirchhoffSharedAxisDynamics.js';
 import {prepareSharedAxisWallFriction,refreshSharedAxisWallFriction,commitSharedAxisWallFriction} from './kirchhoffSharedAxisWallFriction.js';
 import {iterateSharedAxisWithContacts} from './kirchhoffSharedAxisVesselWitnesses.js';
@@ -14,6 +15,11 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
     const incoming=captureSharedAxisNative(s),acceptedSolves=s.acceptedSolves,started=performance.now();
     const history=s.wallFrictionHistory,gaps=s.acceptedWallGaps,velocities=s.velocities,angularVelocities=s.angularVelocities;
     const previousTriangleKernel=s.reuseTriangleKernel,previousCompliance=s.wallCompliance,previousPrimal=s.primalCompliantContacts;
+    const previousElasticity=s.vesselElasticity;
+    const previousCoverageCache=s.contactCoverageCache;
+    validateVesselElasticity(options.vesselElasticity);
+    if(options.vesselElasticity&&(options.wallCompliance||options.modifiedNewton||options.incrementalContacts||options.primalCompliantContacts||options.projectiveDynamics))
+        throw new RangeError('Vessel elasticity requires the ordinary mixed contact solver');
     const wallCompliance=options.wallCompliance??0;
     if(!(Number.isFinite(wallCompliance)&&wallCompliance>=0))throw new RangeError('Nonnegative finite wall compliance required');
     if(wallCompliance&&(options.modifiedNewton||options.incrementalContacts))throw new RangeError('Compliant contacts require the ordinary linear solver');
@@ -26,6 +32,13 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
     const tolerance=options.forceTolerance??1e-6;
     if(!(Number.isFinite(tolerance)&&tolerance>0))throw new RangeError('Positive force tolerance required');
     s.wallCompliance=wallCompliance;s.primalCompliantContacts=options.primalCompliantContacts===true;
+    s.vesselElasticity=options.vesselElasticity;
+    // Native coverage is immutable until feed builds a new candidate. Custom
+    // observers/samplers can mutate material inputs, so retain their live path.
+    s.contactCoverageCache=options.reuseContactCoverage!==false&&!options.observeIteration&&!options.observeTrial&&!options.observeLinearSystem&&
+        s.wallSamples.every(sample=>sample.sharedAxisGeometryOnly)&&
+        s.definitions.every(d=>!d.evaluate||d.evaluate.sharedAxisGeometryOnly)
+        ?{materials:[],intervals:[]}:null;
     s.cacheMechanicalAssembly=true;s.reuseTriangleKernel=options.reuseTriangleKernel===true;
     prepareSharedAxisDynamicStep(s,dt,options.bloodFlow);prepareSharedAxisWallFriction(s,{feedById,liveNormalLoad:options.liveWallNormalLoad===true,lightweightFriction:options.lightweightFriction===true});
     let predictedInitialPose=false;
@@ -51,7 +64,7 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
     // step publishes exact gaps for remeshing/replay. Loaded contacts still
     // have exact geometry at every Newton and friction iteration.
     let acceptedContactRows=null;
-    const deferContactPublication=options.cullInactiveContacts?rows=>{acceptedContactRows=rows;}:null;
+    const deferContactPublication=options.cullInactiveContacts||s.vesselElasticity?rows=>{acceptedContactRows=rows;}:null;
     for(let outer=0;outer<maxFrictionIterations;outer++) {
         frictionIterations=outer+1;
         result=yield* iterateSharedAxisWithContacts(s,{...options,forceTolerance:tolerance,deferContactPublication});
@@ -65,13 +78,14 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
         if(friction.converged) {
             if(acceptedContactRows) {
                 materializeSharedAxisContacts(acceptedContactRows);
-                s.acceptedWallGaps=new Map(acceptedContactRows.filter(r=>r.id).map(r=>[r.id,r.gap]));
+                s.acceptedWallGaps=new Map(acceptedContactRows.filter(r=>r.id).map(r=>[r.id,r.geometricGap??r.gap]));
             }
             commitSharedAxisWallFriction(s);completeSharedAxisDynamicStep(s);
             for(const b of result.quality.bodies) {
                 const last=s.materials.find(m=>m.spec.id===b.id).last;
                 b.maxSpeed=Math.max(...s.velocities.slice(0,last+1).map(v=>Math.hypot(...v)));
             }
+            s.vesselElasticPatches=s.vesselElasticity?captureVesselElasticPatches(s,acceptedContactRows,sharedAxisOuterMaterialAt):[];
             committed=true;
             return {...result,predictedInitialPose,retainedDiscoveryTrials,coupledFrictionRefreshes,certificateBound:Math.max(result.residual.force,result.residual.torque)+friction.forceChange,iterations,factorizations,workingSetReuses,backtracks,geometryRestarts,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,friction,frictionIterations:outer+1,ms:performance.now()-started};
         }
@@ -80,6 +94,8 @@ function* iterateTimeStepAttempt(s,dt,{feedById={},maxFrictionIterations=8,...op
     return {...result,predictedInitialPose,converged:false,retainedDiscoveryTrials,coupledFrictionRefreshes,frictionIterations,iterations,factorizations,workingSetReuses,backtracks,geometryRestarts,timings,fullAssemblies,residualAssemblies,promotedAssemblies,modifiedAttempts,modifiedAccepted,modifiedFallbacks,friction,ms:performance.now()-started};
     } finally {
         s.wallCompliance=previousCompliance;s.primalCompliantContacts=previousPrimal;
+        s.vesselElasticity=previousElasticity;
+        s.contactCoverageCache=previousCoverageCache;
         s.reuseTriangleKernel=previousTriangleKernel;
         s.cacheMechanicalAssembly=false;s.mechanicalAssemblyCache=null;s.wallGeometryCache=null;s.bufferedWallGeometryCache=null;
         s.constraintRowPool=previousRowPool;rowLease?.release();

@@ -1,8 +1,25 @@
 // Presentation reconstruction on the connected vessel graph. Cell centres
 // are samples, not constant-colour pieces of tube; shared endpoints interpolate
 // the adjacent centres in physical distance, even across one-cell edges.
+import {arterialWaveform} from './flowNetwork.js';
+
+export function sampleFlowConcentration(values, a, b, fraction, owner = -1) {
+    let lower = values[a], upper = values[b];
+    if (owner >= 0) {
+        // Reconstruct the junction half-cell continuously as iodine arrives.
+        // A binary empty-arm gate exposed the full node concentration on the
+        // first nonzero trace, creating a sudden dark cap at a fixed mesh seam.
+        // Limit only the extrapolated endpoint; retain the measured cell centre.
+        const limit = 2 * Math.max(0, values[owner]);
+        lower = Math.min(lower, limit);
+        upper = Math.min(upper, limit);
+    }
+    return lower * (1 - fraction) + upper * fraction;
+}
+
 export class FlowConcentrationField {
     constructor(network, offsets, cellCount) {
+        this.network = network;
         this.edges = network.edges;
         this.offsets = offsets;
         this.cellCount = cellCount;
@@ -66,6 +83,8 @@ export class FlowConcentrationField {
 
     update(source) {
         this.values.set(source);
+        const waveform = this.network.hemodynamics
+            ? arterialWaveform(this.network.time, this.network.hemodynamics.heartRateBpm) : 1;
         for (let n = 0; n < this.nodes.length; n++) {
             const node = this.nodes[n];
             let weighted = 0,
@@ -85,6 +104,21 @@ export class FlowConcentrationField {
                 const weight = edge.areas[0] / edge.cellLength;
                 weighted += source[this.offsets[childIndex]] * weight;
                 total += weight;
+            }
+            if (node.parentEdgeIndex >= 0 && node.childEdgeIndices.length > 1 && this.network.getFaceSignedFlowMm3PerS) {
+                // At a true confluence/fork the blood mixture is weighted by
+                // actual inflow, including reflux. Weighting by cell length
+                // makes the apparent dilution depend on atlas fragmentation.
+                let inflow = 0, iodineFlux = 0;
+                const add = (edgeIndex, atEnd) => {
+                    const e = this.edges[edgeIndex], cell = atEnd ? e.cellCount - 1 : 0;
+                    if (e.transportExcluded) return;
+                    const q = (atEnd ? 1 : -1) * this.network.getFaceSignedFlowMm3PerS(edgeIndex, atEnd ? e.cellCount : 0, waveform);
+                    if (q > 0) {inflow += q; iodineFlux += q * source[this.offsets[edgeIndex] + cell];}
+                };
+                add(node.parentEdgeIndex, true);
+                for (const child of node.childEdgeIndices) add(child, false);
+                if (inflow > 0) {weighted = iodineFlux; total = inflow;}
             }
             this.values[this.cellCount + n] = total > 0 ? weighted / total : 0;
         }
@@ -130,18 +164,13 @@ export class FlowConcentrationField {
 
     sample(edgeIndex, t) {
         const [a, b, f, owner] = this.stencil(edgeIndex, t);
-        // Do not paint an unperfused side branch from its opacified parent.
-        if (owner >= 0 && this.values[owner] === 0) return 0;
-        return this.values[a] * (1 - f) + this.values[b] * f;
+        return sampleFlowConcentration(this.values, a, b, f, owner);
     }
 
     sampleInto(stencil, target) {
         const { lower, upper, fraction, owner } = stencil,
             values = this.values;
         for (let i = 0; i < target.length; i++)
-            target[i] =
-                owner[i] >= 0 && values[owner[i]] === 0
-                    ? 0
-                    : values[lower[i]] * (1 - fraction[i]) + values[upper[i]] * fraction[i];
+            target[i] = sampleFlowConcentration(values, lower[i], upper[i], fraction[i], owner[i]);
     }
 }

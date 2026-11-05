@@ -1,4 +1,7 @@
+import {balloonMaterialProfile} from '../devices/balloonMechanics.js';
+import {RELIANT,balloonFreeRadiusAt,BALLOON_PROFILE_KNOTS,validateBalloonInflation} from '../devices/balloonProfile.js';
 import {deliveryMaterialProfile} from '../devices/stentGraftDeliveryMechanics.js';
+import {dilatorMaterialProfile,dilatorRadiusAtDistance,DILATOR_TIP_LENGTH_MM} from '../devices/introducerDilator.js';
 import {sharedAxisEffectiveGap,sharedAxisContactElasticEnergy} from './kirchhoffSharedAxisCompliance.js';
 import {prunableSharedAxisWitnesses} from './kirchhoffSharedAxisWitnessPruning.js';
 import {materializeSharedAxisContacts} from './kirchhoffSharedAxisInactiveContacts.js';
@@ -95,11 +98,11 @@ function interpolate(xs, values, x) {
 export function createSharedAxisNative({ tools, spacing = 5, samplePosition = x => [x, 0, 0],
     wallSample = null, wallSamples = wallSample ? [wallSample] : [], startCoordinate = 0, boundaryCoordinates = [], previous = null, minimumEdgeLength=.5, origin=[0,0,0], maxBendAngle=Infinity, rebaseNearTips=false, fractionalTipThreshold=1e-3, spatialKnots=[], adaptiveMesh=null,omitInactiveSampleRows=false }) {
     adaptiveMesh=adaptiveMeshOptions(adaptiveMesh);
-    if (!Array.isArray(tools) || !tools.length || tools.length > 3 || new Set(tools.map(t => t.id)).size !== tools.length)
-        throw new TypeError('One to three uniquely named materials are required');
+    if (!Array.isArray(tools) || !tools.length || tools.length > 4 || new Set(tools.map(t => t.id)).size !== tools.length)
+        throw new TypeError('One to four uniquely named materials are required');
     if (!(spacing > 0) || !Number.isFinite(spacing)) throw new RangeError('Positive finite spacing required');
     if (!Number.isFinite(startCoordinate) || startCoordinate > 0 || !boundaryCoordinates.every(Number.isFinite)) throw new RangeError('Invalid shared axis domain');
-    for (const t of tools) if (!['wire', 'catheter', 'sheath'].includes(t.id) || !(t.insertion >= 0 && t.insertion > startCoordinate) ||
+    for (const t of tools) if (!['wire', 'catheter', 'sheath', 'dilator'].includes(t.id) || !(t.insertion >= 0 && t.insertion > startCoordinate) ||
         !Number.isFinite(t.insertion) || t.insertion > (t.length ?? 1000)) throw new RangeError('Invalid material coverage');
     if (!Number.isFinite(minimumEdgeLength) || minimumEdgeLength < 0 || minimumEdgeLength > spacing) throw new RangeError('Invalid minimum edge length');
     if (!(maxBendAngle > 0 && maxBendAngle <= Math.PI) && maxBendAngle !== Infinity) throw new RangeError('Invalid bend limit');
@@ -143,6 +146,7 @@ export function createSharedAxisNative({ tools, spacing = 5, samplePosition = x 
     const edgeTools = coordinates.slice(0,-1).map(x => tools.filter(t => x < t.insertion-1e-12).map(t => t.id));
     const layout = createSharedAxisLayout(edgeTools);
     const materials = tools.map(input => {
+        if(input.type===RELIANT.type)validateBalloonInflation(input.balloonInflationMl??0);
         const spec = { ...input }, last = coordinates.findIndex(x => x>=input.insertion-1e-12);
         if (last < 2) throw new RangeError('Each prototype material needs at least two edges');
         const body = new EndovascularRodBody(input.id, last + 1, spacing, { mass: 1, radius: input.radius ?? (input.id === 'catheter' ? .8 : .4445) });
@@ -151,7 +155,8 @@ export function createSharedAxisNative({ tools, spacing = 5, samplePosition = x 
         const coveredCoordinates=coordinates.slice(0,last+1).map(x=>Math.min(x,input.insertion));
         const materialCoordinates = coveredCoordinates.map(x => (input.length ?? 1000) + (x - input.insertion));
         const old = previous?.materials.find(t => t.spec.id === input.id);
-        initializeManufacturedProfile(body, input.type==='stentgraft-delivery'?deliveryMaterialProfile(input.deliveryExposureMm):input.type ?? (input.id === 'catheter' ? 'berenstein' : 'glidewire'), {
+        initializeManufacturedProfile(body, input.type===RELIANT.type?balloonMaterialProfile(input.balloonInflationMl??0,input.shaftStiffness??1,input.tipStiffness??1):input.type==='introducer-dilator'?dilatorMaterialProfile(body.radius):
+            input.type==='stentgraft-delivery'?deliveryMaterialProfile(input.deliveryExposureMm):input.type ?? (input.id === 'catheter' ? 'berenstein' : 'glidewire'), {
             materialCoordinates, tipCoordinate: input.length ?? 1000,
             shaftStiffnessScale: input.shaftStiffness ?? 1, tipStiffnessScale: input.tipStiffness ?? 1
         }, old?.body);
@@ -210,7 +215,34 @@ export function createSharedAxisNative({ tools, spacing = 5, samplePosition = x 
 /** Physical material coverage within a spatial cell. Almost coincident tips
  * retain exact material endpoints on one affine spatial segment. */
 const coreMaterials=new WeakMap();
+const dilatorContactMaterials=new WeakMap();
+const balloonContactMaterials=new WeakMap();
 function contactMaterialAt(material,coordinate) {
+    if(material?.spec.type===RELIANT.type&&material.spec.balloonInflationMl>0) {
+        const distance=material.spec.insertion-coordinate;
+        const radius=balloonFreeRadiusAt(distance,material.spec.balloonInflationMl);
+        if(radius<=material.body.radius+1e-8)return material;
+        let samples=balloonContactMaterials.get(material);
+        if(!samples){samples=new Map();balloonContactMaterials.set(material,samples);}
+        let sample=samples.get(coordinate);
+        if(!sample){const body=Object.create(material.body);body.radius=radius;
+            body.balloonCompressionLimit=radius-material.body.radius;
+            // The compliant membrane transmits normal pressure, not a rigid
+            // shaft's tangential lever at its *uncompressed* free radius.
+            // Shaft friction outside the membrane remains unchanged.
+            sample={...material,body,spec:{...material.spec,wallStaticFriction:0,wallKineticFriction:0}};samples.set(coordinate,sample);}
+        return sample;
+    }
+    if(material?.spec.type==='introducer-dilator') {
+        const distance=material.spec.insertion-coordinate;
+        if(distance>=DILATOR_TIP_LENGTH_MM)return material;
+        let samples=dilatorContactMaterials.get(material);
+        if(!samples){samples=new Map();dilatorContactMaterials.set(material,samples);}
+        let sample=samples.get(coordinate);
+        if(!sample){const body=Object.create(material.body);body.radius=dilatorRadiusAtDistance(distance,material.body.radius);
+            sample={...material,body};samples.set(coordinate,sample);}
+        return sample;
+    }
     if(material?.spec.type!=='stentgraft-delivery'||!(material.spec.deliveryExposureMm>0)||
         coordinate<material.spec.insertion-material.spec.deliveryExposureMm)return material;
     let core=coreMaterials.get(material);
@@ -224,6 +256,16 @@ function contactMaterialAt(material,coordinate) {
     return core;
 }
 export function sharedAxisOuterMaterialAt(s,edge,t=1,preferredOwner=null) {
+    // Coverage/radii are fixed during a private timestep; only the pose and
+    // reactions change. Keep outlet-side ownership in the cache key.
+    const cache=s.contactCoverageCache;
+    let sites;
+    if(cache) {
+        const owners=cache.materials[edge]??=new Map();
+        sites=owners.get(preferredOwner);
+        if(!sites){sites=new Map();owners.set(preferredOwner,sites);}
+        if(sites.has(t))return sites.get(t);
+    }
     const coordinate=s.coordinates[edge]+t*(s.coordinates[edge+1]-s.coordinates[edge]);
     const preferred=preferredOwner&&s.materials.find(m=>m.spec.id===preferredOwner&&edge<m.last&&
         (edge<m.last-1||t<=m.endFraction));
@@ -235,15 +277,28 @@ export function sharedAxisOuterMaterialAt(s,edge,t=1,preferredOwner=null) {
         const covered=contactMaterialAt(material,coordinate);
         if(!outer||covered.body.radius>outer.body.radius)outer=covered;
     }
+    sites?.set(t,outer);
     return outer;
 }
 export function sharedAxisOuterIntervals(s,edge) {
+    const cache=s.contactCoverageCache;
+    if(cache?.intervals[edge])return cache.intervals[edge];
     const span=s.coordinates[edge+1]-s.coordinates[edge],knots=[0,1];
     for(const material of s.materials) {
         if(edge>=material.last)continue;
         if(edge===material.last-1&&material.endFraction<1)knots.push(material.endFraction);
         if(material.spec.type==='stentgraft-delivery') {
             const split=(material.spec.insertion-(material.spec.deliveryExposureMm??0)-s.coordinates[edge])/span;
+            if(split>0&&split<1)knots.push(split);
+        }
+        if(material.spec.type===RELIANT.type&&material.spec.balloonInflationMl>0) {
+            for(const distance of BALLOON_PROFILE_KNOTS) {
+                const split=(material.spec.insertion-distance-s.coordinates[edge])/span;
+                if(split>0&&split<1)knots.push(split);
+            }
+        }
+        if(material.spec.type==='introducer-dilator') {
+            const split=(material.spec.insertion-DILATOR_TIP_LENGTH_MM-s.coordinates[edge])/span;
             if(split>0&&split<1)knots.push(split);
         }
     }
@@ -255,6 +310,7 @@ export function sharedAxisOuterIntervals(s,edge) {
         if(previous?.material===material)previous.end=end;
         else intervals.push({start,end,material});
     }
+    if(cache)cache.intervals[edge]=intervals;
     return intervals;
 }
 
@@ -276,9 +332,22 @@ export function feedSharedAxisNative(s, insertionById, {pruneInactiveWitnesses=f
     // snapped. Subtracting ~300 mm coordinates to recover a .01 mm tangent
     // otherwise amplifies floating-point error through the bending stiffness.
     const tips=s.materials.map(m=>insertionById[m.spec.id]??m.spec.insertion);
-    if(s.rebaseNearTips&&tips.length===2&&Math.abs(tips[0]-tips[1])<1) {
-        const shift=s.positions.at(-1);
-        if(shift.some(v=>v!==0))s={...s,origin:s.origin.map((v,k)=>v+shift[k]),positions:s.positions.map(p=>p.map((v,k)=>v-shift[k]))};
+    if(s.rebaseNearTips) {
+        // A sheath/delivery outlet can form a very short INTERNAL cell along
+        // a much longer wire. Rebase at that pair, not at the distal wire tip.
+        // This is only a change of coordinates: no endpoint, length, material
+        // coverage, contact history or tolerance is changed.
+        const sorted=tips.slice().sort((a,b)=>a-b);
+        let anchor=null,shortest=1;
+        for(let i=1;i<sorted.length;i++) {
+            const span=sorted[i]-sorted[i-1];
+            if(span<shortest){shortest=span;anchor=sorted[i];}
+        }
+        if(anchor!==null) {
+            const shift=tips.length===2?s.positions.at(-1):
+                interpolate(s.coordinates,s.positions,Math.min(anchor,s.coordinates.at(-1)));
+            if(shift.some(v=>v!==0))s={...s,origin:s.origin.map((v,k)=>v+shift[k]),positions:s.positions.map(p=>p.map((v,k)=>v-shift[k]))};
+        }
     }
     const candidate = createSharedAxisNative({ tools: s.materials.map(t => ({ ...t.spec,
         insertion: insertionById[t.spec.id] ?? t.spec.insertion })), spacing: s.spacing, wallSamples: s.wallSamples,
@@ -466,7 +535,7 @@ export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ??
         rows[column.rowIndex].extraForceJacobian=column.values;
     }
     if(s.pendingVesselRows?.size)throw new Error('shared-axis-wall-discovery');
-    if(s.wallCompliance) {
+    if(s.wallCompliance||s.vesselElasticity) {
         const elastic=sharedAxisContactElasticEnergy(rows);energy+=elastic;
         if(frictionBase)frictionBase.energy+=elastic;
     }
@@ -475,7 +544,9 @@ export function assembleSharedAxisNative(s, { tangentMode = s.materialTangent ??
     for (let i = 0; i < g.length; i++) if (!s.fixed[i]) {
         if (positionDofs[i]) force = Math.max(force, Math.abs(g[i])); else torque = Math.max(torque, Math.abs(g[i]));
     }
-    rows.forEach((r, i) => { constraint = Math.max(constraint, Math.abs(s.definitions[i].kind === 'length' ? r.gap : Math.max(0, r.multiplier - sharedAxisEffectiveGap(r)) - r.multiplier)); });
+    // min(lambda,gap) is the same complementarity residual without subtracting
+    // two huge reactions (which could falsely certify a saturated elastic wall).
+    rows.forEach((r, i) => { constraint = Math.max(constraint, Math.abs(s.definitions[i].kind === 'length' ? r.gap : Math.min(r.multiplier, sharedAxisEffectiveGap(r)))); });
     if(capture){promotion.key=s.geometryKey;promotion.dynamicStep=s.dynamicStep;promotion.materials=s.materials;promotion.tangentMode=tangentMode;}
     if(promote&&!mechanicalReused)promotion.hits++;
     chain.energy = energy; chain.hessianValid = withTangent;
@@ -548,7 +619,7 @@ export function applySharedAxisNativeIncrement(s, increment, multiplierIncrement
 function* correctTrialConstraints(s,base,reuseStructure,projectionMode,reuseConstraintWork,reuseMatrixAssembly) {
     materializeSharedAxisContacts(base.rows);
     if(s.primalCompliantContacts)base={...base,rows:base.rows.filter(r=>!r.compliance)};
-    if(s.wallCompliance)base={...base,rows:base.rows.map(r=>({...r,gap:sharedAxisEffectiveGap(r),compliance:0}))};
+    if(s.wallCompliance||s.vesselElasticity)base={...base,rows:base.rows.map(r=>({...r,gap:sharedAxisEffectiveGap(r),compliance:0}))};
     // Second-order SQP correction: restore the nonlinear lengths and gaps
     // after a finite tangent step. This is not an accepted physical update;
     // the caller still certifies energy and the full physical residual.
@@ -690,7 +761,7 @@ export function* iterateSharedAxisNative(s, { [fallbackWorkingSetLease]:failedCa
                 let predictedSlope = s.chain.gradient.reduce((sum, v, i) => sum + v * direction.increment[i], 0);
                 for (const r of base.rows) predictedSlope -= (r.kind === 'wall' ? -1 : 1) * r.multiplier *
                     r.dofs.reduce((sum, dof, i) => sum + r.jacobian[i] * direction.increment[dof], 0);
-                if(s.wallCompliance)for(let i=0;i<base.rows.length;i++) {
+                if(s.wallCompliance||s.vesselElasticity)for(let i=0;i<base.rows.length;i++) {
                     const r=base.rows[i];if(r.compliance)predictedSlope+=r.compliance*r.multiplier*direction.multiplierIncrement[i];
                 }
                 predictedSlope -= penalty * baseViolation;
@@ -827,7 +898,7 @@ export function* iterateSharedAxisNative(s, { [fallbackWorkingSetLease]:failedCa
         if(deferContactPublication)deferContactPublication(candidate.rows);
         else {
             materializeSharedAxisContacts(candidate.rows);
-            s.acceptedWallGaps=new Map(candidate.rows.filter(r=>r.id).map(r=>[r.id,r.gap]));
+            s.acceptedWallGaps=new Map(candidate.rows.filter(r=>r.id).map(r=>[r.id,r.geometricGap??r.gap]));
         }
     }
     return { converged, status, error, ...(lastOutsideContact?{lastOutsideContact}:{}), coupledFrictionRefreshes, frictionRefreshMs, retainedDiscoveryTrials, iterations:iterations+discoveryIterations, factorizations, workingSetReuses, backtracks, geometryRestarts, ms: performance.now() - started,

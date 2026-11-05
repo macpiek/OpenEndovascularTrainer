@@ -1,5 +1,9 @@
 {
   "default": [
+    ["node", "--test", "tests/compliantBalloon.test.js", "tests/balloonMechanics.test.js"],
+    ["node", "--test", "tests/introducerDilator.test.js"],
+    ["node", "--test", "tests/vesselElasticity.test.js", "tests/vesselDeformation.test.js"],
+    ["node", "--test", "tests/lunderquistGuidewire.test.js"],
     ["node", "--test", "tests/renalAndIntroducer.test.js", "tests/introducerFlexibleTip.test.js", "tests/introducerTriaxial.test.js", "tests/renalMechanicalAnatomy.test.js"],
     ["node", "--test", "tests/bloodFlowCoupling.test.js"],
     ["node", "--check", "vite.config.js"],
@@ -58,11 +62,12 @@
     ["node", "tests/runtimeMemoryLifetime.test.js"],
     ["node", "tests/skeletonGeometry.test.js"],
     ["node", "tests/dsaRoadmapState.test.js"],
-    ["node", "--test", "tests/dsaSimulationTiming.test.js", "tests/carmControls.test.js"],
+    ["node", "--test", "tests/dsaSimulationTiming.test.js", "tests/dsaOpticalTransfer.test.js", "tests/carmControls.test.js", "tests/carmProjection.test.js", "tests/carmPreviewFraming.test.js"],
     ["node", "tests/vesselBroadPhaseFlowDebug.test.js"],
     ["node", "tests/injectionHydraulics.test.js"],
     ["node", "tests/injectionShortcut.test.js"],
-    ["node", "--test", "tests/contrastContinuousTransport.test.js", "tests/contrastOstialReservoir.test.js", "tests/contrastContainedSpurs.test.js", "tests/contrastDilatedLumen.test.js"],
+    ["node", "--test", "tests/contrastHydraulicResistance.test.js", "tests/contrastInjectionResistance.test.js", "tests/contrastRefluxJunction.test.js", "tests/junctionConcentrationKernel.test.js", "tests/junctionSurfaceReconstruction.test.js", "tests/contrastContinuousTransport.test.js", "tests/contrastOstialReservoir.test.js", "tests/contrastContainedSpurs.test.js", "tests/contrastDilatedLumen.test.js"],
+    ["node", "--test", "tests/anatomicalContrastSurface.test.js", "tests/contrastSurfaceIsolation.test.js", "tests/contrastSurfaceIsolationAnatomy.test.js"],
     ["node", "tests/contrastHybridModel.test.js"],
     ["node", "tests/contrastFullTree.test.js"],
     ["node", "tests/contrastCatheterFullTree.test.js"],
@@ -344,6 +349,10 @@
     ]
   ],
   "physics:shared-axis": [
+    ["node", "--test", "tests/compliantBalloonAnatomy.test.js", "tests/balloonRuntimeOptimization.test.js"],
+    ["node", "--test", "tests/compliantBalloon.test.js", "tests/balloonMechanics.test.js"],
+    ["node", "--test", "tests/introducerDilator.test.js", "tests/introducerDilatorAnatomy.test.js"],
+    ["node", "--test", "tests/vesselElasticity.test.js", "tests/vesselElasticityAnatomy.test.js"],
     [
       "node",
       "--test",
@@ -379,6 +388,8 @@
       "tests/kirchhoffSharedAxisBatchActivation.test.js",
       "tests/kirchhoffSharedAxisTipCrossing.test.js",
       "tests/kirchhoffSharedAxisFractionalTips.test.js",
+      "tests/kirchhoffTriaxialRebase.test.js",
+      "tests/kirchhoffTriaxialReplay.test.js",
       "tests/kirchhoffSharedAxisMaterialAssembly.test.js",
       "tests/kirchhoffSharedAxisMaterialScratch.test.js",
       "tests/kirchhoffSharedAxisMaterialScratchReplay.test.js",

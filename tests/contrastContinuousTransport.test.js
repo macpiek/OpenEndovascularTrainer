@@ -151,6 +151,66 @@ function display(net) {
     });
     return r;
 }
+
+test('junction reconstruction fades in continuously from trace iodine in either flow direction', () => {
+    const net = new ContrastFlowNetwork([
+        segment(0, 0, 1, [0, 0, 0], [20, 0, 0]),
+        segment(1, 1, 2, [20, 0, 0], [40, 15, 0]),
+        segment(2, 1, 3, [20, 0, 0], [40, -15, 0])
+    ], {rootPoint: new THREE.Vector3(0, 0, 0), cellLengthMm: 2});
+    let count = 0;
+    const offsets = Uint32Array.from(net.edges, e => {const offset = count; count += e.cellCount; return offset;});
+    const field = new FlowConcentrationField(net, offsets, count);
+    for (const [edgeIndex, atEnd] of [[0, true], [1, false]]) {
+        const edge = net.edges[edgeIndex], cell = offsets[edgeIndex] + (atEnd ? edge.cellCount - 1 : 0);
+        const positions = atEnd ? [1, 1 - .25 / edge.cellCount, 1 - .5 / edge.cellCount]
+            : [0, .25 / edge.cellCount, .5 / edge.cellCount];
+        const samples = field.compileSamples(positions.map(() => edgeIndex), positions);
+        const output = new Float32Array(positions.length);
+        let previous = -1;
+        for (const concentration of [0, 1e-9, 1e-6, .01, .1, .5, 1]) {
+            field.values.fill(1); // Strongly opacified junction, newly reached arm.
+            field.values[cell] = concentration;
+            field.sampleInto(samples, output);
+            const signal = field.sample(edgeIndex, positions[0]);
+            assert.ok(signal >= previous, 'arrival must remain monotonic');
+            assert.ok(signal <= 2 * concentration + 1e-8,
+                'a trace of iodine cannot switch on the full junction signal');
+            if (concentration === 0) assert.equal(signal, 0, 'an unreached arm stays clear');
+            assert.ok(Math.abs(output[2] - concentration) < 1e-7, 'the measured cell centre is unchanged');
+            for (let i = 0; i < positions.length; i++)
+                assert.ok(Math.abs(output[i] - field.sample(edgeIndex, positions[i])) < 1e-7);
+            previous = signal;
+        }
+    }
+});
+
+test('pending source iodine stays in its supplying lumen and is continuous across handoff', () => {
+    const net = chain([0, 20, 40]);
+    const r = display(net), solver = r.system.localSolver;
+    try {
+        // A geometric neighbour is closer than the source control volume.
+        // Pending source parcels still belong to the cell chosen by transport.
+        solver.count = 1;
+        solver.positionX[0] = 30;
+        solver.sourceEdgeIndex[0] = 0;
+        solver.sourceCellIndex[0] = 2;
+        solver.iodineMassMg[0] = .03;
+        r.update();
+        const before = r._flowCellRawConcentration.slice();
+        assert.ok(before[r._flowCellOffset[0] + 2] > 0);
+        for (let cell = 0; cell < net.edges[1].cellCount; cell++)
+            assert.equal(before[r._flowCellOffset[1] + cell], 0,
+                'a nearby clear lumen cannot borrow pending source iodine');
+        assert.ok(Math.abs(r._flowCellLocalPlumeMassMg.reduce((a, b) => a + b, 0) - .03) < 1e-8);
+        net.depositIodine(0, 2, .03);
+        solver.count = 0;
+        r.update();
+        for (let i = 0; i < before.length; i++)
+            assert.ok(Math.abs(before[i] - r._flowCellRawConcentration[i]) < 1e-8,
+                'handoff must not move the visible bolus or change its concentration');
+    } finally { r.dispose(); }
+});
 test('junction connectors follow the local arm instead of retaining the strongest daughter', () => {
     const net = new ContrastFlowNetwork(
         [
@@ -233,4 +293,55 @@ test('normal-vessel mixing does not cross an excluded cell or graft barrier',()=
         assert.ok(net.edges.slice(3).every(e=>e.massMg.every(m=>m===0)));
         assert.ok(Math.abs(sum(net)-1)<1e-10);
     }
+});
+
+test('junction mixing follows reflux and dilutes it with the incoming blood flow', () => {
+    function mix(bloodFlow, blocked = false) {
+        const net = new ContrastFlowNetwork([
+            segment(0, 0, 1, [0, 0, 0], [20, 0, 0]),
+            segment(1, 1, 2, [20, 0, 0], [52, 24, 0]),
+            segment(2, 1, 3, [20, 0, 0], [52, -24, 0])
+        ], {rootPoint: new THREE.Vector3(), cellLengthMm: 2, axialDispersionMm2PerS: 10,
+            axialFlowDispersionFactor: 0});
+        net.setFlowOverride([0], bloodFlow);
+        net.setFlowOverride([1], -100);
+        net.setFlowOverride([2], bloodFlow + 100);
+        const donor = net.edges[1];
+        donor.nextMassMg[0] = donor.volumes[0] * .3;
+        let cells = 0;
+        const offsets = Uint32Array.from(net.edges, e => {const offset = cells; cells += e.cellCount; return offset;});
+        const field = new FlowConcentrationField(net, offsets, cells), source = new Float32Array(cells);
+        source[offsets[1]] = .3; field.update(source);
+        assert.ok(Math.abs(field.values[field.start[1]] - .3 * 100 / (bloodFlow + 100)) < 1e-7,
+            'the displayed junction must use the same blood dilution as transport');
+        if (blocked) donor.graftSections = [1];
+        const before = donor.nextMassMg[0], marks = new Uint8Array([0, 1, 0]), touched = [1];
+        net._applyJunctionDispersion(.01, touched, 1, marks, 1);
+        const total = net.edges.reduce((s, e) => s + e.nextMassMg.reduce((a, b) => a + b, 0), 0);
+        assert.ok(Math.abs(total - before) < 1e-12);
+        assert.ok(net.edges.every(e => e.nextMassMg.every(m => m >= 0)));
+        assert.ok(net.edges[0].nextMassMg.every(m => m === 0), 'clear inflowing aorta is not another outlet');
+        return net.edges[2].nextMassMg[0];
+    }
+    const reflux = mix(0), diluted = mix(300);
+    assert.ok(reflux > 0, 'a reversed daughter must exchange iodine at its inlet junction');
+    assert.ok(Math.abs(diluted / reflux - .25) < 1e-12, 'three parts blood dilute one part reflux');
+    assert.equal(mix(300, true), 0, 'graft fabric still blocks mixing');
+});
+
+test('retrograde junction mixing reaches a parent without entering a second inflow branch', () => {
+    const net = new ContrastFlowNetwork([
+        segment(0, 0, 1, [0, 0, 0], [20, 0, 0]),
+        segment(1, 1, 2, [20, 0, 0], [52, 24, 0]),
+        segment(2, 1, 3, [20, 0, 0], [52, -24, 0])
+    ], {rootPoint: new THREE.Vector3(), cellLengthMm: 2, axialDispersionMm2PerS: 10});
+    net.setFlowOverride([0], -200); net.setFlowOverride([1, 2], -100);
+    net.edges[1].nextMassMg[0] = 1;
+    const touched = [1], marks = new Uint8Array([0, 1, 0]);
+    net._applyJunctionDispersion(.01, touched, 1, marks, 1);
+    const received = net.edges[0].nextMassMg.at(-1);
+    assert.ok(received > 0);
+    assert.ok(net.edges[2].nextMassMg.every(m => m === 0));
+    assert.ok(Math.abs(received + net.edges[1].nextMassMg[0] - 1) < 1e-12);
+    assert.ok(touched.includes(0) && marks[0], 'newly reached parent must be committed after this step');
 });

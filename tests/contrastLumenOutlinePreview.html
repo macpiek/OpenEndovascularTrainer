@@ -1,0 +1,37 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Kontrast — obrys naczyń STL</title>
+<style>body{margin:18px;background:#13202a;color:#edf4f8;font:15px system-ui}main{display:flex;gap:14px;flex-wrap:wrap}canvas{max-width:100%;height:auto}pre{white-space:pre-wrap}h1{font-size:24px}h2{font-size:18px}</style>
+<h1>Rozgałęzienia pod kolanem — przed i po poprawce</h1><pre id="status">Wczytywanie anatomii…</pre><main></main>
+<script type="module">
+import * as THREE from 'three';
+import {STLLoader} from 'three/examples/jsm/loaders/STLLoader.js';
+import {decodeCollisionAsset} from '../src/physics/collision/collisionAssetFormat.js';
+import {VesselContactField} from '../src/physics/collision/vesselContactField.js';
+import {ContrastFlowNetwork} from '../src/contrast/flowNetwork.js';
+import {AnatomicalContrastSurface} from '../src/contrast/anatomicalContrastSurface.js';
+import {AnatomicalContrastVolume} from '../src/contrast/anatomicalContrastVolume.js';
+const started=performance.now();
+const [raw,packed]=await Promise.all(['stl','collision.bin'].map(ext=>fetch('/res/Aorta_plain.'+ext).then(r=>r.arrayBuffer())));
+const asset=decodeCollisionAsset(packed),field=new VesselContactField(asset),g=new STLLoader().parse(raw),t=asset.metadata.transform;
+g.translate(...t.sourceCenter.map(v=>-v));g.rotateX(t.rotationX);g.scale(t.scale,t.scale,t.scale);g.translate(...t.targetCenter);field.fallbackGeometry=g;
+const d=asset.arrays.centerlineSegments,e=asset.arrays.centerlineEdges;
+const network=new ContrastFlowNetwork(Array.from({length:e.length/2},(_,i)=>({id:i,start:new THREE.Vector3().fromArray(d,i*9),end:new THREE.Vector3().fromArray(d,i*9+3),radiusStart:d[i*9+6],radiusEnd:d[i*9+7],nodeStartId:e[2*i],nodeEndId:e[2*i+1]})));
+let count=0;const offsets=Uint32Array.from(network.edges,e=>{const i=count;count+=e.cellCount;for(let j=0;j<e.cellCount;j++)e.massMg[j]=e.volumes[j]*.3;return i;});
+const previous=new AnatomicalContrastVolume(network,offsets,field),current=new AnatomicalContrastSurface(network,offsets,field);
+for(const v of [previous,current])v.update(new Float32Array(count),.3,false);
+const width=310,height=490,renderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});renderer.setSize(width,height);
+const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-42,42,66.4,-66.4,.1,2000);camera.position.set(82,-915,500);camera.lookAt(82,-915,0);
+const target=new THREE.WebGLRenderTarget(width,height,{type:THREE.HalfFloatType});
+const mesh=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide}));scene.add(mesh,previous.mesh,current.mesh);
+const screen=new THREE.Scene();screen.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({uniforms:{map:{value:target.texture}},vertexShader:'varying vec2 uv2;void main(){uv2=uv;gl_Position=vec4(position,1.);}',fragmentShader:'uniform sampler2D map;varying vec2 uv2;void main(){float v=texture2D(map,uv2).r;gl_FragColor=vec4(vec3(.94*exp(-v*10.)),1.);}'})));
+const projections=[];
+for(const [object,title] of [[mesh,'Model STL (ze ścianą)'],[previous.mesh,'Przed — mapa wokselowa'],[current.mesh,'Po — światło z siatki STL']]){
+ for(const o of [mesh,previous.mesh,current.mesh])o.visible=o===object;
+ renderer.setRenderTarget(target);renderer.setClearColor(0);renderer.clear();renderer.render(scene,camera);
+ const pixels=new Uint16Array(width*height*4);renderer.readRenderTargetPixels(target,0,0,width,height,pixels);projections.push(pixels);
+ renderer.setRenderTarget(null);renderer.render(screen,new THREE.Camera());
+ const section=document.createElement('section'),h=document.createElement('h2'),canvas=document.createElement('canvas');h.textContent=title;canvas.width=width;canvas.height=height;canvas.getContext('2d').drawImage(renderer.domElement,0,0);section.append(h,canvas);document.querySelector('main').append(section);
+}
+let outside=0;for(let i=0;i<projections[0].length;i+=4)if(projections[0][i]===0&&projections[2][i]>0)outside++;
+document.querySelector('#status').textContent=`${outside===0?'PASS':'FAIL'}: piksele kontrastu poza modelem: ${outside}. Ta sama kamera i stężenie; bez szumu.\nKontrast wypełnia światło, więc jest węższy od modelu zawierającego też ścianę naczynia.`;
+if(outside)throw Error('Contrast extends outside the STL');
+</script></html>

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pl">
+<meta charset="utf-8">
+<title>Gładkie prowadniki — regresja GPU</title>
+<style>
+body{background:#101820;color:#e7edf3;font:15px system-ui;padding:20px}
+main{display:flex;gap:24px}canvas{width:384px;height:384px}pre{white-space:pre-wrap}
+</style>
+<h1>Obrys prowadników we fluoroskopii</h1>
+<p>Ta sama geometria i średnica. Cienkie odcinki, łuki i zagięte końcówki.</p>
+<main><section><h2>Przed poprawką</h2><canvas id="before"></canvas></section>
+<section><h2>Po poprawce</h2><canvas id="after"></canvas></section></main>
+<pre id="results">Uruchamianie testów GPU…</pre>
+<script type="module">
+import * as T from 'three';
+import {createGuidewireProjectionMaterial,metalProjectionSize} from '../src/imaging/guidewireProjection.js';
+import {DETECTOR_APERTURE_HALF_EXTENT as aperture} from '../src/imaging/collimatorGeometry.js';
+import {renderMetalProjection} from '../src/imaging/renderMetalProjection.js';
+import {GUIDEWIRE_TYPE_GLIDEWIRE,GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED,GUIDEWIRE_TYPE_STEEL_J_035,GUIDEWIRE_TYPE_LUNDERQUIST} from '../src/physics/guidewireMaterialProfile.js';
+import {vertexShader,fragmentShader} from '../src/shaders/displayShader.js';
+const size=384, renderer=new T.WebGLRenderer({antialias:false});
+renderer.setSize(size,size);renderer.outputColorSpace=T.LinearSRGBColorSpace;
+const samples=renderer.capabilities.isWebGL2?4:0;
+const fixed=createGuidewireProjectionMaterial(GUIDEWIRE_TYPE_STEEL_J_035);
+// Negative control: the old per-vertex profile and undersized mask, with
+// nonlinear attenuation applied after the partial-coverage samples resolve.
+const legacy=new T.ShaderMaterial({depthTest:false,depthWrite:false,toneMapped:false,
+ vertexShader:`varying float vProfile; void main(){vec3 n=normalize(normalMatrix*normal);vProfile=pow(clamp(abs(n.z),0.,1.),.75);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+ fragmentShader:`varying float vProfile; void main(){float p=mix(.06,1.,smoothstep(.08,.94,vProfile));gl_FragColor=vec4(vec3(p),1.);}`});
+const scene=new T.Scene();scene.background=new T.Color(0);
+const camera=new T.OrthographicCamera(-size/(2*aperture),size/(2*aperture),size/(2*aperture),-size/(2*aperture),.1,1000);
+camera.position.z=300;
+const groups=[new T.Group(),new T.Group()],graftGroup=new T.Group();scene.add(...groups,graftGroup);
+const metalSize=metalProjectionSize(size,renderer.capabilities.maxTextureSize);
+const masks=[new T.WebGLRenderTarget(Math.round(size*.85),Math.round(size*.85),{samples}),new T.WebGLRenderTarget(metalSize,metalSize,{samples})];
+const outputs=[new T.WebGLRenderTarget(size,size),new T.WebGLRenderTarget(size*2,size*2)];
+const decoder=['saturate','max3','sampleSignal','metalAt'].map(name=>{
+ const code=fragmentShader.match(new RegExp('float '+name+'\\([^]*?\\n}'));
+ if(!code)throw Error('Missing production decoder: '+name);return code[0];
+}).join('\n');
+const displayMaterial=new T.ShaderMaterial({vertexShader,uniforms:{metalTexture:{value:masks[0].texture}},
+ fragmentShader:`varying vec2 vUv;uniform sampler2D metalTexture;${decoder}
+ void main(){gl_FragColor=vec4(vec3(exp(-metalAt(vUv)*5.25)),1.);}`});
+const display=new T.Scene();display.add(new T.Mesh(new T.PlaneGeometry(2,2),displayMaterial));
+const displayCamera=new T.OrthographicCamera(-aperture,aperture,aperture,-aperture,0,1);
+function clear(){for(const group of groups){for(const mesh of group.children)mesh.geometry.dispose();group.clear();}}
+function add(path,radius,index=0){groups[index].add(new T.Mesh(new T.TubeGeometry(path,192,radius,12,false),fixed));}
+function draw(index){
+ renderer.setRenderTarget(masks[index]);
+ renderMetalProjection(renderer,scene,camera,{wireGroups:groups,graftGroup,wireMaterial:index?fixed:legacy,graftMaterial:legacy});
+ displayMaterial.uniforms.metalTexture.value=masks[index].texture;
+ renderer.setRenderTarget(outputs[index]);renderer.render(display,displayCamera);
+ const n=outputs[index].width,pixels=new Uint8Array(n*n*4);
+ renderer.readRenderTargetPixels(outputs[index],0,0,n,n,pixels);return {pixels,n};
+}
+function metrics({pixels,n},slope,phase){
+ const scale=n/size,widths=[];let sumError=0,maxError=0,rows=0;
+ for(let y=Math.floor(n*.2);y<n*.8;y++){
+  let weight=0,moment=0;
+  for(let x=0;x<n;x++){const dark=1-pixels[4*(x+y*n)]/255;weight+=dark;moment+=dark*(x+.5);}
+  if(weight===0)throw Error('Przerwany cienki prowadnik');
+  const expected=size/2+phase+slope*((y+.5)/scale-size/2);
+  const error=Math.abs(moment/weight/scale-expected);
+  sumError+=error*error;maxError=Math.max(maxError,error);widths.push(weight/scale);rows++;
+ }
+ const mean=widths.reduce((a,b)=>a+b,0)/rows;
+ const variation=Math.sqrt(widths.reduce((a,b)=>a+(b-mean)**2,0)/rows)/mean;
+ return {rms:Math.sqrt(sumError/rows),maxError,variation,mean};
+}
+function show(id,{pixels,n}){
+ const canvas=document.getElementById(id);canvas.width=canvas.height=n;
+ const data=new Uint8ClampedArray(pixels.length);
+ for(let y=0;y<n;y++)data.set(pixels.subarray(y*n*4,(y+1)*n*4),(n-y-1)*n*4);
+ canvas.getContext('2d').putImageData(new ImageData(data,n,n),0,0);
+}
+const checks=[];
+try{
+ let beforeError=0,afterError=0,beforeVariation=0,afterVariation=0;
+ for(const diameter of [1.2,2.4])for(const slope of [.07,.43])for(const phase of [0,.33,.67]){
+  clear();
+  add(new T.LineCurve3(new T.Vector3(phase-slope*250,-250,0),new T.Vector3(phase+slope*250,250,0)),diameter/2);
+  const before=metrics(draw(0),slope,phase),after=metrics(draw(1),slope,phase);
+  beforeError+=before.rms;afterError+=after.rms;beforeVariation+=before.variation;afterVariation+=after.variation;
+  checks.push({diameter,slope,phase,before,after});
+  if(after.maxError>.2)throw Error('Przesunięcie obrysu > 0,2 piksela');
+ }
+ if(afterError>=beforeError*.6)throw Error('Brak poprawy dokładności obrysu');
+ if(afterVariation>=beforeVariation*.6)throw Error('Nadal nierówna szerokość cienia');
+ // Read actual transmission through the production shader/decoder. Keep a
+ // strongly attenuating second access in the same draw to catch shared-uniform
+ // bugs when two different wire types are present together.
+ const transmissionChecks=[];
+ for(const type of [GUIDEWIRE_TYPE_GLIDEWIRE,GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED,GUIDEWIRE_TYPE_STEEL_J_035,GUIDEWIRE_TYPE_LUNDERQUIST]){
+  clear();
+  add(new T.LineCurve3(new T.Vector3(-70,-240,0),new T.Vector3(-70,240,0)),6);
+  add(new T.LineCurve3(new T.Vector3(70,-240,0),new T.Vector3(70,240,0)),6,1);
+  const projection=createGuidewireProjectionMaterial(type);
+  groups[0].children[0].userData.projectionMaterial=projection;
+  groups[1].children[0].userData.projectionMaterial=fixed;
+  const {pixels,n}=draw(1),y=n/2;
+  const left=pixels[4*((n/2-140)+y*n)]/255;
+  const right=pixels[4*((n/2+140)+y*n)]/255;
+  const glidewire=type===GUIDEWIRE_TYPE_GLIDEWIRE||type===GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED;
+  if(glidewire&&!(left>.4&&left<.6))throw Error(type+': Glidewire nie przepuszcza części promieni');
+  if(!glidewire&&left>.03)throw Error(type+': zmieniona projekcja stalowego prowadnika');
+  if(right>.03)throw Error(type+': zmiana typu wpływa na drugi dostęp');
+  transmissionChecks.push(`${type}: ${(100*left).toFixed(1)}% sygnału pod osią; drugi dostęp ${(100*right).toFixed(1)}%`);
+  projection.dispose();
+ }
+ // Two independent accesses, a broad S curve and a tight angled tip.
+ clear();
+ add(new T.CatmullRomCurve3([[-120,-210],[-100,-100],[-55,-20],[-30,65],[-25,150],[-7,158]].map(([x,y])=>new T.Vector3(x,y,0))),.7);
+ add(new T.CatmullRomCurve3([[140,-210],[75,-70],[60,60],[90,140],[70,157],[50,145]].map(([x,y])=>new T.Vector3(x,y,0))),.7,1);
+ show('before',draw(0));show('after',draw(1));
+ document.getElementById('results').textContent=`PASS: ${checks.length} projekcji: dwie średnice, dwa kąty, trzy przesunięcia podpikselowe.\nBłąd osi: ${(beforeError/checks.length).toFixed(3)} → ${(afterError/checks.length).toFixed(3)} px.\nNierówność szerokości: ${(100*beforeVariation/checks.length).toFixed(1)}% → ${(100*afterVariation/checks.length).toFixed(1)}%.\nMSAA: ${samples}; maska: ${masks[0].width} → ${metalSize}px.\nPASS: 4 typy, częściowa transmisja Glidewire, niezależne dostępy.\n`+transmissionChecks.join('\n')+'\n'+JSON.stringify(checks,null,2);
+}catch(error){document.getElementById('results').textContent='FAIL: '+error.message+'\n'+JSON.stringify(checks,null,2);throw error;}
+finally{renderer.setRenderTarget(null);renderer.dispose();}
+</script>
+</html>

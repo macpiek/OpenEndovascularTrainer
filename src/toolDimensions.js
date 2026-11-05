@@ -4,7 +4,9 @@ const FRENCH_DIAMETER_MM = 1 / 3;
 export const GUIDEWIRE_DIAMETER_IN = 0.035;
 export const GUIDEWIRE_DIAMETER_MM = GUIDEWIRE_DIAMETER_IN * INCH_TO_MM;
 export const GUIDEWIRE_RADIUS_MM = GUIDEWIRE_DIAMETER_MM / 2;
-export const GUIDEWIRE_RENDER_RADIUS_MM = GUIDEWIRE_RADIUS_MM * 0.5;
+// Render the same nominal diameter used for tool contact and lumen clearance.
+// Radiographic visibility is controlled separately by material attenuation.
+export const GUIDEWIRE_RENDER_RADIUS_MM = GUIDEWIRE_RADIUS_MM;
 
 export const INTRODUCER_SHEATH_FRENCH = 6;
 // Sheath French size denotes the maximum catheter OD / nominal lumen ID.

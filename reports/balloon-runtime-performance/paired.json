@@ -1,0 +1,2259 @@
+{
+  "scope": "Node CPU wall time for complete accepted 1/60 s steps; excludes browser render/flow/UI. Surface sampling is measured separately. No browser FPS claim.",
+  "dt": 0.016666666666666666,
+  "node": "v24.6.0",
+  "runs": [
+    {
+      "optimized": false,
+      "warmup": true,
+      "steps": [
+        {
+          "wallMs": 351.39083299999993,
+          "fill": 12.6,
+          "iterations": 33,
+          "subdivisions": 4,
+          "certificateBound": 1.0455551091581583e-8,
+          "residual": {
+            "force": 1.0455551091581583e-8,
+            "torque": 6.274092356761685e-10,
+            "length": 4.499265543467246e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.019806626980426e-14,
+            "maxReferencePenetration": 6.316176946026648,
+            "maxWallDisplacement": 0.4400413011031679,
+            "maxBalloonCompression": 5.876135644923485,
+            "contacts": 187,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 4.84460956200112e-15,
+                "maxBendAngleDegrees": 22.46754038577129,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 59.14120976776033,
+                "activeWallContacts": 4,
+                "currentNormalLoad": 21833.34733532311
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.1900289800822924e-15,
+                "maxBendAngleDegrees": 11.387818989843511,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 59.14120976776033,
+                "activeWallContacts": 181,
+                "currentNormalLoad": 3404992.8439961476
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 1.0679886663915055,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 11.194353317483044,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 28165.76267157779
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 0.021962817204183343,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 0.2523578338841005,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 111.10541599999988,
+          "fill": 12.7,
+          "iterations": 30,
+          "subdivisions": 4,
+          "certificateBound": 4.1396742744836956e-7,
+          "residual": {
+            "force": 4.1396742744836956e-7,
+            "torque": 9.384425882497376e-10,
+            "length": 6.33369225122582e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 2.3092638912203256e-14,
+            "maxReferencePenetration": 6.611410639637336,
+            "maxWallDisplacement": 0.4639992012740575,
+            "maxBalloonCompression": 6.147411438363288,
+            "contacts": 191,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.460435401429371e-15,
+                "maxBendAngleDegrees": 25.133167551592976,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 67.88918705773555,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 22044.945681014422
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.4868995751603505e-15,
+                "maxBendAngleDegrees": 11.435736614420108,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 67.88918705773555,
+                "activeWallContacts": 187,
+                "currentNormalLoad": 3568278.4688512837
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 1.2531662188912418,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 5.893089404524964,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 62912.58244636475
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.029017481362089276,
+                "maxBendNode": 6,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 0.9013811108418236,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 93.83787499999971,
+          "fill": 12.8,
+          "iterations": 24,
+          "subdivisions": 4,
+          "certificateBound": 1.9937942852266133e-8,
+          "residual": {
+            "force": 1.9937942852266133e-8,
+            "torque": 1.3397315943669509e-9,
+            "length": 3.6415315207705135e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.6415315207705135e-14,
+            "maxReferencePenetration": 6.440954395141284,
+            "maxWallDisplacement": 0.4478849953517983,
+            "maxBalloonCompression": 5.993069399789475,
+            "contacts": 199,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.3750779948604757e-15,
+                "maxBendAngleDegrees": 25.471564995119934,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 61.60222029128089,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 21806.3223465701
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 1.9539925233402757e-15,
+                "maxBendAngleDegrees": 12.440230541569111,
+                "maxBendNode": 38,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 61.60222029128089,
+                "activeWallContacts": 193,
+                "currentNormalLoad": 3719278.2927450202
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 1.1833658529843067,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 4.623390053494815,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 57301.73480194744
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.07101007112666721,
+                "maxBendNode": 7,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.404147247508383,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 80.77562500000022,
+          "fill": 12.7,
+          "iterations": 24,
+          "subdivisions": 4,
+          "certificateBound": 3.074746928177774e-7,
+          "residual": {
+            "force": 3.074746928177774e-7,
+            "torque": 1.0729109053563175e-9,
+            "length": 6.217248937900877e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 6.217248937900877e-14,
+            "maxReferencePenetration": 6.318172352824739,
+            "maxWallDisplacement": 0.4388290690852665,
+            "maxBalloonCompression": 5.879343283739465,
+            "contacts": 216,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 1.9539925233402757e-15,
+                "maxBendAngleDegrees": 26.347555458942136,
+                "maxBendNode": 56,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 80.5562844292908,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 20276.88794110384
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 1.9539925233402757e-15,
+                "maxBendAngleDegrees": 12.608272421779159,
+                "maxBendNode": 38,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 80.5562844292908,
+                "activeWallContacts": 206,
+                "currentNormalLoad": 3794984.367121152
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.5987211554602255e-15,
+                "maxBendAngleDegrees": 1.1836036429764427,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.1921119913163243,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 60519.94950323119
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.5987211554602255e-15,
+                "maxBendAngleDegrees": 0.0879745907345092,
+                "maxBendNode": 6,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.1377562777712797,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 74.21191699999963,
+          "fill": 12.6,
+          "iterations": 21,
+          "subdivisions": 4,
+          "certificateBound": 2.2015319700585678e-7,
+          "residual": {
+            "force": 2.2015319700585678e-7,
+            "torque": 1.5896794991476781e-9,
+            "length": 8.524778105645225e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 8.524778105645225e-14,
+            "maxReferencePenetration": 6.234437390783642,
+            "maxWallDisplacement": 0.4330746022353048,
+            "maxBalloonCompression": 5.801362788548337,
+            "contacts": 204,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 4.085620730620576e-15,
+                "maxBendAngleDegrees": 23.08476069401767,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 124.5352492543046,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 19356.544181338806
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 12.003774409259316,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 124.5352492543046,
+                "activeWallContacts": 195,
+                "currentNormalLoad": 3719893.7294061794
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 1.2090833778923347,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.480595835190238,
+                "activeWallContacts": 6,
+                "currentNormalLoad": 61413.78380082067
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 0.04794679605668864,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.480595835190238,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 75.68675000000076,
+          "fill": 12.5,
+          "iterations": 22,
+          "subdivisions": 4,
+          "certificateBound": 4.509811333264224e-7,
+          "residual": {
+            "force": 4.509811333264224e-7,
+            "torque": 1.5313245524048447e-9,
+            "length": 3.769033696254809e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.769033696254809e-14,
+            "maxReferencePenetration": 6.181293042463802,
+            "maxWallDisplacement": 0.4299043102705225,
+            "maxBalloonCompression": 5.751388732193273,
+            "contacts": 202,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.3750779948604757e-15,
+                "maxBendAngleDegrees": 25.140427454304117,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 135.22310628497542,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 20360.067829889864
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.4868995751603505e-15,
+                "maxBendAngleDegrees": 11.997851921952199,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 92.19868493857717,
+                "activeWallContacts": 195,
+                "currentNormalLoad": 3644559.8144704853
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 1.1837744325862067,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.7238507602249142,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 58009.778032687536
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 0.13480878897408888,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.7238507602249142,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 69.36300000000028,
+          "fill": 12.4,
+          "iterations": 20,
+          "subdivisions": 4,
+          "certificateBound": 6.60336809232831e-7,
+          "residual": {
+            "force": 6.60336809232831e-7,
+            "torque": 1.5299323366350925e-9,
+            "length": 3.700512118953725e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.700512118953725e-14,
+            "maxReferencePenetration": 6.127749905093699,
+            "maxWallDisplacement": 0.42668788440350214,
+            "maxBalloonCompression": 5.701062020690197,
+            "contacts": 208,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.189936577797593e-15,
+                "maxBendAngleDegrees": 24.486893459301676,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 99.51778550636082,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 22425.2118186594
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.3092638912203257e-15,
+                "maxBendAngleDegrees": 12.049483586799623,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 45.017591263399815,
+                "activeWallContacts": 198,
+                "currentNormalLoad": 3605929.5539829102
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 1.1747056632046406,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.1855597271323541,
+                "activeWallContacts": 7,
+                "currentNormalLoad": 55959.16451889137
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 0.12767987170910927,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.1855597271323541,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 137.29200000000037,
+          "fill": 0,
+          "iterations": 40,
+          "subdivisions": 8,
+          "certificateBound": 1.2373675417620689e-8,
+          "residual": {
+            "force": 1.2373675417620689e-8,
+            "torque": 1.1023644219676498e-9,
+            "length": 2.356665210201392e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 1.0947189335586138e-14,
+            "maxReferencePenetration": 0.006534100824812095,
+            "maxWallDisplacement": 0.006534100824824643,
+            "maxBalloonCompression": 0,
+            "contacts": 21,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.114391861286434e-15,
+                "maxBendAngleDegrees": 23.92845368970976,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 84.34000180369505,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 18823.022331384294
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.9200386401097233e-15,
+                "maxBendAngleDegrees": 10.771510411590965,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 67.6798087790046,
+                "activeWallContacts": 13,
+                "currentNormalLoad": 235594.83872836677
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.9889056136412406,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 2.533334204484045,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 14972.909453172895
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.054859563882472775,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.9505098358837358,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "samples": 8,
+        "meanMs": 124.2079270000001,
+        "medianMs": 93.83787499999971,
+        "p95Ms": 351.39083299999993,
+        "maxMs": 351.39083299999993,
+        "within60HzBudget": 0
+      }
+    },
+    {
+      "optimized": true,
+      "warmup": true,
+      "steps": [
+        {
+          "wallMs": 168.84379199999967,
+          "fill": 12.6,
+          "iterations": 33,
+          "subdivisions": 4,
+          "certificateBound": 1.0455551091581583e-8,
+          "residual": {
+            "force": 1.0455551091581583e-8,
+            "torque": 6.274092356761685e-10,
+            "length": 4.499265543467246e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.019806626980426e-14,
+            "maxReferencePenetration": 6.316176946026648,
+            "maxWallDisplacement": 0.4400413011031679,
+            "maxBalloonCompression": 5.876135644923485,
+            "contacts": 187,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 4.84460956200112e-15,
+                "maxBendAngleDegrees": 22.46754038577129,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 59.14120976776033,
+                "activeWallContacts": 4,
+                "currentNormalLoad": 21833.34733532311
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.1900289800822924e-15,
+                "maxBendAngleDegrees": 11.387818989843511,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 59.14120976776033,
+                "activeWallContacts": 181,
+                "currentNormalLoad": 3404992.8439961476
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 1.0679886663915055,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 11.194353317483044,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 28165.76267157779
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 0.021962817204183343,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 0.2523578338841005,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 80.331459,
+          "fill": 12.7,
+          "iterations": 30,
+          "subdivisions": 4,
+          "certificateBound": 4.1396742744836956e-7,
+          "residual": {
+            "force": 4.1396742744836956e-7,
+            "torque": 9.384425882497376e-10,
+            "length": 6.33369225122582e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 2.3092638912203256e-14,
+            "maxReferencePenetration": 6.611410639637336,
+            "maxWallDisplacement": 0.4639992012740575,
+            "maxBalloonCompression": 6.147411438363288,
+            "contacts": 191,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.460435401429371e-15,
+                "maxBendAngleDegrees": 25.133167551592976,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 67.88918705773555,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 22044.945681014422
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.4868995751603505e-15,
+                "maxBendAngleDegrees": 11.435736614420108,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 67.88918705773555,
+                "activeWallContacts": 187,
+                "currentNormalLoad": 3568278.4688512837
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 1.2531662188912418,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 5.893089404524964,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 62912.58244636475
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.029017481362089276,
+                "maxBendNode": 6,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 0.9013811108418236,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 76.54933299999993,
+          "fill": 12.8,
+          "iterations": 24,
+          "subdivisions": 4,
+          "certificateBound": 1.9937942852266133e-8,
+          "residual": {
+            "force": 1.9937942852266133e-8,
+            "torque": 1.3397315943669509e-9,
+            "length": 3.6415315207705135e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.6415315207705135e-14,
+            "maxReferencePenetration": 6.440954395141284,
+            "maxWallDisplacement": 0.4478849953517983,
+            "maxBalloonCompression": 5.993069399789475,
+            "contacts": 199,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.3750779948604757e-15,
+                "maxBendAngleDegrees": 25.471564995119934,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 61.60222029128089,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 21806.3223465701
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 1.9539925233402757e-15,
+                "maxBendAngleDegrees": 12.440230541569111,
+                "maxBendNode": 38,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 61.60222029128089,
+                "activeWallContacts": 193,
+                "currentNormalLoad": 3719278.2927450202
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 1.1833658529843067,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 4.623390053494815,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 57301.73480194744
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.07101007112666721,
+                "maxBendNode": 7,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.404147247508383,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 68.02329200000077,
+          "fill": 12.7,
+          "iterations": 24,
+          "subdivisions": 4,
+          "certificateBound": 3.074746928177774e-7,
+          "residual": {
+            "force": 3.074746928177774e-7,
+            "torque": 1.0729109053563175e-9,
+            "length": 6.217248937900877e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 6.217248937900877e-14,
+            "maxReferencePenetration": 6.318172352824739,
+            "maxWallDisplacement": 0.4388290690852665,
+            "maxBalloonCompression": 5.879343283739465,
+            "contacts": 216,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 1.9539925233402757e-15,
+                "maxBendAngleDegrees": 26.347555458942136,
+                "maxBendNode": 56,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 80.5562844292908,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 20276.88794110384
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 1.9539925233402757e-15,
+                "maxBendAngleDegrees": 12.608272421779159,
+                "maxBendNode": 38,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 80.5562844292908,
+                "activeWallContacts": 206,
+                "currentNormalLoad": 3794984.367121152
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.5987211554602255e-15,
+                "maxBendAngleDegrees": 1.1836036429764427,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.1921119913163243,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 60519.94950323119
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.5987211554602255e-15,
+                "maxBendAngleDegrees": 0.0879745907345092,
+                "maxBendNode": 6,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.1377562777712797,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 61.4067500000001,
+          "fill": 12.6,
+          "iterations": 21,
+          "subdivisions": 4,
+          "certificateBound": 2.2015319700585678e-7,
+          "residual": {
+            "force": 2.2015319700585678e-7,
+            "torque": 1.5896794991476781e-9,
+            "length": 8.524778105645225e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 8.524778105645225e-14,
+            "maxReferencePenetration": 6.234437390783642,
+            "maxWallDisplacement": 0.4330746022353048,
+            "maxBalloonCompression": 5.801362788548337,
+            "contacts": 204,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 4.085620730620576e-15,
+                "maxBendAngleDegrees": 23.08476069401767,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 124.5352492543046,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 19356.544181338806
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 12.003774409259316,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 124.5352492543046,
+                "activeWallContacts": 195,
+                "currentNormalLoad": 3719893.7294061794
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 1.2090833778923347,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.480595835190238,
+                "activeWallContacts": 6,
+                "currentNormalLoad": 61413.78380082067
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 0.04794679605668864,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.480595835190238,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 59.84258399999999,
+          "fill": 12.5,
+          "iterations": 22,
+          "subdivisions": 4,
+          "certificateBound": 4.509811333264224e-7,
+          "residual": {
+            "force": 4.509811333264224e-7,
+            "torque": 1.5313245524048447e-9,
+            "length": 3.769033696254809e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.769033696254809e-14,
+            "maxReferencePenetration": 6.181293042463802,
+            "maxWallDisplacement": 0.4299043102705225,
+            "maxBalloonCompression": 5.751388732193273,
+            "contacts": 202,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.3750779948604757e-15,
+                "maxBendAngleDegrees": 25.140427454304117,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 135.22310628497542,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 20360.067829889864
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.4868995751603505e-15,
+                "maxBendAngleDegrees": 11.997851921952199,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 92.19868493857717,
+                "activeWallContacts": 195,
+                "currentNormalLoad": 3644559.8144704853
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 1.1837744325862067,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.7238507602249142,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 58009.778032687536
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 0.13480878897408888,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.7238507602249142,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 66.92716699999983,
+          "fill": 12.4,
+          "iterations": 20,
+          "subdivisions": 4,
+          "certificateBound": 6.60336809232831e-7,
+          "residual": {
+            "force": 6.60336809232831e-7,
+            "torque": 1.5299323366350925e-9,
+            "length": 3.700512118953725e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.700512118953725e-14,
+            "maxReferencePenetration": 6.127749905093699,
+            "maxWallDisplacement": 0.42668788440350214,
+            "maxBalloonCompression": 5.701062020690197,
+            "contacts": 208,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.189936577797593e-15,
+                "maxBendAngleDegrees": 24.486893459301676,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 99.51778550636082,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 22425.2118186594
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.3092638912203257e-15,
+                "maxBendAngleDegrees": 12.049483586799623,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 45.017591263399815,
+                "activeWallContacts": 198,
+                "currentNormalLoad": 3605929.5539829102
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 1.1747056632046406,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.1855597271323541,
+                "activeWallContacts": 7,
+                "currentNormalLoad": 55959.16451889137
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 0.12767987170910927,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.1855597271323541,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 106.58316699999978,
+          "fill": 0,
+          "iterations": 40,
+          "subdivisions": 8,
+          "certificateBound": 1.2373675417620689e-8,
+          "residual": {
+            "force": 1.2373675417620689e-8,
+            "torque": 1.1023644219676498e-9,
+            "length": 2.356665210201392e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 1.0947189335586138e-14,
+            "maxReferencePenetration": 0.006534100824812095,
+            "maxWallDisplacement": 0.006534100824824643,
+            "maxBalloonCompression": 0,
+            "contacts": 21,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.114391861286434e-15,
+                "maxBendAngleDegrees": 23.92845368970976,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 84.34000180369505,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 18823.022331384294
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.9200386401097233e-15,
+                "maxBendAngleDegrees": 10.771510411590965,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 67.6798087790046,
+                "activeWallContacts": 13,
+                "currentNormalLoad": 235594.83872836677
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.9889056136412406,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 2.533334204484045,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 14972.909453172895
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.054859563882472775,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.9505098358837358,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "samples": 8,
+        "meanMs": 86.063443,
+        "medianMs": 76.54933299999993,
+        "p95Ms": 168.84379199999967,
+        "maxMs": 168.84379199999967,
+        "within60HzBudget": 0
+      }
+    },
+    {
+      "optimized": true,
+      "warmup": false,
+      "steps": [
+        {
+          "wallMs": 136.26929199999995,
+          "fill": 12.6,
+          "iterations": 33,
+          "subdivisions": 4,
+          "certificateBound": 1.0455551091581583e-8,
+          "residual": {
+            "force": 1.0455551091581583e-8,
+            "torque": 6.274092356761685e-10,
+            "length": 4.499265543467246e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.019806626980426e-14,
+            "maxReferencePenetration": 6.316176946026648,
+            "maxWallDisplacement": 0.4400413011031679,
+            "maxBalloonCompression": 5.876135644923485,
+            "contacts": 187,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 4.84460956200112e-15,
+                "maxBendAngleDegrees": 22.46754038577129,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 59.14120976776033,
+                "activeWallContacts": 4,
+                "currentNormalLoad": 21833.34733532311
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.1900289800822924e-15,
+                "maxBendAngleDegrees": 11.387818989843511,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 59.14120976776033,
+                "activeWallContacts": 181,
+                "currentNormalLoad": 3404992.8439961476
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 1.0679886663915055,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 11.194353317483044,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 28165.76267157779
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 0.021962817204183343,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 0.2523578338841005,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 76.15800000000036,
+          "fill": 12.7,
+          "iterations": 30,
+          "subdivisions": 4,
+          "certificateBound": 4.1396742744836956e-7,
+          "residual": {
+            "force": 4.1396742744836956e-7,
+            "torque": 9.384425882497376e-10,
+            "length": 6.33369225122582e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 2.3092638912203256e-14,
+            "maxReferencePenetration": 6.611410639637336,
+            "maxWallDisplacement": 0.4639992012740575,
+            "maxBalloonCompression": 6.147411438363288,
+            "contacts": 191,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.460435401429371e-15,
+                "maxBendAngleDegrees": 25.133167551592976,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 67.88918705773555,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 22044.945681014422
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.4868995751603505e-15,
+                "maxBendAngleDegrees": 11.435736614420108,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 67.88918705773555,
+                "activeWallContacts": 187,
+                "currentNormalLoad": 3568278.4688512837
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 1.2531662188912418,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 5.893089404524964,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 62912.58244636475
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.029017481362089276,
+                "maxBendNode": 6,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 0.9013811108418236,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 69.32170899999983,
+          "fill": 12.8,
+          "iterations": 24,
+          "subdivisions": 4,
+          "certificateBound": 1.9937942852266133e-8,
+          "residual": {
+            "force": 1.9937942852266133e-8,
+            "torque": 1.3397315943669509e-9,
+            "length": 3.6415315207705135e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.6415315207705135e-14,
+            "maxReferencePenetration": 6.440954395141284,
+            "maxWallDisplacement": 0.4478849953517983,
+            "maxBalloonCompression": 5.993069399789475,
+            "contacts": 199,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.3750779948604757e-15,
+                "maxBendAngleDegrees": 25.471564995119934,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 61.60222029128089,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 21806.3223465701
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 1.9539925233402757e-15,
+                "maxBendAngleDegrees": 12.440230541569111,
+                "maxBendNode": 38,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 61.60222029128089,
+                "activeWallContacts": 193,
+                "currentNormalLoad": 3719278.2927450202
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 1.1833658529843067,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 4.623390053494815,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 57301.73480194744
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.07101007112666721,
+                "maxBendNode": 7,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.404147247508383,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 63.91583300000002,
+          "fill": 12.7,
+          "iterations": 24,
+          "subdivisions": 4,
+          "certificateBound": 3.074746928177774e-7,
+          "residual": {
+            "force": 3.074746928177774e-7,
+            "torque": 1.0729109053563175e-9,
+            "length": 6.217248937900877e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 6.217248937900877e-14,
+            "maxReferencePenetration": 6.318172352824739,
+            "maxWallDisplacement": 0.4388290690852665,
+            "maxBalloonCompression": 5.879343283739465,
+            "contacts": 216,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 1.9539925233402757e-15,
+                "maxBendAngleDegrees": 26.347555458942136,
+                "maxBendNode": 56,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 80.5562844292908,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 20276.88794110384
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 1.9539925233402757e-15,
+                "maxBendAngleDegrees": 12.608272421779159,
+                "maxBendNode": 38,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 80.5562844292908,
+                "activeWallContacts": 206,
+                "currentNormalLoad": 3794984.367121152
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.5987211554602255e-15,
+                "maxBendAngleDegrees": 1.1836036429764427,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.1921119913163243,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 60519.94950323119
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.5987211554602255e-15,
+                "maxBendAngleDegrees": 0.0879745907345092,
+                "maxBendNode": 6,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.1377562777712797,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 61.650416999999834,
+          "fill": 12.6,
+          "iterations": 21,
+          "subdivisions": 4,
+          "certificateBound": 2.2015319700585678e-7,
+          "residual": {
+            "force": 2.2015319700585678e-7,
+            "torque": 1.5896794991476781e-9,
+            "length": 8.524778105645225e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 8.524778105645225e-14,
+            "maxReferencePenetration": 6.234437390783642,
+            "maxWallDisplacement": 0.4330746022353048,
+            "maxBalloonCompression": 5.801362788548337,
+            "contacts": 204,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 4.085620730620576e-15,
+                "maxBendAngleDegrees": 23.08476069401767,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 124.5352492543046,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 19356.544181338806
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 12.003774409259316,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 124.5352492543046,
+                "activeWallContacts": 195,
+                "currentNormalLoad": 3719893.7294061794
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 1.2090833778923347,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.480595835190238,
+                "activeWallContacts": 6,
+                "currentNormalLoad": 61413.78380082067
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 0.04794679605668864,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.480595835190238,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 59.98783299999923,
+          "fill": 12.5,
+          "iterations": 22,
+          "subdivisions": 4,
+          "certificateBound": 4.509811333264224e-7,
+          "residual": {
+            "force": 4.509811333264224e-7,
+            "torque": 1.5313245524048447e-9,
+            "length": 3.769033696254809e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.769033696254809e-14,
+            "maxReferencePenetration": 6.181293042463802,
+            "maxWallDisplacement": 0.4299043102705225,
+            "maxBalloonCompression": 5.751388732193273,
+            "contacts": 202,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.3750779948604757e-15,
+                "maxBendAngleDegrees": 25.140427454304117,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 135.22310628497542,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 20360.067829889864
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.4868995751603505e-15,
+                "maxBendAngleDegrees": 11.997851921952199,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 92.19868493857717,
+                "activeWallContacts": 195,
+                "currentNormalLoad": 3644559.8144704853
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 1.1837744325862067,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.7238507602249142,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 58009.778032687536
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 0.13480878897408888,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.7238507602249142,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 53.34895899999992,
+          "fill": 12.4,
+          "iterations": 20,
+          "subdivisions": 4,
+          "certificateBound": 6.60336809232831e-7,
+          "residual": {
+            "force": 6.60336809232831e-7,
+            "torque": 1.5299323366350925e-9,
+            "length": 3.700512118953725e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.700512118953725e-14,
+            "maxReferencePenetration": 6.127749905093699,
+            "maxWallDisplacement": 0.42668788440350214,
+            "maxBalloonCompression": 5.701062020690197,
+            "contacts": 208,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.189936577797593e-15,
+                "maxBendAngleDegrees": 24.486893459301676,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 99.51778550636082,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 22425.2118186594
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.3092638912203257e-15,
+                "maxBendAngleDegrees": 12.049483586799623,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 45.017591263399815,
+                "activeWallContacts": 198,
+                "currentNormalLoad": 3605929.5539829102
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 1.1747056632046406,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.1855597271323541,
+                "activeWallContacts": 7,
+                "currentNormalLoad": 55959.16451889137
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 0.12767987170910927,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.1855597271323541,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 103.22016600000006,
+          "fill": 0,
+          "iterations": 40,
+          "subdivisions": 8,
+          "certificateBound": 1.2373675417620689e-8,
+          "residual": {
+            "force": 1.2373675417620689e-8,
+            "torque": 1.1023644219676498e-9,
+            "length": 2.356665210201392e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 1.0947189335586138e-14,
+            "maxReferencePenetration": 0.006534100824812095,
+            "maxWallDisplacement": 0.006534100824824643,
+            "maxBalloonCompression": 0,
+            "contacts": 21,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.114391861286434e-15,
+                "maxBendAngleDegrees": 23.92845368970976,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 84.34000180369505,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 18823.022331384294
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.9200386401097233e-15,
+                "maxBendAngleDegrees": 10.771510411590965,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 67.6798087790046,
+                "activeWallContacts": 13,
+                "currentNormalLoad": 235594.83872836677
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.9889056136412406,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 2.533334204484045,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 14972.909453172895
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.054859563882472775,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.9505098358837358,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "samples": 8,
+        "meanMs": 77.9840261249999,
+        "medianMs": 69.32170899999983,
+        "p95Ms": 136.26929199999995,
+        "maxMs": 136.26929199999995,
+        "within60HzBudget": 0
+      }
+    },
+    {
+      "optimized": false,
+      "warmup": false,
+      "steps": [
+        {
+          "wallMs": 139.4850830000005,
+          "fill": 12.6,
+          "iterations": 33,
+          "subdivisions": 4,
+          "certificateBound": 1.0455551091581583e-8,
+          "residual": {
+            "force": 1.0455551091581583e-8,
+            "torque": 6.274092356761685e-10,
+            "length": 4.499265543467246e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.019806626980426e-14,
+            "maxReferencePenetration": 6.316176946026648,
+            "maxWallDisplacement": 0.4400413011031679,
+            "maxBalloonCompression": 5.876135644923485,
+            "contacts": 187,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 4.84460956200112e-15,
+                "maxBendAngleDegrees": 22.46754038577129,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 59.14120976776033,
+                "activeWallContacts": 4,
+                "currentNormalLoad": 21833.34733532311
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.1900289800822924e-15,
+                "maxBendAngleDegrees": 11.387818989843511,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 59.14120976776033,
+                "activeWallContacts": 181,
+                "currentNormalLoad": 3404992.8439961476
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 1.0679886663915055,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 11.194353317483044,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 28165.76267157779
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 0.021962817204183343,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 0.2523578338841005,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 81.3436670000001,
+          "fill": 12.7,
+          "iterations": 30,
+          "subdivisions": 4,
+          "certificateBound": 4.1396742744836956e-7,
+          "residual": {
+            "force": 4.1396742744836956e-7,
+            "torque": 9.384425882497376e-10,
+            "length": 6.33369225122582e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 2.3092638912203256e-14,
+            "maxReferencePenetration": 6.611410639637336,
+            "maxWallDisplacement": 0.4639992012740575,
+            "maxBalloonCompression": 6.147411438363288,
+            "contacts": 191,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.460435401429371e-15,
+                "maxBendAngleDegrees": 25.133167551592976,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 67.88918705773555,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 22044.945681014422
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.4868995751603505e-15,
+                "maxBendAngleDegrees": 11.435736614420108,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 67.88918705773555,
+                "activeWallContacts": 187,
+                "currentNormalLoad": 3568278.4688512837
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 1.2531662188912418,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 5.893089404524964,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 62912.58244636475
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.029017481362089276,
+                "maxBendNode": 6,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 0.9013811108418236,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 74.05016700000033,
+          "fill": 12.8,
+          "iterations": 24,
+          "subdivisions": 4,
+          "certificateBound": 1.9937942852266133e-8,
+          "residual": {
+            "force": 1.9937942852266133e-8,
+            "torque": 1.3397315943669509e-9,
+            "length": 3.6415315207705135e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.6415315207705135e-14,
+            "maxReferencePenetration": 6.440954395141284,
+            "maxWallDisplacement": 0.4478849953517983,
+            "maxBalloonCompression": 5.993069399789475,
+            "contacts": 199,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.3750779948604757e-15,
+                "maxBendAngleDegrees": 25.471564995119934,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 61.60222029128089,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 21806.3223465701
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 1.9539925233402757e-15,
+                "maxBendAngleDegrees": 12.440230541569111,
+                "maxBendNode": 38,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 61.60222029128089,
+                "activeWallContacts": 193,
+                "currentNormalLoad": 3719278.2927450202
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 1.1833658529843067,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 4.623390053494815,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 57301.73480194744
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.07101007112666721,
+                "maxBendNode": 7,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.404147247508383,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 74.26445800000056,
+          "fill": 12.7,
+          "iterations": 24,
+          "subdivisions": 4,
+          "certificateBound": 3.074746928177774e-7,
+          "residual": {
+            "force": 3.074746928177774e-7,
+            "torque": 1.0729109053563175e-9,
+            "length": 6.217248937900877e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 6.217248937900877e-14,
+            "maxReferencePenetration": 6.318172352824739,
+            "maxWallDisplacement": 0.4388290690852665,
+            "maxBalloonCompression": 5.879343283739465,
+            "contacts": 216,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 1.9539925233402757e-15,
+                "maxBendAngleDegrees": 26.347555458942136,
+                "maxBendNode": 56,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 80.5562844292908,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 20276.88794110384
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 1.9539925233402757e-15,
+                "maxBendAngleDegrees": 12.608272421779159,
+                "maxBendNode": 38,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 80.5562844292908,
+                "activeWallContacts": 206,
+                "currentNormalLoad": 3794984.367121152
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.5987211554602255e-15,
+                "maxBendAngleDegrees": 1.1836036429764427,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.1921119913163243,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 60519.94950323119
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.5987211554602255e-15,
+                "maxBendAngleDegrees": 0.0879745907345092,
+                "maxBendNode": 6,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.1377562777712797,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 64.38804199999959,
+          "fill": 12.6,
+          "iterations": 21,
+          "subdivisions": 4,
+          "certificateBound": 2.2015319700585678e-7,
+          "residual": {
+            "force": 2.2015319700585678e-7,
+            "torque": 1.5896794991476781e-9,
+            "length": 8.524778105645225e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 8.524778105645225e-14,
+            "maxReferencePenetration": 6.234437390783642,
+            "maxWallDisplacement": 0.4330746022353048,
+            "maxBalloonCompression": 5.801362788548337,
+            "contacts": 204,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 4.085620730620576e-15,
+                "maxBendAngleDegrees": 23.08476069401767,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 124.5352492543046,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 19356.544181338806
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 12.003774409259316,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 124.5352492543046,
+                "activeWallContacts": 195,
+                "currentNormalLoad": 3719893.7294061794
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 1.2090833778923347,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.480595835190238,
+                "activeWallContacts": 6,
+                "currentNormalLoad": 61413.78380082067
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 0.04794679605668864,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 3.480595835190238,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 67.15808300000026,
+          "fill": 12.5,
+          "iterations": 22,
+          "subdivisions": 4,
+          "certificateBound": 4.509811333264224e-7,
+          "residual": {
+            "force": 4.509811333264224e-7,
+            "torque": 1.5313245524048447e-9,
+            "length": 3.769033696254809e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.769033696254809e-14,
+            "maxReferencePenetration": 6.181293042463802,
+            "maxWallDisplacement": 0.4299043102705225,
+            "maxBalloonCompression": 5.751388732193273,
+            "contacts": 202,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.3750779948604757e-15,
+                "maxBendAngleDegrees": 25.140427454304117,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 135.22310628497542,
+                "activeWallContacts": 2,
+                "currentNormalLoad": 20360.067829889864
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.4868995751603505e-15,
+                "maxBendAngleDegrees": 11.997851921952199,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 92.19868493857717,
+                "activeWallContacts": 195,
+                "currentNormalLoad": 3644559.8144704853
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 1.1837744325862067,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.7238507602249142,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 58009.778032687536
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.4210854715202005e-15,
+                "maxBendAngleDegrees": 0.13480878897408888,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.7238507602249142,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 58.61012500000015,
+          "fill": 12.4,
+          "iterations": 20,
+          "subdivisions": 4,
+          "certificateBound": 6.60336809232831e-7,
+          "residual": {
+            "force": 6.60336809232831e-7,
+            "torque": 1.5299323366350925e-9,
+            "length": 3.700512118953725e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 3.700512118953725e-14,
+            "maxReferencePenetration": 6.127749905093699,
+            "maxWallDisplacement": 0.42668788440350214,
+            "maxBalloonCompression": 5.701062020690197,
+            "contacts": 208,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.189936577797593e-15,
+                "maxBendAngleDegrees": 24.486893459301676,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 99.51778550636082,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 22425.2118186594
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.3092638912203257e-15,
+                "maxBendAngleDegrees": 12.049483586799623,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 45.017591263399815,
+                "activeWallContacts": 198,
+                "currentNormalLoad": 3605929.5539829102
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 1.1747056632046406,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.1855597271323541,
+                "activeWallContacts": 7,
+                "currentNormalLoad": 55959.16451889137
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.7763568394002505e-15,
+                "maxBendAngleDegrees": 0.12767987170910927,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.1855597271323541,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        },
+        {
+          "wallMs": 108.8989590000001,
+          "fill": 0,
+          "iterations": 40,
+          "subdivisions": 8,
+          "certificateBound": 1.2373675417620689e-8,
+          "residual": {
+            "force": 1.2373675417620689e-8,
+            "torque": 1.1023644219676498e-9,
+            "length": 2.356665210201392e-14
+          },
+          "quality": {
+            "mesh": "shared-axis",
+            "interToolRows": 0,
+            "finite": true,
+            "maxPenetration": 1.0947189335586138e-14,
+            "maxReferencePenetration": 0.006534100824812095,
+            "maxWallDisplacement": 0.006534100824824643,
+            "maxBalloonCompression": 0,
+            "contacts": 21,
+            "bodies": [
+              {
+                "id": "wire",
+                "finite": true,
+                "maxLengthError": 3.114391861286434e-15,
+                "maxBendAngleDegrees": 23.92845368970976,
+                "maxBendNode": 60,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 84.34000180369505,
+                "activeWallContacts": 3,
+                "currentNormalLoad": 18823.022331384294
+              },
+              {
+                "id": "catheter",
+                "finite": true,
+                "maxLengthError": 2.9200386401097233e-15,
+                "maxBendAngleDegrees": 10.771510411590965,
+                "maxBendNode": 37,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 67.6798087790046,
+                "activeWallContacts": 13,
+                "currentNormalLoad": 235594.83872836677
+              },
+              {
+                "id": "sheath",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.9889056136412406,
+                "maxBendNode": 21,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 2.533334204484045,
+                "activeWallContacts": 5,
+                "currentNormalLoad": 14972.909453172895
+              },
+              {
+                "id": "dilator",
+                "finite": true,
+                "maxLengthError": 1.2434497875801752e-15,
+                "maxBendAngleDegrees": 0.054859563882472775,
+                "maxBendNode": 1,
+                "maxBendLimitDegrees": 45,
+                "maxSpeed": 1.9505098358837358,
+                "activeWallContacts": 0,
+                "currentNormalLoad": 0
+              }
+            ]
+          }
+        }
+      ],
+      "summary": {
+        "samples": 8,
+        "meanMs": 83.5248230000002,
+        "medianMs": 74.26445800000056,
+        "p95Ms": 139.4850830000005,
+        "maxMs": 139.4850830000005,
+        "within60HzBudget": 0
+      }
+    }
+  ],
+  "identicalMechanics": true,
+  "identicalSurface": true,
+  "projection": {
+    "reference": {
+      "samples": 40,
+      "meanMs": 7.503027075000068,
+      "medianMs": 7.506584000000657,
+      "p95Ms": 7.611292000000503,
+      "maxMs": 7.802625000000262,
+      "within60HzBudget": 40
+    },
+    "optimized": {
+      "samples": 40,
+      "meanMs": 3.2431749500000024,
+      "medianMs": 3.232250000000022,
+      "p95Ms": 3.535707999999431,
+      "maxMs": 4.093541999999616,
+      "within60HzBudget": 40
+    }
+  }
+}

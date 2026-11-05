@@ -1,6 +1,8 @@
 import {DilatedLumenMixing} from './dilatedLumenMixing.js';
+import {mixRefluxJunctionBoundaries} from './refluxJunctionMixing.js';
 import * as THREE from 'three';
 import {FlowAdvection} from './flowAdvection.js';
+import {initializeOutletResistances} from './outletResistance.js';
 import { repairArterialFlowTopology } from '../arterialFlowTopology.js';
 
 const MM3_PER_ML = 1000;
@@ -8,13 +10,10 @@ const SECONDS_PER_MINUTE = 60;
 const MIN_RADIUS_MM = 0.35;
 const DEFAULT_CELL_LENGTH_MM = 2.5;
 const DEFAULT_SPATIAL_CELL_MM = 12;
-const DEFAULT_TERMINAL_LENGTH_MM = 800;
-const DEFAULT_TERMINAL_FLOW_RADIUS_EXPONENT = 2;
-const DEFAULT_MINIMUM_TERMINAL_PERFUSION_RADIUS_MM = 1.2;
-const DEFAULT_LOCAL_CALIBER_FLOW_BLEND = 0.72;
-const DEFAULT_LOCAL_CALIBER_FLOW_EXPONENT = 2;
-const DEFAULT_BRANCH_CALIBER_SAMPLE_DISTANCE_MM = 6;
-const DEFAULT_MAXIMUM_CALIBER_CORRECTED_TERMINAL_OUTLETS = 2;
+// Reference tissue-bed resistance (Pa s / mm³), before resolved arteries.
+// At 5 L/min, 0.144 corresponds to a 12 kPa tissue pressure drop.
+const DEFAULT_PERIPHERAL_RESISTANCE = 0.144;
+const DEFAULT_MINIMUM_OUTLET_TERRITORY_RADIUS_MM = 1.2;
 const DEFAULT_CFL_LIMIT = 0.72;
 const MIN_ACTIVE_EDGE_MASS_MG = 5e-4;
 const RADIUS_VALLEY_WINDOW_MM = 28;
@@ -67,6 +66,13 @@ function frustumVolume(length, radiusStart, radiusEnd) {
         (radiusStart * radiusStart + radiusStart * radiusEnd + radiusEnd * radiusEnd) / 3;
 }
 
+// Exact Poiseuille integral for a linearly tapered radius. Using a mean
+// radius here would change resistance when the same vessel is subdivided.
+function arterialResistance(length, r0, r1, viscosity) {
+    return 8 * viscosity * length * (r0 * r0 + r0 * r1 + r1 * r1) /
+        (3 * Math.PI * r0 ** 3 * r1 ** 3);
+}
+
 function createNode(nodeId, point) {
     return {
         id: nodeId,
@@ -76,7 +82,6 @@ function createNode(nodeId, point) {
         childEdgeIndices: [],
         equivalentResistance: Infinity,
         terminalRadius: MIN_RADIUS_MM,
-        perfusionWeight: 0,
         terminalOutletCount: 0
     };
 }
@@ -161,9 +166,7 @@ function orientedEdge(source, sourceIndex, startNode, endNode, edgeIndex, {
         areas[cellIndex] = Math.PI * ((r0 + r1) * 0.5) ** 2;
         totalVolume += volume;
     }
-    const effectiveRadius = Math.max(MIN_RADIUS_MM, (radiusStart + radiusEnd) * 0.5);
-    const resistance = 8 * bloodViscosityPaS * length /
-        (Math.PI * effectiveRadius ** 4);
+    const resistance = arterialResistance(length, radiusStart, radiusEnd, bloodViscosityPaS);
     return {
         index: edgeIndex,
         sourceIndex,
@@ -219,16 +222,8 @@ export class ContrastFlowNetwork {
         rootPoint = null,
         cellLengthMm = DEFAULT_CELL_LENGTH_MM,
         spatialCellMm = DEFAULT_SPATIAL_CELL_MM,
-        terminalResistanceLengthMm = DEFAULT_TERMINAL_LENGTH_MM,
-        terminalFlowRadiusExponent = DEFAULT_TERMINAL_FLOW_RADIUS_EXPONENT,
-        minimumTerminalPerfusionRadiusMm =
-            DEFAULT_MINIMUM_TERMINAL_PERFUSION_RADIUS_MM,
-        localCaliberFlowBlend = DEFAULT_LOCAL_CALIBER_FLOW_BLEND,
-        localCaliberFlowExponent = DEFAULT_LOCAL_CALIBER_FLOW_EXPONENT,
-        branchCaliberSampleDistanceMm =
-            DEFAULT_BRANCH_CALIBER_SAMPLE_DISTANCE_MM,
-        maximumCaliberCorrectedTerminalOutlets =
-            DEFAULT_MAXIMUM_CALIBER_CORRECTED_TERMINAL_OUTLETS,
+        peripheralResistancePaSPerMm3 = DEFAULT_PERIPHERAL_RESISTANCE,
+        minimumOutletTerritoryRadiusMm = DEFAULT_MINIMUM_OUTLET_TERRITORY_RADIUS_MM,
         cflLimit = DEFAULT_CFL_LIMIT,
         ...hemodynamicOverrides
     } = {}) {
@@ -251,34 +246,10 @@ export class ContrastFlowNetwork {
         if (!this.rootNode) throw new Error('Unable to select the arterial inlet');
         this.cellLengthMm = cellLengthMm;
         this.spatialCellMm = spatialCellMm;
-        this.terminalResistanceLengthMm = terminalResistanceLengthMm;
-        this.terminalFlowRadiusExponent = THREE.MathUtils.clamp(
-            terminalFlowRadiusExponent,
-            1,
-            4
-        );
-        this.minimumTerminalPerfusionRadiusMm = Math.max(
-            MIN_RADIUS_MM,
-            minimumTerminalPerfusionRadiusMm
-        );
-        this.localCaliberFlowBlend = THREE.MathUtils.clamp(
-            localCaliberFlowBlend,
-            0,
-            1
-        );
-        this.localCaliberFlowExponent = THREE.MathUtils.clamp(
-            localCaliberFlowExponent,
-            1,
-            4
-        );
-        this.branchCaliberSampleDistanceMm = Math.max(
-            0,
-            branchCaliberSampleDistanceMm
-        );
-        this.maximumCaliberCorrectedTerminalOutlets = Math.max(
-            0,
-            Math.floor(maximumCaliberCorrectedTerminalOutlets)
-        );
+        if (!(peripheralResistancePaSPerMm3 > 0) || !Number.isFinite(peripheralResistancePaSPerMm3))
+            throw new RangeError('Peripheral resistance must be finite and positive');
+        this.peripheralResistancePaSPerMm3 = peripheralResistancePaSPerMm3;
+        this.minimumOutletTerritoryRadiusMm = Math.max(MIN_RADIUS_MM, minimumOutletTerritoryRadiusMm);
         this.cflLimit = cflLimit;
         this.edges = [];
         this.nodeOrder = [];
@@ -314,6 +285,10 @@ export class ContrastFlowNetwork {
         this._branchInletConcentrationMgPerMm3 =
             new Float64Array(this.edges.length);
         this._queryMarks = new Uint32Array(this.edges.length);
+        // Uniform per-edge source responses stay dense; local device outlets
+        // retain separate face deltas on the two sides of their source cell.
+        this._edgeFlowDeltasMm3PerS = new Float64Array(this.edges.length);
+        initializeOutletResistances(this);
         this._computeHydraulicDistribution();
         this._buildSpatialIndex();
         this.minimumCellLength = this.edges.reduce(
@@ -364,6 +339,7 @@ export class ContrastFlowNetwork {
 
     clearFlowOverrides() {
         this._flowOverridesMm3PerS.fill(Number.NaN);
+        this._edgeFlowDeltasMm3PerS.fill(0);
         for (const edgeIndex of this._faceFlowDeltaEdgeIndices) {
             this.edges[edgeIndex]?.faceFlowDeltaMm3PerS.fill(0);
         }
@@ -393,7 +369,7 @@ export class ContrastFlowNetwork {
         const edge = this.edges[edgeIndex];
         if (!edge) return baseFlow;
         const faces = edge.faceFlowDeltaMm3PerS;
-        return baseFlow + (faces[0] + faces[faces.length - 1]) * 0.5;
+        return baseFlow + this._edgeFlowDeltasMm3PerS[edgeIndex] + (faces[0] + faces[faces.length - 1]) * 0.5;
     }
 
     getFaceSignedFlowMm3PerS(edgeIndex, faceIndex, waveform = 1) {
@@ -408,8 +384,22 @@ export class ContrastFlowNetwork {
             0,
             edge.cellCount
         );
-        return baseFlow +
+        return baseFlow + this._edgeFlowDeltasMm3PerS[edgeIndex] +
             edge.faceFlowDeltaMm3PerS[resolvedFaceIndex];
+    }
+
+    getFaceDispersionFlowMm3PerS(edgeIndex, faceIndex, waveform = 1) {
+        const edge = this.edges[edgeIndex];
+        if (!edge || edge.transportExcluded) return 0;
+        const override = this._flowOverridesMm3PerS[edgeIndex];
+        const carrier = Number.isFinite(override) ? override : edge.meanFlowMm3PerS * waveform;
+        const delta = this._edgeFlowDeltasMm3PerS[edgeIndex] +
+            edge.faceFlowDeltaMm3PerS[Math.max(0, Math.min(edge.cellCount, faceIndex))];
+        // Reduced unresolved shear: opposing injection and blood do not stop
+        // mixing when their NET transport cancels. This is |Qnet| plus twice
+        // the opposing component, using the existing axial-dispersion closure.
+        // With no injection (or co-directed flow) it equals the transport speed.
+        return Math.abs(carrier) + Math.abs(delta);
     }
 
     addFaceFlowDelta(
@@ -1230,13 +1220,8 @@ export class ContrastFlowNetwork {
                     Math.PI * ((radius0 + radius1) * 0.5) ** 2;
                 edge.totalVolume += volume;
             }
-            const effectiveRadius = Math.max(
-                MIN_RADIUS_MM,
-                (edge.radiusStart + edge.radiusEnd) * 0.5
-            );
-            edge.resistance =
-                8 * this.hemodynamics.bloodViscosityPaS * edge.length /
-                (Math.PI * effectiveRadius ** 4);
+            edge.resistance = arterialResistance(edge.length, edge.radiusStart,
+                edge.radiusEnd, this.hemodynamics.bloodViscosityPaS);
         }
 
         this.radiusRegularizationDiagnostics = {
@@ -1276,13 +1261,8 @@ export class ContrastFlowNetwork {
                 Math.PI * ((radius0 + radius1) * 0.5) ** 2;
             edge.totalVolume += volume;
         }
-        const effectiveRadius = Math.max(
-            MIN_RADIUS_MM,
-            (edge.radiusStart + edge.radiusEnd) * 0.5
-        );
-        edge.resistance =
-            8 * this.hemodynamics.bloodViscosityPaS * edge.length /
-            (Math.PI * effectiveRadius ** 4);
+        edge.resistance = arterialResistance(edge.length, edge.radiusStart,
+            edge.radiusEnd, this.hemodynamics.bloodViscosityPaS);
     }
 
     /**
@@ -1503,125 +1483,54 @@ export class ContrastFlowNetwork {
         this.sideJunctionRadiusDiagnostics = diagnostics;
     }
 
-    _computeHydraulicDistribution() {
-        for (let orderIndex = this.nodeOrder.length - 1; orderIndex >= 0; orderIndex--) {
-            const node = this.nodes.get(this.nodeOrder[orderIndex]);
-            if (!node.childEdgeIndices.length) {
-                node.perfusionWeight = Math.max(
-                    this.minimumTerminalPerfusionRadiusMm,
-                    node.terminalRadius
-                ) ** this.terminalFlowRadiusExponent;
-                node.equivalentResistance =
-                    this.terminalResistanceLengthMm / Math.max(MIN_RADIUS_MM, node.terminalRadius) ** 4;
-                node.terminalOutletCount = 1;
-                continue;
-            }
-            let conductance = 0;
-            let perfusionWeight = 0;
-            let terminalOutletCount = 0;
-            for (const edgeIndex of node.childEdgeIndices) {
-                const edge = this.edges[edgeIndex];
-                const child = this.nodes.get(edge.endNodeId);
-                edge.equivalentResistance = edge.resistance + child.equivalentResistance;
-                conductance += 1 / Math.max(1e-12, edge.equivalentResistance);
-                perfusionWeight += child.perfusionWeight;
-                terminalOutletCount += child.terminalOutletCount;
-            }
-            node.perfusionWeight = perfusionWeight;
-            node.terminalOutletCount = terminalOutletCount;
-            node.equivalentResistance = conductance > 0 ? 1 / conductance : Infinity;
-        }
-
-        const inletFlowMm3PerS =
-            this.hemodynamics.cardiacOutputMlPerMin * MM3_PER_ML / SECONDS_PER_MINUTE;
-        const queue = [{ node: this.rootNode, flow: inletFlowMm3PerS }];
-        let queueIndex = 0;
-        while (queueIndex < queue.length) {
-            const { node, flow } = queue[queueIndex++];
-            if (!node.childEdgeIndices.length) continue;
-            let totalPerfusionWeight = 0;
-            let totalCaliberWeight = 0;
-            for (const edgeIndex of node.childEdgeIndices) {
-                const edge = this.edges[edgeIndex];
-                const child = this.nodes.get(edge.endNodeId);
-                totalPerfusionWeight += child.perfusionWeight;
-                edge.flowSplitRadiusMm =
-                    this._sampleBranchCaliberMm(edgeIndex);
-                edge.flowSplitCaliberWeight =
-                    edge.flowSplitRadiusMm ** this.localCaliberFlowExponent;
-                totalCaliberWeight += edge.flowSplitCaliberWeight;
-            }
-            let totalRawSplitShare = 0;
-            for (const edgeIndex of node.childEdgeIndices) {
-                const edge = this.edges[edgeIndex];
-                const child = this.nodes.get(edge.endNodeId);
-                const equalShare = 1 / node.childEdgeIndices.length;
-                const perfusionShare = totalPerfusionWeight > 0
-                    ? child.perfusionWeight / totalPerfusionWeight
-                    : equalShare;
-                const caliberShare = totalCaliberWeight > 0
-                    ? edge.flowSplitCaliberWeight / totalCaliberWeight
-                    : equalShare;
-                const isUnderresolvedBranch =
-                    child.terminalOutletCount <=
-                        this.maximumCaliberCorrectedTerminalOutlets;
-                edge.rawFlowSplitShare = isUnderresolvedBranch
-                    ? perfusionShare * (1 - this.localCaliberFlowBlend) +
-                        caliberShare * this.localCaliberFlowBlend
-                    : perfusionShare;
-                totalRawSplitShare += edge.rawFlowSplitShare;
-            }
-            for (const edgeIndex of node.childEdgeIndices) {
-                const edge = this.edges[edgeIndex];
-                const child = this.nodes.get(edge.endNodeId);
-                edge.flowSplitShare =
-                    edge.rawFlowSplitShare /
-                    Math.max(1e-12, totalRawSplitShare);
-                edge.meanFlowMm3PerS = flow * edge.flowSplitShare;
-                queue.push({
-                    node: child,
-                    flow: edge.meanFlowMm3PerS
-                });
-            }
-        }
+    setOutletResistance(nodeId, resistancePaSPerMm3) {
+        const node = this.nodes.get(nodeId);
+        if (!node?.nativeOutlet || !(resistancePaSPerMm3 > 0) || !Number.isFinite(resistancePaSPerMm3))
+            throw new RangeError('A native outlet and a finite positive resistance are required');
+        node.outletResistancePaSPerMm3 = resistancePaSPerMm3;
+        this._computeHydraulicDistribution();
+        this._updateMaximumMeanVelocity();
     }
 
-    _sampleBranchCaliberMm(edgeIndex) {
-        let edge = this.edges[edgeIndex];
-        if (!edge) return MIN_RADIUS_MM;
-        let remainingDistance = this.branchCaliberSampleDistanceMm;
-        let sampledRadius = edge.radiusStart;
-        const visited = new Set();
-
-        while (edge && !visited.has(edge.index)) {
-            visited.add(edge.index);
-            if (remainingDistance <= edge.length) {
-                const t = edge.length > 1e-9
-                    ? remainingDistance / edge.length
-                    : 1;
-                return Math.max(
-                    MIN_RADIUS_MM,
-                    THREE.MathUtils.lerp(
-                        edge.radiusStart,
-                        edge.radiusEnd,
-                        THREE.MathUtils.clamp(t, 0, 1)
-                    )
-                );
+    _computeHydraulicDistribution() {
+        this.hydraulicRevision = (this.hydraulicRevision || 0) + 1;
+        // Resistances are in Pa s/mm³. Resolved arteries are in series with
+        // their downstream tissue beds; daughters are connected in parallel.
+        // Bed resistances are initialized once, not rebalanced after a device
+        // occludes a branch or changes its lumen.
+        for (let i = this.nodeOrder.length - 1; i >= 0; i--) {
+            const node = this.nodes.get(this.nodeOrder[i]);
+            let conductance = 0, outlets = 0;
+            for (const index of node.childEdgeIndices) {
+                const edge = this.edges[index], child = this.nodes.get(edge.endNodeId);
+                edge.equivalentResistance = edge.transportExcluded
+                    ? Infinity : edge.resistance + child.equivalentResistance;
+                conductance += 1 / edge.equivalentResistance;
+                if (!edge.transportExcluded) outlets += child.terminalOutletCount;
             }
-            remainingDistance -= edge.length;
-            sampledRadius = edge.radiusEnd;
-            if (!edge.childEdgeIndices.length) break;
-            edge = edge.childEdgeIndices.reduce((widest, childIndex) => {
-                const child = this.edges[childIndex];
-                if (!widest) return child;
-                const childRadius =
-                    (child.radiusStart + child.radiusEnd) * 0.5;
-                const widestRadius =
-                    (widest.radiusStart + widest.radiusEnd) * 0.5;
-                return childRadius > widestRadius ? child : widest;
-            }, null);
+            node.terminalOutletCount = node.nativeOutlet ? 1 : outlets;
+            node.equivalentResistance = node.nativeOutlet
+                ? node.outletResistancePaSPerMm3
+                : conductance > 0 ? 1 / conductance : Infinity;
+            node.pressurePa = 0;
         }
-        return Math.max(MIN_RADIUS_MM, sampledRadius);
+        for (const edge of this.edges) {
+            edge.meanFlowMm3PerS = 0;
+            edge.flowSplitShare = 0;
+        }
+        const inletFlow = this.hemodynamics.cardiacOutputMlPerMin * MM3_PER_ML / SECONDS_PER_MINUTE;
+        this.rootNode.pressurePa = Number.isFinite(this.rootNode.equivalentResistance)
+            ? inletFlow * this.rootNode.equivalentResistance : 0;
+        for (const id of this.nodeOrder) {
+            const node = this.nodes.get(id);
+            for (const index of node.childEdgeIndices) {
+                const edge = this.edges[index], child = this.nodes.get(edge.endNodeId);
+                if (edge.transportExcluded || !Number.isFinite(edge.equivalentResistance)) continue;
+                edge.meanFlowMm3PerS = node.pressurePa / edge.equivalentResistance;
+                edge.flowSplitShare = node.equivalentResistance / edge.equivalentResistance;
+                child.pressurePa = edge.meanFlowMm3PerS * child.equivalentResistance;
+            }
+        }
     }
 
     _buildSpatialIndex() {
@@ -2096,7 +2005,7 @@ export class ContrastFlowNetwork {
                 this.edges[childIndex].nextMassMg.set(this.edges[childIndex].massMg);
             }
         }
-        this._applyJunctionDispersion(dt, touched, reached);
+        this._applyJunctionDispersion(dt, touched, reached, marks, waveform);
         this.dilatedLumenMixing.update(dt, touched, marks,waveform);
         this._activeEdgeIndices.clear();
         for (const edgeIndex of touched) {
@@ -2114,94 +2023,87 @@ export class ContrastFlowNetwork {
         }
     }
 
-    _applyJunctionDispersion(dt, touchedEdgeIndices = this.edges.map(edge => edge.index), count = touchedEdgeIndices.length) {
-        const coefficient = Math.max(0, this.hemodynamics.axialDispersionMm2PerS);
-        if (!(coefficient > 0)) return;
-        const waveform = arterialWaveform(
-            this.time,
-            this.hemodynamics.heartRateBpm
-        );
+    _applyJunctionDispersion(dt, touched, count, marks, waveform) {
+        const base = Math.max(0, this.hemodynamics.axialDispersionMm2PerS);
+        if (!(base > 0)) return;
+        const shear = Math.max(0, this.hemodynamics.axialFlowDispersionFactor ?? .04);
+        const junctions = new Set();
         for (let i = 0; i < count; i++) {
-            const edgeIndex = touchedEdgeIndices[i];
-            const edge = this.edges[edgeIndex];
-            if (!edge.childEdgeIndices.length) continue;
-            // The chain solver handles ordinary degree-two nodes in both
-            // directions. Only real bifurcations need the directed exchange.
-            if (edge.childEdgeIndices.length === 1) continue;
-            if (!edge.active && !edge.childEdgeIndices.some(
-                childIndex => this.edges[childIndex].active
-            )) continue;
-            const parentIndex = edge.cellCount - 1;
-            const parentVolume = Math.max(
-                1e-9,
-                edge.volumes[parentIndex]
-            );
-            const parentConcentration =
-                edge.nextMassMg[parentIndex] / parentVolume;
-            const transfers = [];
-            let requestedTransferMassMg = 0;
-            const parentEndFlow = this.getFaceSignedFlowMm3PerS(
-                edge.index,
-                edge.cellCount,
-                waveform
-            );
-            if (!(parentEndFlow > 0)) continue;
-            for (const childIndex of edge.childEdgeIndices) {
-                const child = this.edges[childIndex];
-                const childStartFlow = this.getFaceSignedFlowMm3PerS(
-                    child.index,
-                    0,
-                    waveform
-                );
-                if (!(childStartFlow > 0)) continue;
-                const childVolume = Math.max(
-                    1e-9,
-                    child.volumes[0]
-                );
-                const childConcentration =
-                    child.nextMassMg[0] / childVolume;
-                // Once the local 3D jet has mixed into the 1D arterial model,
-                // junction exchange must remain antegrade. Allowing symmetric
-                // diffusion here slowly leaks iodine into the upstream parent
-                // and then into unrelated sibling territories, producing
-                // non-physiological late vessel staining.
-                if (!(parentConcentration > childConcentration)) continue;
-                const interfaceArea = Math.min(
-                    edge.areas[parentIndex],
-                    child.areas[0]
-                );
-                const distance = Math.max(
-                    1e-6,
-                    (edge.cellLength + child.cellLength) * 0.5
-                );
-                let requestedTransfer = coefficient * interfaceArea *
-                    (parentConcentration - childConcentration) / distance * dt;
-                const equilibriumTransfer =
-                    (parentConcentration - childConcentration) /
-                    (1 / parentVolume + 1 / childVolume);
-                requestedTransfer = Math.min(
-                    requestedTransfer,
-                    equilibriumTransfer
-                );
-                if (!(requestedTransfer > 0)) continue;
-                transfers.push({ child, requestedTransfer });
-                requestedTransferMassMg += requestedTransfer;
+            const edge = this.edges[touched[i]];
+            for (const id of [edge.startNodeId, edge.endNodeId]) {
+                const node = this.nodes.get(id);
+                if (node?.parentEdgeIndex >= 0 && node.childEdgeIndices.length > 1) junctions.add(node);
             }
-
-            if (!(requestedTransferMassMg > 0)) continue;
-            const maximumTransferMassMg =
-                edge.nextMassMg[parentIndex] * 0.25;
-            const transferScale = Math.min(
-                1,
-                maximumTransferMassMg / requestedTransferMassMg
-            );
-            let transferredMassMg = 0;
-            for (const { child, requestedTransfer } of transfers) {
-                const transfer = requestedTransfer * transferScale;
-                child.nextMassMg[0] += transfer;
-                transferredMassMg += transfer;
+        }
+        for (const node of junctions) {
+            const incoming = [], outgoing = [];
+            const add = (edgeIndex, atEnd) => {
+                const edge = this.edges[edgeIndex], cell = atEnd ? edge.cellCount - 1 : 0;
+                if (edge.transportExcluded || edge.graftSections?.[cell]) return;
+                const q = (atEnd ? 1 : -1) * this.getFaceSignedFlowMm3PerS(edgeIndex, atEnd ? edge.cellCount : 0, waveform);
+                if (!q) return;
+                const mass = (marks[edgeIndex] ? edge.nextMassMg : edge.massMg)[cell];
+                const volume = Math.max(1e-9, edge.volumes[cell]);
+                (q > 0 ? incoming : outgoing).push({edge, cell, face: atEnd ? edge.cellCount : 0, q: Math.abs(q), mass, volume, c: mass / volume});
+            };
+            add(node.parentEdgeIndex, true);
+            for (const child of node.childEdgeIndices) add(child, false);
+            if (!incoming.length || !outgoing.length) continue;
+            // Antegrade blood and an actual refluxing daughter meet in the
+            // common lumen. Exchange their boundary-cell contents locally;
+            // otherwise two disjoint axial chains pin a hard front to the node.
+            if (mixRefluxJunctionBoundaries(incoming, node.parentEdgeIndex, dt, shear)) {
+                for (const a of incoming) {
+                    if (!marks[a.edge.index]) {
+                        marks[a.edge.index] = 1; touched.push(a.edge.index);
+                        a.edge.nextMassMg.set(a.edge.massMg);
+                    }
+                    a.edge.nextMassMg[a.cell] = a.mass;
+                }
             }
-            edge.nextMassMg[parentIndex] -= transferredMassMg;
+            const inflow = incoming.reduce((sum, a) => sum + a.q, 0);
+            const iodineFlux = incoming.reduce((sum, a) => sum + a.q * a.c, 0);
+            if (!(iodineFlux > 0)) continue;
+            // Incoming blood and refluxing contrast form one flow-weighted
+            // mixture. A reversed daughter can be a donor, and a reversed
+            // parent a receiver; anatomical parent/child labels are not flow.
+            const mixed = iodineFlux / inflow;
+            const inletLength = incoming.reduce((sum, a) => sum + a.q * a.edge.cellLength, 0) / inflow;
+            const inletArea = incoming.reduce((sum, a) => sum + a.edge.areas[a.cell], 0);
+            let requested = 0;
+            for (const b of outgoing) {
+                const difference = mixed - b.c;
+                if (!(difference > 0)) continue;
+                const area = Math.min(inletArea, b.edge.areas[b.cell]);
+                const dispersionFlow = this.getFaceDispersionFlowMm3PerS(
+                    b.edge.index, b.face, waveform);
+                const speed = dispersionFlow / Math.max(1e-9, area);
+                const diffusion = base + shear * speed * Math.sqrt(area / Math.PI);
+                b.transfer = Math.min(
+                    dt * diffusion * area * difference / Math.max(1e-6, (inletLength + b.edge.cellLength) * .5),
+                    difference * b.volume
+                );
+                requested += b.transfer;
+            }
+            if (!(requested > 0)) continue;
+            let available = Infinity;
+            for (const a of incoming) {
+                a.share = a.q * a.c / iodineFlux;
+                if (a.share > 0) available = Math.min(available, .25 * a.mass / a.share);
+            }
+            const scale = Math.min(1, available / requested);
+            const change = (boundary, amount) => {
+                const {edge, cell} = boundary;
+                if (!marks[edge.index]) {
+                    marks[edge.index] = 1; touched.push(edge.index);
+                    edge.nextMassMg.set(edge.massMg);
+                }
+                edge.nextMassMg[cell] += amount;
+            };
+            // Directed exchange cannot diffuse a selective injection into an
+            // unrelated inflow arm. Every added microgram leaves a donor cell.
+            for (const b of outgoing) if (b.transfer > 0) change(b, b.transfer * scale);
+            for (const a of incoming) if (a.share > 0) change(a, -requested * scale * a.share);
         }
     }
 

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
     DETECTOR_ZOOM_MODES,
+    DEFAULT_DETECTOR_SIDE_MM,
     applyDetectorZoomTechnique,
     getDetectorZoomMode,
     nextDetectorZoomMode
@@ -20,8 +21,22 @@ assert.equal(nextDetectorZoomMode('medium').id, 'maximum');
 assert.equal(nextDetectorZoomMode('maximum').id, 'none');
 assert.deepEqual(
     DETECTOR_ZOOM_MODES.map(mode => mode.inputFieldCm),
+    [30, 300 / 14, 300 / 21]
+);
+assert.equal(DEFAULT_DETECTOR_SIDE_MM, 300);
+assert.deepEqual(
+    DETECTOR_ZOOM_MODES.map(mode => getDetectorZoomMode(mode.id, 210).inputFieldCm),
     [21, 15, 10]
 );
+assert.equal(nextDetectorZoomMode('maximum', 210).inputFieldCm, 21);
+assert.equal(getDetectorZoomMode('unknown', 210).inputFieldCm, 21);
+assert.equal(getDetectorZoomMode('none', '300').inputFieldCm, 30);
+for (const sideMm of [210, 300]) {
+    for (const preset of DETECTOR_ZOOM_MODES) {
+        const mode = getDetectorZoomMode(preset.id, sideMm);
+        assert.ok(Math.abs(mode.inputFieldCm * mode.zoomFactor * 10 - sideMm) < 1e-8);
+    }
+}
 assert.deepEqual(
     DETECTOR_ZOOM_MODES.map(mode => mode.zoomFactor),
     [1, 1.4, 2.1]

@@ -3,9 +3,7 @@ import {
     kirchhoffMaterialProfile
 } from './kirchhoffMaterialProfile.js';
 import {
-    GUIDEWIRE_TYPE_GLIDEWIRE,
-    GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED,
-    GUIDEWIRE_TYPE_STEEL_J_035,
+    isGuidewireType,
     guidewireMaterialProfile
 } from './guidewireMaterialProfile.js';
 
@@ -38,15 +36,11 @@ function independentRigidityScaleAtDistance(
     if (shaftStiffnessScale === tipStiffnessScale) return null;
     let coreLength;
     let transitionLength;
-    if (
-        profile.id !== GUIDEWIRE_TYPE_GLIDEWIRE &&
-        profile.id !== GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED &&
-        profile.id !== GUIDEWIRE_TYPE_STEEL_J_035
-    ) {
+    if (!isGuidewireType(profile.id)) {
         if (
             profile.id !== 'pigtail' &&
             profile.id !== 'berenstein' &&
-            profile.id !== 'sim1'
+            profile.id !== 'sim1' && profile.id !== 'reliant-balloon'
         ) {
             throw new RangeError(
                 'Independent shaft and tip stiffness scales require a supported tool profile'

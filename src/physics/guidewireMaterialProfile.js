@@ -27,6 +27,52 @@ export function integrateAngledGlidewireIntrinsicTurn(center, width) {
     return primitive(b) - primitive(a);
 }
 export const GUIDEWIRE_TYPE_STEEL_J_035 = 'steel-j-035';
+export const GUIDEWIRE_TYPE_LUNDERQUIST = 'lunderquist-double-curved';
+// Cook G45208 / TSCMG-35-260-LESDC: 0.035", 260 cm, 4 cm floppy
+// tip, 11 cm taper, primary/secondary radii 75/15 mm.
+// https://www.cookmedical.com/products/ndo_tsmg_webds/
+// The two half-turns approximate the manufacturer's product photograph;
+// arc angles and EI are simulator presets, not manufacturer measurements.
+export const LUNDERQUIST_LENGTH_MM = 2600;
+export const LUNDERQUIST_PRIMARY_RADIUS_MM = 75;
+export const LUNDERQUIST_SECONDARY_RADIUS_MM = 15;
+const LUNDERQUIST_SECONDARY_ARC_MM = Math.PI * LUNDERQUIST_SECONDARY_RADIUS_MM;
+const LUNDERQUIST_CURVATURE_BLEND_MM = 8;
+const LUNDERQUIST_SHAFT_BLEND_MM = 10;
+export const LUNDERQUIST_CURVED_LENGTH_MM = Math.PI *
+    (LUNDERQUIST_PRIMARY_RADIUS_MM + LUNDERQUIST_SECONDARY_RADIUS_MM) +
+    LUNDERQUIST_SHAFT_BLEND_MM / 2;
+export const LUNDERQUIST_NATURAL_TURN_RAD = 2 * Math.PI;
+
+export function lunderquistIntrinsicCurvature(distance) {
+    if (distance < 0 || distance >= LUNDERQUIST_CURVED_LENGTH_MM) return 0;
+    const junctionStart = LUNDERQUIST_SECONDARY_ARC_MM - LUNDERQUIST_CURVATURE_BLEND_MM / 2;
+    const junction = smoothstep((distance - junctionStart) / LUNDERQUIST_CURVATURE_BLEND_MM);
+    const curvature = (1 - junction) / LUNDERQUIST_SECONDARY_RADIUS_MM +
+        junction / LUNDERQUIST_PRIMARY_RADIUS_MM;
+    return curvature * (1 - smoothstep((distance -
+        (LUNDERQUIST_CURVED_LENGTH_MM - LUNDERQUIST_SHAFT_BLEND_MM)) / LUNDERQUIST_SHAFT_BLEND_MM));
+}
+
+export function integrateLunderquistIntrinsicTurn(center, width) {
+    const start = Math.max(0, center - Math.max(0, width) / 2);
+    const end = Math.min(LUNDERQUIST_CURVED_LENGTH_MM, center + Math.max(0, width) / 2);
+    if (end <= start) return 0;
+    // Split at each polynomial boundary: exact on coarse and adaptive meshes.
+    const boundaries = [start,
+        LUNDERQUIST_SECONDARY_ARC_MM - LUNDERQUIST_CURVATURE_BLEND_MM / 2,
+        LUNDERQUIST_SECONDARY_ARC_MM + LUNDERQUIST_CURVATURE_BLEND_MM / 2,
+        LUNDERQUIST_CURVED_LENGTH_MM - LUNDERQUIST_SHAFT_BLEND_MM,
+        end].filter(x => x >= start && x <= end);
+    let integral = 0;
+    for (let i = 1; i < boundaries.length; i++) {
+        const half = (boundaries[i] - boundaries[i - 1]) / 2;
+        const mid = (boundaries[i] + boundaries[i - 1]) / 2;
+        for (const [x, weight] of GAUSS_SAMPLES)
+            integral += half * weight * lunderquistIntrinsicCurvature(mid + half * x);
+    }
+    return integral;
+}
 export const STEEL_J_GUIDEWIRE_BODY_BENDING_STIFFNESS = 32768;
 export const STEEL_J_GUIDEWIRE_TIP_BENDING_STIFFNESS = 128;
 export const STEEL_J_GUIDEWIRE_TIP_CORE_LENGTH_MM = 20;
@@ -115,6 +161,20 @@ const ZERO_INTRINSIC_TURN = () => 0;
 const ZERO_INTRINSIC_CURVATURE = () => 0;
 
 export const GUIDEWIRE_MATERIAL_PROFILES = Object.freeze({
+    [GUIDEWIRE_TYPE_LUNDERQUIST]: Object.freeze({
+        id: GUIDEWIRE_TYPE_LUNDERQUIST,
+        bodyBendingStiffness: 131072,
+        tipBendingStiffness: 128,
+        tipCoreLength: 40,
+        tipTransitionLength: 110,
+        bodyMaxBendAngle: 5,
+        tipMaxBendAngle: 30,
+        naturalArcLength: LUNDERQUIST_CURVED_LENGTH_MM,
+        naturalTurn: LUNDERQUIST_NATURAL_TURN_RAD,
+        frameNormalSign: 1,
+        intrinsicCurvature: lunderquistIntrinsicCurvature,
+        integrateIntrinsicTurn: integrateLunderquistIntrinsicTurn
+    }),
     [GUIDEWIRE_TYPE_GLIDEWIRE]: Object.freeze({
         id: GUIDEWIRE_TYPE_GLIDEWIRE,
         bodyBendingStiffness: GUIDEWIRE_BODY_BENDING_STIFFNESS,
@@ -160,10 +220,11 @@ export const GUIDEWIRE_MATERIAL_PROFILES = Object.freeze({
 });
 
 export function normalizeGuidewireType(type) {
-    if (type === GUIDEWIRE_TYPE_GLIDEWIRE_ANGLED) return type;
-    return type === GUIDEWIRE_TYPE_STEEL_J_035
-        ? GUIDEWIRE_TYPE_STEEL_J_035
-        : GUIDEWIRE_TYPE_GLIDEWIRE;
+    return isGuidewireType(type) ? type : GUIDEWIRE_TYPE_GLIDEWIRE;
+}
+
+export function isGuidewireType(type) {
+    return Object.hasOwn(GUIDEWIRE_MATERIAL_PROFILES, type);
 }
 
 export function guidewireMaterialProfile(type) {

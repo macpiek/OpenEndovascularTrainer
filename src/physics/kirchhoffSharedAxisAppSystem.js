@@ -11,8 +11,11 @@ import {adaptiveMeshOptions,ADAPTIVE_SOLVE_OPTIONS} from './kirchhoffSharedAxisA
 import {createStentGraftContacts} from '../devices/stentGraftContacts.js';
 
 const angleDifference=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
-export const SHARED_AXIS_APP_PHYSICS_OPTIONS=Object.freeze({liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true,omitInactiveSampleRows:true});
-const profile=t=>({id:t.id,type:t.type,...(t.type==='stentgraft-delivery'?{deliveryExposureMm:t.deliveryExposureMm??0}:{}),shaftStiffness:t.shaftStiffness,tipStiffness:t.tipStiffness,length:t.length??1000,mass:t.mass??t.body?.mass,radius:t.radius??t.body?.radius,
+// This limits only the speculative first Newton direction, not the timestep.
+// After four unproductive contact pivots, try Gauss-Newton; the unrestricted
+// Newton search and all strict acceptance/fallback checks remain available.
+export const SHARED_AXIS_APP_PHYSICS_OPTIONS=Object.freeze({newtonActiveSetLimit:4,liveWallNormalLoad:true,promoteTrialAssembly:true,projectionMode:'reduced',stagnationFallback:true,wasmMaterial:true,reuseMaterialScratch:true,lightweightFriction:true,reuseTriangleKernel:true,earlyContactPreflight:true,reuseConstraintWork:true,reuseMatrixAssembly:true,reuseRowBuffers:true,omitInactiveSampleRows:true});
+const profile=t=>({id:t.id,type:t.type,...(t.type==='reliant-balloon'?{balloonInflationMl:t.balloonInflationMl??0}:{}),...(t.type==='stentgraft-delivery'?{deliveryExposureMm:t.deliveryExposureMm??0}:{}),shaftStiffness:t.shaftStiffness,tipStiffness:t.tipStiffness,length:t.length??1000,mass:t.mass??t.body?.mass,radius:t.radius??t.body?.radius,
     wallStaticFriction:t.wallStaticFriction??t.body?.wallStaticFriction??0,wallKineticFriction:t.wallKineticFriction??t.body?.wallKineticFriction??0});
 function edgeAt(coordinates,x) {
     let low=0,high=coordinates.length-1;
@@ -126,6 +129,13 @@ export function createSharedAxisAppSystem({readTools,readSheath,readBloodFlow=()
         return yield* advanceSharedAxis(source,{...rotations},dt,tools,pending.physicsOptions);
     }
     const system={id:diagnostics.solver,diagnostics,
+        captureCurrentStep() {
+            if(!state||!pending)return null;
+            return {...captureSharedAxisReplay({...state,captureOverride:pending.capture,adaptiveMesh:pending.adaptiveMesh},pending.sheath,pending.graftSurface),
+                stepRequest:structuredClone({dt:pending.dt,rotations:pending.rotations,tools:pending.requestTools,
+                    options:Object.fromEntries(Object.entries(pending.physicsOptions??physicsOptions).filter(([,v])=>typeof v!=='function'))})};
+        },
+        captureVesselDeformation:()=>structuredClone(state?.vesselElasticPatches??[]),
         // A small owned view for sampling the next shared flow boundary. It
         // contains no matrices, contact history or live solver references.
         captureFlowSamplingState:()=>state?{coordinates:state.coordinates.slice(),
@@ -139,7 +149,7 @@ export function createSharedAxisAppSystem({readTools,readSheath,readBloodFlow=()
                 const recorded=fixture.tools.find(t=>t.id===tool.id),current=profile(tool);
                 if(!recorded||recorded.type!==tool.type||!Number.isFinite(tool.insertion)||Math.abs(recorded.insertion-tool.insertion)>1e-8||
                     !Number.isFinite(request.rotations[tool.id])||
-                    ['shaftStiffness','tipStiffness','length','mass','radius','wallStaticFriction','wallKineticFriction'].some(key=>
+                    ['shaftStiffness','tipStiffness','length','mass','radius','wallStaticFriction','wallKineticFriction','balloonInflationMl'].some(key=>
                         recorded[key]!==undefined&&(!Number.isFinite(current[key])||Math.abs(recorded[key]-current[key])>1e-10)))
                     throw new RangeError('Replay controls do not match the recorded tools');
             }
@@ -262,6 +272,12 @@ export function* advanceSharedAxis(starting,startingRotations,dt,tools,physicsOp
     let last;const attempts=[];const totals={fallbackLinearizationReuses:0,predictorFallbacks:0,retainedDiscoveryTrials:0,coupledFrictionRefreshes:0,coupledFrictionFallbacks:0,iterations:0,factorizations:0,workingSetReuses:0,backtracks:0,geometryRestarts:0,frictionIterations:0,substepAttempts:0,wallNormalFallbacks:0,fullAssemblies:0,residualAssemblies:0,promotedAssemblies:0,modifiedAttempts:0,modifiedAccepted:0,modifiedFallbacks:0};
     const timings={assemblyMs:0,linearMs:0,frictionMs:0,tangentAssemblyMs:0,residualAssemblyMs:0,projectionMs:0};
     const result=()=>({...last,...totals,timings,attempts});
+    // Inflation changes the contact envelope and tension together. Resolve it
+    // with smaller continuation increments before trying a large loaded step.
+    // Every substep still uses the full force/contact acceptance certificates.
+    const inflationDelta=Math.max(0,...tools.filter(t=>t.type==='reliant-balloon').map(t=>
+        Math.abs((t.balloonInflationMl??0)-(starting.materials.find(m=>m.spec.id===t.id)?.spec.balloonInflationMl??0))));
+    const initialSubdivisions=inflationDelta>.1+1e-9?8:inflationDelta>.05+1e-9?4:inflationDelta>.025+1e-9?2:1;
     let roundoffDetected=false,recenterAttempted=false;
     const detectRoundoff=physicsOptions.roundoffStagnation??(physicsOptions.coupledFrictionNewton===true);
     // Change the numerical origin or subdivide when Newton corrections hit
@@ -269,7 +285,7 @@ export function* advanceSharedAxis(starting,startingRotations,dt,tools,physicsOp
     // A heuristic may save work, but may not remove a previously solvable case.
     for(const roundoffStagnation of detectRoundoff?[true,false]:[false]) {
         if(!roundoffStagnation&&detectRoundoff&&!roundoffDetected)break;
-        for(const subdivisions of [1,2,4,8]) {
+        for(const subdivisions of [1,2,4,8].filter(n=>n>=initialSubdivisions)) {
             // Feed copies the rod, but used to share discovery samplers. Give
             // every attempt private history too: rejection/cancellation and
             // even a failed publication leave the accepted checkpoint intact.
@@ -277,7 +293,14 @@ export function* advanceSharedAxis(starting,startingRotations,dt,tools,physicsOp
                 currentRotations=startingRotations,failed=false;
             for(let index=1;index<=subdivisions;index++) {
                 const fraction=index/subdivisions;
-                const source={...current,materials:current.materials.map(m=>({...m,spec:{...m.spec,...profile(tools.find(t=>t.id===m.spec.id))}}))};
+                const source={...current,materials:current.materials.map(m=>{
+                    const next=profile(tools.find(t=>t.id===m.spec.id));
+                    if(next.type==='reliant-balloon') {
+                        const old=starting.materials.find(t=>t.spec.id===m.spec.id).spec.balloonInflationMl??0;
+                        next.balloonInflationMl=old+fraction*(next.balloonInflationMl-old);
+                    }
+                    return {...m,spec:{...m.spec,...next}};
+                })};
                 const feeds=Object.fromEntries(tools.map(t=>{
                     const old=starting.materials.find(m=>m.spec.id===t.id).spec.insertion;
                     return [t.id,old+fraction*(t.insertion-old)];

@@ -1,0 +1,59 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Gradient kontrastu na połączeniu naczyń</title>
+<style>body{background:#15212b;color:#eef4f8;font:16px system-ui;padding:20px}main{display:flex;gap:20px;flex-wrap:wrap}canvas{width:360px;height:360px}pre{white-space:pre-wrap}p{max-width:1000px}</style>
+<h1>Wspólna ściana rozwidlenia: lokalne stężenie kontrastu</h1>
+<p>Ten sam gładki gradient i ta sama geometria. Po lewej odtworzono dawny błąd: cały szew trójkątów pobiera stężenie z jednego węzła przepływu. Po prawej wspólny punkt ściany pobiera lokalne stężenie. Test izoluje błąd szwu; uproszczony model gałęzi wewnątrz cylindra nadal może odkształcać gradient poza nim.</p>
+<main><section><h2>Przed: szew przypięty do węzła</h2><canvas id="before"></canvas></section><section><h2>Po: wspólna próbka lokalna</h2><canvas id="after"></canvas></section></main>
+<pre id="results">Uruchamianie…</pre>
+<script type="module">
+import * as THREE from 'three';
+import {ContrastFlowNetwork} from '../src/contrast/flowNetwork.js';
+import {AnatomicalContrastSurface,buildAnatomicalContrastSurface} from '../src/contrast/anatomicalContrastSurface.js';
+import {iodineOpticalDepth,dsaLumaFromOpticalDepth} from '../src/imaging/dsaDisplayParameters.js';
+const points=[new THREE.Vector3(0,0,0),new THREE.Vector3(0,40,0),new THREE.Vector3(0,80,0)];
+const segments=points.slice(1).map((end,id)=>({id,start:points[id],end,radiusStart:8,radiusEnd:8,nodeStartId:id,nodeEndId:id+1}));
+segments.push({id:2,start:points[1],end:new THREE.Vector3(1,42,5),radiusStart:6,radiusEnd:6,nodeStartId:1,nodeEndId:3});
+const network=new ContrastFlowNetwork(segments,{rootPoint:points[0],cellLengthMm:2});
+const geometry=new THREE.CylinderGeometry(8,8,80,48,80,true).translate(0,40,0);
+for(let i=0;i<geometry.index.count;i+=3){const b=geometry.index.getX(i+1);geometry.index.setX(i+1,geometry.index.getX(i+2));geometry.index.setX(i+2,b);}
+const wall=geometry.toNonIndexed();let count=0;
+const offsets=Uint32Array.from(network.edges,e=>{const offset=count;count+=e.cellCount;return offset;});
+const profile=y=>Math.max(0,Math.min(1,.5+(40-y)/20));
+for(const e of network.edges)for(let i=0;i<e.cellCount;i++)e.massMg[i]=e.volumes[i]*.3*profile(e.start.y+(e.end.y-e.start.y)*(i+.5)/e.cellCount);
+const surface=new AnatomicalContrastSurface(network,offsets,{fallbackGeometry:wall});
+const built=buildAnatomicalContrastSurface(network,{fallbackGeometry:wall},surface.field);
+surface.mesh.geometry.dispose();surface.mesh.geometry=built.geometry;surface.update(new Float32Array(count),.3,false);
+const current=built.geometry,legacy=current.clone(),p=current.attributes.position,s=current.attributes.flowStencil,old=legacy.attributes.flowStencil;
+const shared=new Map();
+for(let i=0;i<p.count;i++){
+    const key=[p.getX(i),p.getY(i),p.getZ(i)].join(',');
+    if(!shared.has(key))shared.set(key,{indices:[],owners:new Set()});
+    const entry=shared.get(key);entry.indices.push(i);entry.owners.add(built.triangleEdges[Math.floor(i/3)]);
+}
+const joint=surface.field.end[network.edges.find(e=>e.sourceIndex===0).index];
+let seamPoints=0,maxBeforeError=0,maxAfterError=0,maxSharedJump=0;
+for(const {indices,owners} of shared.values()){
+    if(owners.size<2)continue;
+    const y=p.getY(indices[0]);if(y<32||y>48)continue;
+    const values=indices.map(i=>surface.current[s.getX(i)]*(1-s.getZ(i))+surface.current[s.getY(i)]*s.getZ(i));
+    maxSharedJump=Math.max(maxSharedJump,Math.max(...values)-Math.min(...values));
+    maxAfterError=Math.max(maxAfterError,...values.map(v=>Math.abs(v-profile(y))));
+    maxBeforeError=Math.max(maxBeforeError,Math.abs(surface.current[joint]-profile(y)));
+    for(const i of indices)old.setXYZW(i,joint,joint,0,-1);
+    seamPoints++;
+}
+old.needsUpdate=true;
+const size=384,renderer=new THREE.WebGLRenderer({antialias:false});renderer.setSize(size,size);
+const target=new THREE.WebGLRenderTarget(size,size,{type:THREE.HalfFloatType}),scene=new THREE.Scene();scene.add(surface.mesh);
+const camera=new THREE.OrthographicCamera(-10,10,10,-10,.1,200);camera.position.set(0,40,50);camera.lookAt(0,40,0);
+const read=()=>{renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.clear();renderer.render(scene,camera);const pixels=new Uint16Array(size*size*4);renderer.readRenderTargetPixels(target,0,0,size,size,pixels);return Float32Array.from({length:size*size},(_,i)=>THREE.DataUtils.fromHalfFloat(pixels[i*4]));};
+function show(id,pixels){const canvas=document.getElementById(id);canvas.width=canvas.height=size;const rgba=new Uint8ClampedArray(size*size*4);for(let y=0;y<size;y++)for(let x=0;x<size;x++){const d=(x+(size-1-y)*size)*4;const luma=dsaLumaFromOpticalDepth(iodineOpticalDepth(pixels[x+y*size]));rgba[d]=rgba[d+1]=rgba[d+2]=Math.round(luma*255);rgba[d+3]=255;}canvas.getContext('2d').putImageData(new ImageData(rgba,size,size),0,0);}
+try {
+    surface.mesh.geometry=legacy;const before=read();show('before',before);
+    surface.mesh.geometry=current;const after=read();show('after',after);
+    let changedPixels=0,maxSignalCorrection=0;
+    for(let i=0;i<after.length;i++){const delta=Math.abs(after[i]-before[i]);if(delta>.002)changedPixels++;maxSignalCorrection=Math.max(maxSignalCorrection,delta);}
+    if(seamPoints<50||maxBeforeError<.3||maxAfterError>.075||maxSharedJump>1e-7||changedPixels<100||maxSignalCorrection<.01)
+        throw Error(JSON.stringify({seamPoints,maxBeforeError,maxAfterError,maxSharedJump,changedPixels,maxSignalCorrection}));
+    document.getElementById('results').textContent='PASS: rzeczywisty shader powierzchni STL; geometria i pole stężenia niezmienione.\n'+JSON.stringify({seamPoints,maxBeforeError,maxAfterError,maxSharedJump,changedPixels,maxSignalCorrection},null,2);
+} catch(error){document.getElementById('results').textContent='FAIL '+error.message;throw error;}
+</script></html>

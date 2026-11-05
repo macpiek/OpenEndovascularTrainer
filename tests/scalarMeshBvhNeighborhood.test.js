@@ -114,3 +114,21 @@ test('non-Float32 vertices retain full traversal instead of borrowing neighborho
     assert.equal(cached.neighborhoods.size,0);
     geometry.dispose();
 });
+
+test('identical capsule endpoints reuse exact hits, preserving cutoffs and hinted ties',()=>{
+    const geometry=new THREE.PlaneGeometry(2,2);geometry.boundsTree=new MeshBVH(geometry,{maxLeafTris:1});
+    const cached=createScalarMeshBvhScratch(),reference=createScalarMeshBvhScratch(64,{reuseExactQuery:false,reuseNeighborhood:false});
+    for(const point of [[0,0,.1],[.2,.1,.3],[0,0,0]])for(const hint of [-1,0,1]) {
+        const first=compare(geometry.boundsTree,point,cached,reference,{hint});
+        const hits=cached.exactQueryHits;
+        compare(geometry.boundsTree,point,cached,reference,{hint:first.faceIndex});
+        assert.equal(cached.exactQueryHits,hits+1);
+        for(const maximum of [first.distance,first.distance/2,first.distance+.01,Infinity])
+            compare(geometry.boundsTree,point,cached,reference,{hint:first.faceIndex,maximum});
+    }
+    const hits=cached.exactQueryHits;
+    const replacement=new THREE.PlaneGeometry(2,2).translate(0,0,1);replacement.boundsTree=new MeshBVH(replacement);
+    compare(replacement.boundsTree,[0,0,0],cached,reference,{hint:0});
+    assert.equal(cached.exactQueryHits,hits,'A new tree invalidates the exact point record');
+    geometry.dispose();replacement.dispose();
+});

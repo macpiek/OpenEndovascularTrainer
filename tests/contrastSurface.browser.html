@@ -1,0 +1,57 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Kontrast STL — test GPU</title>
+<style>body{background:#15212b;color:#eef4f8;font:16px system-ui;padding:20px}pre{white-space:pre-wrap}canvas{width:400px;height:400px}</style>
+<h1>Obrys kontrastu — testy GPU</h1><pre id="results">Uruchamianie…</pre><main></main>
+<script type="module">
+import * as THREE from 'three';
+import {surfaceFixture,adjacentSurfaceFixture} from './helpers/contrastSurfaceFixture.js';
+const renderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});renderer.setSize(256,256);
+const target=new THREE.WebGLRenderTarget(256,256,{type:THREE.HalfFloatType});
+const pixels=new Uint16Array(256*256*4),scene=new THREE.Scene(),lines=[];
+function draw(camera){renderer.setRenderTarget(target);renderer.setClearColor(0);renderer.clear();renderer.render(scene,camera);renderer.readRenderTargetPixels(target,0,0,256,256,pixels);return Float32Array.from({length:256*256},(_,i)=>THREE.DataUtils.fromHalfFloat(pixels[i*4]));}
+function assert(value,message){if(!value)throw Error(message);}
+try{
+ for(const radius of [.2,1,8])for(const perspective of [false,true])for(const tilt of [0,.45]){
+  const f=surfaceFixture(radius),v=f.volume,e=f.network.edges[0];
+  for(let i=0;i<e.cellCount;i++)e.massMg[i]=e.volumes[i]*.3;
+  v.update(f.plume,.3,false);scene.add(v.mesh);
+  const span=Math.max(6,radius*1.5),camera=perspective?new THREE.PerspectiveCamera(30,1,.1,200):new THREE.OrthographicCamera(-span,span,span,-span,.1,200);
+  camera.position.set(0,40*Math.sin(tilt),40*Math.cos(tilt));camera.lookAt(0,0,0);
+  const actual=draw(camera);
+  // Known analytic fixture: select the original inner cylinder from the
+  // source, independently of the renderer's selected triangles. Both sides
+  // count: the far wall is visible through an open outlet in oblique views.
+  const referenceGeometry=f.geometry.clone();referenceGeometry.setDrawRange(0,f.geometry.attributes.position.count/2);
+  const reference=new THREE.Mesh(referenceGeometry,new THREE.MeshBasicMaterial({side:THREE.DoubleSide,color:0xffffff}));
+  v.mesh.visible=false;scene.add(reference);const mask=draw(camera);scene.remove(reference);v.mesh.visible=true;
+  let outside=0,missing=0,covered=0;
+  for(let i=0;i<mask.length;i++){if(mask[i]===0&&actual[i]>1e-6)outside++;if(mask[i]>0){covered++;if(actual[i]<=0)missing++;}}
+  assert(covered>0,'Brak naczynia w projekcji');assert(outside===0,`Kontrast poza STL: ${outside}`);assert(missing===0,`Przerwy wewnątrz światła: ${missing}`);
+  // Render a moving front and then an empty vessel: no exterior coating,
+  // persistent stain, or mutation of transported iodine.
+  e.massMg.fill(0);e.massMg[0]=e.volumes[0]*.3;v.update(f.plume,.3,false);const front=draw(camera);
+  assert(front.every((c,i)=>mask[i]>0||c===0),'Front bolusa wychodzi poza światło');
+  e.massMg.fill(0);v.update(f.plume,.3,true);v.update(f.plume,.3,true);assert(draw(camera).every(c=>c===0),'Pozostał sygnał po wypłukaniu');
+  lines.push(`PASS r=${radius} mm · ${perspective?'perspektywa':'ortograficzna'} · kąt ${Math.round(tilt*180/Math.PI)}°: poza obrysem 0, przerwy 0`);
+  scene.remove(v.mesh);v.dispose();f.geometry.dispose();referenceGeometry.dispose();reference.material.dispose();
+ }
+ for(const smallRadius of [1,.2]) {
+  const f=adjacentSurfaceFixture(smallRadius),v=f.volume;
+  for(const e of f.network.edges)if(e.start.x===0&&e.end.x===0)e.massMg.forEach((_,i)=>{e.massMg[i]=e.volumes[i]*.3;});
+  v.update(f.plume,.3,false);scene.add(v.mesh);
+  const camera=new THREE.OrthographicCamera(-9,12,7,-7,.1,200);camera.position.set(0,0,40);camera.lookAt(0,0,0);
+  const actual=draw(camera);v.mesh.visible=false;
+  const masks=[];
+  for(const geometry of [f.largeGeometry,f.smallGeometry]) {
+   const inner=geometry.clone();inner.setDrawRange(0,geometry.attributes.position.count/2);
+   const ref=new THREE.Mesh(inner,new THREE.MeshBasicMaterial({side:THREE.DoubleSide,color:0xffffff}));
+   scene.add(ref);masks.push(draw(camera));scene.remove(ref);inner.dispose();ref.material.dispose();
+  }
+  let leak=0,missing=0;
+  for(let i=0;i<actual.length;i++){if(masks[1][i]>0&&actual[i]>1e-6)leak++;if(masks[0][i]>0&&actual[i]<=0)missing++;}
+  assert(leak===0,`Kontrast w sąsiednim naczyniu: ${leak}`);assert(missing===0,`Ubytki w aorcie obok sąsiedniej gałęzi: ${missing}`);
+  lines.push(`PASS dwa bliskie naczynia (8 mm / ${smallRadius} mm): obcy kontrast 0, ubytki 0`);
+  scene.remove(v.mesh);f.dispose();
+ }
+ document.querySelector('#results').textContent=lines.join('\n')+'\nPASS: 12 projekcji, cienkie naczynia poniżej rozdzielczości SDF, front bolusa i wypłukanie.';
+}catch(error){document.querySelector('#results').textContent=lines.join('\n')+'\nFAIL: '+error.message;throw error;}
+</script></html>

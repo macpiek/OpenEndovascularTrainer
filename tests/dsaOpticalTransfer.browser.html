@@ -1,0 +1,97 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>DSA — rozcieńczenie kontrastu</title>
+<style>body{background:#111820;color:#e7edf3;font:16px system-ui;padding:24px}canvas{width:min(100%,1024px);display:block;margin:12px 0}pre{white-space:pre-wrap}</style>
+<h1>DSA: stopniowe rozcieńczenie i znoszenie tła</h1>
+<p>Stężenie rośnie płynnie od 0% do 100%. Górna i dolna połowa mają różną grubość tkanki w masce.</p>
+<h2>DSA</h2><canvas id="preview"></canvas><h2>Fluoroskopia</h2><canvas id="fluoro"></canvas><pre id="results">Uruchamianie…</pre>
+<script type="module">
+import * as THREE from 'three';
+import {vertexShader,fragmentShader} from '../src/shaders/displayShader.js';
+import {iodineOpticalDepth,dsaLumaFromOpticalDepth} from '../src/imaging/dsaDisplayParameters.js';
+const width=512,height=512;
+const renderer=new THREE.WebGLRenderer({antialias:false});renderer.setSize(width,height);
+const target=new THREE.WebGLRenderTarget(width,height);
+const mask=new THREE.WebGLRenderTarget(width,height,{type:THREE.HalfFloatType});
+const tissue=new Float32Array(width*height*4), iodine=new Float32Array(tissue.length);
+for(let y=0;y<height;y++)for(let x=0;x<width;x++) {
+    const i=(x+y*width)*4;
+    tissue[i]=y<height/2?.2:1.4;
+    iodine[i]=iodine[i+1]=iodine[i+2]=.14*5*Math.max(0,Math.min(1,(x/(width-1)-.12)/.76));
+}
+const texture=data=>{const t=new THREE.DataTexture(data,width,height,THREE.RGBAFormat,THREE.FloatType);t.needsUpdate=true;return t;};
+const tissueTexture=texture(tissue),iodineTexture=texture(iodine);
+const empty=new THREE.DataTexture(new Uint8Array(4),1,1);empty.needsUpdate=true;
+const uniforms={};
+for(const [,type,name] of fragmentShader.matchAll(/uniform\s+(\w+)\s+(\w+);/g))
+    uniforms[name]={value:type==='sampler2D'?empty:type==='vec2'?new THREE.Vector2(width,height):type==='vec3'?new THREE.Vector3(1,1,1):type==='bool'?false:0};
+for(const [name,value] of Object.entries({fluoroscopy:true,contrastOpacity:1,contrastGain:5,dsaGain:2.2,imageBrightness:.18,imageContrast:1.33,pulseRate:15,detectorZoomNoiseScale:1,detectorZoomScatterScale:1,dsaMaskHasOpticalDepth:true,softTissueTexture:tissueTexture}))uniforms[name].value=value;
+const material=new THREE.ShaderMaterial({uniforms,vertexShader,fragmentShader});
+const scene=new THREE.Scene();scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),material));const camera=new THREE.Camera();
+try {
+    uniforms.dsaMaskCapture.value=true;
+    renderer.setRenderTarget(mask);renderer.render(scene,camera);
+    uniforms.dsaMaskCapture.value=false;uniforms.dsaMaskTexture.value=mask.texture;
+    uniforms.dsaEnabled.value=uniforms.dsaMaskValid.value=true;uniforms.contrastTexture.value=iodineTexture;
+    renderer.setRenderTarget(target);renderer.render(scene,camera);
+    const pixels=new Uint8Array(width*height*4);renderer.readRenderTargetPixels(target,0,0,width,height,pixels);
+    const canvas=document.getElementById('preview');canvas.width=width;canvas.height=height;
+    const flipped=new Uint8ClampedArray(pixels.length);for(let y=0;y<height;y++)flipped.set(pixels.subarray(y*width*4,(y+1)*width*4),(height-1-y)*width*4);
+    canvas.getContext('2d').putImageData(new ImageData(flipped,width,height),0,0);
+    let maxBackgroundError=0,maxCalibrationError=0;const levels=[];
+    for(const concentration of [0,.05,.1,.25,.5,1]) {
+        const x=Math.round((.12+.76*concentration)*(width-1)),lower=pixels[(x+Math.floor(height*.3)*width)*4],upper=pixels[(x+Math.floor(height*.7)*width)*4];
+        const expected=255*.992*dsaLumaFromOpticalDepth(iodineOpticalDepth(iodine[x*4]));
+        maxBackgroundError=Math.max(maxBackgroundError,Math.abs(lower-upper));
+        maxCalibrationError=Math.max(maxCalibrationError,Math.abs(lower-expected),Math.abs(upper-expected));levels.push(lower);
+    }
+    if(maxBackgroundError>1||maxCalibrationError>2||levels.some((v,i)=>i>0&&levels[i-1]-v<4))throw Error(JSON.stringify({maxBackgroundError,maxCalibrationError,levels}));
+    uniforms.contrastOpacity.value=.5;
+    renderer.setRenderTarget(target);renderer.render(scene,camera);
+    const halfOpacityPixels=new Uint8Array(pixels.length);renderer.readRenderTargetPixels(target,0,0,width,height,halfOpacityPixels);
+    const midX=width/2,midY=Math.floor(height*.3);
+    const halfOpacityExpected=255*.992*dsaLumaFromOpticalDepth(iodineOpticalDepth(iodine[midX*4],5,.5));
+    const opacityError=Math.abs(halfOpacityPixels[(midX+midY*width)*4]-halfOpacityExpected);
+    if(opacityError>2)throw Error('Contrast opacity not applied once: '+opacityError);
+    uniforms.contrastOpacity.value=1;
+    uniforms.dsaEnabled.value=false;uniforms.dsaMaskValid.value=false;
+    renderer.setRenderTarget(target);renderer.render(scene,camera);
+    const fluoroPixels=new Uint8Array(pixels.length);renderer.readRenderTargetPixels(target,0,0,width,height,fluoroPixels);
+    const fluoro=document.getElementById('fluoro');fluoro.width=width;fluoro.height=height;
+    for(let y=0;y<height;y++)flipped.set(fluoroPixels.subarray(y*width*4,(y+1)*width*4),(height-1-y)*width*4);
+    fluoro.getContext('2d').putImageData(new ImageData(flipped,width,height),0,0);
+    const fluoroLevels=[.05,.1,.25,.5,1].map(c=>fluoroPixels[(Math.round((.12+.76*c)*(width-1))+Math.floor(height*.3)*width)*4]);
+    if(fluoroLevels.some((v,i)=>i>0&&fluoroLevels[i-1]-v<2)||fluoroPixels[3]!==255)throw Error('Fluoroscopy lost dilution or screen alpha: '+fluoroLevels);
+    // Acquire a noisy mask, then two independent pulses. The same pulse must
+    // remain bit-identical while different pulses retain visible quantum noise.
+    const mixtures=[0,.05,.1,.25,.5,1];
+    for(let y=0;y<height;y++)for(let x=0;x<width;x++) {
+        const band=Math.max(0,Math.min(5,Math.floor((x/(width-1)-.12)/.76*6))),i=(x+y*width)*4;
+        iodine[i]=iodine[i+1]=iodine[i+2]=.14*5*mixtures[band];
+    }
+    iodineTexture.needsUpdate=true;
+    uniforms.noiseLevel.value=.1;uniforms.fluoroPulseIndex.value=1;
+    uniforms.contrastTexture.value=empty;uniforms.dsaMaskTexture.value=empty;uniforms.dsaMaskCapture.value=true;
+    renderer.setRenderTarget(mask);renderer.render(scene,camera);
+    uniforms.dsaMaskCapture.value=false;uniforms.dsaMaskTexture.value=mask.texture;uniforms.dsaEnabled.value=uniforms.dsaMaskValid.value=true;
+    uniforms.contrastTexture.value=iodineTexture;uniforms.fluoroPulseIndex.value=2;
+    const read=()=>{renderer.setRenderTarget(target);renderer.render(scene,camera);const p=new Uint8Array(pixels.length);renderer.readRenderTargetPixels(target,0,0,width,height,p);return p;};
+    const noisy=read(),samePulse=read();
+    if(noisy.some((v,i)=>v!==samePulse[i]))throw Error('Noise changes between frames of the same pulse');
+    uniforms.fluoroPulseIndex.value=3;
+    const nextPulse=read();let changedPixels=0;
+    for(let i=0;i<noisy.length;i+=4)if(noisy[i]!==nextPulse[i])changedPixels++;
+    const noisyLevels=[],noiseStd=[];
+    for(let band=0;band<6;band++) {
+        const x=Math.round((.12+.76*(band+.5)/6)*(width-1));let sum=0,squares=0,count=0;
+        for(let y=midY-16;y<midY+16;y++)for(let dx=-6;dx<6;dx++) {
+            const v=noisy[(x+dx+y*width)*4];sum+=v;squares+=v*v;count++;
+        }
+        const mean=sum/count;noisyLevels.push(mean);noiseStd.push(Math.sqrt(squares/count-mean*mean));
+        const expected=255*.992*dsaLumaFromOpticalDepth(iodineOpticalDepth(.14*5*mixtures[band]));
+        if(Math.abs(mean-expected)>2.5)throw Error('Noise masks dilution: '+JSON.stringify({band,mean,expected}));
+    }
+    if(changedPixels<1000||noiseStd[1]<.3||noisyLevels.some((v,i)=>i>0&&noisyLevels[i-1]-v<4))throw Error('Missing acquisition noise or dilution: '+JSON.stringify({changedPixels,noisyLevels,noiseStd}));
+    document.getElementById('results').textContent='PASS: rzeczywisty shader GPU, fluoroskopia i maska half-float.\n'+JSON.stringify({maxBackgroundError,maxCalibrationError,opacityError,levels,fluoroLevels,changedPixels,noisyLevels,noiseStd},null,2);
+}catch(error){document.getElementById('results').textContent='FAIL '+error.message;throw error;}
+</script>

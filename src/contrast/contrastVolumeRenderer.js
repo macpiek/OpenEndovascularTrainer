@@ -1,4 +1,5 @@
 import {RenalParenchymaRenderer} from './renalParenchymaRenderer.js';
+import { AnatomicalContrastSurface } from './anatomicalContrastSurface.js';
 import { AnatomicalContrastVolume } from './anatomicalContrastVolume.js';
 import { ContrastDebugPass } from './contrastDebugPass.js';
 import {FlowContrastVolume} from './flowContrastVolume.js';
@@ -436,7 +437,10 @@ function alignedContinuationChild(edges, parent, childIndices) {
                 )
             )
     );
-    return sideBranchDominance > 0 ? bestChildIndex : -1;
+    // A flow imbalance alone does not turn a symmetric Y into a side ostium.
+    // Require a geometrically continuing trunk as well, so changing a distal
+    // resistance cannot stitch across two visibly diverging daughters.
+    return sideBranchDominance > 0 && bestAlignment > 0.95 ? bestChildIndex : -1;
 }
 
 function buildEdgeChains(edges) {
@@ -2071,7 +2075,7 @@ function createPlumeGeometry(capacity) {
 }
 
 export class ContrastVolumeRenderer {
-    constructor(system) {
+    constructor(system, {vesselDeformation=null}={}) {
         if (!system?.flowNetwork || !system?.localSolver) {
             throw new TypeError('A hybrid contrast system is required');
         }
@@ -2119,12 +2123,17 @@ export class ContrastVolumeRenderer {
         this._debugMode = false;
         this._plumeLocationScratch = {};
         const anatomy = system.anatomyContactField ?? system.contactField;
-        this._flowVolume = anatomy?.sdfInsideBits && anatomy?.sdfBrickLookup
+        this._flowVolume = anatomy?.fallbackGeometry?.getAttribute('position')
+            ? new AnatomicalContrastSurface(system.flowNetwork, this._flowCellOffset, anatomy)
+            : anatomy?.sdfInsideBits && anatomy?.sdfBrickLookup
             ? new AnatomicalContrastVolume(system.flowNetwork, this._flowCellOffset, anatomy)
             : new FlowContrastVolume(system.flowNetwork, this._flowCellOffset);
+        if(this._flowVolume instanceof AnatomicalContrastSurface)
+            vesselDeformation?.attach(this._flowVolume.material);
         // Small renal branches use centerline tubes for subvoxel iodine detail.
         // Their wall collision still comes from the connected renal STL.
-        for(const edge of system.flowNetwork.edges) if(edge.renalSide) this._flowVolume.weights[edge.index]=0;
+        if (!(this._flowVolume instanceof AnatomicalContrastSurface))
+            for(const edge of system.flowNetwork.edges) if(edge.renalSide) this._flowVolume.weights[edge.index]=0;
         this.renalRenderer = system.renalPerfusion ? new RenalParenchymaRenderer(system.renalPerfusion) : null;
         if(this.renalRenderer) this.group.add(this.renalRenderer.group);
         this._createFlowLumen();
@@ -2388,7 +2397,7 @@ export class ContrastVolumeRenderer {
         for(const material of this.flowMesh.material) {material.uniforms.displayAlpha.value=alpha;material.uniforms.useFlowSamples.value=reuseUnchanged;}
         for(const mesh of this._graftMeshes??[])mesh.material.uniforms.displayAlpha.value=alpha;
         for(const m of this._trappedMesh?.material??[])m.uniforms.displayAlpha.value=alpha;
-        const volumeUniforms = this._flowVolume.mesh.material.uniforms;
+        const volumeUniforms = this._flowVolume.uniforms ?? this._flowVolume.mesh.material.uniforms;
         volumeUniforms.displayAlpha.value = alpha;
         volumeUniforms.debugMode.value = this._debugMode;
         volumeUniforms.signalGain.value = this.flowTubeMaterial.uniforms.signalGain.value;
@@ -2424,7 +2433,19 @@ export class ContrastVolumeRenderer {
                     solver.positionZ[index],
                     this._plumeLocationScratch
                 );
-            if (location.edgeIndex >= 0) {
+            const sourceEdgeIndex = solver.sourceEdgeIndex[index];
+            const sourceCellIndex = solver.sourceCellIndex[index];
+            if (sourceEdgeIndex >= 0 && sourceCellIndex >= 0 &&
+                solver.preferredHandoffEdgeIndex[index] < 0) {
+                // The continuous source solver holds these parcels locally
+                // before depositing them in this exact control volume. Keep
+                // the displayed iodine on that same lumen during the handoff.
+                // A nearest-axis lookup can select an overlapping ostial
+                // prefix and briefly paint a completely unperfused branch.
+                this._flowCellLocalPlumeMassMg[
+                    this._flowCellOffset[sourceEdgeIndex] + sourceCellIndex
+                ] += solver.iodineMassMg[index];
+            } else if (location.edgeIndex >= 0) {
                 // Cloud-in-cell deposition avoids a parcel flickering between
                 // adjacent rectangular bins as it advances along the vessel.
                 const edge=edges[location.edgeIndex],position=location.t*edge.cellCount-.5;
@@ -2620,7 +2641,8 @@ export class ContrastVolumeRenderer {
         this._flowVolume.update(this._flowCellLocalPlumeMassMg, mediumConcentrationMgPerMm3, advanceHistory, !!((remodeling?.surface.sealed || remodeling?.surface.openGate) && this._graftMeshes.length));
         // Native tubes are masked by volumeBlend=1; fine renal tubes provide
         // the subvoxel vascular signal alongside the parenchymal volume.
-        this.flowMesh.visible = edges.some(edge => edge.renalSide && edge.active);
+        this.flowMesh.visible = !(this._flowVolume instanceof AnatomicalContrastSurface) &&
+            edges.some(edge => edge.renalSide && edge.active);
 
         this.plumeMesh.geometry.instanceCount = solver.count;
         for (const attributeName of [
@@ -2946,7 +2968,7 @@ export class ContrastVolumeRenderer {
     setDebugMode(enabled) {
         this._debugMode = !!enabled;
         this.renalRenderer?.update(this._debugMode,this.flowTubeMaterial.uniforms.signalGain.value);
-        this._flowVolume.mesh.material.uniforms.debugMode.value = this._debugMode;
+        (this._flowVolume.uniforms ?? this._flowVolume.mesh.material.uniforms).debugMode.value = this._debugMode;
         for(const mesh of this._graftMeshes??[])mesh.material.uniforms.debugMode.value=this._debugMode;
         for(const material of this._trappedMesh?.material??[])material.uniforms.debugMode.value=this._debugMode;
         this.flowTubeMaterial.uniforms.debugMode.value = this._debugMode;

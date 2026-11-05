@@ -8,6 +8,6 @@ export const sharedAxisEffectiveGap = row => row.compliance
 export function sharedAxisContactElasticEnergy(rows) {
     let energy=0;
     for(const row of rows)if(row.compliance)
-        energy+=.5*row.compliance*row.multiplier*row.multiplier;
+        energy+=row.wallElasticEnergy??(.5*row.compliance*row.multiplier*row.multiplier);
     return energy;
 }

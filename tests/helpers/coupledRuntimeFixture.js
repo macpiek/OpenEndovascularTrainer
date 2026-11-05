@@ -238,8 +238,9 @@ export function createCoupledRuntimeFixture({
 
 /** The same transformed STL and packed field settings as aortaModel.js. */
 export async function loadCoupledRuntimeAnatomy(root = new URL('../../', import.meta.url), anatomy = 'plain') {
-    if (!['plain', 'infrarenal-aneurysm'].includes(anatomy)) throw new RangeError('Unknown replay anatomy');
-    const assetName = anatomy === 'plain' ? 'Aorta_plain' : 'Aorta_infrarenal_aneurysm';
+    if (!['plain', 'baseline', 'infrarenal-aneurysm'].includes(anatomy)) throw new RangeError('Unknown replay anatomy');
+    const assetName = anatomy === 'baseline' ? 'Aorta_plain_renal' :
+        anatomy === 'plain' ? 'Aorta_plain' : 'Aorta_infrarenal_aneurysm';
     const [{ readFileSync }, { STLLoader }, { MeshBVH }, { transformAortaGeometry },
         { decodeCollisionAsset }, { VesselContactField }] = await Promise.all([
         import('node:fs'), import('three/examples/jsm/loaders/STLLoader.js'), import('three-mesh-bvh'),

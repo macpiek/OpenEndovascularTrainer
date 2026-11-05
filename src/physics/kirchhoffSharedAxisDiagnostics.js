@@ -20,7 +20,13 @@ export function measureSharedAxisQuality(s,rows=[]) {
         }
         return {id:spec.id,finite,maxLengthError,maxBendAngleDegrees,maxBendNode,maxBendLimitDegrees:Number.isFinite(s.maxBendAngle)?s.maxBendAngle*180/Math.PI:null,maxSpeed,activeWallContacts,currentNormalLoad};
     });
-    let maxPenetration=0;
-    for(const r of rows)if(r.kind==='wall'&&r.subtype!=='bend-limit')maxPenetration=Math.max(maxPenetration,-r.gap);
-    return {mesh:'shared-axis',interToolRows:0,finite:bodies.every(b=>b.finite),maxPenetration,contacts:bodies.reduce((v,b)=>v+b.activeWallContacts,0),bodies};
+    let maxPenetration=0,maxWallDisplacement=0,maxReferencePenetration=0,maxBalloonCompression=0;
+    for(const r of rows)if(r.kind==='wall'&&r.subtype!=='bend-limit') {
+        const geometric=r.geometricGap??r.gap,displacement=r.wallDisplacement??0;
+        maxReferencePenetration=Math.max(maxReferencePenetration,-geometric);
+        maxPenetration=Math.max(maxPenetration,-geometric-displacement-(r.balloonCompression??0));
+        maxWallDisplacement=Math.max(maxWallDisplacement,displacement);
+        maxBalloonCompression=Math.max(maxBalloonCompression,r.balloonCompression??0);
+    }
+    return {mesh:'shared-axis',interToolRows:0,finite:bodies.every(b=>b.finite),maxPenetration,maxReferencePenetration,maxWallDisplacement,maxBalloonCompression,contacts:bodies.reduce((v,b)=>v+b.activeWallContacts,0),bodies};
 }

@@ -34,6 +34,7 @@ export function elasticIntroducerTool(sheath,body) {
 export function prepareElasticIntroducer(sheath,{delta=0,selection=null,catheterProgress=0,catheterRadius=5/6}={}) {
     let length=sheath.length,french=sheath.french;
     if(selection) {
+        if(sheath.dilatorInsertion>0)throw new Error('Wycofaj rozszerzacz przed zmianą koszulki.');
         if(sheath.insertion!==0)throw new Error('Całkowicie wycofaj koszulkę, aby zmienić jej długość lub średnicę.');
         ({length,french}=selection);
         if(!INTRODUCER_LENGTHS_MM.includes(length))throw new RangeError('Nieznana długość koszulki');

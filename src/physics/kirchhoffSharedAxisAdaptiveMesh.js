@@ -1,5 +1,7 @@
+import {RELIANT} from '../devices/balloonProfile.js';
 import {kirchhoffMaterialProfile} from './kirchhoffMaterialProfile.js';
-import {guidewireMaterialProfile} from './guidewireMaterialProfile.js';
+import {DILATOR_TIP_LENGTH_MM} from '../devices/introducerDilator.js';
+import {guidewireMaterialProfile, isGuidewireType} from './guidewireMaterialProfile.js';
 
 // Experimental spatial approximation budget, separate from solver residuals.
 // Contact discovery still tests the entire resulting capsule, not just nodes.
@@ -26,9 +28,11 @@ export function adaptiveMeshOptions(value) {
 
 function tipLength(tool, options) {
     const type = tool.type ?? (tool.id === 'wire' ? 'glidewire' : 'berenstein');
+    if(type===RELIANT.type)return Math.max(options.tipLength,RELIANT.sectionLength+RELIANT.distalOffset+10);
+    if(type==='introducer-dilator')return Math.max(options.tipLength,DILATOR_TIP_LENGTH_MM+10);
     const profile = kirchhoffMaterialProfile(type);
     let length = profile.naturalTipLengthMm + 10;
-    if (profile.id === 'glidewire' || profile.id === 'glidewire-angled' || profile.id === 'steel-j-035') {
+    if (isGuidewireType(profile.id)) {
         const wire = guidewireMaterialProfile(profile.id);
         length = Math.max(length, wire.tipCoreLength + wire.tipTransitionLength);
     }

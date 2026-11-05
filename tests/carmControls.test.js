@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
+import {readFileSync} from 'node:fs';
 import {setupCArmControls} from '../src/carmControls.js';
+import {CARM_SOURCE_TO_ISOCENTER_MM} from '../src/imaging/carmProjection.js';
 
 class Element extends EventTarget {
     constructor(value='0',min='-1000',max='1000') {
@@ -10,26 +12,35 @@ class Element extends EventTarget {
         this.classList={add:c=>this.classes.add(c),remove:c=>this.classes.delete(c),toggle:()=>{}};
     }
     setPointerCapture() {} releasePointerCapture() {}
+    blur() {}
+    querySelector(selector) { return selector==='span' ? this.fieldLabel : null; }
+    setAttribute(name,value) { this[name]=value; }
     getBoundingClientRect(){return {left:0,top:0,width:120,height:120};}
 }
 
-function fixture(run) {
+function fixture(run, {sourceRadius=500, sliders={}}={}) {
     const originals={document:globalThis.document,window:globalThis.window,requestAnimationFrame:globalThis.requestAnimationFrame};
     const elements=new Map();
     for(const id of ['carmX','carmY','carmZ','carmDetDist','carmYawReadout','carmPitchReadout','carmRollReadout',
         'carmAngleReset','carmLao30','carmRao30','carmRollLeft','carmRollRight','carmZUp','carmZDown',
-        'angleJoystick','angleJoystickHandle','positionJoystick','positionJoystickHandle'])elements.set(id,new Element());
+        'angleJoystick','angleJoystickHandle','positionJoystick','positionJoystickHandle',
+        'detectorZoomStatus','carmGeometryStatus','detectorSize'])elements.set(id,new Element());
     elements.get('carmDetDist').value='350';
+    elements.get('detectorSize').value='300';
+    for(const [id,attributes] of Object.entries(sliders))Object.assign(elements.get(id),attributes);
+    const zoomButtons=['none','medium','maximum'].map(id=>{
+        const button=new Element();button.dataset.detectorZoom=id;button.fieldLabel=new Element();return button;
+    });
     elements.get('angleJoystickHandle').offsetWidth=20;
     elements.get('positionJoystickHandle').offsetWidth=20;
     const document=Object.assign(new EventTarget(),{visibilityState:'visible',
-        getElementById:id=>elements.get(id)||null,querySelectorAll:()=>[]});
+        getElementById:id=>elements.get(id)||null,querySelectorAll:()=>zoomButtons});
     const window=new EventTarget();let callback,now=performance.now();
     globalThis.document=document;globalThis.window=window;
     globalThis.requestAnimationFrame=fn=>{callback=fn;return 1;};
     const camera=new THREE.PerspectiveCamera(45,1,.1,2000);
     try {
-        const controls=setupCArmControls(camera,{branchPoint:{x:0,y:0,z:0}},500);
+        const controls=setupCArmControls(camera,{branchPoint:{x:0,y:0,z:0}},sourceRadius);
         const frame=(dt=16.6667)=>{now+=dt;callback(now);};
         const event=(target,type,props={})=>{
             const e=new Event(type,{cancelable:true});Object.assign(e,{pointerId:1,...props});
@@ -42,7 +53,7 @@ function fixture(run) {
             assert.ok(Math.abs(Math.asin(camera.position.y/500))<=Math.PI/4+1e-8);
             assert.ok(camera.quaternion.toArray().every(Number.isFinite));
         };
-        frame();run({controls,camera,elements,window,document,event,frame,yaw,bounded});
+        frame();run({controls,camera,elements,window,document,event,frame,yaw,bounded,zoomButtons});
     } finally {
         for(const [key,value] of Object.entries(originals)) {
             if(value===undefined)delete globalThis[key];else globalThis[key]=value;
@@ -148,3 +159,88 @@ test('independent joystick axis controls only CRA and CAU, independently of LAO/
     assert.ok(Math.abs(yaw())<1e-8);assert.ok(Math.abs(Math.asin(camera.position.y/500)+Math.PI/4)<1e-8);
     event('angleJoystick','pointerup');
 }));
+
+// Exercise the actual application height limits/defaults, rather than a looser
+// test-only range which could hide an oversized field at the end stops.
+const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+const appSliders=Object.fromEntries(['carmX','carmY','carmZ','carmDetDist'].map(id=>{
+    const input=html.match(new RegExp(`<input[^>]+id="${id}"[^>]*>`))[0];
+    return [id,Object.fromEntries(['value','min','max'].map(name=>[name,input.match(new RegExp(`${name}="([^"]+)"`))[1]]))];
+}));
+const appGeometry={sourceRadius:CARM_SOURCE_TO_ISOCENTER_MM,sliders:appSliders};
+
+function fieldAtPatientPlane(camera) {
+    const patientPlane=new THREE.Plane(new THREE.Vector3(0,0,1),0);
+    const raycaster=new THREE.Raycaster();
+    const ends=[-0.88,0.88].map(x=>{
+        raycaster.setFromCamera(new THREE.Vector2(x,0),camera);
+        return raycaster.ray.intersectPlane(patientPlane,new THREE.Vector3());
+    });
+    return ends[0].distanceTo(ends[1]);
+}
+
+test('both height end stops keep the patient field inside either detector in all zoom modes',()=>fixture(({camera,event,frame,window,elements,zoomButtons})=>{
+    const fields=[];
+    for(const [button,expectedHeight] of [['carmZDown',-40],['carmZUp',180]]) {
+        event(button,'mousedown');for(let i=0;i<500;i++)frame();event(window,'mouseup');
+        assert.equal(Number(elements.get('carmZ').value),expectedHeight);
+        const sourceDistance=camera.position.z;
+        assert.ok(sourceDistance>0 && sourceDistance<camera.far,'patient stays between source and detector');
+        for(const detectorSideMm of [300,210]) {
+            elements.get('detectorSize').value=String(detectorSideMm);event('detectorSize','change');
+            for(const [index,zoom] of [1,1.4,2.1].entries()) {
+                event(zoomButtons[index],'click');
+                const field=fieldAtPatientPlane(camera),detectorField=detectorSideMm/zoom;
+                assert.ok(Math.abs(field-detectorField*sourceDistance/700)<1e-7,'field follows physical ray divergence');
+                assert.ok(field<detectorField,'patient field cannot exceed the active detector');
+                if(index===0 && detectorSideMm===300)fields.push(field);
+            }
+        }
+    }
+    assert.ok(Math.abs(fields[0]-218.5714285714)<1e-7,'lowest arm: 21.86 cm field at reference patient plane');
+    assert.ok(Math.abs(fields[1]-124.2857142857)<1e-7,'highest arm: 12.43 cm field at reference patient plane');
+},appGeometry));
+
+test('detector distance changes the cone, zoom remains calibrated, and reset restores the original geometry',()=>fixture(({camera,event,controls,elements,zoomButtons})=>{
+    const initialProjection=camera.projectionMatrix.clone(),initialPosition=camera.position.clone();
+    elements.get('carmDetDist').value='600';event('carmDetDist','input');
+    assert.equal(camera.far,950);
+    assert.ok(camera.position.equals(initialPosition),'moving detector must not move the source');
+    event(zoomButtons[1],'click');
+    assert.ok(Math.abs(fieldAtPatientPlane(camera)-(300/1.4)*410/950)<1e-7);
+    assert.match(elements.get('detectorZoomStatus').textContent,/21,4 × 21,4 cm detektora/);
+    assert.match(elements.get('carmGeometryStatus').textContent,/Lampa–detektor: 95 cm/);
+    controls.reset();
+    assert.ok(camera.projectionMatrix.equals(initialProjection));
+    assert.ok(camera.position.equals(initialPosition));
+    assert.equal(camera.far,700);
+    assert.match(elements.get('carmGeometryStatus').textContent,/15 × 15 cm/);
+},appGeometry));
+
+test('detector selection changes the physical field without changing pose or zoom and respects the camera lock',()=>fixture(({camera,event,controls,elements,zoomButtons})=>{
+    assert.match(html,/<option value="300" selected>30 × 30 cm<\/option>/);
+    assert.equal(elements.get('detectorSize').value,'300');
+    assert.equal(controls.getDetectorZoomMode().detectorSideMm,300);
+    event(zoomButtons[1],'click');
+    const position=camera.position.clone(),rotation=camera.quaternion.clone();
+    const field30=fieldAtPatientPlane(camera),revision=controls.getRevision();
+    elements.get('detectorSize').value='210';event('detectorSize','change');
+    assert.ok(Math.abs(fieldAtPatientPlane(camera)/field30-0.7)<1e-8);
+    assert.ok(camera.position.equals(position));assert.ok(camera.quaternion.equals(rotation));
+    assert.equal(camera.zoom,1.4);assert.equal(camera.far,700);
+    assert.ok(controls.getRevision()>revision,'changing detector must invalidate the prior projection/capture');
+    assert.match(elements.get('detectorZoomStatus').textContent,/15 × 15 cm detektora/);
+    assert.deepEqual(zoomButtons.map(button=>button.fieldLabel.textContent),[
+        '21 × 21 cm detektora','15 × 15 cm detektora','10 × 10 cm detektora'
+    ]);
+    controls.setLocked(true);
+    assert.equal(elements.get('detectorSize').disabled,true);
+    const projection=camera.projectionMatrix.clone();
+    elements.get('detectorSize').value='300';event('detectorSize','change');
+    assert.ok(camera.projectionMatrix.equals(projection),'locked geometry must not change');
+    controls.setLocked(false);assert.equal(elements.get('detectorSize').disabled,false);
+    controls.reset();
+    assert.equal(elements.get('detectorSize').value,'300');
+    assert.equal(controls.getDetectorZoomMode().id,'none');
+    assert.equal(zoomButtons[0].fieldLabel.textContent,'30 × 30 cm detektora');
+},appGeometry));

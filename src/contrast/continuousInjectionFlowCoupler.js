@@ -1,34 +1,23 @@
 import { arterialWaveform } from './flowNetwork.js';
 
 const MM3_PER_ML = 1000;
-const MIN_DIRECTIONAL_FRACTION = 0.05;
-const MAX_DIRECTIONAL_FRACTION = 0.95;
-
-function clamp(value, minimum, maximum) {
-    return Math.max(minimum, Math.min(maximum, value));
+function conductance(resistance) {
+    return Number.isFinite(resistance) && resistance > 0 ? 1 / resistance : 0;
 }
 
-function normalizedDirection(direction) {
-    const x = direction?.x || 0;
-    const y = direction?.y || 0;
-    const z = direction?.z || 0;
-    const length = Math.hypot(x, y, z) || 1;
-    return { x: x / length, y: y / length, z: z / length };
-}
-
-function directionDotFlow(direction, location) {
-    return direction.x * location.tangentX +
-        direction.y * location.tangentY +
-        direction.z * location.tangentZ;
+function resistanceFraction(edge, t) {
+    // Preserve the exact tapered-artery resistance when the source lies inside
+    // an edge; the finite-volume source is located at its control-volume centre.
+    const a = edge.radiusStart, b = edge.radiusEnd, r = a + (b - a) * t;
+    return t * (a * a + a * r + r * r) / (a * a + a * b + b * b) * (b / r) ** 3;
 }
 
 /**
- * Couples a device outlet to the signed 1D arterial flow without selecting a
- * second contrast algorithm. Injection is represented as a continuous volume
- * source: its proximal share reduces the normal antegrade flow on every
- * ancestor edge and may carry it smoothly through zero, while the distal share
- * augments downstream flow. Iodine enters the same source control volume and
- * the resulting signed face flows divide it conservatively.
+ * Incremental Kirchhoff solution for device volume sources on the arterial
+ * resistor tree. The cardiac inlet retains its prescribed waveform; all added
+ * fluid leaves through tissue-bed resistances. Local reflux is possible, but
+ * outlet direction does not prescribe bulk reversal of every ancestor vessel.
+ * The local jet solver remains responsible for directional nozzle momentum.
  */
 export class ContinuousInjectionFlowCoupler {
     constructor(flowNetwork) {
@@ -44,8 +33,13 @@ export class ContinuousInjectionFlowCoupler {
         this.maximumDownstreamRateMlPerSec = 0;
         this.minimumSignedFlowMlPerSec = 0;
         this.configurationCount = 0;
-        this._affectedEdgeIndices = new Set();
+        this._sourceEdgeIndices = new Uint8Array(flowNetwork.edges.length);
         this._locationScratch = {};
+        this._hydraulicRevision = -1;
+        this._upstreamResistance = new Map();
+        this._edgeProximalResistance = new Float64Array(flowNetwork.edges.length);
+        this._responses = new Map();
+        this._uniformDeltas = new Float64Array(flowNetwork.edges.length);
     }
 
     beginStep() {
@@ -55,7 +49,7 @@ export class ContinuousInjectionFlowCoupler {
         this.currentUpstreamFraction = 0;
         this.currentReversedEdgeCount = 0;
         this.minimumSignedFlowMlPerSec = 0;
-        this._affectedEdgeIndices.clear();
+        this._sourceEdgeIndices.fill(0);
     }
 
     configure({
@@ -86,6 +80,7 @@ export class ContinuousInjectionFlowCoupler {
                 (sum, port) => sum + Math.max(0, port.weight || 1),
                 0
             ) || activePorts.length;
+        this._uniformDeltas.fill(0);
         const splits = [];
         let weightedUpstreamFraction = 0;
 
@@ -109,41 +104,24 @@ export class ContinuousInjectionFlowCoupler {
                 continue;
             }
 
-            const direction = normalizedDirection(port.direction);
-            const axialAlignment = clamp(
-                directionDotFlow(direction, location),
-                -1,
-                1
-            );
-            // The outlet direction biases a pressure source but never turns
-            // either side completely off. Radial ports split evenly; an axial
-            // upstream or downstream outlet approaches a 95/5 split.
-            const upstreamFraction = clamp(
-                0.5 - axialAlignment * 0.45,
-                MIN_DIRECTIONAL_FRACTION,
-                MAX_DIRECTIONAL_FRACTION
-            );
-            const upstreamRateMlPerSec =
-                portRateMlPerSec * upstreamFraction;
-            const downstreamRateMlPerSec =
-                portRateMlPerSec - upstreamRateMlPerSec;
-            weightedUpstreamFraction +=
-                upstreamFraction * portRateMlPerSec;
+            const response = this._sourceResponse(location);
+            const upstreamFraction = response.upstreamFraction;
+            const upstreamRateMlPerSec = portRateMlPerSec * upstreamFraction;
+            const downstreamRateMlPerSec = portRateMlPerSec - upstreamRateMlPerSec;
+            weightedUpstreamFraction += upstreamRateMlPerSec;
             this.currentUpstreamRateMlPerSec += upstreamRateMlPerSec;
             this.currentDownstreamRateMlPerSec += downstreamRateMlPerSec;
-
-            this._addUpstreamDelta(
-                location,
-                -upstreamRateMlPerSec * MM3_PER_ML
-            );
-            const downstreamTargets = this._downstreamTargets(
-                location.edgeIndex
-            );
-            this._addDownstreamDelta(
-                location,
-                downstreamTargets,
-                downstreamRateMlPerSec * MM3_PER_ML
-            );
+            const sourceEdge = this.flowNetwork.edges[location.edgeIndex];
+            this._sourceEdgeIndices[sourceEdge.index] = 1;
+            this._addFlowDelta(sourceEdge.index, 0, location.cellIndex + 1,
+                -upstreamRateMlPerSec * MM3_PER_ML);
+            this._addFlowDelta(sourceEdge.index, location.cellIndex + 1, sourceEdge.cellCount + 1,
+                downstreamRateMlPerSec * MM3_PER_ML);
+            const injectedFlow = portRateMlPerSec * MM3_PER_ML;
+            const fractions = response.edgeFractions;
+            for (let index = 0; index < fractions.length; index++)
+                this._uniformDeltas[index] += injectedFlow * fractions[index];
+            const downstreamTargets = this._downstreamTargets(location.edgeIndex);
             splits.push({
                 upstreamFraction,
                 downstreamTargets,
@@ -161,30 +139,29 @@ export class ContinuousInjectionFlowCoupler {
             });
         }
 
+        const uniform = this.flowNetwork._edgeFlowDeltasMm3PerS;
+        for (let index = 0; index < this._uniformDeltas.length; index++)
+            uniform[index] += this._uniformDeltas[index];
+
         const waveform = arterialWaveform(
             this.flowNetwork.time,
             this.flowNetwork.hemodynamics.heartRateBpm
         );
         let minimumSignedFlowMm3PerS = 0;
         let reversedEdgeCount = 0;
-        for (const edgeIndex of this._affectedEdgeIndices) {
+        for (let edgeIndex = 0; edgeIndex < uniform.length; edgeIndex++) {
+            const override = this.flowNetwork._flowOverridesMm3PerS[edgeIndex];
+            if (uniform[edgeIndex] >= 0 && !this._sourceEdgeIndices[edgeIndex] && !(override < 0)) continue;
             const edge = this.flowNetwork.edges[edgeIndex];
-            if (!edge) continue;
-            let edgeReversed = false;
-            for (let faceIndex = 0; faceIndex <= edge.cellCount; faceIndex++) {
-                const signedFlowMm3PerS =
-                    this.flowNetwork.getFaceSignedFlowMm3PerS(
-                        edgeIndex,
-                        faceIndex,
-                        waveform
-                    );
-                edgeReversed ||= signedFlowMm3PerS < 0;
-                minimumSignedFlowMm3PerS = Math.min(
-                    minimumSignedFlowMm3PerS,
-                    signedFlowMm3PerS
-                );
-            }
-            if (edgeReversed) reversedEdgeCount++;
+            const base = (Number.isFinite(override) ? override : edge.meanFlowMm3PerS * waveform) + uniform[edgeIndex];
+            // Only source edges have a different delta on each face. The other
+            // cached resistor responses are constant along an entire edge.
+            let minimum = base + edge.faceFlowDeltaMm3PerS[0];
+            if (this._sourceEdgeIndices[edgeIndex])
+                for (let face = 1; face <= edge.cellCount; face++)
+                    minimum = Math.min(minimum, base + edge.faceFlowDeltaMm3PerS[face]);
+            minimumSignedFlowMm3PerS = Math.min(minimumSignedFlowMm3PerS, minimum);
+            if (minimum < 0) reversedEdgeCount++;
         }
 
         this.active = splits.length > 0;
@@ -215,43 +192,93 @@ export class ContinuousInjectionFlowCoupler {
         endFaceIndexExclusive,
         deltaMm3PerS
     ) {
-        const added = this.flowNetwork.addFaceFlowDelta(
+        this.flowNetwork.addFaceFlowDelta(
             edgeIndex,
             startFaceIndex,
             endFaceIndexExclusive,
             deltaMm3PerS
         );
-        if (added) this._affectedEdgeIndices.add(edgeIndex);
     }
 
-    _addUpstreamDelta(location, deltaMm3PerS) {
-        let edge = this.flowNetwork.edges[location.edgeIndex];
-        if (!edge) return;
-        // Face `cellIndex` is the proximal face of the finite volume which
-        // contains the outlet. The volume source changes every face from that
-        // point back to the arterial root, but leaves distal faces independent.
-        this._addFlowDelta(
-            edge.index,
-            0,
-            location.cellIndex + 1,
-            deltaMm3PerS
-        );
-        const visited = new Set();
-        edge = edge.parentEdgeIndex >= 0
-            ? this.flowNetwork.edges[edge.parentEdgeIndex]
-            : null;
-        while (edge && !visited.has(edge.index)) {
-            visited.add(edge.index);
-            this._addFlowDelta(
-                edge.index,
-                0,
-                edge.cellCount + 1,
-                deltaMm3PerS
-            );
-            edge = edge.parentEdgeIndex >= 0
-                ? this.flowNetwork.edges[edge.parentEdgeIndex]
-                : null;
+    _prepareResistances() {
+        const net = this.flowNetwork;
+        if (this._hydraulicRevision === net.hydraulicRevision) return;
+        this._hydraulicRevision = net.hydraulicRevision;
+        this._responses.clear();
+        this._upstreamResistance.clear();
+        // A prescribed cardiac inflow is an open circuit for incremental flow,
+        // so an injection cannot eject fluid into the heart through this inlet.
+        this._upstreamResistance.set(net.rootNode.id, Infinity);
+        for (const id of net.nodeOrder) {
+            const node = net.nodes.get(id);
+            const parentConductance = conductance(this._upstreamResistance.get(id));
+            for (const index of node.childEdgeIndices) {
+                let otherConductance = parentConductance;
+                for (const sibling of node.childEdgeIndices)
+                    if (sibling !== index)
+                        otherConductance += conductance(net.edges[sibling].equivalentResistance);
+                const proximal = otherConductance > 0 ? 1 / otherConductance : Infinity;
+                const edge = net.edges[index];
+                this._edgeProximalResistance[index] = proximal;
+                this._upstreamResistance.set(edge.endNodeId,
+                    edge.transportExcluded ? Infinity : edge.resistance + proximal);
+            }
         }
+    }
+
+    _sourceResponse(location) {
+        this._prepareResistances();
+        const key = `${location.edgeIndex}:${location.cellIndex}`;
+        if (this._responses.has(key)) return this._responses.get(key);
+        const net = this.flowNetwork, source = net.edges[location.edgeIndex];
+        const t = (location.cellIndex + 0.5) / source.cellCount;
+        const fraction = resistanceFraction(source, t);
+        const proximal = this._edgeProximalResistance[source.index] + source.resistance * fraction;
+        const distal = net.nodes.get(source.endNodeId).equivalentResistance + source.resistance * (1 - fraction);
+        const upG = conductance(proximal), downG = conductance(distal);
+        const upstreamFraction = upG + downG > 0 ? upG / (upG + downG) : 0;
+        const edgeFractions = new Float64Array(net.edges.length);
+        const descend = (nodeId, amount) => {
+            const stack = [[nodeId, amount]];
+            while (stack.length) {
+                const [id, current] = stack.pop(), node = net.nodes.get(id);
+                if (!(current > 0) || node.nativeOutlet) continue;
+                const totalG = conductance(node.equivalentResistance);
+                if (!(totalG > 0)) continue;
+                for (const index of node.childEdgeIndices) {
+                    const edge = net.edges[index];
+                    const part = current * conductance(edge.equivalentResistance) / totalG;
+                    if (!(part > 0)) continue;
+                    edgeFractions[index] += part;
+                    stack.push([edge.endNodeId, part]);
+                }
+            }
+        };
+        descend(source.endNodeId, 1 - upstreamFraction);
+        let child = source, current = upstreamFraction;
+        while (current > 0) {
+            const node = net.nodes.get(child.startNodeId);
+            const totalG = conductance(this._edgeProximalResistance[child.index]);
+            if (!(totalG > 0)) break;
+            for (const siblingIndex of node.childEdgeIndices) {
+                if (siblingIndex === child.index) continue;
+                const sibling = net.edges[siblingIndex];
+                const part = current * conductance(sibling.equivalentResistance) / totalG;
+                if (!(part > 0)) continue;
+                edgeFractions[siblingIndex] += part;
+                descend(sibling.endNodeId, part);
+            }
+            current *= conductance(this._upstreamResistance.get(node.id)) / totalG;
+            if (node.parentEdgeIndex < 0 || !(current > 0)) break;
+            child = net.edges[node.parentEdgeIndex];
+            edgeFractions[child.index] -= current;
+        }
+        const response = {upstreamFraction, edgeFractions};
+        // Moving devices must not accumulate a full-tree response for every
+        // visited source cell. Reuse a small working set for multi-hole ports.
+        if (this._responses.size >= 32) this._responses.delete(this._responses.keys().next().value);
+        this._responses.set(key, response);
+        return response;
     }
 
     _downstreamTargets(sourceEdgeIndex) {
@@ -270,54 +297,6 @@ export class ContinuousInjectionFlowCoupler {
                 ? child.meanFlowMm3PerS / totalFlow
                 : 1 / children.length
         }));
-    }
-
-    _addDownstreamDelta(location, targets, addedFlowMm3PerS) {
-        const sourceEdge = this.flowNetwork.edges[location.edgeIndex];
-        if (!sourceEdge) return;
-        this._addFlowDelta(
-            sourceEdge.index,
-            location.cellIndex + 1,
-            sourceEdge.cellCount + 1,
-            addedFlowMm3PerS
-        );
-        const stack = targets.map(target => ({
-            edgeIndex: target.edgeIndex,
-            addedFlowMm3PerS: addedFlowMm3PerS * target.weight
-        }));
-        const visited = new Set();
-        while (stack.length) {
-            const current = stack.pop();
-            if (!current || visited.has(current.edgeIndex)) continue;
-            visited.add(current.edgeIndex);
-            const edge = this.flowNetwork.edges[current.edgeIndex];
-            if (!edge) continue;
-            this._addFlowDelta(
-                edge.index,
-                0,
-                edge.cellCount + 1,
-                current.addedFlowMm3PerS
-            );
-            if (!edge.childEdgeIndices.length) continue;
-            const children = edge.childEdgeIndices
-                .map(edgeIndex => this.flowNetwork.edges[edgeIndex])
-                .filter(Boolean);
-            const totalFlow = children.reduce(
-                (sum, child) =>
-                    sum + Math.max(0, child.meanFlowMm3PerS),
-                0
-            );
-            for (const child of children) {
-                const share = totalFlow > 0
-                    ? child.meanFlowMm3PerS / totalFlow
-                    : 1 / children.length;
-                stack.push({
-                    edgeIndex: child.index,
-                    addedFlowMm3PerS:
-                        current.addedFlowMm3PerS * share
-                });
-            }
-        }
     }
 
     getDiagnostics() {

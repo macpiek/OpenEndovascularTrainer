@@ -2,10 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Endovascular Trainer</title>
-    <link rel="stylesheet" href="style.css?v=20261022-space-pause">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="system-initializing">
+<div id="simulation-layout">
+<div id="simulation-viewport" aria-label="Obraz fluoroskopii">
+    <canvas id="sim"></canvas>
 <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading simulator">
     <div class="loading-panel">
         <div class="loading-copy">
@@ -24,7 +28,7 @@
         </div>
     </div>
 </div>
-<canvas id="sim"></canvas>
+</div>
 <div id="view-mode-switch">
     <button id="modeToggle" class="mode-toggle fluoro-active" type="button" aria-label="Current view: fluoroscopy" aria-pressed="false">
         <span class="mode-toggle-thumb" aria-hidden="true"></span>
@@ -51,22 +55,18 @@
         <button id="dsaCineStop" type="button">Return to live</button>
     </div>
     <div id="perfStats">FPS: 0 | Mem: N/A</div>
-    <div class="control-readout-strip">
-        <div class="control-readout" id="insertedLength">Wire 0 cm</div>
-        <div class="control-readout" id="catheterLength">Catheter 0 cm</div>
-        <div class="control-readout" id="currentDose">Contrast 0 ml</div>
-        <div id="xrayTechnique" class="xray-technique">
-            <span id="currentKV">72 kV</span>
-            <span id="currentMA">3.0 mA</span>
-            <span id="currentDoseRate" title="Szacowana dawka wejściowa na sekundę">≈0.00 mGy/s</span>
-        </div>
+    <div id="xrayTechnique" class="xray-technique">
+        <span id="currentKV">72 kV</span>
+        <span id="currentMA">3.0 mA</span>
+        <span id="currentDoseRate" title="Szacowana dawka wejściowa na sekundę">≈0.00 mGy/s</span>
     </div>
-</div>
-<div id="bottom-control-panel" aria-hidden="true"></div>
 <div id="simulation-pause-banner" role="status" hidden>
     <strong>Symulacja wstrzymana</strong>
     <button id="simulation-resume" type="button">Wznów · Spacja</button>
 </div>
+</div>
+<div id="bottom-control-panel" aria-label="Sterowanie symulatorem">
+
 <div id="controls">
     <div class="control-tabs" role="tablist" aria-label="Simulator controls">
         <button class="control-tab active" type="button" data-control-tab="toolSelection" role="tab" aria-selected="true">Tool selection</button>
@@ -95,6 +95,9 @@
                 <output id="introducerStatus" role="status">7 cm · 6F</output>
                 <div class="sheath-motion-controls"><button id="introducerWithdraw" type="button">Wycofaj koszulkę [G]</button><button id="introducerAdvance" type="button">Wsuń koszulkę [H]</button></div>
                 <output id="introducerInsertion">Wsunięcie: 7,0 cm</output>
+                <div class="sheath-motion-controls"><button id="dilatorWithdraw" type="button">Wycofaj rozszerzacz [V]</button><button id="dilatorAdvance" type="button">Wsuń rozszerzacz [B]</button></div>
+                <output id="dilatorStatus" role="status">Rozszerzacz wycofany</output>
+                <small>Przy wsuwaniu koszulki od 0 klawisz H automatycznie wprowadza dopasowany rozszerzacz po prowadniku, a następnie cały zestaw. G wycofuje zestaw, V — sam rozszerzacz. Przed wprowadzeniem cewnika wycofaj rozszerzacz. Jeśli cewnik pozostaje w naczyniu, koszulka wsuwa się po nim bez rozszerzacza.</small>
                 <small>Przytrzymaj G / H lub przycisk, aby wycofać / wsunąć koszulkę. Długość i średnicę możesz zmienić po całkowitym wycofaniu (0 cm), a następnie ręcznie wsunąć nową koszulkę. Cewnik i prowadnik mogą pozostać na miejscu.</small>
             </div>
             <div class="control-section">
@@ -125,6 +128,7 @@
                                     <option value="pigtail-calibrated">Pigtail skalowany · 1 cm</option>
                                     <option value="berenstein" selected>Berenstein</option>
                                     <option value="sim1">SIM 1</option>
+                                    <option value="reliant-balloon">Balon podatny · Reliant 46</option>
                                     <option value="stentgraft">Stentgraft…</option>
                                 </select>
                             </div>
@@ -138,6 +142,18 @@
                             >Wysuń</button>
                         </div>
                         <span id="catheterTypeStatus" class="tool-select-status">Ready</span>
+                        <div id="balloonControls" class="stent-graft-tool-controls" hidden>
+                            <strong>Reliant · balon podatny 10–46 mm</strong>
+                            <span>Trzon 8F · 100 cm · koszulka ≥12F</span>
+                            <label for="balloonVolume">Zadana objętość napełnienia (ml)</label>
+                            <input id="balloonVolume" type="number" min="0" max="60" step="1" value="10">
+                            <div class="stent-graft-actions">
+                                <button id="balloonInflate" type="button">Napełnij</button>
+                                <button id="balloonDeflate" type="button">Opróżnij balon</button>
+                            </div>
+                            <output id="balloonStatus" role="status"></output>
+                            <small>Wysuń cały balon z koszulki przed napełnieniem. Napełnienie ogranicza ściana naczynia; przed ruchem opróżnij balon.</small>
+                        </div>
                         <div id="stentGraftToolControls" class="stent-graft-tool-controls" hidden>
                             <strong id="stentGraftSelection"></strong>
                             <div class="stent-graft-actions">
@@ -217,12 +233,14 @@
                                         <path data-guidewire-tip="glidewire" />
                                         <path data-guidewire-tip="glidewire-angled" />
                                         <path data-guidewire-tip="steel-j-035" />
+                                        <path data-guidewire-tip="lunderquist-double-curved" />
                                     </svg>
                                 </span>
                                 <select id="guidewireType">
                                     <option value="glidewire" selected>Glidewire prosty</option>
                                     <option value="glidewire-angled">Glidewire zagięty · 45°</option>
                                     <option value="steel-j-035">Steel J-wire 0.035&quot;</option>
+                                    <option value="lunderquist-double-curved">Lunderquist Extra-Stiff · Double Curved · 0.035&quot;</option>
                                 </select>
                             </div>
                             <button
@@ -238,6 +256,7 @@
                         <select id="guidewireLength">
                             <option value="1000">100 cm</option><option value="1500">150 cm</option>
                             <option value="1800">180 cm</option><option value="2000">200 cm</option>
+                            <option value="2600">260 cm</option>
                         </select>
                         <span id="guidewireTypeStatus" class="tool-select-status">Ready</span>
                         <label class="guidewire-stiffness-control" for="stiffness">
@@ -327,24 +346,32 @@
                 <div class="section-header"><span class="collapse-triangle">▼</span> Imaging</div>
                 <div class="section-content imaging-grid">
                     <div class="detector-zoom-control">
+                        <label class="detector-size-control" for="detectorSize">
+                            <span>Rozmiar detektora</span>
+                            <select id="detectorSize">
+                                <option value="210">21 × 21 cm</option>
+                                <option value="300" selected>30 × 30 cm</option>
+                            </select>
+                        </label>
                         <div class="detector-zoom-heading">
                             <span>Detector zoom</span>
-                            <output id="detectorZoomStatus">No zoom · 1.00× · 100% field of view</output>
+                            <output id="detectorZoomStatus">No zoom · 30 × 30 cm detektora · 1.00×</output>
                         </div>
                         <div class="detector-zoom-options" role="group" aria-label="Detector zoom">
                             <button type="button" class="active" data-detector-zoom="none" aria-pressed="true">
                                 <strong>No zoom</strong>
-                                <span>21 cm · full field</span>
+                                <span>30 × 30 cm detektora</span>
                             </button>
                             <button type="button" data-detector-zoom="medium" aria-pressed="false">
                                 <strong>Zoom 1</strong>
-                                <span>15 cm · 1.40×</span>
+                                <span>21,4 × 21,4 cm detektora</span>
                             </button>
                             <button type="button" data-detector-zoom="maximum" aria-pressed="false">
                                 <strong>Zoom 2</strong>
-                                <span>10 cm · 2.10×</span>
+                                <span>14,3 × 14,3 cm detektora</span>
                             </button>
                         </div>
+                        <output id="carmGeometryStatus" class="detector-geometry-status"></output>
                     </div>
                     <button id="autoExposureToggle" class="imaging-toggle" type="button">Auto exposure: Off</button>
                     <label class="parameter-label">Persistence
@@ -566,6 +593,11 @@
         </div>
 
         <div class="control-tab-panel" data-control-panel="debug" role="tabpanel">
+            <div class="debug-tool-readouts" role="group" aria-label="Prowadnik, cewnik i kontrast">
+                <div class="control-readout" id="insertedLength">Wire 0 cm</div>
+                <div class="control-readout" id="catheterLength">Catheter 0 cm</div>
+                <div class="control-readout" id="currentDose">Contrast 0 ml</div>
+            </div>
             <div class="browser-benchmark" aria-label="Wybór solvera fizyki">
                 <label class="parameter-label" for="debugSolverSelect">Solver fizyki</label>
                 <select id="debugSolverSelect" aria-describedby="debugSolverHelp"></select>
@@ -682,6 +714,7 @@
                 <label class="debug-toggle"><input id="showDebugRodNodes" type="checkbox" checked> Węzły pręta — prowadnik: turkus, cewnik: pomarańcz</label>
             </div>
             <div class="browser-benchmark" aria-label="Historia odrzuconych kroków">
+                <button id="downloadCurrentSolverStep" type="button">Pobierz bieżący krok</button>
                 <button id="downloadSolverFailure" type="button" disabled>Pobierz ostatni krok</button>
                 <button id="downloadAllSolverFailures" type="button" disabled>Pobierz wszystkie (0)</button>
                 <button id="clearSolverFailures" type="button" disabled>Wyczyść historię</button>
@@ -720,14 +753,57 @@
     </div>
 </div>
 
+<div id="carm-controls">
+    <div class="carm-panel-title">C-arm / table</div>
+    <div class="carm-controls-body">
+            <div class="carm-readouts">
+                <div class="carm-readout"><span class="plane-icon plane-transverse"></span><span id="carmYawReadout">AP 0°</span></div>
+                <div class="carm-readout"><span class="plane-icon plane-sagittal"></span><span id="carmPitchReadout">CRA 0°</span></div>
+                <div class="carm-readout"><span class="plane-icon plane-roll"></span><span id="carmRollReadout">Roll 0°</span></div>
+            </div>
+            <div class="carm-joystick-grid">
+                <div class="carm-joystick-block">
+                    <div class="carm-joystick-title">Angle</div>
+                    <div class="angle-control-layout">
+                        <button id="carmLao30" class="angle-preset-button" title="Hold to move to LAO 30 degrees">LAO 30</button>
+                        <div class="angle-joystick-stack">
+                            <div id="angleJoystick" class="joystick">
+                                <div id="angleJoystickHandle" class="joystick-handle"></div>
+                            </div>
+                            <div class="joystick-caption">LAO/RAO · CRA/CAU</div>
+                        </div>
+                        <button id="carmRao30" class="angle-preset-button" title="Hold to move to RAO 30 degrees">RAO 30</button>
+                    </div>
+                    <div class="roll-control">
+                        <button id="carmRollLeft" title="Rotate detector counterclockwise">↺</button>
+                        <button id="carmAngleReset" title="Reset C-arm angles">0</button>
+                        <button id="carmRollRight" title="Rotate detector clockwise">↻</button>
+                    </div>
+                </div>
+                <div class="carm-joystick-block">
+                    <div class="carm-joystick-title">Position</div>
+                    <div id="positionJoystick" class="joystick">
+                        <div id="positionJoystickHandle" class="joystick-handle"></div>
+                    </div>
+                    <div id="carmZButtons">
+                        <button id="carmZUp" title="Move C-arm up">↑</button>
+                        <button id="carmZDown" title="Move C-arm down">↓</button>
+                    </div>
+                    <div class="joystick-caption">Table plane · height</div>
+                </div>
+            </div>
+            <input id="carmX" type="hidden" min="-200" max="200" step="1" value="0">
+            <input id="carmY" type="hidden" min="-1000" max="600" step="1" value="-90">
+            <input id="carmZ" type="hidden" min="-40" max="180" step="1" value="60">
+            <input id="carmDetDist" type="hidden" min="200" max="600" step="1" value="350">
+    </div>
+</div>
+</div>
+
+<aside id="simulation-sidebar" aria-label="Monitor i pozycja ramienia C">
 <div id="monitor" class="patient-monitor">
     <div class="monitor-header">
-        <div>
-            <div class="monitor-title">MONITOR</div>
-            <div class="monitor-subtitle">ADULT | ANGIO</div>
-        </div>
         <div class="monitor-status">
-            <span id="monitorRhythm">SINUS</span>
             <span id="monitorClock">00:00</span>
         </div>
     </div>
@@ -775,6 +851,7 @@
 </div>
 
 <div id="carm-preview"></div>
+</aside>
 <dialog id="control-help-panel" aria-labelledby="control-help-title">
     <div class="control-help-header">
         <h1 id="control-help-title">Sterowanie</h1>
@@ -787,6 +864,7 @@
         </section>
         <section class="control-help-section">
             <h2>Koszulka</h2>
+            <p><kbd>V</kbd> wycofaj rozszerzacz, <kbd>B</kbd> wsuń rozszerzacz po prowadniku. Po osadzeniu rozszerzacza <kbd>G</kbd> / <kbd>H</kbd> przesuwa cały zestaw.</p>
             <p><kbd>H</kbd> wsuń, <kbd>G</kbd> wycofaj. Przytrzymaj klawisz, aby przesuwać koszulkę.</p>
         </section>
         <section class="control-help-section">
@@ -812,50 +890,6 @@
         </section>
     </div>
 </dialog>
-<div id="carm-controls">
-    <div class="carm-panel-title">C-arm / table</div>
-    <div class="carm-controls-body">
-            <div class="carm-readouts">
-                <div class="carm-readout"><span class="plane-icon plane-transverse"></span><span id="carmYawReadout">AP 0°</span></div>
-                <div class="carm-readout"><span class="plane-icon plane-sagittal"></span><span id="carmPitchReadout">CRA 0°</span></div>
-                <div class="carm-readout"><span class="plane-icon plane-roll"></span><span id="carmRollReadout">Roll 0°</span></div>
-            </div>
-            <div class="carm-joystick-grid">
-                <div class="carm-joystick-block">
-                    <div class="carm-joystick-title">Angle</div>
-                    <div class="angle-control-layout">
-                        <button id="carmLao30" class="angle-preset-button" title="Hold to move to LAO 30 degrees">LAO 30</button>
-                        <div class="angle-joystick-stack">
-                            <div id="angleJoystick" class="joystick">
-                                <div id="angleJoystickHandle" class="joystick-handle"></div>
-                            </div>
-                            <div class="joystick-caption">LAO/RAO · CRA/CAU</div>
-                        </div>
-                        <button id="carmRao30" class="angle-preset-button" title="Hold to move to RAO 30 degrees">RAO 30</button>
-                    </div>
-                    <div class="roll-control">
-                        <button id="carmRollLeft" title="Rotate detector counterclockwise">↺</button>
-                        <button id="carmAngleReset" title="Reset C-arm angles">0</button>
-                        <button id="carmRollRight" title="Rotate detector clockwise">↻</button>
-                    </div>
-                </div>
-                <div class="carm-joystick-block">
-                    <div class="carm-joystick-title">Position</div>
-                    <div id="positionJoystick" class="joystick">
-                        <div id="positionJoystickHandle" class="joystick-handle"></div>
-                    </div>
-                    <div id="carmZButtons">
-                        <button id="carmZUp" title="Move C-arm up">↑</button>
-                        <button id="carmZDown" title="Move C-arm down">↓</button>
-                    </div>
-                    <div class="joystick-caption">Table plane · height</div>
-                </div>
-            </div>
-            <input id="carmX" type="hidden" min="-200" max="200" step="1" value="0">
-            <input id="carmY" type="hidden" min="-1000" max="600" step="1" value="-90">
-            <input id="carmZ" type="hidden" min="-40" max="180" step="1" value="60">
-            <input id="carmDetDist" type="hidden" min="200" max="600" step="1" value="350">
-    </div>
 </div>
 
 <script type="importmap">

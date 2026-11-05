@@ -1,11 +1,14 @@
 import * as THREE from 'three';
 import { createCArmModel } from './carmModel.js';
 import { createOperatingTable } from './operatingTable.js';
+import { createCArmPreviewFramer } from './carmPreviewFraming.js';
 import { disposeThreeResources } from '../disposeThreeResources.js';
 
 let previewScene;
 let previewCamera;
 let previewRenderer;
+let previewResizeObserver;
+let fitPreviewCamera;
 let cArmGroup;
 let cArmGantry;
 let cArmLift;
@@ -18,6 +21,11 @@ export function initCArmPreview() {
     if (!container) return null;
     disposeCArmPreview();
     container.replaceChildren();
+    // The title has its own strip, so fitting the scene never puts equipment
+    // behind the "C-ARM POSITION" heading.
+    const viewport = document.createElement('div');
+    viewport.className = 'carm-preview-viewport';
+    container.appendChild(viewport);
 
     previewScene = new THREE.Scene();
     previewScene.background = new THREE.Color(0x020303);
@@ -32,8 +40,8 @@ export function initCArmPreview() {
     fillLight.position.set(-160, 40, -130);
     previewScene.add(fillLight);
 
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    const width = Math.max(1, viewport.clientWidth);
+    const height = Math.max(1, viewport.clientHeight);
 
     previewCamera = new THREE.PerspectiveCamera(39, width / height, 0.1, 1000);
     previewCamera.position.set(268, 146, 289);
@@ -41,13 +49,17 @@ export function initCArmPreview() {
     previewScene.add(previewCamera);
 
     previewRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    previewRenderer.setSize(width, height);
+    previewRenderer.setSize(width, height, false);
     previewRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    container.appendChild(previewRenderer.domElement);
-
-    const floor = new THREE.GridHelper(300, 12, 0x485a57, 0x1d2524);
-    floor.position.y = -94;
-    previewScene.add(floor);
+    viewport.appendChild(previewRenderer.domElement);
+    previewResizeObserver = new ResizeObserver(() => {
+        const width = Math.max(1, viewport.clientWidth);
+        const height = Math.max(1, viewport.clientHeight);
+        previewCamera.aspect = width / height;
+        previewRenderer.setSize(width, height, false);
+        renderCArmPreview();
+    });
+    previewResizeObserver.observe(viewport);
 
     cArmTable = createOperatingTable();
     previewScene.add(cArmTable);
@@ -59,6 +71,7 @@ export function initCArmPreview() {
     cArmDetectorAssembly = detectorAssembly;
     cArmGroup.add(cArm);
     previewScene.add(cArmGroup);
+    fitPreviewCamera = createCArmPreviewFramer(previewCamera, [cArmGroup, cArmTable]);
 
     // Render once so the preview displays immediately.
     renderCArmPreview();
@@ -72,6 +85,9 @@ export function initCArmPreview() {
 }
 
 export function disposeCArmPreview() {
+    previewResizeObserver?.disconnect();
+    previewResizeObserver = null;
+    fitPreviewCamera = null;
     if (!previewRenderer) return;
     disposeThreeResources({ roots: [previewScene] });
     previewRenderer.dispose();
@@ -83,6 +99,7 @@ export function disposeCArmPreview() {
 
 export function renderCArmPreview() {
     if (!previewRenderer || !previewScene || !previewCamera) return;
+    fitPreviewCamera?.();
     previewRenderer.render(previewScene, previewCamera);
 }
 

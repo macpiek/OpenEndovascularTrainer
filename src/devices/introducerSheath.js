@@ -3,7 +3,7 @@ import {sampleSheathPath, sheathLength} from '../physics/sheathPath.js';
 
 export const INTRODUCER_LENGTHS_MM = Object.freeze([70, 450, 900]);
 export const INTRODUCER_SIZES_F = Object.freeze([6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24]);
-export const GUIDEWIRE_LENGTHS_MM = Object.freeze([1000, 1500, 1800, 2000]);
+export const GUIDEWIRE_LENGTHS_MM = Object.freeze([1000, 1500, 1800, 2000, 2600]);
 
 export function introducerDimensions(french) {
     if (!INTRODUCER_SIZES_F.includes(french)) throw new RangeError('Nieznana średnica koszulki');
@@ -12,11 +12,13 @@ export function introducerDimensions(french) {
 }
 
 export function canSelectIntroducer(sheath) {
-    return sheathLength(sheath) === 0;
+    // Published rod coordinates can retain a round-off remainder at zero feed.
+    return sheathLength(sheath) <= 1e-7 && !(sheath.dilatorInsertion>0);
 }
 
 /** Select a replacement outside the vessel; insertion remains a manual action. */
 export function prepareIntroducerSelection(options) {
+    if(options.sheath.dilatorInsertion>0)throw new Error('Wycofaj rozszerzacz przed zmianą koszulki.');
     if (!canSelectIntroducer(options.sheath))
         throw new Error('Całkowicie wycofaj koszulkę, aby zmienić jej długość lub średnicę.');
     return prepareIntroducerExchange({...options, insertion:0});

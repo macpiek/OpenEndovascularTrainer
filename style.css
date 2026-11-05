@@ -2,21 +2,53 @@ body, html {
     margin: 0;
     padding: 0;
     background: black;
+    overflow: auto;
+}
+
+/* Each panel owns a grid cell; the detector never sits behind controls. */
+#simulation-layout {
+    display: grid;
+    grid-template-areas:
+        "toolbar toolbar"
+        "image sidebar"
+        "controls controls";
+    grid-template-columns: minmax(0, 1fr) 260px;
+    grid-template-rows: auto minmax(180px, 1fr) 246px;
+    gap: 10px;
+    width: 100%;
+    height: 100dvh;
+    min-height: 600px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#simulation-viewport {
+    grid-area: image;
+    position: relative;
+    min-width: 0;
+    min-height: 0;
     overflow: hidden;
+    background: #020303;
+}
+
+#simulation-sidebar {
+    grid-area: sidebar;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+    min-width: 0;
+    overflow: auto;
 }
 
 .loading-screen {
-    position: fixed;
+    position: absolute;
     z-index: 6;
-    top: 50%;
-    left: 50%;
-    width: 88vmin;
-    height: 88vmin;
+    inset: 0;
     display: grid;
     place-items: center;
     padding: 20px;
     box-sizing: border-box;
-    transform: translate(-50%, -50%);
     border: 1px solid rgba(255, 255, 255, 0.38);
     background: #020303;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 18px 54px rgba(0, 0, 0, 0.45);
@@ -140,10 +172,10 @@ canvas {
 #sim {
     position: absolute;
     inset: 0;
-    width: 100vw;
-    height: 100vh;
+    max-width: 100%;
+    max-height: 100%;
     box-sizing: border-box;
-    margin: 0;
+    margin: auto;
     background: #020303;
 }
 
@@ -151,6 +183,7 @@ canvas {
     position: absolute;
     z-index: 3;
     inset: 0;
+    margin: auto;
     overflow: hidden;
     pointer-events: none;
     font-family: Inter, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -243,12 +276,11 @@ canvas {
 }
 
 #view-mode-switch {
-    position: absolute;
+    grid-area: toolbar;
+    position: relative;
     z-index: 12;
-    top: 10px;
-    left: 10px;
-    right: 274px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 6px;
     min-width: 0;
@@ -365,13 +397,13 @@ canvas {
 }
 
 .dsa-cine-controls {
-    position: absolute;
-    top: 42px;
-    left: 0;
-    width: min(610px, calc(100vw - 300px));
+    order: 2;
+    flex: 1 1 100%;
+    min-width: 0;
     min-height: 34px;
     box-sizing: border-box;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 5px;
     padding: 3px 4px 3px 9px;
@@ -441,29 +473,26 @@ canvas {
 }
 
 #bottom-control-panel {
-    position: absolute;
-    z-index: 8;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
-    height: 246px;
+    grid-area: controls;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 12px;
+    min-height: 0;
+    min-width: 0;
+    padding: 10px;
     box-sizing: border-box;
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 5px;
     background: rgba(5, 6, 6, 0.78);
-    box-shadow: 0 -10px 26px rgba(0, 0, 0, 0.38);
-    pointer-events: none;
 }
 
 #controls {
-    position: absolute;
-    z-index: 9;
-    left: 20px;
-    right: 400px;
-    bottom: 20px;
+    container-type: inline-size;
+    position: relative;
     width: auto;
     max-width: none;
-    height: 226px;
+    min-width: 0;
+    min-height: 0;
     box-sizing: border-box;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
@@ -472,19 +501,16 @@ canvas {
 }
 
 #carm-controls {
-    position: absolute;
-    z-index: 9;
-    right: 20px;
-    bottom: 20px;
-    width: 380px;
-    height: 226px;
+    position: relative;
+    min-width: 0;
+    min-height: 0;
     box-sizing: border-box;
     display: grid;
-    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
     gap: 6px;
     padding-left: 12px;
     border-left: 1px solid rgba(255, 255, 255, 0.16);
-    overflow: hidden;
+    overflow: auto;
 }
 
 #controls, #carm-controls {
@@ -508,17 +534,12 @@ canvas {
     min-height: 24px;
 }
 
-.control-readout-strip {
+.debug-tool-readouts {
     display: grid;
-    flex: 1 1 auto;
-    grid-template-columns:
-        minmax(0, 1.1fr)
-        minmax(0, 1.25fr)
-        minmax(0, 0.9fr)
-        minmax(0, 1.45fr);
-    gap: 4px;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 6px;
     min-width: 0;
-    min-height: 34px;
+    margin-bottom: 10px;
 }
 
 .control-readout,
@@ -544,15 +565,23 @@ canvas {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.34);
 }
 
+.debug-tool-readouts .control-readout {
+    padding-block: 6px;
+    white-space: normal;
+}
+
 .control-tabs {
     display: flex;
     align-items: flex-end;
     gap: 0;
     min-height: 32px;
+    overflow-x: auto;
+    scrollbar-width: thin;
     border-bottom: 1px solid rgba(255, 255, 255, 0.24);
 }
 
 .control-tab {
+    flex-shrink: 0;
     position: relative;
     min-width: 82px;
     min-height: 32px;
@@ -756,7 +785,9 @@ canvas {
 .guidewire-type-picker:has(#guidewireType option[value="glidewire"]:checked)
     [data-guidewire-tip="glidewire"],
 .guidewire-type-picker:has(#guidewireType option[value="steel-j-035"]:checked)
-    [data-guidewire-tip="steel-j-035"] {
+    [data-guidewire-tip="steel-j-035"],
+.guidewire-type-picker:has(#guidewireType option[value="lunderquist-double-curved"]:checked)
+    [data-guidewire-tip="lunderquist-double-curved"] {
     display: block;
 }
 
@@ -1046,9 +1077,10 @@ canvas {
 }
 
 .xray-technique {
+    flex: 0 0 auto;
     justify-content: space-between;
     gap: 8px;
-    margin: 0;
+    margin: 0 0 0 auto;
     font-weight: bold;
     line-height: 1.15;
 }
@@ -1274,6 +1306,21 @@ canvas {
     font-weight: 800;
 }
 
+.detector-size-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.detector-size-control select {
+    width: auto;
+    min-width: 130px;
+}
+
 .detector-zoom-heading output {
     color: rgba(225, 242, 255, 0.74);
     font-size: 10px;
@@ -1285,6 +1332,12 @@ canvas {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
+}
+
+.detector-geometry-status {
+    color: rgba(225, 242, 255, 0.74);
+    font-size: 10px;
+    line-height: 1.4;
 }
 
 .detector-zoom-options button {
@@ -1947,13 +2000,10 @@ canvas {
 }
 
 #monitor {
-    position: absolute;
-    z-index: 7;
-    top: 10px;
-    right: 10px;
-    width: 260px;
-    max-width: calc(100vw - 240px);
-    min-width: 220px;
+    position: relative;
+    width: 100%;
+    flex-shrink: 0;
+    min-width: 0;
     color: #d8dfdc;
     font-family: sans-serif;
     pointer-events: none;
@@ -1971,25 +2021,10 @@ canvas {
 .monitor-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 8px;
     min-height: 18px;
     margin-bottom: 3px;
-}
-
-.monitor-title {
-    color: #d7dddc;
-    font-size: 10px;
-    font-weight: 700;
-    line-height: 1.1;
-    text-transform: uppercase;
-}
-
-.monitor-subtitle {
-    margin-top: 2px;
-    color: #7f8a89;
-    font-size: 8px;
-    line-height: 1;
 }
 
 .monitor-status {
@@ -2162,11 +2197,8 @@ canvas {
 }
 
 @media (max-width: 700px) {
-    #monitor {
-        right: 8px;
-        left: 220px;
-        width: auto;
-        min-width: 0;
+    #simulation-layout {
+        grid-template-columns: minmax(0, 1fr) 180px;
     }
 
     .monitor-value {
@@ -2191,13 +2223,11 @@ canvas {
 }
 
 #carm-preview {
-    position: absolute;
-    z-index: 7;
-    top: 196px;
-    right: 10px;
-    width: 260px;
-    max-width: calc(100vw - 240px);
-    min-width: 220px;
+    --preview-heading-height: 18px;
+    position: relative;
+    width: 100%;
+    flex-shrink: 0;
+    min-width: 0;
     height: 168px;
     box-sizing: border-box;
     overflow: hidden;
@@ -2214,7 +2244,7 @@ canvas {
     top: 0;
     left: 0;
     right: 0;
-    height: 18px;
+    height: var(--preview-heading-height);
     box-sizing: border-box;
     padding: 4px 6px 0;
     border-bottom: 1px solid rgba(72, 84, 84, 0.72);
@@ -2235,6 +2265,12 @@ canvas {
     inset: 0;
     pointer-events: none;
     background: linear-gradient(to bottom, rgba(255, 255, 255, 0.025), rgba(0, 0, 0, 0.18));
+}
+
+.carm-preview-viewport {
+    position: absolute;
+    inset: var(--preview-heading-height) 0 0;
+    overflow: hidden;
 }
 
 #carm-preview canvas {
@@ -2261,27 +2297,30 @@ canvas {
     background: rgba(0, 0, 0, .76);
 }
 
-#simulation-pause-banner:not([hidden]) {
-    position: fixed;
-    z-index: 30;
-    top: 76px;
-    left: 50%;
-    transform: translateX(-50%);
+#simulation-pause-banner {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
-    gap: 18px;
-    padding: 12px 18px;
+    gap: 8px;
+    min-height: 34px;
+    box-sizing: border-box;
+    padding: 0 6px;
     border: 1px solid #91bedb;
-    border-radius: 9px;
+    border-radius: 4px;
     background: #142735f2;
-    box-shadow: 0 6px 24px #0008;
     color: #fff;
-    font: 14px sans-serif;
+    font: 12px sans-serif;
+    white-space: nowrap;
+}
+#simulation-pause-banner[hidden] {
+    /* Reserve the same toolbar space in both states so pausing never
+       changes the detector viewport or shifts the surrounding panels. */
+    visibility: hidden;
 }
 #simulation-resume {
     border: 1px solid #8ab9d7;
-    border-radius: 5px;
-    padding: 7px 12px;
+    border-radius: 3px;
+    padding: 4px 8px;
     background: #2b506a;
     color: #fff;
     font: inherit;
@@ -2347,7 +2386,11 @@ canvas {
 
 #perfStats {
     position: static;
-    flex: 0 0 190px;
+    /* Stable width prevents changing metric digits from reflowing the HUD
+       and reallocating all image buffers on successive frames. */
+    flex: 0 1 400px;
+    max-width: 100%;
+    min-width: 0;
     min-height: 34px;
     box-sizing: border-box;
     display: flex;
@@ -2361,7 +2404,7 @@ canvas {
     border-radius: 4px;
     font-size: 12px;
     font-variant-numeric: tabular-nums;
-    white-space: nowrap;
+    white-space: normal;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.34);
 }
 
@@ -2376,13 +2419,8 @@ canvas {
     }
 
     #perfStats {
-        flex-basis: 156px;
         padding-inline: 7px;
         font-size: 11px;
-    }
-
-    .control-readout-strip {
-        gap: 3px;
     }
 
     .control-readout,
@@ -2511,51 +2549,89 @@ canvas {
 }
 
 @media (max-width: 950px) {
-    #view-mode-switch {
-        right: 320px;
-        flex-wrap: wrap;
-        align-items: flex-start;
-    }
-
-    #view-mode-switch .control-readout-strip {
-        flex-basis: 100%;
+    #simulation-layout {
+        grid-template-rows: auto minmax(180px, 1fr) 320px;
+        min-height: 700px;
     }
 
     #bottom-control-panel {
-        height: 310px;
-    }
-
-    #controls {
-        right: 20px;
-        bottom: 154px;
-        width: auto;
-        max-width: none;
-        height: 166px;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(90px, 1fr) auto;
+        gap: 8px;
     }
 
     #carm-controls {
-        left: 20px;
-        right: 20px;
-        bottom: 20px;
-        width: auto;
-        height: 126px;
         padding-left: 0;
-        padding-top: 9px;
+        padding-top: 6px;
         border-left: 0;
         border-top: 1px solid rgba(255, 255, 255, 0.16);
-        grid-template-columns: 120px 1fr 300px;
+        grid-template-columns: 100px minmax(0, 1fr);
         grid-template-rows: 1fr;
         align-items: start;
+    }
+
+    .carm-controls-body {
+        display: grid;
+        grid-template-columns: minmax(96px, 1fr) 340px;
+        gap: 8px;
     }
 
     #carm-controls .carm-readouts {
         grid-template-columns: 1fr;
     }
-
-    #carm-controls .carm-joystick-grid {
-        grid-template-columns: 1fr 1fr;
-    }
 }
+
+@media (max-width: 600px) {
+    #carm-controls { grid-template-columns: minmax(0, 1fr); }
+    .carm-controls-body { grid-template-columns: minmax(0, 1fr); }
+    #carm-controls .carm-readouts { grid-template-columns: repeat(3, 1fr); }
+    #bottom-control-panel { grid-template-rows: minmax(90px, 1fr) minmax(0, 180px); }
+}
+
+/* A side dock leaves the full height for the square detector in landscape
+   windows. Keep the bottom dock in portrait/narrow windows, where it gives
+   the image more room. */
+@media (min-width: 950px) and (min-aspect-ratio: 11/10) {
+    #simulation-layout {
+        grid-template-areas:
+            "toolbar toolbar"
+            "image sidebar"
+            "image controls";
+        grid-template-columns: minmax(0, 1fr) 380px;
+        grid-template-rows: auto 176px minmax(0, 1fr);
+        min-height: 600px;
+    }
+
+    #simulation-sidebar {
+        flex-direction: row;
+        gap: 8px;
+        overflow: hidden;
+    }
+
+    #monitor { flex: 0 0 220px; width: 220px; }
+    #carm-preview { flex: 1; width: auto; height: 176px; }
+
+    #bottom-control-panel {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) auto;
+        gap: 8px;
+        padding: 8px;
+    }
+
+    #carm-controls {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        padding: 6px 0 0;
+        border-left: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.16);
+        gap: 4px;
+    }
+
+    .carm-controls-body { display: block; }
+    #carm-controls .carm-readouts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    #carm-controls .carm-joystick-grid { grid-template-columns: 200px minmax(0, 1fr); }
+}
+
 
 .femoral-access-controls {
     display: flex;
@@ -2659,3 +2735,21 @@ canvas {
 .sheath-motion-controls { grid-column: 1 / -1; display: flex; gap: 6px; }
 .sheath-motion-controls button { flex: 1; }
 #introducerInsertion { grid-column: 1 / -1; font-variant-numeric: tabular-nums; }
+
+/* These panels can now live in a narrow dock independently of window size. */
+@container (max-width: 480px) {
+    .control-tabs { flex-wrap: wrap; overflow-x: visible; row-gap: 3px; }
+    .control-tab { flex: 1 1 auto; min-width: 70px; min-height: 28px; padding-inline: 8px; font-size: 11px; }
+    .tool-selection-grid,
+    .anatomy-controls,
+    .dsa-roadmap-panel,
+    .dsa-sequence-browser,
+    .dsa-roadmap-range {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .dsa-roadmap-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .collimator-control-body { grid-template-columns: 100px minmax(0, 1fr); }
+    .femoral-access-controls { gap: 5px; padding: 6px; }
+    .femoral-access-controls > span { flex-basis: 100%; }
+    .sheath-exchange-controls { padding: 8px; }
+}

@@ -1,0 +1,49 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Widoczność balonu — test GPU</title>
+<style>body{background:#18232e;color:#eef4f8;font:16px system-ui;padding:24px}canvas{width:440px;height:440px}pre{white-space:pre-wrap}</style>
+<h1>Reliant — projekcja fluoroskopowa</h1><pre id="results">Uruchamianie…</pre><main></main>
+<script type="module">
+import * as T from 'three';
+import {createBalloonProjectionMaterial} from '../src/devices/balloonProjectionMaterial.js';
+import {createIntroducerDilatorGeometry,createIntroducerDilatorProjectionMaterial} from '../src/devices/introducerDilatorGeometry.js';
+import {sampleCompliantBalloon,updateBalloonGeometry} from '../src/devices/compliantBalloon.js';
+import {vertexShader,fragmentShader} from '../src/shaders/displayShader.js';
+const renderer=new T.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});renderer.setSize(440,440);renderer.outputColorSpace=T.LinearSRGBColorSpace;
+document.querySelector('main').append(renderer.domElement);
+const target=new T.WebGLRenderTarget(440,440),displayTarget=new T.WebGLRenderTarget(440,440),pixels=new Uint8Array(440*440*4);
+const scene=new T.Scene(),camera=new T.OrthographicCamera(-40,40,40,-40,.1,300);camera.position.set(100,0,160);camera.lookAt(0,0,160);
+const path={getPointAt:(u,p)=>p.set(0,0,200*u),getTangentAt:(_u,p)=>p.set(0,0,1)};
+const sample=sampleCompliantBalloon({path,coordinates:[0,200],volumeMl:19,wallDistance:()=>100});
+const mesh=new T.Mesh(updateBalloonGeometry(new T.BufferGeometry(),sample),createBalloonProjectionMaterial());scene.add(mesh);
+// Compile the real production mask decoder, including its RGB convention and threshold.
+const decoder=['max3','sampleSignal','sheathAt'].map(name=>{
+ const code=fragmentShader.match(new RegExp('float '+name+'\\([^]*?\\n}'));if(!code)throw Error('Missing production decoder '+name);return code[0];
+}).join('\n');
+const displayScene=new T.Scene(),displayCamera=new T.Camera();
+const displayMaterial=new T.ShaderMaterial({vertexShader,uniforms:{sheathTexture:{value:target.texture}},fragmentShader:`varying vec2 vUv; uniform sampler2D sheathTexture; ${decoder} void main(){float signal=sheathAt(vUv);gl_FragColor=vec4(vec3(1.-signal*.65),1.);}`});
+displayScene.add(new T.Mesh(new T.PlaneGeometry(2,2),displayMaterial));
+function mask(){renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.clear();renderer.render(scene,camera);renderer.readRenderTargetPixels(target,0,0,440,440,pixels);return {rgb:pixels.some((v,i)=>i%4!==3&&v>0),alpha:pixels.some((v,i)=>i%4===3&&v>0)};}
+function image(){renderer.setRenderTarget(displayTarget);renderer.render(displayScene,displayCamera);renderer.readRenderTargetPixels(displayTarget,0,0,440,440,pixels);let dark=0;for(let i=0;i<pixels.length;i+=4)if(pixels[i]<220)dark++;return dark;}
+function assert(value,message){if(!value)throw Error(message);}
+const lines=[];
+try {
+ const productionColor=mesh.material.color.clone();mesh.material.color.set(0);const old=mask();assert(old.alpha&&!old.rgb&&image()===0,'Nie odtworzono błędu czarnej maski');lines.push('PASS: stara czarna maska odtwarza niewidoczny balon mimo dodatniej alfy');
+ mesh.material.color.copy(productionColor);assert(mask().rgb,'Brak sygnału RGB po poprawce');const count=image();assert(count>1000,'Balon nadal niewidoczny po dekodowaniu');lines.push(`PASS: napełniony balon widoczny przez produkcyjny dekoder (${count} pikseli)`);
+ mesh.visible=false;mask();assert(image()===0,'Opróżniony balon pozostawia maskę');lines.push('PASS: ukrycie opróżnionego balonu usuwa sygnał');
+ mesh.visible=true;mask();assert(image()===count,'Balon nie wraca po ponownym napełnieniu');lines.push('PASS: ponowne napełnienie przywraca obrys');
+ assert(renderer.info.programs.every(p=>p.diagnostics?.runnable!==false),'Błąd shadera');
+ mesh.visible=false;
+ const dilator=new T.Mesh(createIntroducerDilatorGeometry({length:70,french:6,innerRadius:1,
+     start:{x:0,y:0,z:110},end:{x:0,y:0,z:180},dilatorInsertion:95}),createIntroducerDilatorProjectionMaterial());
+ scene.add(dilator);camera.position.set(100,0,175);camera.up.set(0,0,1);camera.lookAt(0,0,175);camera.updateMatrixWorld();
+ assert(mask().rgb&&image()>100,'Rozszerzacz niewidoczny po dekodowaniu');
+ lines.push('PASS: rozszerzacz 6F widoczny przez produkcyjny dekoder');
+ // Tip is 25 mm beyond the sheath end, in the upper half of this projection.
+ const tipRow=Math.round((195-135)/80*440),tipPixel=(tipRow*440+220)*4;
+ assert(pixels[tipPixel]<245,'Zwężająca końcówka rozszerzacza niewidoczna');
+ lines.push('PASS: widoczna zwężająca końcówka poza koszulką');
+ dilator.visible=false;mask();assert(image()===0,'Wycofany rozszerzacz pozostawia cień');
+ lines.push('PASS: wycofanie rozszerzacza usuwa cień');
+ dilator.visible=true;mask();
+ renderer.setRenderTarget(null);renderer.render(displayScene,displayCamera);document.querySelector('#results').textContent=lines.join('\n');
+}catch(error){document.querySelector('#results').textContent=lines.join('\n')+'\nFAIL: '+error.message;throw error;}
+</script></html>

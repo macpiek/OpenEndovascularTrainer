@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pl">
+<meta charset="utf-8">
+<title>Gładki obrys kontrastu — test GPU</title>
+<style>
+body{background:#111b24;color:#edf3f7;font:15px system-ui;margin:24px}
+main{display:flex;gap:20px;flex-wrap:wrap}canvas{width:384px;height:384px}
+h1{font-size:24px}h2{font-size:18px}pre{white-space:pre-wrap}
+</style>
+<h1>Obrys naczyń z kontrastem</h1>
+<p>Ta sama geometria, kamera i stężenie. Zmienia się tylko próbkowanie obrazu.</p>
+<main><section><h2>Przed poprawką</h2><canvas id="before"></canvas></section>
+<section><h2>Po poprawce</h2><canvas id="after"></canvas></section></main>
+<pre id="results">Uruchamianie testów GPU…</pre>
+<script type="module">
+import * as T from 'three';
+import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import {surfaceFixture} from './helpers/contrastSurfaceFixture.js';
+import {ContrastFlowNetwork} from '../src/contrast/flowNetwork.js';
+import {AnatomicalContrastSurface} from '../src/contrast/anatomicalContrastSurface.js';
+import {createContrastProjectionTarget} from '../src/imaging/contrastProjection.js';
+import {DETECTOR_APERTURE_HALF_EXTENT as aperture} from '../src/imaging/collimatorGeometry.js';
+import {vertexShader,fragmentShader} from '../src/shaders/displayShader.js';
+
+const size=384, outputSize=size*2, renderer=new T.WebGLRenderer({antialias:false});
+renderer.outputColorSpace=T.LinearSRGBColorSpace;
+const scene=new T.Scene(), camera=new T.OrthographicCamera(-size/(2*aperture),size/(2*aperture),size/(2*aperture),-size/(2*aperture),.1,2000);
+camera.position.z=1000;
+const fixed=createContrastProjectionTarget(size,renderer.capabilities);
+const targets=[new T.WebGLRenderTarget(Math.round(size*.85),Math.round(size*.85),{type:T.HalfFloatType,depthBuffer:false}),fixed,
+ new T.WebGLRenderTarget(Math.ceil(size*4/aperture),Math.ceil(size*4/aperture),{type:T.HalfFloatType,depthBuffer:false,samples:fixed.samples})];
+const output=new T.WebGLRenderTarget(outputSize,outputSize,{depthBuffer:false});
+const decoder=['saturate','max3','sampleSignal','contrastAt'].map(name=>{
+ const code=fragmentShader.match(new RegExp('float '+name+'\\([^]*?\\n}'));
+ if(!code)throw Error('Brak funkcji projekcji: '+name);return code[0];
+}).join('\n');
+const displayMaterial=new T.ShaderMaterial({vertexShader,uniforms:{contrastTexture:{value:null},contrastGain:{value:5}},
+ fragmentShader:`varying vec2 vUv;uniform sampler2D contrastTexture;uniform float contrastGain;${decoder}
+ void main(){gl_FragColor=vec4(vec3(exp(-contrastAt(vUv)*3.25)),1.);}`});
+const screen=new T.Scene();screen.add(new T.Mesh(new T.PlaneGeometry(2,2),displayMaterial));
+const screenCamera=new T.OrthographicCamera(-aperture,aperture,aperture,-aperture,0,1);
+function draw(index){
+ renderer.setRenderTarget(targets[index]);renderer.setClearColor(0,0);renderer.clear();renderer.render(scene,camera);
+ displayMaterial.uniforms.contrastTexture.value=targets[index].texture;
+ renderer.setRenderTarget(output);renderer.render(screen,screenCamera);
+ const pixels=new Uint8Array(outputSize*outputSize*4);
+ renderer.readRenderTargetPixels(output,0,0,outputSize,outputSize,pixels);return pixels;
+}
+function metrics(pixels,slope,phase,radius){
+ const left=[],right=[],centers=[];let outside=0,missing=0;
+ for(let y=outputSize*.2|0;y<outputSize*.8;y++){
+  const expected=size/2+phase+slope*((y+.5)/2-size/2),dark=[];
+  let peak=0,mass=0,moment=0;
+  for(let x=0;x<outputSize;x++){
+   const d=1-pixels[4*(x+y*outputSize)]/255;dark.push(d);peak=Math.max(peak,d);mass+=d;moment+=d*(x+.5)/2;
+   if(d>1/255&&Math.abs((x+.5)/2-expected)>radius*Math.hypot(1,slope)+1)outside++;
+  }
+  if(peak===0){missing++;continue;}
+  const threshold=peak*.5;
+  let l=dark.findIndex(d=>d>=threshold),r=dark.findLastIndex(d=>d>=threshold);
+  left.push((l-.5+(threshold-dark[l-1])/(dark[l]-dark[l-1]))/2-expected);
+  right.push((r+.5+(dark[r]-threshold)/(dark[r]-dark[r+1]))/2-expected);
+  centers.push(moment/mass-expected);
+ }
+ const mean=a=>a.reduce((s,x)=>s+x,0)/a.length;
+ const variance=a=>{const m=mean(a);return mean(a.map(x=>(x-m)**2));};
+ return {wobble:Math.sqrt((variance(left)+variance(right))*.5),width:mean(right)-mean(left),
+  centerRms:Math.sqrt(mean(centers.map(x=>x*x))),outside,missing};
+}
+function show(id,pixels){
+ const canvas=document.getElementById(id);canvas.width=canvas.height=outputSize;
+ const data=new Uint8ClampedArray(pixels.length);
+ for(let y=0;y<outputSize;y++)data.set(pixels.subarray(y*outputSize*4,(y+1)*outputSize*4),(outputSize-y-1)*outputSize*4);
+ canvas.getContext('2d').putImageData(new ImageData(data,outputSize,outputSize),0,0);
+}
+function fill(f){
+ for(const e of f.network.edges)for(let i=0;i<e.cellCount;i++)e.massMg[i]=e.volumes[i]*.3;
+ f.volume.update(f.plume,.3,false);scene.add(f.volume.mesh);
+}
+function curveFixture(points,radius){
+ const curve=new T.CatmullRomCurve3(points.map(p=>new T.Vector3(...p)));
+ const parts=[radius,radius+.15].map((r,index)=>{
+  const g=new T.TubeGeometry(curve,128,r,24,false).toNonIndexed();
+  if(index===0){const a=g.attributes.position.array;for(let v=0;v<a.length;v+=9)for(let k=0;k<3;k++)[a[v+3+k],a[v+6+k]]=[a[v+6+k],a[v+3+k]];g.computeVertexNormals();}
+  return g;
+ });
+ const geometry=mergeGeometries(parts);parts.forEach(g=>g.dispose());
+ const p=curve.getPoints(128),network=new ContrastFlowNetwork(p.slice(1).map((end,i)=>({id:i,start:p[i],end,radiusStart:radius,radiusEnd:radius,nodeStartId:i,nodeEndId:i+1})));
+ let count=0;const offsets=Uint32Array.from(network.edges,e=>{const start=count;count+=e.cellCount;return start;});
+ return {geometry,network,plume:new Float32Array(count),volume:new AnatomicalContrastSurface(network,offsets,{fallbackGeometry:geometry})};
+}
+const checks=[];
+try{
+ for(const radius of [.4,1.5,18])for(const slope of [.07,.43])for(const phase of [0,.33,.67]){
+  const f=surfaceFixture(radius);fill(f);f.volume.mesh.scale.y=100;f.volume.mesh.rotation.z=-Math.atan(slope);f.volume.mesh.position.x=phase;
+  const original=f.volume.mesh.geometry.attributes.position.array.slice(),mass=f.network.edges[0].massMg.slice();
+  const before=metrics(draw(0),slope,phase,radius),after=metrics(draw(1),slope,phase,radius),reference=metrics(draw(2),slope,phase,radius);
+  checks.push({radius,slope,phase,before,after,reference});
+  if(after.missing!==0)throw Error('Przerwany cień drobnego naczynia');
+  if(after.outside!==0)throw Error('Cień wychodzi poza obrys i graniczny piksel');
+  if(Math.abs(after.width-reference.width)>.4)throw Error('Poszerzenie lub zwężenie cienia > 0,4 px');
+  if(after.centerRms>.15)throw Error('Oś cienia przesunięta o > 0,15 px');
+  if(!original.every((v,i)=>v===f.volume.mesh.geometry.attributes.position.array[i])||!mass.every((v,i)=>v===f.network.edges[0].massMg[i]))throw Error('Zmieniona geometria lub masa jodu');
+  scene.remove(f.volume.mesh);f.volume.dispose();f.geometry.dispose();
+ }
+ const mean=key=>checks.reduce((sum,c)=>sum+c[key].wobble,0)/checks.length;
+ if(mean('after')>=mean('before')*.55)throw Error('Niedostateczna poprawa gładkości');
+ const curves=[
+  curveFixture([[-100,-210,0],[-105,-70,0],[-73,10,0],[-45,90,0],[65,150,0]],14),
+  curveFixture([[-92,-62,1],[-35,-40,1],[0,10,1],[45,80,1]],2),
+  curveFixture([[-57,67,1],[-7,65,1],[70,90,1],[135,140,1]],1),
+  curveFixture([[-18,-12,1],[28,3,1],[105,-5,1],[157,25,1]],.4)
+ ];
+ curves.forEach(fill);show('before',draw(0));show('after',draw(1));
+ curves.forEach(f=>{scene.remove(f.volume.mesh);f.volume.dispose();f.geometry.dispose();});
+ document.getElementById('results').textContent=`PASS: ${checks.length} projekcji — duże i drobne naczynia, różne kąty i przesunięcia podpikselowe.\nNierówność krawędzi: ${mean('before').toFixed(3)} → ${mean('after').toFixed(3)} px.\nBez poszerzania geometrii, przerw i zmiany masy kontrastu.\nRozdzielczość projekcji: ${targets[0].width} → ${fixed.width}px; MSAA: ${fixed.samples}.\n`;
+ document.getElementById('results').dataset.details=JSON.stringify(checks);
+}catch(error){document.getElementById('results').textContent='FAIL: '+error.message+'\n'+JSON.stringify(checks,null,2);throw error;}
+finally{renderer.setRenderTarget(null);targets.forEach(t=>t.dispose());output.dispose();displayMaterial.dispose();renderer.dispose();}
+</script>
+</html>

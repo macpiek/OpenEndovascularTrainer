@@ -1,4 +1,5 @@
 import {
+  GUIDEWIRE_MATERIAL_PROFILES,
   guidewireMaterialProfile,
   normalizeGuidewireType,
   sampleGuidewireRestCenterline
@@ -60,7 +61,7 @@ export function buildGuidewireTipPreviewPath(type) {
 }
 
 export function renderGuidewireTipPreviews(root = document) {
-  for (const type of ['glidewire', 'glidewire-angled', 'steel-j-035']) {
+  for (const type of Object.keys(GUIDEWIRE_MATERIAL_PROFILES)) {
     const path = root.querySelector(`[data-guidewire-tip="${type}"]`);
     if (path) path.setAttribute('d', buildGuidewireTipPreviewPath(type));
   }

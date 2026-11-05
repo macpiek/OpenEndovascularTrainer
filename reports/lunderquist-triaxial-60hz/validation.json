@@ -1,0 +1,47 @@
+{
+  "target60HzMetForCapturedStressCase": false,
+  "strictTolerances": {
+    "force": 1e-06,
+    "length": 1e-05
+  },
+  "physicalDt": 0.016666666666666666,
+  "changes": [
+    "Rebase near the closest pair of triaxial tool outlets, preserving physical geometry and lengths.",
+    "First speculative Newton search uses four pivots; Gauss-Newton and unrestricted Newton recovery remain available."
+  ],
+  "focusedMechanicsTests": {
+    "passed": 103,
+    "failed": 0
+  },
+  "anatomicalTriaxialReplay": {
+    "stepsPerRun": 30,
+    "runs": 4,
+    "allAccepted": true,
+    "maxPairedPositionDifferenceMm": 0,
+    "maxPairedFrameComponentDifference": 0,
+    "maxPairedVelocityDifference": 0
+  },
+  "fullSharedAxisSuite": {
+    "tests": 569,
+    "passedInitially": 558,
+    "failedInitially": 10,
+    "skipped": 1,
+    "newAssertionFixed": "New rebase test now allows 1e-10 roundoff in quaternion components; focused rerun: 7/7 passed.",
+    "preexistingFailures": [
+      "tests/kirchhoffSharedAxisAnatomyRegression.test.js:14:1",
+      "tests/kirchhoffSharedAxisAnatomyRegression.test.js:23:1",
+      "tests/kirchhoffSharedAxisDiscoverySamples.test.js:26:1",
+      "tests/kirchhoffSharedAxisEarlyFallback.test.js:10:1",
+      "tests/kirchhoffSharedAxisEarlyPredictionReplay.test.js:11:1",
+      "tests/kirchhoffSharedAxisEarlyPredictionReplay.test.js:37:1",
+      "tests/kirchhoffSharedAxisLiveWallAnatomy.test.js:8:1",
+      "tests/kirchhoffSharedAxisProjection.test.js:48:1",
+      "tests/kirchhoffSharedAxisStagnation.test.js:78:1"
+    ],
+    "baselineMethod": "Same working tree with only the two production physics files restored from HEAD; same assets and dependencies."
+  },
+  "limitations": [
+    "Node wall timings exclude browser rendering and use captured, frozen blood flow.",
+    "Stress-case transition steps still exceed 16.67 ms; no claim of sustained 60 Hz."
+  ]
+}

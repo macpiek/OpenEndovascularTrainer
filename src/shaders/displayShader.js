@@ -3,7 +3,11 @@ import {
     DSA_DARK_FLOOR_LUMA,
     DSA_NEUTRAL_LUMA,
     DSA_SUBTRACTION_DEADBAND,
-    DSA_SUBTRACTION_SCALE
+    DSA_SUBTRACTION_SCALE,
+    DSA_OPTICAL_SUBTRACTION_SCALE,
+    IODINE_ATTENUATION_SCALE,
+    DETECTOR_OPTICAL_NOISE_GAIN,
+    DETECTOR_OPTICAL_NOISE_MAX_SIGMA
 } from '../imaging/dsaDisplayParameters.js';
 import {
     COLLIMATION_SHUTTER_SCALE,
@@ -15,11 +19,12 @@ import {
 
 export const vertexShader = `
 // Fullscreen quad vertex shader for the final display pass.
-// Simply forwards UVs to the fragment shader.
+// Captures use the complete quad; the presentation camera fits the active
+// detector aperture into the canvas. UVs stay in acquisition coordinates.
 varying vec2 vUv;
 void main() {
     vUv = uv;
-    gl_Position = vec4(position.xy, 0.0, 1.0);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 `;
 
@@ -45,6 +50,8 @@ uniform vec3 gray;
 uniform bool fluoroscopy;
 uniform bool dsaEnabled;
 uniform bool dsaMaskValid;
+uniform bool dsaMaskCapture;
+uniform bool dsaMaskHasOpticalDepth;
 uniform bool roadmapEnabled;
 uniform bool roadmapValid;
 uniform bool cineEnabled;
@@ -93,13 +100,30 @@ float pulseNoise(vec2 st, float phase) {
     return random(st + vec2(phase * 17.37, phase * 5.91));
 }
 
+float measuredDetectorOpticalDepth(float attenuation, vec2 uv) {
+    if (noiseLevel <= 0.0) return attenuation;
+    // Photon-count noise is larger at low pulse dose and behind thick anatomy.
+    // Keep the realization fixed until the next acquired pulse, including in
+    // the stored mask. Subtraction includes independent mask/live noise once.
+    float sigma = min(${DETECTOR_OPTICAL_NOISE_MAX_SIGMA.toFixed(3)},
+        max(0.0, noiseLevel) * ${DETECTOR_OPTICAL_NOISE_GAIN.toFixed(3)} *
+        sqrt(30.0 / clamp(pulseRate, 4.0, 30.0)) * max(0.0, detectorZoomNoiseScale) *
+        exp(min(6.0, max(0.0, attenuation)) * 0.5));
+    vec2 pixel = floor(uv * resolution);
+    float u1 = max(0.0001, pulseNoise(pixel + vec2(13.0, 29.0), fluoroPulseIndex * 0.83));
+    float u2 = pulseNoise(pixel + vec2(71.0, 43.0), fluoroPulseIndex * 1.17);
+    float normalSample = clamp(sqrt(-2.0 * log(u1)) * cos(6.28318530718 * u2), -3.0, 3.0);
+    // Log of a noisy count ratio; sigma <= .12 and |N| <= 3 keep it positive.
+    return attenuation - log(1.0 + sigma * normalSample);
+}
+
 float sampleSignal(sampler2D source, vec2 uv) {
     return max3(texture2D(source, uv).rgb);
 }
 
 float contrastAt(vec2 uv) {
     float signal = sampleSignal(contrastTexture, uv);
-    return saturate(1.0 - exp(-signal * max(0.0, contrastGain) * 1.45));
+    return max(0.0, signal) * max(0.0, contrastGain) * ${IODINE_ATTENUATION_SCALE.toFixed(3)};
 }
 
 float metalAt(vec2 uv) {
@@ -202,7 +226,7 @@ float attenuationAt(vec2 uv, vec4 bonePaths, float corticalEdge) {
     float rawBoneSignal = corticalAbsorption + edgeAbsorption + cancellousAbsorption + layeredAbsorption + softBoneAbsorption;
     float boneSignal = 1.0 - exp(-rawBoneSignal * 1.08);
     float bone = boneSignal * 1.58 * boneVisibility;
-    float iodine = contrastAt(uv) * saturate(contrastOpacity) * 3.25;
+    float iodine = contrastAt(uv) * saturate(contrastOpacity);
     float metal = metalAt(uv) * 5.25;
     float catheter = catheterAt(uv) * 0.28;
     // A real marker band contains radiopaque material within the catheter
@@ -375,6 +399,8 @@ void main() {
         vec4 centerBonePaths = boneLayerPathsAt(vUv);
         float centerCorticalEdge = corticalEdgeAt(vUv);
         float centerAttenuation = attenuationAt(vUv, centerBonePaths, centerCorticalEdge);
+        float measuredAttenuation = dsaMaskCapture || (dsaEnabled && dsaMaskValid && dsaMaskHasOpticalDepth)
+            ? measuredDetectorOpticalDepth(centerAttenuation, vUv) : centerAttenuation;
         float localScatter = scatterFieldAt(
             vUv,
             centerAttenuation,
@@ -424,22 +450,25 @@ void main() {
         luma = mix(0.018, luma, beamMask);
 
         if (dsaEnabled && dsaMaskValid) {
-            // The mask stores the fully processed pre-contrast detector frame.
-            // Iodine reduces current detector brightness, so mask-current is
-            // positive. Center zero difference on neutral gray to preserve
-            // headroom for both dark iodine and bright motion/mask residuals.
+            // Subtract optical depths before windowing: A_live-A_mask is
+            // log(I_mask/I_live), so background anatomy cancels and diluted
+            // iodine remains proportional to its path-integrated mass.
+            // RGB is retained for previews/legacy masks; float alpha holds A.
             float storedMaskLuma = texture2D(dsaMaskTexture, vUv).r /
                 max(0.001, gray.r * 0.992);
-            float rawSubtraction = storedMaskLuma - luma;
+            float rawSubtraction = dsaMaskHasOpticalDepth
+                ? measuredAttenuation - texture2D(dsaMaskTexture, vUv).a
+                : storedMaskLuma - luma;
             float centeredSubtraction = sign(rawSubtraction) * max(
                 abs(rawSubtraction) - ${DSA_SUBTRACTION_DEADBAND.toFixed(3)},
                 0.0
             );
-            float signedSignal = clamp(
-                centeredSubtraction * max(0.0, dsaGain) * ${DSA_SUBTRACTION_SCALE.toFixed(1)},
-                -1.0,
-                1.0
-            );
+            float subtractionScale = dsaMaskHasOpticalDepth
+                ? ${DSA_OPTICAL_SUBTRACTION_SCALE.toFixed(1)} : ${DSA_SUBTRACTION_SCALE.toFixed(1)};
+            float scaledSignal = centeredSubtraction * max(0.0, dsaGain) * subtractionScale;
+            // A soft shoulder preserves differences between a diluted plume
+            // and dense contrast instead of clipping both to the black floor.
+            float signedSignal = scaledSignal / (1.0 + abs(scaledSignal));
             float dsaLuma = ${DSA_NEUTRAL_LUMA.toFixed(3)}
                 - max(signedSignal, 0.0) * (
                     ${DSA_NEUTRAL_LUMA.toFixed(3)} - ${DSA_DARK_FLOOR_LUMA.toFixed(3)}
@@ -505,7 +534,7 @@ void main() {
         // Phosphor/detector response is slightly warm-neutral, not mathematically
         // flat grayscale. Keep it subtle so it still reads as fluoroscopy.
         vec3 detectorTint = vec3(0.992, 0.992, 0.988);
-        gl_FragColor = vec4(gray * detectorTint * luma, 1.0);
+        gl_FragColor = vec4(gray * detectorTint * luma, dsaMaskCapture ? measuredAttenuation : 1.0);
     } else {
         // Debug mode: keep original color, use edge to boost alpha.
         float edge = edgeFactor(vUv) * edgeStrength;

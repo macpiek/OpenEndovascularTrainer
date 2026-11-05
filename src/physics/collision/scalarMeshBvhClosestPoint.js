@@ -7,9 +7,11 @@ const NEIGHBORHOOD_CAPACITY = 2048;
 const NEIGHBORHOOD_MAX_FACES = 256;
 const NEIGHBORHOOD_CELL_SCALE = 4;
 
-export function createScalarMeshBvhScratch(maximumDepth = 64, { reuseNeighborhood = true } = {}) {
+export function createScalarMeshBvhScratch(maximumDepth = 64, { reuseNeighborhood = true, reuseExactQuery = true } = {}) {
     const capacity = Math.max(8, Math.ceil(maximumDepth) + 2);
     const scratch = {
+        reuseExactQuery, lastExactQuery:null,
+        exactQueryHits:0,
         // Each entry certifies all omitted BVH nodes at an earlier query.
         // Only exact triangle distances may win; no SDF/plane approximation.
         neighborhoods: reuseNeighborhood ? new Map() : null,
@@ -64,6 +66,16 @@ function pointBoxDistanceSquared(x, y, z, bounds, node) {
             ? z - bounds[node + 5]
             : 0;
     return dx * dx + dy * dy + dz * dz;
+}
+
+function rememberExactQuery(scratch,target,x,y,z,hint) {
+    if(scratch.reuseExactQuery&&scratch.positions instanceof Float32Array) {
+        const saved=scratch.lastExactQuery??={};
+        saved.x=x;saved.y=y;saved.z=z;saved.hint=hint;
+        saved.distanceSquared=scratch.closestDistanceSquared;saved.distance=target.distance;
+        saved.face=scratch.closestFaceIndex;saved.px=scratch.closestX;saved.py=scratch.closestY;saved.pz=scratch.closestZ;
+    }
+    return true;
 }
 
 function considerTriangle(
@@ -273,6 +285,7 @@ export function closestPointToPointScalarBvh(
         indices = index?.array ?? null;
         positions = position.array;
         scratch.boundsTree = boundsTree;
+        scratch.lastExactQuery=null;
         scratch.indices = indices;
         scratch.positions = positions;
         scratch.triangleCount = Math.floor(
@@ -297,6 +310,18 @@ export function closestPointToPointScalarBvh(
         positions = scratch.positions;
     }
     const maximumDistanceSquared = maximumDistance * maximumDistance;
+    const previous=scratch.lastExactQuery;
+    // Adjacent capsules share endpoints. Reuse the exact finite-mesh answer
+    // only at an identical point, preserving the hinted triangle's tie order.
+    // Changing the cutoff cannot change a nearest hit strictly inside it.
+    if(scratch.reuseExactQuery&&previous&&Object.is(pointX,previous.x)&&Object.is(pointY,previous.y)&&Object.is(pointZ,previous.z)&&
+        (hintFaceIndex===previous.hint||hintFaceIndex===previous.face)) {
+        if(previous.distanceSquared>=maximumDistanceSquared)return false;
+        scratch.closestDistanceSquared=previous.distanceSquared;scratch.closestFaceIndex=previous.face;
+        scratch.closestX=previous.px;scratch.closestY=previous.py;scratch.closestZ=previous.pz;
+        target.point.set(previous.px,previous.py,previous.pz);target.distance=previous.distance;target.faceIndex=previous.face;
+        scratch.exactQueryHits++;return true;
+    }
     scratch.closestDistanceSquared = Infinity;
     scratch.closestFaceIndex = -1;
     let seededHintFaceIndex = -1;
@@ -339,7 +364,7 @@ export function closestPointToPointScalarBvh(
             scratch.neighborhoodHits++; scratch.neighborhoodWinnerHits++;
             target.point.set(scratch.closestX, scratch.closestY, scratch.closestZ);
             target.distance = winnerDistance; target.faceIndex = scratch.closestFaceIndex;
-            return true;
+            return rememberExactQuery(scratch,target,pointX,pointY,pointZ,hintFaceIndex);
         }
         for (let i = 0; i < prior.faces.length; i++) {
             const face = prior.faces[i];
@@ -361,7 +386,7 @@ export function closestPointToPointScalarBvh(
             scratch.neighborhoodHits++;
             target.point.set(scratch.closestX, scratch.closestY, scratch.closestZ);
             target.distance = distance; target.faceIndex = scratch.closestFaceIndex;
-            return true;
+            return rememberExactQuery(scratch,target,pointX,pointY,pointZ,hintFaceIndex);
         }
         // Restore precisely the original hinted starting bound/order.
         scratch.closestDistanceSquared = Infinity; scratch.closestFaceIndex = -1;
@@ -499,5 +524,5 @@ export function closestPointToPointScalarBvh(
     );
     target.distance = Math.sqrt(scratch.closestDistanceSquared);
     target.faceIndex = scratch.closestFaceIndex;
-    return true;
+    return rememberExactQuery(scratch,target,pointX,pointY,pointZ,hintFaceIndex);
 }
