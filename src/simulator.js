@@ -76,6 +76,7 @@ import {
 import { generateVessel } from './vesselGeometry.js';
 import { initUI } from './ui/ui.js';
 import { createBoneModel } from './boneModel.js';
+import { createBoneProjectionMaterial } from './imaging/boneProjection.js';
 import { ContrastVolumeRenderer } from './contrast/contrastVolumeRenderer.js';
 import { HybridContrastSystem } from './contrast/hybridContrastSystem.js';
 import {
@@ -551,84 +552,7 @@ const thicknessMaterial = new THREE.ShaderMaterial({
 const thicknessQuad = new THREE.Mesh(quadGeometry, thicknessMaterial);
 const thicknessScene = new THREE.Scene();
 thicknessScene.add(thicknessQuad);
-const boneProjectionMaterial = new THREE.ShaderMaterial({
-    transparent: true,
-    blending: THREE.CustomBlending,
-    blendEquation: THREE.AddEquation,
-    blendSrc: THREE.OneFactor,
-    blendDst: THREE.OneFactor,
-    blendEquationAlpha: THREE.AddEquation,
-    blendSrcAlpha: THREE.OneFactor,
-    blendDstAlpha: THREE.OneFactor,
-    side: THREE.DoubleSide,
-    depthTest: false,
-    depthWrite: false,
-    vertexShader: `
-        varying vec3 vViewNormal;
-        varying vec3 vViewPosition;
-        varying vec3 vWorldPosition;
-        void main() {
-            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-            vViewNormal = normalize(normalMatrix * normal);
-            vViewPosition = mvPosition.xyz;
-            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-            vWorldPosition = worldPosition.xyz;
-            gl_Position = projectionMatrix * mvPosition;
-        }
-    `,
-    fragmentShader: `
-        varying vec3 vViewNormal;
-        varying vec3 vViewPosition;
-        varying vec3 vWorldPosition;
-
-        float hash(vec3 p) {
-            return fract(sin(dot(p, vec3(17.13, 47.71, 91.37))) * 43758.5453);
-        }
-
-        float valueNoise(vec3 p) {
-            vec3 i = floor(p);
-            vec3 f = fract(p);
-            f = f * f * (3.0 - 2.0 * f);
-            float n000 = hash(i + vec3(0.0, 0.0, 0.0));
-            float n100 = hash(i + vec3(1.0, 0.0, 0.0));
-            float n010 = hash(i + vec3(0.0, 1.0, 0.0));
-            float n110 = hash(i + vec3(1.0, 1.0, 0.0));
-            float n001 = hash(i + vec3(0.0, 0.0, 1.0));
-            float n101 = hash(i + vec3(1.0, 0.0, 1.0));
-            float n011 = hash(i + vec3(0.0, 1.0, 1.0));
-            float n111 = hash(i + vec3(1.0, 1.0, 1.0));
-            float nx00 = mix(n000, n100, f.x);
-            float nx10 = mix(n010, n110, f.x);
-            float nx01 = mix(n001, n101, f.x);
-            float nx11 = mix(n011, n111, f.x);
-            float nxy0 = mix(nx00, nx10, f.y);
-            float nxy1 = mix(nx01, nx11, f.y);
-            return mix(nxy0, nxy1, f.z);
-        }
-
-        void main() {
-            vec3 normal = normalize(vViewNormal);
-            vec3 rayDir = normalize(-vViewPosition);
-            float incidence = clamp(abs(dot(normal, rayDir)), 0.12, 1.0);
-            float anglePath = clamp(pow(1.0 / incidence, 0.82), 1.0, 4.2);
-
-            vec3 p = vWorldPosition * 0.035;
-            float coarse = valueNoise(p);
-            float fine = valueNoise(p * 2.8 + vec3(4.0, 11.0, 2.0));
-            float trabeculae = smoothstep(0.42, 0.92, coarse * 0.62 + fine * 0.38);
-            float marrowMottle = mix(0.72, 1.08, valueNoise(p * 1.35 + vec3(2.0, 7.0, 13.0)));
-
-            float encodedDepth = length(vViewPosition) * 0.00072;
-            float entryDepth = gl_FrontFacing ? encodedDepth : 0.0;
-            float exitDepth = gl_FrontFacing ? 0.0 : encodedDepth;
-            float grazingCortex = smoothstep(1.35, 3.8, anglePath);
-            float corticalPath = anglePath * 0.0048 + grazingCortex * 0.036 + trabeculae * marrowMottle * 0.0009;
-            float trabecularTexture = trabeculae * marrowMottle * 0.026;
-
-            gl_FragColor = vec4(entryDepth, exitDepth, corticalPath, trabecularTexture);
-        }
-    `
-});
+const boneProjectionMaterial = createBoneProjectionMaterial();
 
 const displayMaterial = new THREE.ShaderMaterial({
     uniforms: {

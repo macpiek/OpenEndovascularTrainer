@@ -1,0 +1,47 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Szkielet — przycinanie na płaszczyźnie detektora</title>
+<style>body{background:#17242b;color:#edf3f6;font:16px system-ui;margin:24px}pre{white-space:pre-wrap}main{display:flex;gap:18px;flex-wrap:wrap}figure{margin:0;max-width:320px}canvas{width:320px;height:320px}figcaption{margin:8px 0}</style>
+<h1>Kość z rzeczywistego modelu na granicy frustum</h1><p>LAO 30° · CRA 10° · Roll −5°. Ta sama geometria szkieletu i detektora we wszystkich obrazach.</p><pre id="results">Wczytywanie szkieletu…</pre><main></main>
+<script type="module">
+import * as T from 'three';import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader.js';import {MeshBVH} from 'three-mesh-bvh';
+import {applyAnteriorCArmPose} from '../src/carmPose.js';import {applyCArmProjection} from '../src/imaging/carmProjection.js';
+import {createBoneProjectionMaterial,BONE_DEPTH_SCALE} from '../src/imaging/boneProjection.js';
+const result=document.querySelector('#results'),size=192,lines=[];let renderer,geometry,target;
+const material=createBoneProjectionMaterial(),old=material.clone();old.onBeforeRender=material.onBeforeRender;
+old.vertexShader=old.vertexShader.replace('gl_Position.z = clamp(gl_Position.z, -gl_Position.w, gl_Position.w);','');
+old.fragmentShader=old.fragmentShader.replace('clamp(viewDepth - rayNear, 0., rayFar - rayNear) * rayScale * BONE_DEPTH_SCALE','length(vViewPosition) * BONE_DEPTH_SCALE');
+const assert=(v,m)=>{if(!v)throw Error(m);};
+try{
+const obj=new OBJLoader().parse(await(await fetch('/res/skeleton.obj')).text());
+obj.position.sub(new T.Box3().setFromObject(obj).getCenter(new T.Vector3()));obj.rotation.z=-Math.PI/3;obj.scale.multiplyScalar(9);obj.position.x-=1760;obj.position.y-=300;obj.position.z-=70;
+const group=new T.Group();group.position.set(0,-360,-50);group.add(obj);group.updateMatrixWorld(true);
+geometry=obj.children[0].geometry.clone().applyMatrix4(obj.children[0].matrixWorld);
+obj.traverse(o=>o.geometry?.dispose());const tree=new MeshBVH(geometry,{indirect:true});
+const scene=new T.Scene();scene.add(new T.Mesh(geometry,material));
+const cam=new T.PerspectiveCamera(45,1,.1,700);applyAnteriorCArmPose(cam,new T.Vector3(0,-200,160),350,Math.PI/6,Math.PI/18,-Math.PI/36);applyCArmProjection(cam,350,350);
+const expected=new Float32Array(size*size),caster=new T.Raycaster(),v=new T.Vector3();
+result.textContent='Niezależny pomiar długości promieni w kościach…';await new Promise(requestAnimationFrame);
+for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+ caster.setFromCamera(new T.Vector2((x+.5)/size*2-1,(y+.5)/size*2-1),cam);
+ const hits=tree.raycast(caster.ray,T.DoubleSide).sort((a,b)=>a.distance-b.distance);
+ const seen=[];for(const h of hits){if(!seen.length||h.distance-seen.at(-1).distance>1e-5)seen.push(h);}
+ assert(seen.length%2===0,`Otwarta siatka szkieletu: ${x},${y}`);
+ const dz=-caster.ray.direction.clone().transformDirection(cam.matrixWorldInverse).z;
+ let length=0;for(let i=0;i<seen.length;i+=2)length+=Math.max(0,Math.min(seen[i+1].distance,cam.far/dz)-Math.max(seen[i].distance,cam.near/dz));
+ expected[x+y*size]=length;
+}
+renderer=new T.WebGLRenderer({antialias:false});renderer.setSize(size,size);
+target=new T.WebGLRenderTarget(size,size,{type:T.HalfFloatType,depthBuffer:false});const pixels=new Uint16Array(size*size*4);
+function draw(mat){scene.overrideMaterial=mat;renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.clear();renderer.render(scene,cam);renderer.readRenderTargetPixels(target,0,0,size,size,pixels);
+ assert(!renderer.getContext().isContextLost(),'Utrata kontekstu GPU');
+ return Float32Array.from({length:size*size},(_,i)=>Math.max(0,T.DataUtils.fromHalfFloat(pixels[i*4+1])-T.DataUtils.fromHalfFloat(pixels[i*4]))/BONE_DEPTH_SCALE);}
+function preview(values,caption){const c=document.createElement('canvas');c.width=c.height=size;const data=c.getContext('2d').createImageData(size,size);for(let y=0;y<size;y++)for(let x=0;x<size;x++){const grey=245*Math.exp(-values[x+y*size]*.018),i=(x+(size-1-y)*size)*4;data.data.set([grey,grey,grey,255],i);}c.getContext('2d').putImageData(data,0,0);const f=document.createElement('figure'),label=document.createElement('figcaption');label.textContent=caption;f.append(c,label);document.querySelector('main').append(f);}
+const before=draw(old),after=draw(material);let lostBefore=0,lostAfter=0,checked=0;const errors=[];
+for(let y=1;y<size-1;y++)for(let x=1;x<size-1;x++){const i=x+y*size;if(expected[i]<=3||[i-1,i+1,i-size,i+size].some(j=>expected[j]<=3))continue;checked++;if(before[i]<.1)lostBefore++;if(after[i]<.1)lostAfter++;errors.push(Math.abs(after[i]-expected[i]));}
+errors.sort((a,b)=>a-b);const p95=errors[Math.floor(errors.length*.95)];
+preview(before,'Przed poprawką — jasne wycięcie usuwa także nakładające się kości');preview(expected,'Odniesienie — przecięcia promieni z oryginalnym szkieletem');preview(after,'Po poprawce — zachowana grubość kości do detektora');
+lines.push(`${checked} pikseli z kością. Znikające piksele: przed ${lostBefore}, po ${lostAfter}.`);lines.push(`Błąd P95: ${p95.toFixed(2)} mm (produkcyjny bufor half-float).`);
+assert(checked>1000&&lostBefore>100,'Test nie odtwarza zgłoszonego problemu');assert(lostAfter===0,'Pozostały znikające fragmenty kości');assert(p95<1.5,'Błąd grubości przekracza rozdzielczość bufora');
+result.textContent=lines.join('\n')+'\nTEST RZECZYWISTEJ ANATOMII ZALICZONY';document.body.dataset.status='passed';
+}catch(error){result.textContent=lines.join('\n')+'\nFAIL: '+error.message;document.body.dataset.status='failed';console.error(error);}
+finally{geometry?.dispose();material.dispose();old.dispose();target?.dispose();renderer?.dispose();}
+</script></html>

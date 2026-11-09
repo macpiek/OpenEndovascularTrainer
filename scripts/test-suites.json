@@ -62,7 +62,7 @@
     ["node", "tests/runtimeMemoryLifetime.test.js"],
     ["node", "tests/skeletonGeometry.test.js"],
     ["node", "tests/dsaRoadmapState.test.js"],
-    ["node", "--test", "tests/dsaSimulationTiming.test.js", "tests/dsaOpticalTransfer.test.js", "tests/carmControls.test.js", "tests/carmProjection.test.js", "tests/carmPreviewFraming.test.js"],
+    ["node", "--test", "tests/dsaSimulationTiming.test.js", "tests/dsaOpticalTransfer.test.js", "tests/carmControls.test.js", "tests/boneProjection.test.js", "tests/carmProjection.test.js", "tests/carmPreviewFraming.test.js"],
     ["node", "tests/vesselBroadPhaseFlowDebug.test.js"],
     ["node", "tests/injectionHydraulics.test.js"],
     ["node", "tests/injectionShortcut.test.js"],

@@ -1,0 +1,47 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Kość przecinająca płaszczyznę detektora — regresja</title>
+<style>body{background:#17242b;color:#edf3f6;font:16px system-ui;margin:24px}pre{white-space:pre-wrap}main{display:flex;gap:20px;flex-wrap:wrap}figure{margin:0;max-width:280px}canvas{width:256px;height:256px}figcaption{margin:8px 0}</style>
+<h1>Kość na granicy frustum</h1><p>Ten sam zamknięty model kości, część poza detektorem. Pole obrazowania i położenie kamery pozostają identyczne.</p>
+<pre id="results">Testowanie…</pre><main></main><script type="module">
+import * as T from 'three';
+import {createBoneProjectionMaterial,BONE_DEPTH_SCALE} from '../src/imaging/boneProjection.js';
+const result=document.querySelector('#results'), lines=[];
+const assert=(v,m)=>{if(!v)throw Error(m);};
+const renderer=new T.WebGLRenderer({antialias:false}), size=96;
+renderer.setSize(size,size);
+const target=new T.WebGLRenderTarget(size,size,{type:T.FloatType,depthBuffer:false});
+const pixels=new Float32Array(size*size*4), material=createBoneProjectionMaterial();
+const legacy=material.clone(); legacy.onBeforeRender=material.onBeforeRender;
+legacy.vertexShader=legacy.vertexShader.replace('gl_Position.z = clamp(gl_Position.z, -gl_Position.w, gl_Position.w);','');
+legacy.fragmentShader=legacy.fragmentShader.replace('clamp(viewDepth - rayNear, 0., rayFar - rayNear) * rayScale * BONE_DEPTH_SCALE','length(vViewPosition) * BONE_DEPTH_SCALE');
+const scene=new T.Scene(), caster=new T.Raycaster(), ndc=new T.Vector2();
+const camera=new T.PerspectiveCamera(35,1,1,50); camera.updateMatrixWorld(true);
+const meshes=[];
+function box(x,y,z,w,h,d){const m=new T.Mesh(new T.BoxGeometry(w,h,d),material);m.position.set(x,y,z);scene.add(m);meshes.push(m);return m;}
+function clear(){for(const m of meshes){scene.remove(m);m.geometry.dispose();}meshes.length=0;}
+function draw(mat){scene.overrideMaterial=mat;renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.clear();renderer.render(scene,camera);renderer.readRenderTargetPixels(target,0,0,size,size,pixels);return Float32Array.from({length:size*size},(_,i)=>Math.max(0,pixels[i*4+1]-pixels[i*4])/BONE_DEPTH_SCALE);}
+function oracle(){scene.updateMatrixWorld(true);const values=new Float32Array(size*size);for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+ caster.setFromCamera(ndc.set((x+.5)/size*2-1,(y+.5)/size*2-1),camera);
+ const dir=caster.ray.direction.clone().transformDirection(camera.matrixWorldInverse), lo=camera.near/-dir.z, hi=camera.far/-dir.z;
+ let length=0; for(const m of meshes){const inv=m.matrixWorld.clone().invert();const ray=caster.ray.clone().applyMatrix4(inv);const bounds=new T.Box3().setFromBufferAttribute(m.geometry.attributes.position);let entry=-Infinity,exit=Infinity;
+ for(const k of ['x','y','z']){if(Math.abs(ray.direction[k])<1e-12){if(ray.origin[k]<bounds.min[k]||ray.origin[k]>bounds.max[k]){entry=Infinity;break;}}else{const a=(bounds.min[k]-ray.origin[k])/ray.direction[k],b=(bounds.max[k]-ray.origin[k])/ray.direction[k];entry=Math.max(entry,Math.min(a,b));exit=Math.min(exit,Math.max(a,b));}}
+ length+=Math.max(0,Math.min(exit,hi)-Math.max(entry,lo));}values[x+y*size]=length;
+}return values;}
+// Allow 0.01 mm for raster interpolation and subtraction of two depth channels.
+function compare(label){const expected=oracle(),actual=draw(material);let checked=0,holes=0,maxError=0;for(let y=1;y<size-1;y++)for(let x=1;x<size-1;x++){const i=x+y*size,inside=expected[i]>1e-4;if([i-1,i+1,i-size,i+size].some(j=>(expected[j]>1e-4)!==inside))continue;const error=Math.abs(actual[i]-expected[i]);maxError=Math.max(maxError,error);if(inside){checked++;if(actual[i]<1e-4)holes++;}assert(error<.01,`${label}: piksel ${x},${y}, grubość ${actual[i]} zamiast ${expected[i]}`);}
+ assert(!renderer.getContext().isContextLost(),'Utrata kontekstu GPU');lines.push(`PASS ${label}: ${checked} pikseli kości, ubytki ${holes}, maks. błąd ${maxError.toFixed(5)} mm.`);result.textContent=lines.join('\n');return {expected,actual};}
+function preview(values,label){const c=document.createElement('canvas');c.width=c.height=size;const image=c.getContext('2d').createImageData(size,size);for(let y=0;y<size;y++)for(let x=0;x<size;x++){const grey=245*Math.exp(-.055*values[x+y*size]),i=(x+(size-1-y)*size)*4;image.data.set([grey,grey,grey,255],i);}c.getContext('2d').putImageData(image,0,0);const f=document.createElement('figure'),caption=document.createElement('figcaption');caption.textContent=label;f.append(c,caption);document.querySelector('main').append(f);}
+try{
+ box(0,0,-30,12,14,12);compare('Kość w całości przed detektorem');clear();
+ box(0,0,-49,12,14,16);const before=draw(legacy);const clipped=compare('Kość przecięta przez detektor');
+ assert(before[size/2+size/2*size]===0,'Stara wersja nie odtwarza ubytku');
+ preview(before,'Przed poprawką: fragment kości znika');preview(clipped.expected,'Odniesienie: grubość do płaszczyzny detektora');preview(clipped.actual,'Po poprawce: zachowana część kości');
+ const projected=new T.Vector3(4,0,-50).project(camera);assert(Math.abs(projected.z-1)<1e-6,'Zmieniono płaszczyznę detektora');clear();
+ box(0,0,-60,12,14,10);compare('Cała kość za detektorem — brak sygnału');clear();
+ box(0,0,-25,12,14,8);box(0,0,-49,12,14,16);compare('Kości nakładające się, jedna częściowo poza frustum');clear();
+ camera.near=3;camera.updateProjectionMatrix();box(0,0,-2,8,8,6);compare('Źródło wewnątrz modelu i ograniczenie przy near');clear();
+ camera.near=1;camera.updateProjectionMatrix();const oblique=box(1,0,-47,12,14,12);oblique.rotation.set(.2,.4,.1);compare('Skośne ściany przecinające detektor');clear();
+ for(const far of [40,50,65]){camera.far=far;camera.updateProjectionMatrix();box(0,0,-49,12,14,16);compare(`Zmiana odległości detektora: far=${far}`);clear();}
+ result.textContent=lines.join('\n')+'\nWSZYSTKIE TESTY GPU ZALICZONE';document.body.dataset.status='passed';
+}catch(error){result.textContent=lines.join('\n')+'\nFAIL: '+error.message;document.body.dataset.status='failed';console.error(error);}
+finally{clear();material.dispose();legacy.dispose();target.dispose();renderer.dispose();}
+</script></html>
