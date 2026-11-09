@@ -237,7 +237,7 @@ test('surface virtual samples keep current and previous texture channels aligned
         for (let i = offset; i < surface.current.length; i++) {
             close(surface.current[i], .1); close(surface.previous[i], .4);
         }
-        const stencil = surface.mesh.geometry.attributes.flowStencil;
+        const stencil = surface.samplingGeometry.attributes.flowStencil;
         for (let i = 0; i < stencil.count; i++) {
             assert.ok(stencil.getX(i) < surface.current.length && stencil.getY(i) < surface.current.length);
         }

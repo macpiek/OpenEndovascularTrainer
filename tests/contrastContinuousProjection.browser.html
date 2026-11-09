@@ -1,0 +1,52 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Kontrast — ciągła współrzędna w świetle</title>
+<style>body{margin:24px;background:#15212b;color:#edf4fa;font:16px system-ui}pre{white-space:pre-wrap}main{display:flex;gap:18px;flex-wrap:wrap}figure{margin:0}canvas{width:300px;height:300px}figcaption{max-width:300px}</style>
+<h1>Gładki bolus przy bocznym ujściu</h1>
+<p>Stały, liniowy gradient stężenia w tętnicy o promieniu 8 mm. Krótki poprzeczny odcinek grafu nie może tworzyć nieruchomego progu kontrastu.</p>
+<pre id="results">Uruchamianie testu GPU…</pre><main></main>
+<script type="module">
+import * as THREE from 'three';
+import {ContrastFlowNetwork} from '../src/contrast/flowNetwork.js';
+import {AnatomicalContrastSurface} from '../src/contrast/anatomicalContrastSurface.js';
+const size=256, result=document.querySelector('#results'), lines=[];
+const points=[new THREE.Vector3(0,0,0),new THREE.Vector3(0,39,0),new THREE.Vector3(0,39.1,.45),
+ new THREE.Vector3(0,41,.2),new THREE.Vector3(0,80,0)];
+const segments=points.slice(1).map((end,id)=>({id,start:points[id],end,radiusStart:8,radiusEnd:8,nodeStartId:id,nodeEndId:id+1}));
+segments.push({id:4,start:points[2],end:new THREE.Vector3(1,40,5),radiusStart:.6,radiusEnd:.6,nodeStartId:2,nodeEndId:5});
+const network=new ContrastFlowNetwork(segments,{rootPoint:points[0],cellLengthMm:2});
+const tube=new THREE.CylinderGeometry(8,8,80,96,80,true).translate(0,40,0);
+for(let i=0;i<tube.index.count;i+=3){const b=tube.index.getX(i+1);tube.index.setX(i+1,tube.index.getX(i+2));tube.index.setX(i+2,b);}
+const wall=tube.toNonIndexed();let count=0;
+const offsets=Uint32Array.from(network.edges,e=>{const offset=count;count+=e.cellCount;return offset;});
+const surface=new AnatomicalContrastSurface(network,offsets,{fallbackGeometry:wall});
+surface.uniforms.signalGain.value=1;
+const correct=surface.material, broken=correct.clone();
+// A deliberate challenge: reproduce nearest-edge clamping without changing
+// any transport, anatomy, projection interval, calibration, or test oracle.
+broken.fragmentShader=broken.fragmentShader.replace('continuousProjectionCoordinate(point, owner, coordinate);','');
+const renderer=new THREE.WebGLRenderer({antialias:false});renderer.setSize(size,size);
+const target=new THREE.WebGLRenderTarget(size,size,{type:THREE.HalfFloatType}), raw=new Uint16Array(size*size*4);
+const scene=new THREE.Scene();scene.add(surface.mesh);
+const camera=new THREE.OrthographicCamera(-8,8,8,-8,.1,200);camera.position.set(0,40,80);camera.lookAt(0,40,0);
+const profile=y=>Math.max(0,Math.min(1,.5+(40-y)/20));
+const assert=(condition,message)=>{if(!condition)throw Error(message);};
+function draw(material){surface.mesh.material=[material];renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.clear();renderer.render(scene,camera);renderer.readRenderTargetPixels(target,0,0,size,size,raw);return Float32Array.from({length:size*size},(_,i)=>THREE.DataUtils.fromHalfFloat(raw[i*4]));}
+function preview(values,label){const canvas=document.createElement('canvas');canvas.width=canvas.height=size;const rgba=new Uint8ClampedArray(size*size*4);for(let y=0;y<size;y++)for(let x=0;x<size;x++){const i=(x+(size-1-y)*size)*4,v=Math.round(245*Math.exp(-values[x+y*size]*.3));rgba[i]=rgba[i+1]=rgba[i+2]=v;rgba[i+3]=255;}canvas.getContext('2d').putImageData(new ImageData(rgba,size,size),0,0);const figure=document.createElement('figure'),caption=document.createElement('figcaption');caption.textContent=label;figure.append(canvas,caption);document.querySelector('main').append(figure);}
+function errors(values){const errors=[];for(let y=0;y<size;y++){const py=32+(y+.5)*16/size;if(py<36.5||py>42)continue;for(let x=0;x<size;x++){const px=-8+(x+.5)*16/size;if(Math.abs(px)>3)continue;const expected=Math.sqrt(64-px*px)*profile(py);errors.push(Math.abs(values[x+y*size]-expected)/expected);}}errors.sort((a,b)=>a-b);return{p95:errors[Math.floor(errors.length*.95)],mean:errors.reduce((a,b)=>a+b,0)/errors.length,count:errors.length};}
+try{
+ for(const branch of [0,1]){
+  for(const edge of network.edges)for(let i=0;i<edge.cellCount;i++){const y=edge.start.y+(edge.end.y-edge.start.y)*(i+.5)/edge.cellCount;edge.massMg[i]=edge.volumes[i]*.3*(edge.sourceIndex===4?branch:profile(y));}
+  surface.update(new Float32Array(count),.3,false);
+  // Clone shares its original texture; rebind uniforms after the update so
+  // the challenge sees exactly the same transported concentration snapshot.
+  broken.uniforms=correct.uniforms;
+  const before=draw(broken),after=draw(correct),oldError=errors(before),newError=errors(after);
+  if(branch===0){preview(before,'Błędne ograniczenie do krótkiego odcinka grafu.');preview(after,'Ciągła współrzędna wzdłuż tętnicy.');}
+  assert(newError.count>5000,'Za mało próbek w obszarze ujścia');
+  assert(newError.p95<.04,`Nowa projekcja zmienia zadany gradient: P95 ${(100*newError.p95).toFixed(2)}%`);
+  assert(oldError.p95>newError.p95*1.5,'Test nie wykrywa celowo przywróconego progu przy ujściu');
+  lines.push(`PASS boczna gałąź C=${branch}: ${newError.count} pikseli; błąd P95 ${(100*newError.p95).toFixed(2)}%, przy błędnej współrzędnej ${(100*oldError.p95).toFixed(2)}%.`);
+ }
+ result.textContent=lines.join('\n')+'\nWSZYSTKIE TESTY GPU ZALICZONE';
+}catch(error){result.textContent=lines.join('\n')+'\nFAIL: '+error.message;throw error;}
+finally{surface.mesh.material=[correct];broken.dispose();surface.dispose();tube.dispose();wall.dispose();target.dispose();renderer.dispose();}
+</script></html>

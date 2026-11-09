@@ -17,10 +17,10 @@ try{
   const span=Math.max(6,radius*1.5),camera=perspective?new THREE.PerspectiveCamera(30,1,.1,200):new THREE.OrthographicCamera(-span,span,span,-span,.1,200);
   camera.position.set(0,40*Math.sin(tilt),40*Math.cos(tilt));camera.lookAt(0,0,0);
   const actual=draw(camera);
-  // Known analytic fixture: select the original inner cylinder from the
-  // source, independently of the renderer's selected triangles. Both sides
-  // count: the far wall is visible through an open outlet in oblique views.
-  const referenceGeometry=f.geometry.clone();referenceGeometry.setDrawRange(0,f.geometry.attributes.position.count/2);
+  // The finite blood volume ends at the original terminal polygons. Build
+  // those polygons independently, with exactly the same 24-sided contour as
+  // the fixture, so oblique/end-on interior coverage is not mistaken for halo.
+  const referenceGeometry=new THREE.CylinderGeometry(radius,radius,10,24,12,false);
   const reference=new THREE.Mesh(referenceGeometry,new THREE.MeshBasicMaterial({side:THREE.DoubleSide,color:0xffffff}));
   v.mesh.visible=false;scene.add(reference);const mask=draw(camera);scene.remove(reference);v.mesh.visible=true;
   let outside=0,missing=0,covered=0;
@@ -41,8 +41,8 @@ try{
   const camera=new THREE.OrthographicCamera(-9,12,7,-7,.1,200);camera.position.set(0,0,40);camera.lookAt(0,0,0);
   const actual=draw(camera);v.mesh.visible=false;
   const masks=[];
-  for(const geometry of [f.largeGeometry,f.smallGeometry]) {
-   const inner=geometry.clone();inner.setDrawRange(0,geometry.attributes.position.count/2);
+  for(const [radius,x] of [[8,0],[smallRadius,8+smallRadius+.4]]) {
+   const inner=new THREE.CylinderGeometry(radius,radius,10,24,12,false).translate(x,0,0);
    const ref=new THREE.Mesh(inner,new THREE.MeshBasicMaterial({side:THREE.DoubleSide,color:0xffffff}));
    scene.add(ref);masks.push(draw(camera));scene.remove(ref);inner.dispose();ref.material.dispose();
   }

@@ -36,7 +36,10 @@ for(let i=0;i<(g.index?.count??p.count);i+=3){
 }
 const crop=new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
 let count=0;const offsets=Uint32Array.from(network.edges,e=>{const offset=count;count+=e.cellCount;return offset;});
-const surfaces=Object.fromEntries(['before','after'].map(name=>[name,new AnatomicalContrastSurface(network,offsets,{fallbackGeometry:crop},{junctionReconstruction:name==='after'})]));
+// This recording serializes scalar reconstruction and the surface shader.
+// The volumetric projector owns BVH textures that are intentionally absent
+// from this independent concentration/mixing fixture format.
+const surfaces=Object.fromEntries(['before','after'].map(name=>[name,new AnatomicalContrastSurface(network,offsets,{fallbackGeometry:crop},{junctionReconstruction:name==='after',projection:'surface'})]));
 for(const name of ['position','normal','flowAxis','opticalRadius']){
  const before=surfaces.before.mesh.geometry.attributes[name].array,after=surfaces.after.mesh.geometry.attributes[name].array;
  if(before.length!==after.length||before.some((v,i)=>v!==after[i]))throw Error('Reconstruction must not change anatomy or optical chord');

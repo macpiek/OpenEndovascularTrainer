@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="pl">
+<meta charset="utf-8">
+<title>Kontrast — ograniczona projekcja całki w świetle</title>
+<style>
+body{margin:24px;background:#15212b;color:#edf4fa;font:15px system-ui}h1{font-size:24px}pre{white-space:pre-wrap;max-width:1100px}
+section{margin:24px 0}section>div{display:flex;flex-wrap:wrap;gap:18px}figure{margin:0}canvas{width:256px;height:auto;background:#eef2f4}figcaption{max-width:256px;margin:7px 0}#metrics{font-size:12px;color:#b7c9d5}
+</style>
+<h1>Wypełnienie naczyń widzianych od czoła</h1>
+<p>Test małych obrazów: bolus ukryty między przezroczystymi końcami, oddzielne naczynia nakładające się w projekcji oraz ujście z oryginalnego modelu.</p>
+<nav><a href="?case=axial">Tylko cylinder</a> · <a href="?case=crossing">Tylko oddzielne naczynia</a> · <a href="?case=ostium">Tylko rzeczywiste ujście</a> · <a href="?case=all">Wszystkie</a></nav>
+<pre id="results" role="status">Przygotowanie testów…</pre>
+<main></main>
+<details><summary>Pomiary</summary><pre id="metrics"></pre></details>
+<script type="module">
+import * as THREE from 'three';
+import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import {ContrastFlowNetwork} from '../src/contrast/flowNetwork.js';
+import {AnatomicalContrastSurface} from '../src/contrast/anatomicalContrastSurface.js';
+import {axialProjectionFixture, finiteCylinderIodineIntegral} from './helpers/contrastAxialProjectionFixture.js';
+
+const results=document.querySelector('#results'), metrics=document.querySelector('#metrics');
+const lines=[], measurements=[], resources=[];
+const assert=(condition,message)=>{if(!condition)throw Error(message);};
+const publish=()=>{results.textContent=lines.join('\n');metrics.textContent=JSON.stringify(measurements,null,2);};
+const renderer=new THREE.WebGLRenderer({antialias:false});
+renderer.setPixelRatio(1);
+const target=new THREE.WebGLRenderTarget(128,128,{type:THREE.HalfFloatType});
+const scene=new THREE.Scene(),raycaster=new THREE.Raycaster();
+let width=128,height=128,raw=new Uint16Array(width*height*4),contextLost=false;
+renderer.domElement.addEventListener('webglcontextlost',()=>{contextLost=true;lines.push('FAIL: utrata kontekstu GPU');publish();});
+function dimensions(w,h=w){width=w;height=h;renderer.setSize(w,h);target.setSize(w,h);raw=new Uint16Array(w*h*4);}
+function draw(surface,camera){
+    scene.add(surface.mesh);renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.clear();
+    const start=performance.now();renderer.render(scene,camera);renderer.readRenderTargetPixels(target,0,0,width,height,raw);
+    const ms=performance.now()-start;scene.remove(surface.mesh);assert(!contextLost,'Utrata kontekstu GPU');
+    return {values:Float32Array.from({length:width*height},(_,i)=>THREE.DataUtils.fromHalfFloat(raw[i*4])),ms};
+}
+function diagnoseHole(surface,camera,x,y){
+    // Extra passes run only for an already-failed pixel. Keep the original
+    // assertion and production shader intact while exposing where it exits.
+    const material=surface.material,original=material.fragmentShader;
+    const debugTarget=new THREE.WebGLRenderTarget(width,height,{type:THREE.FloatType}),pixel=new Float32Array(4),output={};
+    const query=/if\s*\(!bvhIntersectFirstHit\((.*?)\)\)\s*discard;/;
+    const unclipped=original.replace(/if \(projectionCullActive[\s\S]*?discard;/,'');
+    const stages=[
+        ['rasterFacePathCoordinateCount',original.replace('void main() {','void main() { gl_FragColor=vec4(columnFaceId,column.x,column.y,1.); return;')],
+        ['entryPositionCount',original.replace('float activeDistance;','gl_FragColor=vec4(entryPosition,1.); return; float activeDistance;')],
+        ['nearPositionCount',original.replace('vec3 ray = normalize','gl_FragColor=vec4(nearPoint,1.); return; vec3 ray = normalize')],
+        ['distanceSideHitCount',unclipped.replace(query,(_,args)=>`bool hit=bvhIntersectFirstHit(${args}); gl_FragColor=vec4(distance,side,hit?1.:0.,1.); return;`)],
+        ['exitFaceBaryABCount',unclipped.replace(query,(_,args)=>`bool hit=bvhIntersectFirstHit(${args}); gl_FragColor=vec4(float(face.w),bary.xy,1.); return;`)]
+    ];
+    scene.add(surface.mesh);
+    try{
+        for(const[name,shader]of stages){
+            if(shader===original){output[name]={unavailable:true};continue;}
+            material.fragmentShader=shader;material.needsUpdate=true;
+            renderer.setRenderTarget(debugTarget);renderer.setClearColor(0,0);renderer.clear();renderer.render(scene,camera);
+            renderer.readRenderTargetPixels(debugTarget,x,y,1,1,pixel);output[name]=Array.from(pixel);
+        }
+    }finally{scene.remove(surface.mesh);material.fragmentShader=original;material.needsUpdate=true;renderer.setRenderTarget(target);debugTarget.dispose();}
+    return output;
+}
+function group(title){const section=document.createElement('section'),h=document.createElement('h2'),row=document.createElement('div');h.textContent=title;section.append(h,row);document.querySelector('main').append(section);return row;}
+function preview(row,values,label){
+    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+    const rgba=new Uint8ClampedArray(width*height*4);
+    for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+        const i=(x+(height-1-y)*width)*4,v=Math.round(245*Math.exp(-values[x+y*width]*.25));
+        rgba[i]=rgba[i+1]=rgba[i+2]=v;rgba[i+3]=255;
+    }
+    canvas.getContext('2d').putImageData(new ImageData(rgba,width,height),0,0);
+    const figure=document.createElement('figure'),caption=document.createElement('figcaption');caption.textContent=label;figure.append(canvas,caption);row.append(figure);
+}
+function compare(actual,expected,{minimum=.5}={}){
+    const errors=[],holePixels=[];let holes=0,outside=0,checked=0,sumActual=0,sumExpected=0;
+    for(let i=0;i<expected.length;i++){
+        sumActual+=actual[i];sumExpected+=expected[i];
+        if(expected[i]===0&&actual[i]>1e-4)outside++;
+        if(expected[i]>minimum){checked++;if(actual[i]<=1e-5){holes++;if(holePixels.length<8)holePixels.push({x:i%width,y:Math.floor(i/width),expected:expected[i]});}errors.push(Math.abs(actual[i]-expected[i])/expected[i]);}
+    }
+    errors.sort((a,b)=>a-b);
+    return {holes,holePixels,outside,checked,p95:errors.length?errors[Math.floor(errors.length*.95)]:0,sumRelativeError:sumExpected?Math.abs(sumActual-sumExpected)/sumExpected:sumActual};
+}
+function cylinderExpected(camera,fixture){
+    const expected=new Float32Array(width*height);
+    for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+        raycaster.setFromCamera(new THREE.Vector2(2*(x+.5)/width-1,2*(y+.5)/height-1),camera);
+        expected[x+y*width]=.5*finiteCylinderIodineIntegral(raycaster.ray.origin,raycaster.ray.direction,fixture.radius,fixture.length,fixture.concentrations,'linear');
+    }
+    return expected;
+}
+function axialCamera(angle,perspective=false){
+    const span=16,a=angle*Math.PI/180;
+    const camera=perspective?new THREE.PerspectiveCamera(2*Math.atan(span/80)*180/Math.PI,1,.1,200):new THREE.OrthographicCamera(-span,span,span,-span,.1,200);
+    camera.position.set(0,80*Math.cos(a),80*Math.sin(a));camera.up.set(1,0,0);camera.lookAt(0,0,0);camera.updateMatrixWorld(true);return camera;
+}
+function remember(value){resources.push(value);return value;}
+function innerOuterTube(radius,length,matrix){
+    const parts=[radius,radius+.2].map((r,index)=>{
+        const g=new THREE.CylinderGeometry(r,r,length,64,20,true).toNonIndexed();
+        if(index===0){const p=g.attributes.position.array;for(let i=0;i<p.length;i+=9)for(let k=0;k<3;k++)[p[i+3+k],p[i+6+k]]=[p[i+6+k],p[i+3+k]];g.computeVertexNormals();}
+        g.applyMatrix4(matrix);return g;
+    });
+    const result=mergeGeometries(parts);parts.forEach(g=>g.dispose());return result;
+}
+async function axialTests(){
+    dimensions(128);
+    const f=remember(axialProjectionFixture({projection:'column'}));
+    const legacy=remember(new AnatomicalContrastSurface(f.network,new Uint32Array([0]),{fallbackGeometry:f.geometry},{projection:'surface'}));
+    for(const surface of [f.surface,legacy])surface.uniforms.signalGain.value=1;
+    const plume=new Float32Array(f.concentrations.length);
+    for(const [profileName,profile] of [['jednorodny',1],['bolus w środku',y=>Math.abs(y)<3?1:0]]){
+        f.fill(profile);legacy.update(plume,.3,false);
+        for(const [angle,perspective] of [[0,false],[5,false],[30,false],[90,false],[5,true]]){
+            const camera=axialCamera(angle,perspective),expected=cylinderExpected(camera,f),actual=draw(f.surface,camera);
+            const result=compare(actual.values,expected),name=`${profileName}, ${angle}°, ${perspective?'perspektywa':'ortograficzna'}`;
+            measurements.push({name,...result,gpuReadbackMs:actual.ms});
+            if(!perspective&&(angle===0||angle===30)){
+                const row=group(name);preview(row,draw(legacy,camera).values,'Poprzedni renderer powierzchniowy');preview(row,expected,'Niezależna analityczna całka w cylindrze');preview(row,actual.values,'Projekcja column');
+            }
+            assert(result.checked>20,`${name}: za mało pikseli światła`);
+            assert(result.holes===0,`${name}: puste wnętrze (${result.holes} pikseli)`);
+            assert(result.outside===0,`${name}: kontrast poza światłem lub bolusem (${result.outside} pikseli)`);
+            assert(result.p95<.12,`${name}: błąd P95 ${(100*result.p95).toFixed(2)}%`);
+            lines.push(`PASS ${name}: ubytki 0, poza światłem 0, P95 ${(100*result.p95).toFixed(2)}%, ${actual.ms.toFixed(1)} ms z odczytem.`);publish();
+        }
+    }
+    f.fill(0);assert(draw(f.surface,axialCamera(0)).values.every(v=>v===0),'Pozostały sygnał po wypłukaniu');
+    lines.push('PASS zanik sygnału po wypłukaniu.');publish();
+}
+async function crossingTests(){
+    dimensions(128);
+    const radius=1.5,length=20,matrices=[new THREE.Matrix4().makeTranslation(0,0,4),new THREE.Matrix4().makeRotationZ(Math.PI/2).setPosition(0,0,-4)];
+    const parts=matrices.map(matrix=>innerOuterTube(radius,length,matrix)),geometry=remember(mergeGeometries(parts));parts.forEach(g=>g.dispose());
+    const inputs=[[[0,10,4],[0,-10,4]],[[10,0,-4],[-10,0,-4]]];
+    const networks=inputs.map((points,index)=>new ContrastFlowNetwork([{id:index,start:new THREE.Vector3(...points[0]),end:new THREE.Vector3(...points[1]),radiusStart:radius,radiusEnd:radius,nodeStartId:index*2,nodeEndId:index*2+1}],{cellLengthMm:.75}));
+    // A forest keeps the crossing vessels genuinely unconnected. The normal
+    // whole-body network constructor only traverses its first root component.
+    const edges=networks.map((n,i)=>{const edge=n.edges[0];edge.index=i;for(const node of n.nodes.values()){node.parentEdgeIndex=node.parentEdgeIndex<0?-1:i;node.childEdgeIndices=node.childEdgeIndices.map(()=>i);}return edge;});
+    const network={edges,nodes:new Map(networks.flatMap(n=>[...n.nodes])),time:0};
+    let count=0;const offsets=Uint32Array.from(edges,e=>{const at=count;count+=e.cellCount;return at;});
+    const column=remember(new AnatomicalContrastSurface(network,offsets,{fallbackGeometry:geometry},{projection:'column'}));
+    const legacy=remember(new AnatomicalContrastSurface(network,offsets,{fallbackGeometry:geometry},{projection:'surface'}));
+    for(const surface of [column,legacy])surface.uniforms.signalGain.value=1;
+    const camera=new THREE.OrthographicCamera(-12,12,12,-12,.1,200);camera.position.set(0,0,80);camera.lookAt(0,0,0);camera.updateMatrixWorld(true);
+    const inverses=matrices.map(m=>m.clone().invert()),plume=new Float32Array(count),expectedParts=matrices.map(()=>new Float32Array(width*height));
+    for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+        raycaster.setFromCamera(new THREE.Vector2(2*(x+.5)/width-1,2*(y+.5)/height-1),camera);
+        inverses.forEach((inverse,j)=>{const ray=raycaster.ray.clone().applyMatrix4(inverse);expectedParts[j][x+y*width]=.5*finiteCylinderIodineIntegral(ray.origin,ray.direction,radius,length,new Float64Array([1]),'linear');});
+    }
+    for(const profile of [[1,0],[0,1],[1,1]]){
+        edges.forEach((edge,j)=>{for(let i=0;i<edge.cellCount;i++)edge.massMg[i]=edge.volumes[i]*.3*profile[j];});
+        for(const surface of [column,legacy])surface.update(plume,.3,false);
+        const expected=Float32Array.from(expectedParts[0],(v,i)=>v*profile[0]+expectedParts[1][i]*profile[1]),actual=draw(column,camera),result=compare(actual.values,expected);
+        const name=`Oddzielne krzyżujące się naczynia: ${profile.join(' / ')}`;
+        measurements.push({name,...result,gpuReadbackMs:actual.ms});
+        const row=group(name);preview(row,draw(legacy,camera).values,'Poprzedni renderer');preview(row,expected,'Dwa niezależne światła — odniesienie');preview(row,actual.values,'Projekcja column');
+        assert(result.holes===0,`${name}: puste światło`);assert(result.outside===0,`${name}: przeniesienie jodu do pustego naczynia`);
+        assert(result.p95<.08,`${name}: nieprawidłowe sumowanie oddzielnych przedziałów`);
+        lines.push(`PASS ${name}: ubytki 0, fałszywy sygnał 0, P95 ${(100*result.p95).toFixed(2)}%.`);publish();
+    }
+}
+async function realOstiumTest(){
+    lines.push('Wczytywanie rzeczywistego ujścia…');publish();await new Promise(requestAnimationFrame);
+    const response=await fetch('./fixtures/contrast-anterior-ostium.json.gz');assert(response.ok,'Nie można wczytać fragmentu anatomii');
+    const fixture=response.headers.get('content-encoding')==='gzip'?await response.json():await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).json();
+    const {view:v,centerline:d,centerlineEdges:links,centerlineStride:stride}=fixture;
+    const network=new ContrastFlowNetwork(Array.from({length:links.length/2},(_,id)=>({id,start:new THREE.Vector3().fromArray(d,id*stride),end:new THREE.Vector3().fromArray(d,id*stride+3),radiusStart:d[id*stride+6],radiusEnd:d[id*stride+7],safeRadius:d[id*stride+8],nodeStartId:links[id*2],nodeEndId:links[id*2+1]})));
+    const geometry=remember(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(fixture.positions,3)));
+    let count=0;const offsets=Uint32Array.from(network.edges,edge=>{const at=count;count+=edge.cellCount;for(let cell=0;cell<edge.cellCount;cell++)edge.massMg[cell]=edge.volumes[cell]*.3;return at;});
+    const column=remember(new AnatomicalContrastSurface(network,offsets,{fallbackGeometry:geometry},{projection:'column'}));
+    const legacy=remember(new AnatomicalContrastSurface(network,offsets,{fallbackGeometry:geometry},{projection:'surface'}));
+    for(const surface of [column,legacy]){surface.update(new Float32Array(count),.3,false);surface.uniforms.signalGain.value=1;}
+    // Keep the original 160×192 camera: every oracle pixel was traced through
+    // the FULL original STL, not merely this cropped test geometry.
+    dimensions(v.width,v.height);
+    const cy=(v.top+v.bottom)/2,camera=new THREE.OrthographicCamera(v.left,v.right,v.top-cy,v.bottom-cy,.1,300);
+    camera.position.set(0,cy,v.front);camera.lookAt(0,cy,0);camera.updateMatrixWorld(true);
+    const expected=Float32Array.from(fixture.referencePathLengths,n=>n*.5),row=group('Rzeczywiste przednie ujście aorty');
+    preview(row,draw(legacy,camera).values,'Poprzedni renderer — obwódka ujścia');preview(row,expected,'Droga promienia przez pełny oryginalny STL');
+    const actual=draw(column,camera);preview(row,actual.values,'Projekcja column');
+    const comparison=compare(actual.values,expected);let ostiumChecked=0,ostiumError=0;
+    if(comparison.holePixels.length){const hole=comparison.holePixels[0];hole.gpu=diagnoseHole(column,camera,hole.x,hole.y);}
+    for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+        const i=x+y*width,px=v.left+(x+.5)/width*(v.right-v.left),py=v.bottom+(y+.5)/height*(v.top-v.bottom);
+        if(expected[i]>.5&&px>=1&&px<=5&&py>=-258&&py<=-252){ostiumChecked++;ostiumError+=Math.abs(actual.values[i]-expected[i])/expected[i];}
+    }
+    const result={name:'Rzeczywiste ujście — odniesienie pełnego STL',...comparison,ostiumChecked,ostiumMeanRelativeError:ostiumError/ostiumChecked,gpuReadbackMs:actual.ms,diagnostics:column.diagnostics};measurements.push(result);publish();
+    assert(result.checked>10000&&ostiumChecked>100,'Test nie obejmuje ujścia');
+    assert(result.holes===0,`Rzeczywiste ujście: ${result.holes} pustych pikseli ${JSON.stringify(result.holePixels)}`);
+    assert(result.p95<.12,`Rzeczywiste ujście: P95 ${(100*result.p95).toFixed(2)}%`);
+    assert(result.ostiumMeanRelativeError<.1,`Rzeczywiste ujście: średni błąd ${(100*result.ostiumMeanRelativeError).toFixed(2)}%`);
+    lines.push(`PASS rzeczywiste ujście: ${result.checked} pikseli, ubytki 0, P95 ${(100*result.p95).toFixed(2)}%, błąd ujścia ${(100*result.ostiumMeanRelativeError).toFixed(2)}%, ${actual.ms.toFixed(1)} ms z odczytem.`);publish();
+}
+try{
+    const selected=new URL(location.href).searchParams.get('case')??'all';
+    assert(['all','axial','crossing','ostium'].includes(selected),'Nieznany wariant testu');
+    if(selected==='all'||selected==='axial')await axialTests();
+    if(selected==='all'||selected==='crossing')await crossingTests();
+    if(selected==='all'||selected==='ostium')await realOstiumTest();
+    lines.push('WSZYSTKIE TESTY PROJEKCJI COLUMN ZALICZONE');document.body.dataset.testStatus='passed';publish();
+}catch(error){lines.push(`FAIL: ${error.message}`);document.body.dataset.testStatus='failed';publish();console.error(error);}
+finally{for(const resource of resources.reverse())resource.dispose();target.dispose();renderer.dispose();}
+</script>
+</html>

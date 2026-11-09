@@ -107,7 +107,7 @@ test('an intraluminal side-branch prefix cannot cut or darken a bolus in the par
                 e.massMg[i] = e.volumes[i] * .3 * (e.sourceIndex === 4 ? branchConcentration : profile(y));
             }
             surface.update(new Float32Array(count), .3, false);
-            const {position, flowStencil: s, flowAxis: axis} = surface.mesh.geometry.attributes;
+            const {position, flowStencil: s, flowAxis: axis} = surface.samplingGeometry.attributes;
             let checked = 0;
             for (let i = 0; i < position.count; i++) {
                 const y = position.getY(i);
@@ -159,7 +159,7 @@ for (const fork of [false, true]) test(`a bolus gradient stays continuous across
     const surface = new AnatomicalContrastSurface(network, offsets, {fallbackGeometry: wall});
     try {
         surface.update(new Float32Array(count), .3, false);
-        const {position, flowStencil} = surface.mesh.geometry.attributes;
+        const {position, flowStencil} = surface.samplingGeometry.attributes;
         const samples = new Map();
         let shared = 0, maxJump = 0;
         for (let i = 0; i < position.count; i++) {
@@ -207,6 +207,47 @@ test('surface respects excluded graft cells and leaves shared source geometry ow
     assert.equal(f.volume.mesh.visible, false);
     let disposed = false; f.geometry.addEventListener('dispose', () => disposed = true);
     f.volume.dispose(); assert.equal(disposed, false); f.geometry.dispose();
+});
+
+test('volume raster uploads only projection inputs while retaining CPU reconstruction and draw ranges', () => {
+    const f = surfaceFixture(1), v = f.volume;
+    const cpu = v.samplingGeometry, raster = v.mesh.geometry;
+    let sourceDisposals = 0, cpuDisposals = 0, rasterDisposals = 0;
+    f.geometry.addEventListener('dispose', () => sourceDisposals++);
+    cpu.addEventListener('dispose', () => cpuDisposals++);
+    raster.addEventListener('dispose', () => rasterDisposals++);
+    try {
+        assert.notEqual(raster, cpu);
+        assert.ok(Object.keys(raster.attributes).every(name => ['position', 'projectionOwner'].includes(name)),
+            'Unused CPU stencils, axes, radii and normals must not become GPU buffers');
+        assert.equal(raster.getAttribute('position'), cpu.getAttribute('position'), 'No duplicate position allocation');
+        if (cpu.hasAttribute('projectionOwner')) assert.equal(raster.getAttribute('projectionOwner'), cpu.getAttribute('projectionOwner'));
+        for (const name of ['flowStencil', 'flowAxis', 'opticalRadius', 'normal'])
+            assert.ok(cpu.hasAttribute(name), `Keep ${name} available for CPU diagnostics`);
+        for (const edge of f.network.edges) for (let i = 0; i < edge.cellCount; i++) edge.massMg[i] = edge.volumes[i] * .3;
+        v.update(f.plume, .3, false);
+        assert.ok(raster.groups.length > 0);
+        assert.deepEqual(raster.groups, cpu.groups, 'Activity ranges must reach the actual raster geometry');
+        assert.equal(raster.groups.reduce((sum, group) => sum + group.count, 0), raster.getAttribute('position').count,
+            'Every anatomical entry, including a clear cap, remains eligible for projection');
+        for (const edge of f.network.edges) edge.massMg.fill(0);
+        v.update(f.plume, .3, false);
+        assert.equal(v.mesh.visible, false);
+        assert.equal(raster.groups.length, 0, 'Inactive projection must clear previous raster draws');
+    } finally {v.dispose();}
+    assert.equal(cpuDisposals, 1); assert.equal(rasterDisposals, 1); assert.equal(sourceDisposals, 0);
+    f.geometry.dispose();
+});
+
+test('legacy scalar preview keeps its shader attributes on its raster geometry', () => {
+    const f = surfaceFixture(1);
+    const legacy = new AnatomicalContrastSurface(f.network, new Uint32Array([0]),
+        {fallbackGeometry: f.geometry}, {projection: 'surface'});
+    try {
+        assert.equal(legacy.samplingGeometry, legacy.mesh.geometry);
+        for (const name of ['flowStencil', 'flowAxis', 'opticalRadius', 'normal'])
+            assert.ok(legacy.mesh.geometry.hasAttribute(name));
+    } finally {legacy.dispose(); f.volume.dispose(); f.geometry.dispose();}
 });
 
 test('production renderer uses STL for small branches without a second proxy overlay, in both view modes', async () => {

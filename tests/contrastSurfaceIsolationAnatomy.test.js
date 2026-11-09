@@ -6,6 +6,44 @@ import {ContrastFlowNetwork} from '../src/contrast/flowNetwork.js';
 import {createLumenSurfaceMapping} from '../src/contrast/lumenSurfaceMapping.js';
 import {sampleFlowConcentration} from '../src/contrast/flowConcentrationField.js';
 import {AnatomicalContrastSurface} from '../src/contrast/anatomicalContrastSurface.js';
+import {readFileSync} from 'node:fs';
+import {gunzipSync} from 'node:zlib';
+import {MeshBVH} from 'three-mesh-bvh';
+
+test('concave anterior ostium retains inner faces that point away from the nearest axis', () => {
+    const fixture = JSON.parse(gunzipSync(readFileSync(new URL('./fixtures/contrast-anterior-ostium.json.gz', import.meta.url))));
+    const {centerline: data, centerlineEdges: ends, centerlineStride: stride, view} = fixture;
+    const network = new ContrastFlowNetwork(Array.from({length: ends.length / 2}, (_, id) => ({id,
+        start: new THREE.Vector3().fromArray(data, id * stride), end: new THREE.Vector3().fromArray(data, id * stride + 3),
+        radiusStart: data[id * stride + 6], radiusEnd: data[id * stride + 7], safeRadius: data[id * stride + 8],
+        nodeStartId: ends[id * 2], nodeEndId: ends[id * 2 + 1]})));
+    const source = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(fixture.positions, 3));
+    let cells = 0;
+    const offsets = Uint32Array.from(network.edges, edge => {const offset = cells; cells += edge.cellCount; return offset;});
+    const surface = new AnatomicalContrastSurface(network, offsets, {fallbackGeometry: source});
+    const lumen = new THREE.BufferGeometry().setAttribute('position', surface.mesh.geometry.attributes.position);
+    try {
+        const tree = new MeshBVH(lumen, {indirect: true});
+        const ray = new THREE.Ray(new THREE.Vector3(), new THREE.Vector3(0, 0, -1));
+        // These five independent full-STL reference rays previously lost an
+        // entry or exit face. Three cross the visible anterior aortic ostium;
+        // two cross its fine continuation at a different local orientation.
+        for (const [x, y] of [[102, 58], [102, 59], [77, 87], [74, 91], [73, 92]]) {
+            ray.origin.set(view.left + (x + .5) / view.width * (view.right - view.left),
+                view.bottom + (y + .5) / view.height * (view.top - view.bottom), view.front);
+            const hits = tree.raycast(ray, THREE.DoubleSide).sort((a, b) => a.distance - b.distance)
+                .filter((hit, i, list) => !i || hit.distance - list[i - 1].distance > 1e-5);
+            let length = 0;
+            for (let i = 0; i + 1 < hits.length; i++)
+                if (hits[i].face.normal.dot(ray.direction) > 0 && hits[i + 1].face.normal.dot(ray.direction) < 0)
+                    length += hits[i + 1].distance - hits[i].distance;
+            const expected = fixture.referencePathLengths[x + y * view.width];
+            assert.ok(expected > 1, 'Exercise a filled blood column, not its silhouette');
+            assert.ok(Math.abs(length - expected) < 1e-5,
+                `Ostium ray ${x},${y} must retain the original ${expected} mm blood interval, got ${length}`);
+        }
+    } finally {lumen.dispose(); surface.dispose(); source.dispose();}
+});
 
 test('pelvic anatomical surface cannot read concentration through another vessel wall',async()=>{
     const anatomy=await loadCoupledRuntimeAnatomy(undefined,'baseline');
@@ -72,7 +110,7 @@ test('aortic bolus remains graded over the actual pelvic side ostia', async () =
         });
         surface = new AnatomicalContrastSurface(network, offsets, {fallbackGeometry: wall});
         surface.update(new Float32Array(count), .3, false);
-        const {position, flowStencil: s, flowAxis: axis} = surface.mesh.geometry.attributes;
+        const {position, flowStencil: s, flowAxis: axis} = surface.samplingGeometry.attributes;
         let checked = 0, shared = 0, maxSharedJump = 0;
         const sharedConcentrations = new Map();
         for (let i = 0; i < position.count; i++) {

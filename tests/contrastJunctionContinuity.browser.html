@@ -1,0 +1,142 @@
+<!doctype html><html lang="pl"><meta charset="utf-8">
+<title>Ciągłość stężenia przy ujściach</title>
+<style>body{margin:24px;background:#14212a;color:#e5edf2;font:15px system-ui}h1{font-size:24px}section{margin:24px 0}section>div{display:flex;gap:16px;flex-wrap:wrap}figure{margin:0}canvas{width:288px;height:240px;background:#eee}figcaption{max-width:288px;margin:7px 0}pre{white-space:pre-wrap}#metrics{font-size:12px;color:#bdd0da}</style>
+<h1>Ciągłość stężenia przy ujściach</h1>
+<p>Przed/po: stężenie w cienkiej warstwie testowej, renderowane produkcyjnym projektorem kolumnowym. To ilustracja pola stężenia, nie dodatkowy model naczynia. Osobny test granicy obszaru obliczeń korzysta z oryginalnego STL.</p>
+<pre id="results" role="status">Przygotowanie…</pre><main></main><details open><summary>Pomiary</summary><pre id="metrics"></pre></details>
+<script type="module">
+import * as THREE from 'three';
+import {junctionContinuityFixture,smoothConcentrationRamp,frozenJunctionPointValue,anteriorSupportBoundaries} from './helpers/contrastJunctionContinuityFixture.js';
+import {partialOstiumFixture} from './helpers/partialOstiumFixture.js';
+import {buildAnatomicalColumnProjection} from '../src/contrast/anatomicalColumnProjection.js';
+import {AnatomicalContrastSurface} from '../src/contrast/anatomicalContrastSurface.js';
+import {createFlowColumnGeometry} from '../src/contrast/flowColumnGeometry.js';
+import {createFlowJunctionProjection} from '../src/contrast/flowJunctionProjection.js';
+const lines=[],measurements=[],resources=[],output=document.querySelector('#results'),metrics=document.querySelector('#metrics');
+const publish=()=>{output.textContent=lines.join('\n');metrics.textContent=JSON.stringify(measurements,null,2);};
+const assert=(condition,message)=>{if(!condition)throw Error(message);};
+const params=new URLSearchParams(location.search),selected=params.get('case')||'all';
+const renderer=new THREE.WebGLRenderer({antialias:false});renderer.setPixelRatio(1);
+const target=new THREE.WebGLRenderTarget(96,80,{type:THREE.FloatType}),scene=new THREE.Scene(),raycaster=new THREE.Raycaster();
+let lost=false;renderer.domElement.addEventListener('webglcontextlost',()=>{lost=true;});
+function cameraAt(point,angle,width=6,height=5){
+ const normal=new THREE.Vector3(Math.sin(angle*Math.PI/180),0,Math.cos(angle*Math.PI/180));
+ const camera=new THREE.OrthographicCamera(-width/2,width/2,height/2,-height/2,.1,250);
+ camera.position.copy(point).addScaledVector(normal,100);camera.lookAt(point);camera.updateMatrixWorld(true);return camera;
+}
+function draw(mesh,camera,width=96,height=80){
+ renderer.setSize(width,height);target.setSize(width,height);const raw=new Float32Array(width*height*4);
+ scene.add(mesh);renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.clear();
+ renderer.render(scene,camera);renderer.readRenderTargetPixels(target,0,0,width,height,raw);scene.remove(mesh);
+ assert(!lost,'Utrata kontekstu GPU');return Float32Array.from({length:width*height},(_,i)=>raw[i*4]);
+}
+function preview(row,values,label,width=96,height=80){
+ const figure=document.createElement('figure'),canvas=document.createElement('canvas'),caption=document.createElement('figcaption');
+ canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(width,height);
+ for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+  const c=Math.max(0,Math.min(1,values[x+y*width])),gray=Math.round(242-210*c),i=4*(x+(height-1-y)*width);
+  pixels.data.set([gray,gray,gray,255],i);
+ }
+ ctx.putImageData(pixels,0,0);caption.textContent=label;figure.append(canvas,caption);row.append(figure);
+}
+function probe(f,center,path,s){
+ const width=12,height=10,depth=.02,geometry=new THREE.BoxGeometry(width,height,depth).toNonIndexed();
+ geometry.translate(center.x,center.y,center.z);
+ const p=geometry.attributes.position.array;
+ for(let i=0;i<p.length;i+=9)for(let k=0;k<3;k++)[p[i+3+k],p[i+6+k]]=[p[i+6+k],p[i+3+k]];
+ const columns=new Float32Array(geometry.attributes.position.count*2);
+ for(let i=0;i<geometry.attributes.position.count;i++)columns.set([path,s],i*2);
+ geometry.setAttribute('columnCoordinate',new THREE.BufferAttribute(columns,2));
+ const projection=buildAnatomicalColumnProjection(f.network,geometry,f.field,{territories:f.territories,continuations:f.continuations});
+ const material=new THREE.ShaderMaterial({vertexShader:projection.vertexShader,fragmentShader:projection.fragmentShader,
+  uniforms:{...projection.uniforms,displayAlpha:{value:1},signalGain:{value:2/depth},debugMode:{value:false},debugColor:{value:new THREE.Color(1,1,1)},
+   projectionCullActive:{value:false},projectionActiveMin:{value:new THREE.Vector3()},projectionActiveMax:{value:new THREE.Vector3()}},
+  side:THREE.BackSide,transparent:true,premultipliedAlpha:true,blending:THREE.AdditiveBlending,depthTest:false,depthWrite:false,toneMapped:false});
+ const mesh=new THREE.Mesh(geometry,material);projection.install(mesh);projection.update(f.field.values,f.field.values);
+ const result={mesh,material,depth,center,
+  render(point,angle,width=96,height=80){
+   material.uniforms.signalGain.value=2*Math.abs(Math.cos(angle*Math.PI/180))/depth;
+   return draw(mesh,cameraAt(point,angle,width===1?.01:6,height===1?.01:5),width,height);
+  },dispose(){projection.dispose();material.dispose();geometry.dispose();}};
+ resources.push(result);return result;
+}
+async function illustrate(name,f,points,path,s,daughter,daughterS){
+ const center=points[0].clone().lerp(points[1],.5),surface=probe(f,center,path,s);
+ for(const angle of [0,30]){
+  const camera=cameraAt(center,angle),before=new Float32Array(96*80),plane=new THREE.Plane(new THREE.Vector3(0,0,1),-center.z);
+  for(let y=0;y<80;y++)for(let x=0;x<96;x++){
+   raycaster.setFromCamera(new THREE.Vector2(2*(x+.5)/96-1,2*(y+.5)/80-1),camera);
+   const point=raycaster.ray.intersectPlane(plane,new THREE.Vector3());
+   before[x+y*96]=frozenJunctionPointValue(f,point,path,s,daughter,daughterS);
+  }
+  const actual=surface.render(center,angle),row=document.createElement('div'),section=document.createElement('section'),heading=document.createElement('h2');
+  heading.textContent=`${name} · ${angle}°`;section.append(heading,row);document.querySelector('main').append(section);
+  preview(row,before,'Przed — sztywny wybór jednego naczynia');preview(row,actual,'Po — aktualny shader kolumnowy');
+  const pair=points.map(point=>surface.render(point,angle,1,1)[0]);
+  const jump=Math.abs(pair[1]-pair[0]);measurements.push({name,angle,left:pair[0],right:pair[1],jump});publish();
+  assert(pair.every(value=>Number.isFinite(value)&&value>=.25&&value<=1.01),`${name}: nieprawidłowe stężenie`);
+  assert(jump<.015,`${name}, ${angle}°: skok C ${(100*jump).toFixed(2)}% dla przesunięcia0.002mm`);
+  lines.push(`PASS ${name}, ${angle}°: skok C ${(100*jump).toFixed(3)}%.`);publish();await new Promise(requestAnimationFrame);
+ }
+}
+try{
+ assert(['all','synthetic','renal','support'].includes(selected),'Nieznany przypadek');
+ if(selected==='all'||selected==='synthetic')for(const oblique of[false,true]){
+  const f=junctionContinuityFixture(oblique);resources.push(f);
+  const axis=f.network.edges[f.daughter].axis,crossing=3/Math.abs(axis.x);
+  await illustrate(oblique?'Rozwidlenie Y':'Rozwidlenie T',f,[axis.clone().multiplyScalar(crossing-.001),axis.clone().multiplyScalar(crossing+.001)],0,30,f.daughter,crossing);
+ }
+ if(selected!=='synthetic'){
+  lines.push('Wczytywanie pełnego grafu i niewielkiego wycinka STL…');publish();
+  const response=await fetch('./fixtures/contrast-anterior-ostium.json.gz');assert(response.ok,'Brak fixture');
+  const data=response.headers.get('content-encoding')==='gzip'?await response.json():await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).json();
+  const real=partialOstiumFixture(data);resources.push(real);
+  const spatial=createFlowColumnGeometry(real.network,real.integral,real.built.territories,real.built.continuations);resources.push(spatial);
+  const junction=createFlowJunctionProjection(real.network,real.integral,real.built.territories,spatial);resources.push(junction);
+  if(selected==='all'||selected==='renal'){
+   const daughter=real.network.edges.find(edge=>edge.sourceIndex===1628).index,parentEdge=real.network.edges[daughter].parentEdgeIndex;
+   const parent=real.built.territories[parentEdge],parentS=real.integral.edgeStart[parentEdge]+real.network.edges[parentEdge].length;
+   real.fill((point,edge,path)=>path===daughter?1-.7*smoothConcentrationRamp((real.integral.edgeStart[edge.index]+point.clone().sub(edge.start).dot(edge.axis))/6):1);
+   const f={network:real.network,field:real.field,integral:real.integral,geometry:spatial,projection:junction,territories:real.built.territories,continuations:real.built.continuations};
+   await illustrate('Rzeczywiste lewe ujście nerkowe',f,[spatial.sample(daughter,4.066).point.clone(),spatial.sample(daughter,4.068).point.clone()],parent,parentS,daughter,4.067);
+  }
+  if(selected==='all'||selected==='support'){
+   const surface=new AnatomicalContrastSurface(real.network,real.offsets,{fallbackGeometry:real.geometry},{projection:'column'});resources.push(surface);
+   surface.uniforms.signalGain.value=1;
+   for(const boundary of anteriorSupportBoundaries(real,junction)){
+    real.fill(point=>smoothConcentrationRamp((point.y-boundary.y+4)/8));
+    surface.update(new Float32Array(real.field.cellCount),.3,false);
+    for(const angle of[0,30]){
+     const means=[];
+     for(const displacement of[-.001,.001]){
+      const point=new THREE.Vector3(0,boundary.y+displacement,10.3),camera=cameraAt(point,angle,.01,.01),value=draw(surface.mesh,camera,1,1)[0];
+      const chord=real.sample(real.ray(angle,point.x,point.y,point.z)).chord;assert(chord>5,'Brak pełnego światła aorty');means.push(2*value/chord);
+     }
+     const jump=Math.abs(means[1]-means[0]);measurements.push({name:`${boundary.name} — original STL`,boundaryY:boundary.y,angle,means,jump});publish();
+     assert(means.every(value=>value>.1&&value<.9),'Profil granicy musi mieć niezerowe, niezbyt silne stężenie');
+     assert(jump<.003,`${boundary.name}, ${angle}°: sztuczny skok C ${(100*jump).toFixed(2)}%`);
+     lines.push(`PASS ${boundary.name}, ${angle}°: skok C ${(100*jump).toFixed(3)}%.`);publish();
+    }
+   }
+   // Neighboring real supports may overlap at the new outer face. An
+   // isolated T-junction additionally guarantees a genuine global off/on
+   // transition, with different wall-coordinate and spatial baselines.
+   const isolated=junctionContinuityFixture();resources.push(isolated);
+   const outer=isolated.projection.junctions[0].min[1];
+   isolated.fill((edge,s)=>smoothConcentrationRamp((30-isolated.integral.edgeStart[edge]-s-outer+4)/8));
+   const probeSurface=probe(isolated,new THREE.Vector3(0,outer,0),0,30-outer+1);
+   const support=[-.001,.001].map(dy=>isolated.projection.hasSupport(new THREE.Vector3(0,outer+dy,.01),new THREE.Vector3(0,outer+dy,-.01),0));
+   assert(!support[0]&&support[1],'Próba musi przekraczać prawdziwą zewnętrzną granicę aktywacji');
+   for(const angle of[0,30]){
+    const means=[-.001,.001].map(dy=>probeSurface.render(new THREE.Vector3(0,outer+dy,0),angle,1,1)[0]);
+    const jump=Math.abs(means[1]-means[0]);measurements.push({name:'Isolated actual outer activation plane',boundaryY:outer,angle,support,means,jump});publish();
+    assert(means.every(value=>value>.1&&value<.9),'Brak niezerowego profilu izolowanej granicy');
+    assert(jump<.003,`Prawdziwa zewnętrzna granica ${angle}°: skok C ${(100*jump).toFixed(2)}%`);
+    lines.push(`PASS izolowana zewnętrzna granica, ${angle}°: skok C ${(100*jump).toFixed(3)}%.`);publish();
+   }
+  }
+ }
+ document.body.dataset.status='pass';lines.push('PASS: wszystkie próby ciągłości GPU.');publish();
+}catch(error){document.body.dataset.status='fail';lines.push(`FAIL: ${error.message}`);publish();console.error(error);}
+finally{for(const resource of resources.reverse())resource.dispose();target.dispose();renderer.dispose();}
+</script></html>

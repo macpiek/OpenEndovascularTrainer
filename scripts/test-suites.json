@@ -67,7 +67,7 @@
     ["node", "tests/injectionHydraulics.test.js"],
     ["node", "tests/injectionShortcut.test.js"],
     ["node", "--test", "tests/contrastHydraulicResistance.test.js", "tests/contrastInjectionResistance.test.js", "tests/contrastRefluxJunction.test.js", "tests/junctionConcentrationKernel.test.js", "tests/junctionSurfaceReconstruction.test.js", "tests/contrastContinuousTransport.test.js", "tests/contrastOstialReservoir.test.js", "tests/contrastContainedSpurs.test.js", "tests/contrastDilatedLumen.test.js"],
-    ["node", "--test", "tests/anatomicalContrastSurface.test.js", "tests/contrastSurfaceIsolation.test.js", "tests/contrastSurfaceIsolationAnatomy.test.js"],
+    ["node", "--test", "tests/anatomicalContrastSurface.test.js", "tests/anatomicalColumnProjection.test.js", "tests/contrastPartialOstium.test.js", "tests/contrastJunctionContinuity.test.js", "tests/flowJunctionProjection.test.js", "tests/flowColumnIntegral.test.js", "tests/contrastAxialProjection.test.js", "tests/lumenBoundaryCaps.test.js", "tests/projectionIndexedGeometry.test.js", "tests/projectionActivity.test.js", "tests/anatomicalContrastDeformation.test.js", "tests/contrastSurfaceIsolation.test.js", "tests/contrastSurfaceIsolationAnatomy.test.js"],
     ["node", "tests/contrastHybridModel.test.js"],
     ["node", "tests/contrastFullTree.test.js"],
     ["node", "tests/contrastCatheterFullTree.test.js"],

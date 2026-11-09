@@ -1,0 +1,159 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Kontrast — pełny model, wydajność GPU</title>
+<style>body{margin:20px;background:#15212b;color:#eef4f8;font:15px system-ui}pre{white-space:pre-wrap;max-width:1100px}canvas{display:block;max-width:90vw;height:auto;margin-top:18px}button{padding:9px 14px;margin-right:10px;background:#29404f;color:inherit;border:1px solid #718695;border-radius:5px}</style>
+<h1>Pełna anatomia — koszt projekcji kontrastu</h1>
+<p>Oryginalny STL, cały graf przepływu i produkcyjny renderer. Domyślnie bolus z koszulki: 20 ml przy 15 ml/s, po 1,3 s transportu. Profil „renal” sprawdza nierównomierne wypełnienie aorty i tętnic nerkowych. Czasy klatek obejmują zakończenie pracy GPU.</p>
+<pre id="results">Rozpoczynanie…</pre>
+<button id="repeat" disabled>Powtórz 5 klatek</button><button id="rotate" disabled>Obrót o 30°</button><div id="image"></div>
+<script type="module">
+import * as THREE from 'three';
+import {STLLoader} from 'three/examples/jsm/loaders/STLLoader.js';
+import {MeshBVH} from 'three-mesh-bvh';
+import {decodeCollisionAsset} from '../src/physics/collision/collisionAssetFormat.js';
+import {VesselContactField} from '../src/physics/collision/vesselContactField.js';
+import {HybridContrastSystem} from '../src/contrast/hybridContrastSystem.js';
+import {ContrastVolumeRenderer} from '../src/contrast/contrastVolumeRenderer.js';
+import {transformAortaGeometry} from '../src/aortaTransform.js';
+import {generateVessel} from '../src/vesselGeometry.js';
+const output = document.querySelector('#results'), params = new URLSearchParams(location.search);
+const pixels = Math.max(128, Math.min(1200, Number(params.get('pixels')) || 800));
+const frames = Math.max(1, Math.min(20, Number(params.get('frames')) || 5));
+const profile = ['uniform', 'renal'].includes(params.get('profile')) ? params.get('profile') : 'clinical';
+let yaw = Number(params.get('yaw')) || 0;
+const measurements = window.__fullContrastBenchmark = {status: 'loading', pixels, profile, stages: {}, samples: []};
+const lines = [], show = message => {output.textContent = [...lines, message].filter(Boolean).join('\n');};
+const paint = () => new Promise(requestAnimationFrame);
+const summarize = samples => {
+    const a = [...samples].sort((x, y) => x - y);
+    return {medianMs: a[Math.floor(a.length / 2)], p95Ms: a[Math.min(a.length - 1, Math.floor(a.length * .95))],
+        minMs: a[0], maxMs: a.at(-1)};
+};
+let renderer, display, geometry, target, screenMaterial, screenGeometry, contextFailure;
+try {
+    show('Pobieranie pełnego modelu Aorta_plain_renal.stl i pola kolizji…');
+    const started = performance.now();
+    let [stl, packed] = await Promise.all(['/res/Aorta_plain_renal.stl', '/res/Aorta_plain_renal.collision.bin']
+        .map(async url => {const response = await fetch(url); if (!response.ok) throw Error(`HTTP ${response.status}: ${url}`); return response.arrayBuffer();}));
+    measurements.sourceBytes = stl.byteLength + packed.byteLength;
+    measurements.stages.fetchMs = performance.now() - started;
+    lines.push(`Pliki: ${(measurements.sourceBytes / 1048576).toFixed(1)} MiB; pobieranie ${measurements.stages.fetchMs.toFixed(0)} ms.`);
+    show('Przygotowanie oryginalnego STL, BVH i pełnego grafu…'); await paint();
+    let stage = performance.now();
+    const asset = decodeCollisionAsset(packed), {vessel} = generateVessel(140, 0);
+    geometry = new STLLoader().parse(stl); stl = null; packed = null;
+    transformAortaGeometry(geometry, vessel); geometry.boundsTree = new MeshBVH(geometry);
+    const field = new VesselContactField(asset, {fallbackGeometry: geometry, bvhValidationDistance: .02, capsuleBvhValidation: -.1});
+    const data = asset.arrays.centerlineSegments, links = asset.arrays.centerlineEdges;
+    const segments = Array.from({length: links.length / 2}, (_, id) => ({id,
+        start: new THREE.Vector3().fromArray(data, id * 9), end: new THREE.Vector3().fromArray(data, id * 9 + 3),
+        radiusStart: data[id * 9 + 6], radiusEnd: data[id * 9 + 7], safeRadius: data[id * 9 + 8],
+        nodeStartId: links[id * 2], nodeEndId: links[id * 2 + 1]}));
+    for (const renal of asset.metadata.renal?.segments ?? []) Object.assign(segments[renal.index], {
+        renalSide: renal.side, renalSector: renal.sector, renalHilar: renal.hilar ?? false,
+        renalLateral: renal.lateral ?? false, source: 'renal-mesh'});
+    const system = new HybridContrastSystem({centerlineSegments: segments, contactField: field,
+        sheath: {...vessel.sheath, innerRadius: 1, length: 70}, localOptions: {randomSeed: 20261105}});
+    const network = system.flowNetwork;
+    const renalCenters = asset.metadata.renal?.kidneys?.map(kidney => new THREE.Vector3(
+        kidney.center.x, kidney.center.y, kidney.center.z)) ?? [];
+    const renalCenter = renalCenters.reduce((sum, center) => sum.add(center), new THREE.Vector3())
+        .divideScalar(Math.max(1, renalCenters.length));
+    if (profile === 'renal' && !renalCenters.length) throw Error('Brak położenia nerek w metadanych modelu');
+    measurements.stages.anatomyAndGraphMs = performance.now() - stage;
+    measurements.sourceTriangles = (geometry.index?.count ?? geometry.attributes.position.count) / 3;
+    measurements.edges = network.edges.length;
+    lines.push(`Anatomia: ${measurements.sourceTriangles.toLocaleString()} trójkątów, ${network.edges.length.toLocaleString()} krawędzi grafu; ${measurements.stages.anatomyAndGraphMs.toFixed(0)} ms.`);
+    show(profile === 'clinical' ? 'Transport selektywnego bolusa…' : `Przygotowanie pola stężenia: ${profile}…`); await paint(); stage = performance.now();
+    const transportMs = [];
+    if (profile === 'clinical') {
+        measurements.injection = system.startInjection({source: 'sheath', volumeMl: 20, rateMlPerSec: 15});
+        if (!measurements.injection.ok) throw Error('Nie można rozpocząć bolusa: ' + JSON.stringify(measurements.injection));
+        for (let frame = 0; frame < 78; frame++) {
+            const t = performance.now(); system.advanceSynchronized(1 / 60); transportMs.push(performance.now() - t);
+            if (frame % 12 === 11) {show(`Transport selektywnego bolusa: ${frame + 1}/78 kroków…`); await paint();}
+        }
+    } else {
+        const smooth = value => {const x = Math.max(0, Math.min(1, value)); return x * x * (3 - 2 * x);};
+        const point = new THREE.Vector3();
+        for (const edge of network.edges) for (let cell = 0; cell < edge.cellCount; cell++) {
+            point.copy(edge.start).lerp(edge.end, (cell + .5) / edge.cellCount);
+            // Smooth manufactured field: active aortic and renal junctions
+            // with unequal concentrations, not an empty or uniform-only pass.
+            const concentration = profile === 'renal'
+                ? .3 * smooth((70 - Math.abs(point.y - renalCenter.y)) / 20) *
+                    (1 - .55 * smooth(Math.abs(point.x - renalCenter.x) / 60))
+                : .3;
+            edge.massMg[cell] = edge.volumes[cell] * concentration;
+        }
+    }
+    // Freeze a completed concentration snapshot. The uniform stress profile
+    // has no transport steps, but still displays the current (not zero prior)
+    // field when the renderer reuses this unchanged snapshot.
+    system.synchronized = true;
+    measurements.stages.transportMs = performance.now() - stage;
+    measurements.transport = transportMs.length ? summarize(transportMs) : null;
+    measurements.activeEdges = network.edges.filter(edge => edge.massMg.some(mass => mass > 1e-9)).length;
+    if (!measurements.activeEdges) throw Error('Brak jodu w grafie — pomiar pustego obrazu byłby nieważny');
+    measurements.totalIodineMg = network.edges.reduce((sum, edge) => sum + edge.massMg.reduce((a, b) => a + b, 0), 0);
+    lines.push(`Profil ${profile}: ${measurements.activeEdges}/${network.edges.length} krawędzi z jodem; ${measurements.totalIodineMg.toFixed(1)} mg; przygotowanie ${measurements.stages.transportMs.toFixed(0)} ms.`);
+    show('Budowanie pełnego produkcyjnego renderera kontrastu…'); await paint(); stage = performance.now();
+    display = new ContrastVolumeRenderer(system, {anatomicalProjection: params.get('projection') === 'column' ? 'column' : 'surface'}); display.update();
+    measurements.stages.rendererBuildMs = performance.now() - stage;
+    measurements.projection = display._flowVolume.diagnostics;
+    lines.push(`Renderer: ${(measurements.stages.rendererBuildMs / 1000).toFixed(2)} s; tekstury projekcji ${(measurements.projection.projectionMemoryBytes / 1048576).toFixed(1)} MiB.`);
+    renderer = new THREE.WebGLRenderer({antialias: false, preserveDrawingBuffer: true});
+    renderer.debug.checkShaderErrors = true;
+    renderer.debug.onShaderError = (gl, program, vertex, fragment) => {
+        throw Error(`Shader compilation failed: ${gl.getProgramInfoLog(program)} ${gl.getShaderInfoLog(vertex)} ${gl.getShaderInfoLog(fragment)}`);
+    };
+    renderer.setPixelRatio(1); renderer.setSize(pixels, pixels); document.querySelector('#image').append(renderer.domElement);
+    renderer.domElement.addEventListener('webglcontextlost', () => {
+        contextFailure = new Error('Utrata kontekstu WebGL podczas pełnej projekcji.'); fail(contextFailure);
+    });
+    measurements.gpu = renderer.getContext().getParameter(renderer.getContext().RENDERER);
+    target = new THREE.WebGLRenderTarget(pixels, pixels, {type: THREE.HalfFloatType});
+    const scene = new THREE.Scene(); scene.add(display.group);
+    const camera = new THREE.OrthographicCamera(-90, 90, 90, -90, .1, 2500);
+    const center = profile === 'renal' ? renalCenter : new THREE.Vector3(0, -285, 0);
+    const screen = new THREE.Scene(), screenCamera = new THREE.Camera();
+    screenGeometry = new THREE.PlaneGeometry(2, 2);
+    screenMaterial = new THREE.ShaderMaterial({uniforms: {map: {value: target.texture}},
+        vertexShader: 'varying vec2 v;void main(){v=uv;gl_Position=vec4(position.xy,0.,1.);}',
+        fragmentShader: 'varying vec2 v;uniform sampler2D map;void main(){float depth=texture2D(map,v).r;gl_FragColor=vec4(vec3(.94*exp(-depth*8.)),1.);}'});
+    screen.add(new THREE.Mesh(screenGeometry, screenMaterial));
+    function timedFrame() {
+        if (contextFailure || renderer.getContext().isContextLost()) throw contextFailure ?? new Error('WebGL context lost');
+        const radians = yaw * Math.PI / 180;
+        camera.position.copy(center).add(new THREE.Vector3(Math.sin(radians) * 700, 0, Math.cos(radians) * 700)); camera.lookAt(center);
+        const t = performance.now();
+        display.update({reuseUnchanged: true}); renderer.setRenderTarget(target); renderer.setClearColor(0, 0); renderer.clear();
+        renderer.render(scene, camera);
+        measurements.draw = {calls: renderer.info.render.calls, triangles: renderer.info.render.triangles};
+        renderer.setRenderTarget(null); renderer.render(screen, screenCamera); renderer.getContext().finish();
+        if (contextFailure || renderer.getContext().isContextLost()) throw contextFailure ?? new Error('WebGL context lost during projection');
+        return performance.now() - t;
+    }
+    async function runBatch(count = frames) {
+        document.querySelectorAll('button').forEach(button => button.disabled = true);
+        measurements.status = 'rendering'; show(`Projekcja ${pixels}×${pixels}, kąt ${yaw}° — oczekiwanie na GPU…`); await paint();
+        if (measurements.firstFrameMs === undefined) {
+            measurements.firstFrameMs = timedFrame(); lines.push(`Pierwsza klatka z kompilacją: ${measurements.firstFrameMs.toFixed(1)} ms.`); await paint();
+        }
+        const times = [];
+        for (let i = 0; i < count; i++) {
+            show(`Pomiar ${i + 1}/${count}, ${pixels}×${pixels}, kąt ${yaw}°…`); await paint();
+            const ms = timedFrame(); times.push(ms); measurements.samples.push({yaw, ms});
+            if (contextFailure) throw contextFailure;
+        }
+        const summary = summarize(times); measurements.latest = {yaw, ...summary};
+        measurements.heapMiB = performance.memory ? performance.memory.usedJSHeapSize / 1048576 : null;
+        lines.push(`Klatka CPU+GPU ${yaw}° (${count} klatek): mediana ${summary.medianMs.toFixed(1)} ms, P95 ${summary.p95Ms.toFixed(1)} ms, ${(1000 / summary.medianMs).toFixed(1)} kl./s.`);
+        lines.push(`Wywołania rysowania: ${measurements.draw.calls}; trójkąty: ${measurements.draw.triangles.toLocaleString()}.`);
+        measurements.status = 'complete'; show('POMIAR ZAKOŃCZONY'); document.querySelectorAll('button').forEach(button => button.disabled = false);
+    }
+    document.querySelector('#repeat').onclick = () => runBatch(5).catch(fail);
+    document.querySelector('#rotate').onclick = () => {yaw = yaw >= 30 ? -30 : yaw + 30; runBatch(5).catch(fail);};
+    await runBatch();
+    addEventListener('pagehide', () => {display.dispose(); geometry.dispose(); target.dispose(); screenMaterial.dispose(); screenGeometry.dispose(); renderer.dispose();}, {once: true});
+} catch (error) {fail(error);}
+function fail(error) {measurements.status = 'failed'; measurements.error = error.message; show('FAIL: ' + error.message); console.error(error);}
+</script></html>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pl"><meta charset="utf-8"><title>Ujście aorty — niejednorodny kontrast</title>
+<style>
+body{margin:24px;background:#14212a;color:#e5edf2;font:15px system-ui}h1{font-size:24px}section{margin:24px 0}section>div{display:flex;gap:16px;flex-wrap:wrap}canvas{width:256px;height:256px;background:#eee}figure{margin:0}figcaption{max-width:256px;margin:6px 0}pre{white-space:pre-wrap}#metrics{font-size:12px;color:#b4c7d5}
+</style><h1>Rzeczywiste przednie ujście — różne stężenia w aorcie i gałęziach</h1>
+<p>Wzorzec powstaje przez całkowanie zadanej przestrzennej zawartości jodu wewnątrz oryginalnego STL. Nie korzysta ze średniej stężenia wzdłuż grafu pomiędzy ścianami.</p>
+<pre id="results" role="status">Przygotowanie…</pre><main></main><details open><summary>Pomiary</summary><pre id="metrics"></pre></details>
+<script type="module">
+import * as THREE from 'three';
+import {AnatomicalContrastSurface} from '../src/contrast/anatomicalContrastSurface.js';
+import {partialOstiumFixture,slabConcentration,spatialSlabIntegral,createOstiumBeforeProjection,ostialBolusConcentration} from './helpers/partialOstiumFixture.js';
+const output=document.querySelector('#results'),metrics=document.querySelector('#metrics'),lines=[],measurements=[];
+const publish=()=>{output.textContent=lines.join('\n');metrics.textContent=JSON.stringify(measurements,null,2);};
+const assert=(value,message)=>{if(!value)throw Error(message);};
+const requested=new URLSearchParams(location.search),size=Number(requested.get('size')||96);
+const angles=requested.has('angle')?[Number(requested.get('angle'))]:[0,-30,30,-60,60,180];
+const cases=requested.has('case')?[requested.get('case')]:['parent','daughter','daughterBolus','front'];
+const renderer=new THREE.WebGLRenderer({antialias:false});renderer.setPixelRatio(1);renderer.setSize(size,size);
+const target=new THREE.WebGLRenderTarget(size,size,{type:THREE.HalfFloatType}),scene=new THREE.Scene();
+let contextLost=false;renderer.domElement.addEventListener('webglcontextlost',()=>{contextLost=true;});
+const raycaster=new THREE.Raycaster(),raw=new Uint16Array(size*size*4);
+function cameraAt(angle,kind){
+    const radians=angle*Math.PI/180,center=kind.startsWith('daughter')?new THREE.Vector3(3.5,-256,19.9):new THREE.Vector3(1.5,-255,10.3);
+    const extent=kind.startsWith('daughter')?4:8;
+    const camera=new THREE.OrthographicCamera(-extent,extent,extent,-extent,.1,250);
+    camera.position.copy(center).add(new THREE.Vector3(-Math.sin(radians),0,Math.cos(radians)).multiplyScalar(100));
+    camera.lookAt(center);camera.updateMatrixWorld(true);return camera;
+}
+function preview(section,values,label,gain=.16){
+    const figure=document.createElement('figure'),canvas=document.createElement('canvas'),caption=document.createElement('figcaption');
+    canvas.width=canvas.height=size;const ctx=canvas.getContext('2d'),data=ctx.createImageData(size,size);
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+        const gray=Math.round(238*Math.exp(-Math.max(0,values[x+y*size])*gain)),i=4*(x+(size-1-y)*size);
+        data.data.set([gray,gray,gray,255],i);
+    }
+    ctx.putImageData(data,0,0);caption.textContent=label;figure.append(canvas,caption);section.append(figure);
+}
+function draw(surface,camera){
+    scene.add(surface.mesh);renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.clear();
+    const start=performance.now();renderer.render(scene,camera);renderer.readRenderTargetPixels(target,0,0,size,size,raw);
+    const ms=performance.now()-start;scene.remove(surface.mesh);assert(!contextLost,'Utrata kontekstu GPU');
+    return {values:Float32Array.from({length:size*size},(_,i)=>THREE.DataUtils.fromHalfFloat(raw[i*4])),ms};
+}
+let f,surface,beforeProjection;
+try{
+    lines.push('Wczytywanie niewielkiego wycinka oryginalnej anatomii…');publish();
+    const response=await fetch('./fixtures/contrast-anterior-ostium.json.gz');assert(response.ok,'Brak fixture');
+    const data=response.headers.get('content-encoding')==='gzip'?await response.json():await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).json();
+    f=partialOstiumFixture(data);beforeProjection=createOstiumBeforeProjection(f);surface=new AnatomicalContrastSurface(f.network,f.offsets,{fallbackGeometry:f.geometry},{projection:'column'});
+    surface.uniforms.signalGain.value=1;
+    const emptyPlume=new Float32Array(f.field.cellCount);
+    const daughterPath=f.network.edges.find(edge=>edge.sourceIndex===1566).index;
+    for(const kind of cases){
+        assert(['parent','daughter','daughterBolus','front'].includes(kind),'Nieznany przypadek');
+        // A broad 6mm front makes the oracle robust to the transport grid's
+        // finite cells while retaining the ostial cross-territory failure.
+        f.fill((point,edge,path)=>{
+            if(kind==='parent')return path===f.aortaTerritory?1:0;
+            if(kind.startsWith('daughter'))return path!==daughterPath?0:kind==='daughter'?1:
+                ostialBolusConcentration(f.integral.edgeStart[edge.index]+point.clone().sub(edge.start).dot(edge.axis));
+            return slabConcentration(point.y,-252,6);
+        });
+        surface.update(emptyPlume,.3,false);
+        for(const angle of angles){
+            const camera=cameraAt(angle,kind),before=new Float32Array(size*size),expected=new Float32Array(size*size),parentMask=new Uint8Array(size*size);
+            lines.push(`Obliczanie niezależnego wzorca: ${kind}, ${angle}°…`);publish();await new Promise(requestAnimationFrame);
+            for(let y=0;y<size;y++){
+                for(let x=0;x<size;x++){
+                    raycaster.setFromCamera(new THREE.Vector2(2*(x+.5)/size-1,2*(y+.5)/size-1),camera);
+                    const sample=f.sample(raycaster.ray),i=x+y*size;
+                    before[i]=.5*beforeProjection.iodine(raycaster.ray,sample);
+                    const daughterCore=kind.startsWith('daughter')?f.branchCoreOutsideParent(raycaster.ray,daughterPath,.7,kind==='daughterBolus'?[11,13]:null).reduce((sum,[a,b])=>sum+b-a,0):0;
+                    parentMask[i]=kind.startsWith('daughter')?(daughterCore>=.3?1:0):(sample.parentCoreIodine>=2?1:0);
+                    expected[i]=.5*(kind.startsWith('daughter')?daughterCore:kind==='parent'?sample.parentCoreIodine:spatialSlabIntegral(raycaster.ray,sample.sourceIntervals,-252,6));
+                }
+                if(y%24===23)await new Promise(requestAnimationFrame);
+            }
+            const actual=draw(surface,camera),section=document.createElement('section'),heading=document.createElement('h2'),row=document.createElement('div');
+            heading.textContent=`${kind==='parent'?'Aorta wypełniona, boczne gałęzie bez jodu':kind==='daughterBolus'?'Aorta bez jodu, krótki bolus w ujściu':kind==='daughter'?'Aorta bez jodu, przednia gałąź wypełniona':'Przestrzenny front kontrastu'} · ${angle}°`;
+            section.append(heading,row);document.querySelector('main').append(section);
+            const previewGain=kind.startsWith('daughter')?.7:.16;
+            preview(row,before,'Przed — wybór pola według ścian ujścia',previewGain);
+            preview(row,expected,kind==='parent'?'Wzorzec minimalny: wypełniony rdzeń aorty':kind.startsWith('daughter')?'Wzorzec minimalny: rdzeń gałęzi poza aortą':'Wzorzec: całka przestrzennego stężenia',previewGain);
+            preview(row,actual.values,'Po — aktualny renderer',previewGain);
+            let checked=0,holes=0,beforeHoles=0,error=0,squared=0,signal=0,worstRatio=Infinity;const worstPixels=[];
+            for(let i=0;i<expected.length;i++){
+                // Compare the prescribed front only where the detector ray
+                // actually crosses the independent parent core. Isolated
+                // oblique daughters cannot represent an exact world-y slab
+                // with their one-dimensional transport concentrations.
+                if(expected[i]<(kind.startsWith('daughter')?.15:1)||!parentMask[i])continue;
+                checked++;const value=actual.values[i],reference=expected[i];
+                assert(Number.isFinite(value),`Nieprawidłowy piksel ${i}`);
+                const ratio=value/reference;worstRatio=Math.min(worstRatio,ratio);
+                if(ratio<.65){worstPixels.push({x:i%size,y:Math.floor(i/size),value,reference,ratio});worstPixels.sort((a,b)=>a.ratio-b.ratio);worstPixels.length=Math.min(5,worstPixels.length);}
+                if(ratio<.65)holes++;if(before[i]/reference<.65)beforeHoles++;
+                error+=Math.abs(value-reference)/reference;squared+=(value-reference)**2;signal+=reference**2;
+            }
+            const result={kind,angle,checked,holes,beforeHoles,worstRatio,meanRelativeError:error/checked,relativeRms:Math.sqrt(squared/signal),gpuReadbackMs:actual.ms};
+            if(holes)result.worstPixels=worstPixels;
+            if(kind!=='front'){delete result.meanRelativeError;delete result.relativeRms;}
+            measurements.push(result);publish();assert(checked>(kind.startsWith('daughter')?20:200),'Za mały obszar porównania');
+            if(kind!=='front')assert(holes===0,`Ubytek wypełnionego rdzenia (${kind}): ${holes} pikseli przy ${angle}°`);
+            else assert(result.relativeRms<.22,`Błąd przestrzennego frontu ${(100*result.relativeRms).toFixed(1)}% przy ${angle}°`);
+            lines.push(kind!=='front'
+                ? `PASS ${kind}, ${angle}°: ${checked} pikseli, ubytki ${holes}.`
+                : `PASS front, ${angle}°: błąd RMS ${(100*result.relativeRms).toFixed(1)}%, GPU+odczyt ${actual.ms.toFixed(1)}ms.`);publish();
+        }
+    }
+    document.body.dataset.status='pass';lines.push('PASS: wszystkie niejednorodne pola i kąty.');publish();
+}catch(error){document.body.dataset.status='fail';lines.push(`FAIL: ${error.message}`);publish();console.error(error);}
+finally{beforeProjection?.dispose();surface?.dispose();f?.dispose();target.dispose();renderer.dispose();}
+</script></html>

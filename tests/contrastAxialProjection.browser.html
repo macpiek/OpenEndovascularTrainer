@@ -1,0 +1,50 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Kontrast — projekcja w osi naczynia</title>
+<style>body{background:#15212b;color:#edf4fa;font:16px system-ui;padding:20px}pre{white-space:pre-wrap}main{display:flex;flex-wrap:wrap;gap:16px}canvas{width:240px;height:240px}figure{margin:0}figcaption{max-width:240px}</style>
+<h1>Pełne światło w projekcji osiowej</h1><p>Otwarte końce siatki, rzeczywista długość drogi promienia, bolus wewnątrz naczynia i brak kontrastu poza jego obrysem.</p>
+<pre id="results">Uruchamianie…</pre><main></main>
+<script type="module">
+import * as THREE from 'three';
+import {axialProjectionFixture,finiteCylinderIodineIntegral} from './helpers/contrastAxialProjectionFixture.js';
+const size=256,span=16,renderer=new THREE.WebGLRenderer({antialias:false});renderer.setSize(size,size);
+const target=new THREE.WebGLRenderTarget(size,size,{type:THREE.HalfFloatType}),raw=new Uint16Array(size*size*4);
+const scene=new THREE.Scene(),raycaster=new THREE.Raycaster(),f=axialProjectionFixture(),lines=[];
+scene.add(f.surface.mesh);f.surface.uniforms.signalGain.value=1;
+// The independent mask closes only the original terminal polygons. It does
+// not derive a radius billboard from the renderer or expand the STL outline.
+const closedLumen=new THREE.Mesh(new THREE.CylinderGeometry(f.radius,f.radius,f.length,96,48,false),new THREE.MeshBasicMaterial({side:THREE.DoubleSide,color:0xffffff}));
+closedLumen.visible=false;scene.add(closedLumen);
+const assert=(condition,message)=>{if(!condition)throw Error(message);};
+function cameraAt(angle,perspective=false){const a=angle*Math.PI/180,camera=perspective?new THREE.PerspectiveCamera(2*Math.atan(span/80)*180/Math.PI,1,.1,200):new THREE.OrthographicCamera(-span,span,span,-span,.1,200);camera.position.set(0,80*Math.cos(a),80*Math.sin(a));camera.up.set(1,0,0);camera.lookAt(0,0,0);camera.updateMatrixWorld(true);return camera;}
+function draw(camera){renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.clear();renderer.render(scene,camera);renderer.readRenderTargetPixels(target,0,0,size,size,raw);return Float32Array.from({length:size*size},(_,i)=>THREE.DataUtils.fromHalfFloat(raw[i*4]));}
+function expected(camera,x,y,concentrations=f.concentrations){raycaster.setFromCamera(new THREE.Vector2(2*(x+.5)/size-1,2*(y+.5)/size-1),camera);return finiteCylinderIodineIntegral(raycaster.ray.origin,raycaster.ray.direction,f.radius,f.length,concentrations,'linear');}
+function preview(values,label){const canvas=document.createElement('canvas');canvas.width=canvas.height=size;const rgba=new Uint8ClampedArray(size*size*4);for(let y=0;y<size;y++)for(let x=0;x<size;x++){const i=(x+(size-1-y)*size)*4;const v=Math.round(255*Math.exp(-values[x+y*size]*.25));rgba[i]=rgba[i+1]=rgba[i+2]=v;rgba[i+3]=255;}canvas.getContext('2d').putImageData(new ImageData(rgba,size,size),0,0);const fig=document.createElement('figure'),caption=document.createElement('figcaption');caption.textContent=label;fig.append(canvas,caption);document.querySelector('main').append(fig);}
+try{
+ f.fill(1);const lateral=cameraAt(90),reference=draw(lateral),center=128+128*size;
+ const calibration=reference[center]/expected(lateral,128,128);
+ assert(calibration>0&&Number.isFinite(calibration),'Brak sygnału kalibracyjnego w projekcji bocznej');
+ for(const [name,profile]of [['jednorodny',1],['bolus w środku',y=>Math.abs(y)<3?1:0],['przesunięty bolus',y=>y>-8&&y<-2?1:0]]){
+  f.fill(profile);
+  // The scalar reconstruction may interpolate into an adjacent half-cell.
+  // Keep those front pixels out of the strict clear-blood isolation check.
+  const frontSupport=Float64Array.from(f.concentrations,(_,i)=>f.concentrations.slice(Math.max(0,i-2),i+3).some(c=>c>0)?1:0);
+  for(const perspective of [false,true])for(const angle of [0,.5,5,30,80,90]){
+   const camera=cameraAt(angle,perspective),actual=draw(camera),errors=[];let outside=0,holes=0,checked=0,falseIodine=0;
+   f.surface.mesh.visible=false;closedLumen.visible=true;const mask=draw(camera);closedLumen.visible=false;f.surface.mesh.visible=true;
+   const label=`${name}, ${angle}°, ${perspective?'perspektywa':'ortograficzna'}`;
+   if(!perspective&&(angle===0||angle===30))preview(actual,`${name}, ${angle}° od osi`);
+   const centerExpected=expected(camera,128,128)*calibration;
+   if(centerExpected>0)assert(Math.abs(actual[center]-centerExpected)<Math.max(.06,centerExpected*.15),`${label}: środek pusty lub zła długość optyczna (${actual[center].toFixed(4)} zamiast ${centerExpected.toFixed(4)})`);
+   for(let y=1;y<size-1;y+=2)for(let x=1;x<size-1;x+=2){const integral=expected(camera,x,y),value=actual[x+y*size];if(mask[x+y*size]===0&&value>1e-5)outside++;if(expected(camera,x,y,frontSupport)===0&&value>1e-5)falseIodine++;if(mask[x+y*size]>0&&integral>1){checked++;if(value<=1e-5)holes++;errors.push(Math.abs(value-calibration*integral)/(calibration*integral));}}
+   assert(outside===0,`${label}: kontrast poza oryginalnym wielokątem światła (${outside} pikseli)`);
+   assert(holes===0,`${label}: pierścień lub ubytek w wypełnionym świetle (${holes}/${checked})`);
+   assert(falseIodine===0,`${label}: sygnał w krwi poza bolusem (${falseIodine} pikseli)`);
+   if(errors.length){errors.sort((a,b)=>a-b);assert(errors[Math.floor(errors.length*.9)]<.2,`${label}: nieprawidłowa całka jodu w promieniu (P90=${errors[Math.floor(errors.length*.9)].toFixed(4)}, N=${errors.length})`);}
+   lines.push(`PASS ${label} — środek ${actual[center].toFixed(3)}, poza światłem ${outside}, ubytki ${holes}`);
+  }
+ }
+ f.fill(0);assert(draw(cameraAt(0)).every(v=>v===0),'Pozostał kontrast po wypłukaniu');
+ lines.push('PASS: brak sygnału po wypłukaniu.');
+ document.querySelector('#results').textContent=lines.join('\n')+'\nWSZYSTKIE TESTY GPU ZALICZONE';
+}catch(error){document.querySelector('#results').textContent=lines.join('\n')+'\nFAIL '+error.message;throw error;}
+finally{f.dispose();closedLumen.geometry.dispose();closedLumen.material.dispose();target.dispose();renderer.dispose();}
+</script></html>

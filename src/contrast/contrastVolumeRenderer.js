@@ -2075,7 +2075,7 @@ function createPlumeGeometry(capacity) {
 }
 
 export class ContrastVolumeRenderer {
-    constructor(system, {vesselDeformation=null}={}) {
+    constructor(system, {vesselDeformation=null, anatomicalProjection='column'}={}) {
         if (!system?.flowNetwork || !system?.localSolver) {
             throw new TypeError('A hybrid contrast system is required');
         }
@@ -2124,7 +2124,9 @@ export class ContrastVolumeRenderer {
         this._plumeLocationScratch = {};
         const anatomy = system.anatomyContactField ?? system.contactField;
         this._flowVolume = anatomy?.fallbackGeometry?.getAttribute('position')
-            ? new AnatomicalContrastSurface(system.flowNetwork, this._flowCellOffset, anatomy)
+            // One exact anatomical interval plus a preintegrated blood column
+            // fills anterior ostia without surface rings or nested GPU searches.
+            ? new AnatomicalContrastSurface(system.flowNetwork, this._flowCellOffset, anatomy, {projection: anatomicalProjection})
             : anatomy?.sdfInsideBits && anatomy?.sdfBrickLookup
             ? new AnatomicalContrastVolume(system.flowNetwork, this._flowCellOffset, anatomy)
             : new FlowContrastVolume(system.flowNetwork, this._flowCellOffset);

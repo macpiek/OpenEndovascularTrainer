@@ -3,6 +3,10 @@ import {MeshBVH} from 'three-mesh-bvh';
 import {createLumenSurfaceMapping} from './lumenSurfaceMapping.js';
 import {FlowConcentrationField} from './flowConcentrationField.js';
 import {JunctionSurfaceReconstruction} from './junctionSurfaceReconstruction.js';
+import {closeLumenBoundaries} from './lumenBoundaryCaps.js';
+import {buildAnatomicalContrastProjection} from './anatomicalContrastProjection.js';
+import {buildAnatomicalColumnProjection} from './anatomicalColumnProjection.js';
+import {createProjectionActivity} from './projectionActivity.js';
 
 function continuousTerritories(network) {
     const territories = new Int32Array(network.edges.length).fill(-1);
@@ -65,7 +69,7 @@ function projectionAxes(network, territories, continuations) {
 // Render the blood-facing triangles of the anatomical wall, in their original
 // coordinates. The transport graph supplies concentration, never the outline.
 // This also retains vessels smaller than the collision SDF's voxel spacing.
-export function buildAnatomicalContrastSurface(network, field, concentrationField, {junctionReconstruction = true} = {}) {
+export function buildAnatomicalContrastSurface(network, field, concentrationField, {junctionReconstruction = true, projection = 'volume'} = {}) {
     const source = field.fallbackGeometry;
     const position = source.getAttribute('position');
     const index = source.index;
@@ -81,6 +85,14 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
         .setAttribute('position',position).setIndex(index?.clone() ?? null)),{indirect:true});
     const {territories, continuations} = continuousTerritories(network);
     const opticalAxes = projectionAxes(network, territories, continuations);
+    const edgeArcStart = new Float64Array(network.edges.length);
+    for (const root of network.edges) {
+        if (territories[root.index] !== root.index) continue;
+        let distance = 0;
+        for (let edge = root; edge; edge = network.edges[continuations[edge.index]]) {
+            edgeArcStart[edge.index] = distance; distance += edge.length;
+        }
+    }
     const connections = new Map();
     const connectionKey = (a, b) => a < b ? `${a},${b}` : `${b},${a}`;
     for (const node of network.nodes?.values?.() ?? []) {
@@ -105,16 +117,12 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
         ray.direction.set(location.centerX-center.x,location.centerY-center.y,location.centerZ-center.z).normalize();
         const inward=normal.dot(ray.direction)*location.distance;
         const hit=wallTree.raycastFirst(ray,THREE.DoubleSide,1e-4,location.distance-1e-4);
-        if (inward<=1e-5 && hit && hit.face.normal.dot(ray.direction)>0 &&
-            !wallTree.raycastFirst(ray,THREE.DoubleSide,hit.distance+1e-4,location.distance-1e-4)) {
-            // One crossing through wall material into the nearest lumen:
-            // this is its outer wall. A neighbouring lumen requires further
-            // crossings and must instead go through the constrained search.
-            continue;
-        }
         if (hit || inward<=1e-5) {
             // Test orientation against each candidate, not just the closest
             // axis: a small neighbour can be closer than this wall's own axis.
+            // A concave inner wall can face away from the nearest axis and
+            // cross one other fold on that ray. This is not proof of an outer
+            // wall: only the constrained search can establish its ownership.
             const searchRadius = location.searchRadius;
             mapToFlow(center.x, center.y, center.z, location, normal, searchRadius);
             if (location.edgeIndex < 0) continue;
@@ -129,6 +137,8 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
     const stencils = new Float32Array(accepted.length * 12);
     const optical = new Float32Array(accepted.length * 3);
     const edges = new Uint32Array(accepted.length);
+    const projectionOwners = new Float32Array(accepted.length * 3);
+    const columnCoordinates = new Float32Array(accepted.length * 6);
     const axes = new Int16Array(positions.length);
     // Contiguous chunks bound draw calls and let empty territories sleep.
     const chunks = [];
@@ -159,6 +169,7 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
     for (let triangle = 0; triangle < accepted.length; triangle++) {
         const i = accepted[triangle], edge = network.edges[owners[triangle]];
         edges[triangle] = edge.index;
+        projectionOwners.fill(edge.index, triangle * 3, triangle * 3 + 3);
         read(a, i); read(b, i + 1); read(c, i + 2);
         normal.crossVectors(ab.subVectors(b, a), center.subVectors(c, a)).normalize();
         if (triangle % CHUNK_TRIANGLES === 0) chunks.push({start: triangle * 3, count: 0, edges: new Set()});
@@ -167,7 +178,9 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
             const p = [a, b, c][j], vertex = triangle * 3 + j;
             p.toArray(positions, vertex * 3);
             const territory = territories[edge.index];
-            const key = `${p.x},${p.y},${p.z}`;
+            // Procedural tubes duplicate the seam with sin(2π) roundoff.
+            // Weld only numerical zero; physical coordinates stay untouched.
+            const key = `${Math.abs(p.x) < 1e-7 ? 0 : p.x},${Math.abs(p.y) < 1e-7 ? 0 : p.y},${Math.abs(p.z) < 1e-7 ? 0 : p.z}`;
             const head = sharedSamples.get(key);
             let sample = head;
             while (sample && sample.territory !== territory) sample = sample.next;
@@ -193,6 +206,8 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
                 }
                 const t = Math.max(0, Math.min(1, distance / owner.length));
                 stencils.set(concentrationField.stencil(owner.index, t), vertex * 4);
+                columnCoordinates[vertex * 2] = territory;
+                columnCoordinates[vertex * 2 + 1] = edgeArcStart[owner.index] + t * owner.length;
                 optical[vertex] = location.edgeIndex >= 0 ? Math.max(.01, location.distance) : radii[triangle];
                 for (let k = 0; k < 3; k++) axes[vertex * 3 + k] = Math.round(opticalAxes[owner.index * 3 + k] * 32767);
                 sample = {vertex, edgeIndex: owner.index, territory, next: head};
@@ -213,6 +228,8 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
                 for (let k = 0; k < 4; k++) stencils[vertex * 4 + k] = stencils[sample.vertex * 4 + k];
                 for (let k = 0; k < 3; k++) axes[vertex * 3 + k] = axes[sample.vertex * 3 + k];
                 optical[vertex] = optical[sample.vertex];
+                columnCoordinates[vertex * 2] = columnCoordinates[sample.vertex * 2];
+                columnCoordinates[vertex * 2 + 1] = columnCoordinates[sample.vertex * 2 + 1];
             }
             sharedVertices[vertex] = sample.vertex;
             chunk.edges.add(sample.edgeIndex);
@@ -261,12 +278,24 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
     const geometry = new THREE.BufferGeometry();
     for (const [name, array, size] of [
         ['position', positions, 3], ['normal', normals, 3], ['flowStencil', stencils, 4],
-        ['opticalRadius', optical, 1], ['flowAxis', axes, 3]
+        ['opticalRadius', optical, 1], ['flowAxis', axes, 3], ['projectionOwner', projectionOwners, 1],
+        ['columnCoordinate', columnCoordinates, 2]
     ]) geometry.setAttribute(name, new THREE.BufferAttribute(array, size, array instanceof Int16Array));
+    let caps = {triangles: 0, loops: 0, boundaryEdges: 0, skippedLoops: 0};
+    if (projection !== 'surface') {
+        // Geometric identity is independent of concentration territories.
+        // Reuse the existing weld map and scratch buffers for closure edges.
+        for (const head of sharedSamples.values()) for (let sample = head; sample; sample = sample.next)
+            canonicalSamples[sample.vertex] = head.vertex;
+        for (let vertex = 0; vertex < sharedVertices.length; vertex++)
+            sharedVertices[vertex] = canonicalSamples[sharedVertices[vertex]];
+        caps = closeLumenBoundaries(geometry, sharedVertices);
+    }
     geometry.computeBoundingSphere();
     for (const chunk of chunks) chunk.edges = Array.from(chunk.edges);
     wallGeometry?.dispose();
-    return {geometry, chunks, triangleEdges: edges, sourceTriangleCount: count / 3, junctionField};
+    return {geometry, chunks, triangleEdges: edges, sourceTriangleCount: count / 3, junctionField,
+        territories, opticalAxes, continuations, caps};
 }
 
 const vertexShader = `
@@ -343,19 +372,50 @@ export class AnatomicalContrastSurface {
         this.data = new Float32Array(width * height * 4);
         this.texture = new THREE.DataTexture(this.data, width, height, THREE.RGBAFormat, THREE.FloatType);
         this.texture.needsUpdate = true;
+        const projectionBuilder = options?.projection === 'column' ? buildAnatomicalColumnProjection : buildAnatomicalContrastProjection;
+        this.projection = options?.projection === 'surface' ? null :
+            projectionBuilder(network, built.geometry, this.field,
+                {junctionField: built.junctionField, territories: built.territories,
+                    opticalAxes: built.opticalAxes, continuations: built.continuations});
+        this.activity = this.projection ? createProjectionActivity(network, built.geometry, this.field,
+            built.triangleEdges, built.junctionField) : null;
         this.diagnostics = {sourceTriangleCount: built.sourceTriangleCount, lumenTriangleCount: built.triangleEdges.length,
             junctionCount: this.junctionField.junctions.length, junctionSamples: this.junctionField.sampleCount,
-            junctionMemoryBytes: this.junctionField.memoryBytes};
-        this.material = new THREE.ShaderMaterial({vertexShader, fragmentShader,
-            uniforms: {flowValues: {value: this.texture}, flowSize: {value: new THREE.Vector2(width, height)},
+            junctionMemoryBytes: this.junctionField.memoryBytes, boundaryCaps: built.caps,
+            projectionMemoryBytes: this.projection?.memoryBytes ?? 0,
+            projectionActivity: this.activity?.diagnostics ?? null};
+        this.material = new THREE.ShaderMaterial({
+            vertexShader: this.projection?.vertexShader ?? vertexShader,
+            fragmentShader: this.projection?.fragmentShader ?? fragmentShader,
+            uniforms: {...this.projection?.uniforms, ...this.activity?.uniforms, flowValues: {value: this.texture}, flowSize: {value: new THREE.Vector2(width, height)},
                 displayAlpha: {value: 1}, signalGain: {value: .14}, debugMode: {value: false},
                 debugColor: {value: new THREE.Color(0x14b8ff)}},
-            // Average the two blood-facing walls. This preserves the lumen
-            // silhouette even at a grazing carina/mesh seam and avoids a
-            // single front surface's orientation becoming an internal hole.
-            side: THREE.DoubleSide, forceSinglePass: true, transparent: true, premultipliedAlpha: true,
+            // The inward-wound entry wall bounds the actual iodine integral.
+            // The legacy scalar-field preview averages both blood-facing walls.
+            side: this.projection ? THREE.BackSide : THREE.DoubleSide, forceSinglePass: true, transparent: true, premultipliedAlpha: true,
             blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false, toneMapped: false});
-        this.mesh = new THREE.Mesh(built.geometry, [this.material]);
+        this.material.userData.attachVesselDeformation = this.projection?.attachVesselDeformation;
+        // Keep reconstruction metadata on the CPU. Three uploads every
+        // enumerable geometry attribute, even if the current shader does not
+        // use it; the volume projector needs only anatomical positions and
+        // the triangle's initial owner for its bounded interior search.
+        this.samplingGeometry = built.geometry;
+        const rasterGeometry = this.projection ? new THREE.BufferGeometry()
+            .setAttribute('position', built.geometry.getAttribute('position')) : built.geometry;
+        if (this.projection) {
+            const owner = built.geometry.getAttribute('projectionOwner');
+            if (owner) rasterGeometry.setAttribute('projectionOwner', owner);
+            if (options?.projection === 'column') {
+                rasterGeometry.setAttribute('columnCoordinate', built.geometry.getAttribute('columnCoordinate'));
+                rasterGeometry.setAttribute('columnFace', built.geometry.getAttribute('columnFace'));
+            }
+            if (built.geometry.index) rasterGeometry.setIndex(built.geometry.index);
+            rasterGeometry.boundingSphere = built.geometry.boundingSphere;
+            rasterGeometry.boundingBox = built.geometry.boundingBox;
+        }
+        this.mesh = new THREE.Mesh(rasterGeometry, [this.material]);
+        this.activity?.install(this.mesh);
+        this.projection?.install?.(this.mesh);
         // Public material uniform contract used by ContrastVolumeRenderer.
         this.uniforms = this.material.uniforms;
         this.mesh.name = 'anatomical-contrast-inner-surface';
@@ -380,11 +440,26 @@ export class AnatomicalContrastSurface {
         }
         this.field.update(this.cellValues);
         this.junctionField.update(this.current, this.excludedCells);
+        this.projection?.update?.(this.current, this.previous);
         for (let i = 0; i < this.current.length; i++) {
             this.data[i * 4] = this.current[i]; this.data[i * 4 + 1] = this.previous[i];
+            this.data[i * 4 + 2] = this.excludedCells[i] ?? 0;
         }
         this.texture.needsUpdate = true;
         this.mesh.geometry.clearGroups();
+        if (this.projection) {
+            // Keep clear entry walls whose rays can reach active blood, while
+            // avoiding unrelated anatomical regions in this camera's view.
+            const active = this.activity.update(this.current, this.previous);
+            if (active) {
+                this.activity.setGroups();
+                // Activity support is computed from the CPU metadata, but
+                // the renderer must receive the same anatomical draw ranges.
+                this.mesh.geometry.groups = this.samplingGeometry.groups;
+            }
+            this.mesh.visible = active;
+            return;
+        }
         for (const chunk of this.chunks) {
             // Endpoint reconstruction can colour the half-cell before a front.
             const visible = chunk.edges.some(i => {
@@ -399,6 +474,11 @@ export class AnatomicalContrastSurface {
     resetHistory() {
         this.cellValues.fill(0); this.excludedCells.fill(0); this.current.fill(0); this.previous.fill(0); this.data.fill(0);
         this.texture.needsUpdate = true; this.mesh.visible = false;
+        this.projection?.update?.(this.current, this.previous);
     }
-    dispose() { this.texture.dispose(); this.mesh.geometry.dispose(); this.material.dispose(); }
+    dispose() {
+        this.projection?.dispose(); this.texture.dispose(); this.mesh.geometry.dispose();
+        if (this.samplingGeometry !== this.mesh.geometry) this.samplingGeometry.dispose();
+        this.material.dispose();
+    }
 }

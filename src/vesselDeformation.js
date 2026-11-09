@@ -48,12 +48,13 @@ function texture(values) {
 
 export class VesselDeformation {
     constructor() {
-        this.revision=0;this.patches=[];this.signature='';
+        this.revision=0;this.patches=[];this.signature='';this.updateListeners=new Set();
         this.buckets=new Array(BUCKETS);this.usedBuckets=[];
         this.uniforms={vesselBuckets:{value:texture(new Float32Array(BUCKETS*4))},
             vesselReferences:{value:texture([])},vesselPatches:{value:texture([])},
             vesselReferenceSize:{value:new THREE.Vector2(1,1)},vesselPatchSize:{value:new THREE.Vector2(1,1)},
-            vesselDeformMin:{value:new THREE.Vector3()},vesselDeformMax:{value:new THREE.Vector3()},vesselDeformActive:{value:false}};
+            vesselDeformMin:{value:new THREE.Vector3()},vesselDeformMax:{value:new THREE.Vector3()},vesselDeformActive:{value:false},
+            vesselDeformMaxDisplacement:{value:0}};
         // The hash table has a fixed 64x64 layout in the shader.
         const buckets=this.uniforms.vesselBuckets.value;
         buckets.image.width=64;buckets.image.height=64;
@@ -63,7 +64,8 @@ export class VesselDeformation {
         if(signature===this.signature)return false;
         this.signature=signature;this.patches=patches;this.revision++;
         this.uniforms.vesselDeformActive.value=patches.length>0;
-        if(!patches.length)return true;
+        this.uniforms.vesselDeformMaxDisplacement.value=patches.reduce((maximum,patch)=>Math.max(maximum,patch.displacement),0);
+        if(!patches.length){for(const listener of this.updateListeners)listener();return true;}
         const buckets=this.buckets;
         for(const i of this.usedBuckets)buckets[i].clear();
         this.usedBuckets.length=0;
@@ -92,8 +94,10 @@ export class VesselDeformation {
             this.uniforms[size].value.set(t.image.width,t.image.height);
         }
         this.uniforms.vesselDeformMin.value.fromArray(min);this.uniforms.vesselDeformMax.value.fromArray(max);
+        for(const listener of this.updateListeners)listener();
         return true;
     }
+    addUpdateListener(listener) {this.updateListeners.add(listener);return ()=>this.updateListeners.delete(listener);}
     // CPU counterpart of vesselDisplacement for device-to-deformed-wall queries.
     displacementAt(point,out=new THREE.Vector3()) {
         out.set(0,0,0);if(!this.patches.length)return out;
@@ -111,6 +115,10 @@ export class VesselDeformation {
         return out.lengthSq()>1e-24?out.setLength(depth):out.set(0,0,0);
     }
     attach(material) {
+        if(material.userData?.attachVesselDeformation) {
+            material.userData.attachVesselDeformation(this,material);
+            return;
+        }
         if(material.isShaderMaterial) {
             Object.assign(material.uniforms,this.uniforms);
             material.vertexShader=vesselDeformationGLSL+material.vertexShader.replace(/vec4\(position,\s*1\.0?\)/g,'vec4(position+vesselDisplacement(position),1.0)');
@@ -125,5 +133,5 @@ export class VesselDeformation {
         }
         material.needsUpdate=true;
     }
-    dispose(){for(const key of ['vesselBuckets','vesselReferences','vesselPatches'])this.uniforms[key].value.dispose();}
+    dispose(){this.updateListeners.clear();for(const key of ['vesselBuckets','vesselReferences','vesselPatches'])this.uniforms[key].value.dispose();}
 }

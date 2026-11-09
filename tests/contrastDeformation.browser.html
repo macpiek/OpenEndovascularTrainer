@@ -1,0 +1,172 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Deformacja światła — regresja GPU kontrastu</title>
+<style>body{margin:22px;background:#15212b;color:#edf4fa;font:15px system-ui}pre{white-space:pre-wrap}main{display:grid;grid-template-columns:repeat(2,256px);gap:16px}figure{margin:0}canvas{width:256px;height:256px}figcaption{max-width:256px;margin-top:6px}</style>
+<h1>Kontrast w odkształconym świetle</h1>
+<p>Jednolite stężenie 0,3. Niezależny zamknięty wielokąt światła jest odkształcany na CPU; długości promieni są mierzone na jego trójkątach.</p>
+<pre id="results">Przygotowanie…</pre><main></main>
+<script type="module">
+import * as THREE from 'three';
+import {MeshBVH} from 'three-mesh-bvh';
+import {VesselDeformation} from '../src/vesselDeformation.js';
+import {axialProjectionFixture} from './helpers/contrastAxialProjectionFixture.js';
+const concentration = .3, span = 16, lines = [], results = document.querySelector('#results');
+const patches = [
+    {center: [0, 0, 3], width: 5, normal: [0, 0, 1], displacement: 1.2},
+    {center: [-3, -5, 0], width: 4, normal: [-1, 0, 0], displacement: .9},
+    {center: [3, 4, 0], width: 3.5, normal: [-1, 0, 0], displacement: .65}
+];
+const assert = (condition, message) => {if (!condition) throw Error(message);};
+const all = window.__contrastDeformationResults = {status: 'running', checks: []};
+const projection = new URLSearchParams(location.search).get('projection') === 'column' ? 'column' : 'volume';
+lines.push(`Projekcja: ${projection}.`);
+const f = axialProjectionFixture({projection}), deformation = new VesselDeformation(), original = f.geometry.attributes.position.array.slice();
+deformation.attach(f.surface.material); f.fill(concentration); f.surface.uniforms.signalGain.value = 1;
+let renderer;
+try {renderer = new THREE.WebGLRenderer({antialias: false});}
+catch (error) {all.status = 'failed'; all.error = error.message; results.textContent = 'FAIL: ' + error.message; deformation.dispose(); f.dispose(); throw error;}
+const scene = new THREE.Scene(); scene.add(f.surface.mesh);
+renderer.debug.checkShaderErrors = true;
+renderer.debug.onShaderError = (gl, program, vertex, fragment) => {
+    throw Error(`Kompilacja shadera: ${gl.getProgramInfoLog(program)} ${gl.getShaderInfoLog(vertex)} ${gl.getShaderInfoLog(fragment)}`);
+};
+let contextLost = false;
+renderer.domElement.addEventListener('webglcontextlost', () => {contextLost = true; all.status = 'failed'; all.error = 'WebGL context lost'; results.textContent = lines.join('\n') + '\nFAIL: Utrata kontekstu WebGL';});
+let target;
+function cameraAt(angle) {
+    const a = angle * Math.PI / 180, camera = new THREE.OrthographicCamera(-span, span, span, -span, .1, 200);
+    camera.position.set(0, 80 * Math.cos(a), 80 * Math.sin(a)); camera.up.set(1, 0, 0); camera.lookAt(0, 0, 0);
+    camera.updateMatrixWorld(true); return camera;
+}
+function referenceGeometry() {
+    // Independent original terminal polygons; never copy selected renderer
+    // triangles, its cap helper, BVH, ray functions, or shader attributes.
+    const geometry = new THREE.CylinderGeometry(f.radius, f.radius, f.length, 96, 48, false);
+    const p = geometry.attributes.position, point = new THREE.Vector3(), displacement = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) {
+        point.fromBufferAttribute(p, i); deformation.displacementAt(point, displacement); point.add(displacement);
+        p.setXYZ(i, point.x, point.y, point.z);
+    }
+    geometry.computeVertexNormals(); return geometry;
+}
+function reference(tree, camera, size) {
+    const values = new Float32Array(size * size), caster = new THREE.Raycaster(), pixel = new THREE.Vector2();
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+        caster.setFromCamera(pixel.set(2 * (x + .5) / size - 1, 2 * (y + .5) / size - 1), camera);
+        const hits = tree.raycast(caster.ray, THREE.DoubleSide).sort((a, b) => a.distance - b.distance);
+        const distances = hits.filter((hit, i) => !i || hit.distance - hits[i - 1].distance > 1e-5).map(hit => hit.distance);
+        assert(distances.length % 2 === 0, `Niezamknięte światło odniesienia: ${x},${y}`);
+        let length = 0;
+        for (let i = 0; i < distances.length; i += 2) length += distances[i + 1] - distances[i];
+        values[x + y * size] = .5 * concentration * length;
+    }
+    return values;
+}
+function draw(camera, size) {
+    assert(!contextLost && !renderer.getContext().isContextLost(), 'Utrata kontekstu WebGL');
+    renderer.setRenderTarget(target); renderer.setClearColor(0, 0); renderer.clear(); renderer.render(scene, camera);
+    const pixels = new Uint16Array(size * size * 4); renderer.readRenderTargetPixels(target, 0, 0, size, size, pixels);
+    assert(!renderer.getContext().isContextLost(), 'Utrata kontekstu WebGL podczas projekcji');
+    return Float32Array.from({length: size * size}, (_, i) => THREE.DataUtils.fromHalfFloat(pixels[i * 4]));
+}
+function preview(values, size, caption) {
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
+    const rgba = new Uint8ClampedArray(size * size * 4);
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+        const i = (x + (size - 1 - y) * size) * 4, grey = Math.round(245 * Math.exp(-values[x + y * size]));
+        rgba[i] = rgba[i + 1] = rgba[i + 2] = grey; rgba[i + 3] = 255;
+    }
+    canvas.getContext('2d').putImageData(new ImageData(rgba, size, size), 0, 0);
+    const figure = document.createElement('figure'), label = document.createElement('figcaption');
+    label.textContent = caption; figure.append(canvas, label); document.querySelector('main').append(figure);
+}
+function diagnosticPixel(camera, size, x, y) {
+    // Only a failing regression uses these extra draws. Inspect the exact
+    // shader's interval and scalar reconstruction separately, without
+    // changing production code or masking the quantitative assertion.
+    const material = f.surface.material, originalShader = material.fragmentShader;
+    const output = /gl_FragColor\s*=\s*vec4\(\(debugMode\s*\?\s*debugColor\s*:\s*vec3\(1\.\)\)\s*\*\s*depth,\s*depth\);/;
+    if (projection !== 'column' || !output.test(originalShader)) return {unavailable: 'Unsupported diagnostic shader'};
+    const diagnosticTarget = new THREE.WebGLRenderTarget(size, size, {type: THREE.FloatType});
+    const pixel = new Float32Array(4), samples = {};
+    try {
+        for (const [name, expression] of [
+            ['intervalMeanFaceCount', 'vec4(distance + epsilon, mean, float(face.w), 1.)'],
+            ['entryPositionCount', 'vec4(lumenPosition, 1.)'],
+            ['exitPositionCount', 'vec4(lumenPosition + ray * (distance + epsilon), 1.)'],
+            ['rayDirectionCount', 'vec4(ray, 1.)']
+        ]) {
+            material.fragmentShader = originalShader.replace(output, `gl_FragColor = ${expression};`);
+            material.needsUpdate = true;
+            renderer.setRenderTarget(diagnosticTarget); renderer.setClearColor(0, 0); renderer.clear();
+            renderer.render(scene, camera);
+            renderer.readRenderTargetPixels(diagnosticTarget, x, y, 1, 1, pixel);
+            samples[name] = Array.from(pixel);
+        }
+    } finally {
+        material.fragmentShader = originalShader; material.needsUpdate = true;
+        renderer.setRenderTarget(target); diagnosticTarget.dispose();
+    }
+    return samples;
+}
+try {
+    for (const size of [128, 256]) {
+        renderer.setSize(size, size); target = new THREE.WebGLRenderTarget(size, size, {type: THREE.HalfFloatType});
+        const baseline = new Map();
+        for (const state of ['before', 'on', 'off']) {
+            deformation.update(state === 'on' ? patches : []);
+            const geometry = referenceGeometry(), tree = new MeshBVH(geometry, {indirect: true});
+            try {
+                for (const angle of [0, 30, 90]) {
+                    results.textContent = lines.join('\n') + `\nPomiar ${size}px, ${angle}°, ${state}…`;
+                    await new Promise(requestAnimationFrame);
+                    const camera = cameraAt(angle), expected = reference(tree, camera, size), actual = draw(camera, size);
+                    let checked = 0, ignoredBoundary = 0, holes = 0, outside = 0, errors = 0, changed = 0, maxError = 0;
+                    const failurePixels = [];
+                    for (let y = 1; y < size - 1; y++) for (let x = 1; x < size - 1; x++) {
+                        const i = x + y * size, inside = expected[i] > 1e-6;
+                        // Only the one-pixel polygon perimeter is exempt from
+                        // raster/analytic coverage differences. All interior
+                        // optical-depth comparisons remain quantitative.
+                        if ([i - 1, i + 1, i - size, i + size].some(j => (expected[j] > 1e-6) !== inside)) {ignoredBoundary++; continue;}
+                        assert(Number.isFinite(actual[i]), 'Nieskończony sygnał projekcji');
+                        if (inside) {
+                            checked++; if (actual[i] <= 1e-6) holes++;
+                            const error = Math.abs(actual[i] - expected[i]); maxError = Math.max(maxError, error);
+                            if (error > Math.max(.003, expected[i] * .015)) {
+                                errors++;
+                                if (failurePixels.length < 8) {
+                                    const caster = new THREE.Raycaster();
+                                    caster.setFromCamera(new THREE.Vector2(2 * (x + .5) / size - 1, 2 * (y + .5) / size - 1), camera);
+                                    const hits = tree.raycast(caster.ray, THREE.DoubleSide).sort((a, b) => a.distance - b.distance);
+                                    failurePixels.push({x, y, expected: expected[i], actual: actual[i], absoluteError: error,
+                                        tolerance: Math.max(.003, expected[i] * .015),
+                                        rayOrigin: caster.ray.origin.toArray(), rayDirection: caster.ray.direction.toArray(),
+                                        referenceHits: hits.map(hit => ({distance: hit.distance, point: hit.point.toArray(),
+                                            normal: hit.face.normal.toArray(), faceIndex: hit.faceIndex}))});
+                                }
+                            }
+                        } else if (actual[i] > 1e-5) outside++;
+                        if (state === 'on' && Math.abs(actual[i] - baseline.get(angle)[i]) > .003) changed++;
+                    }
+                    if (state === 'before') baseline.set(angle, actual);
+                    if (state === 'off') assert(actual.every((value, i) => value === baseline.get(angle)[i]), 'Wyłączenie kontaktu nie przywraca oryginalnej projekcji');
+                    if (failurePixels.length) failurePixels[0].gpu = diagnosticPixel(camera, size, failurePixels[0].x, failurePixels[0].y);
+                    const check = {size, state, angle, checked, ignoredBoundary, holes, outside, errors, changed, maxError, failurePixels};
+                    all.checks.push(check);
+                    assert(checked > 200, 'Zbyt mało pikseli światła do sprawdzenia');
+                    assert(holes === 0 && outside === 0 && errors === 0, JSON.stringify(check));
+                    if (state === 'on') assert(changed > 10, 'Kontakt nie zmienia obrazu mimo znacznej deformacji');
+                    if (state === 'on' && size === 256) {
+                        preview(expected, size, `${angle}°: niezależne odkształcone światło CPU`);
+                        preview(actual, size, `${angle}°: produkcyjny shader GPU`);
+                    }
+                    lines.push(`PASS ${size}px, ${angle}°, ${state}: ${checked} pikseli, ubytki 0, poza światłem 0, błąd maks. ${maxError.toFixed(5)}.`);
+                }
+            } finally {geometry.dispose();}
+        }
+        target.dispose(); target = null;
+    }
+    assert(original.every((value, i) => value === f.geometry.attributes.position.array[i]), 'Zmieniono oryginalne STL');
+    all.status = 'passed'; results.textContent = lines.join('\n') + '\nWSZYSTKIE 18 TESTÓW GPU ZALICZONE';
+} catch (error) {all.status = 'failed'; all.error = error.message; results.textContent = lines.join('\n') + '\nFAIL: ' + error.message; throw error;}
+finally {target?.dispose(); renderer.dispose(); deformation.dispose(); f.dispose();}
+</script></html>

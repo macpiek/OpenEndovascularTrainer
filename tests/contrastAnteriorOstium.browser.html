@@ -1,0 +1,99 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Rzeczywiste ujście przedniej gałęzi — test GPU</title>
+<style>body{margin:24px;background:#15212b;color:#edf4fa;font:16px system-ui}main{display:flex;flex-wrap:wrap;gap:20px}figure{margin:0}canvas{width:320px;height:384px;image-rendering:auto}figcaption{max-width:320px;margin:8px 0}pre{white-space:pre-wrap;max-width:1100px}</style>
+<h1>Przednie odgałęzienie aorty — rzeczywista anatomia</h1>
+<p>Ten sam fragment oryginalnego STL i jednolite stężenie jodu. Obraz odniesienia pochodzi z przecięć promieni z pełnym modelem.</p>
+<pre id="results">Wczytywanie małego fragmentu anatomii…</pre><main></main>
+<script type="module">
+import * as THREE from 'three';
+import {ContrastFlowNetwork} from '../src/contrast/flowNetwork.js';
+import {AnatomicalContrastSurface} from '../src/contrast/anatomicalContrastSurface.js';
+const result = document.querySelector('#results'), lines = [];
+const assert = (condition, message) => {if (!condition) throw Error(message);};
+let geometry, volume, legacy, renderer, target;
+try {
+    const response = await fetch('./fixtures/contrast-anterior-ostium.json.gz');
+    assert(response.ok, 'Nie można wczytać fragmentu anatomii');
+    // Vite serves .gz with Content-Encoding, so fetch already decompresses it.
+    const fixture = response.headers.get('content-encoding') === 'gzip' ? await response.json() :
+        await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).json();
+    const {view: v, centerline: d, centerlineEdges: links, centerlineStride: stride} = fixture;
+    const network = new ContrastFlowNetwork(Array.from({length: links.length / 2}, (_, id) => ({id,
+        start: new THREE.Vector3().fromArray(d, id * stride), end: new THREE.Vector3().fromArray(d, id * stride + 3),
+        radiusStart: d[id * stride + 6], radiusEnd: d[id * stride + 7], safeRadius: d[id * stride + 8],
+        nodeStartId: links[id * 2], nodeEndId: links[id * 2 + 1]})));
+    geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(fixture.positions, 3));
+    let count = 0;
+    const offsets = Uint32Array.from(network.edges, edge => {
+        const offset = count; count += edge.cellCount;
+        for (let cell = 0; cell < edge.cellCount; cell++) edge.massMg[cell] = edge.volumes[cell] * .3;
+        return offset;
+    });
+    result.textContent = `Budowanie projekcji: ${fixture.validation.cropTriangles} oryginalnych trójkątów…`;
+    await new Promise(requestAnimationFrame);
+    const start = performance.now();
+    volume = new AnatomicalContrastSurface(network, offsets, {fallbackGeometry: geometry});
+    legacy = new AnatomicalContrastSurface(network, offsets, {fallbackGeometry: geometry}, {projection: 'surface'});
+    const plume = new Float32Array(count);
+    for (const surface of [volume, legacy]) {
+        surface.update(plume, .3, false); surface.uniforms.signalGain.value = 1;
+    }
+    lines.push(`Fragment: ${fixture.validation.cropTriangles} trójkątów; zgodność z pełnym STL: ${fixture.validation.comparedRays} promieni.`);
+    lines.push(`Przygotowanie projekcji: ${Math.round(performance.now() - start)} ms.`);
+    renderer = new THREE.WebGLRenderer({antialias: false}); renderer.setSize(v.width, v.height);
+    target = new THREE.WebGLRenderTarget(v.width, v.height, {type: THREE.HalfFloatType});
+    const pixels = new Uint16Array(v.width * v.height * 4), scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(v.left, v.right, v.top - (v.top + v.bottom) / 2,
+        v.bottom - (v.top + v.bottom) / 2, .1, 300);
+    camera.position.set(0, (v.top + v.bottom) / 2, v.front); camera.lookAt(0, (v.top + v.bottom) / 2, 0);
+    function draw(surface) {
+        scene.add(surface.mesh); renderer.setRenderTarget(target); renderer.setClearColor(0, 0);
+        renderer.clear(); renderer.render(scene, camera); renderer.readRenderTargetPixels(target, 0, 0, v.width, v.height, pixels);
+        scene.remove(surface.mesh);
+        return Float32Array.from({length: v.width * v.height}, (_, i) => THREE.DataUtils.fromHalfFloat(pixels[i * 4]));
+    }
+    function preview(values, caption) {
+        const canvas = document.createElement('canvas'); canvas.width = v.width; canvas.height = v.height;
+        const rgba = new Uint8ClampedArray(v.width * v.height * 4);
+        for (let y = 0; y < v.height; y++) for (let x = 0; x < v.width; x++) {
+            const i = (x + (v.height - 1 - y) * v.width) * 4;
+            const grey = Math.round(245 * Math.exp(-values[x + y * v.width] * .25));
+            rgba[i] = rgba[i + 1] = rgba[i + 2] = grey; rgba[i + 3] = 255;
+        }
+        canvas.getContext('2d').putImageData(new ImageData(rgba, v.width, v.height), 0, 0);
+        const figure = document.createElement('figure'), label = document.createElement('figcaption');
+        label.textContent = caption; figure.append(canvas, label); document.querySelector('main').append(figure);
+    }
+    const expected = Float32Array.from(fixture.referencePathLengths, length => length * .5);
+    preview(expected, 'Odniesienie: droga promienia we krwi, zmierzona na pełnym oryginalnym STL.');
+    preview(draw(legacy), 'Poprzednia projekcja powierzchniowa: nieciągłość przy ujściu przedniej gałęzi.');
+    result.textContent = lines.join('\n') + '\nObliczanie całki jodu w rzeczywistym świetle…';
+    await new Promise(requestAnimationFrame);
+    const gpuStart = performance.now(), actual = draw(volume), gpuMs = performance.now() - gpuStart;
+    preview(actual, 'Całka w świetle: ciągły słup krwi przy przednim ujściu.');
+    let holes = 0, checked = 0, ostiumChecked = 0, ostiumError = 0;
+    const errors = [];
+    for (let y = 0; y < v.height; y++) for (let x = 0; x < v.width; x++) {
+        const i = x + y * v.width;
+        if (expected[i] <= .5) continue;
+        checked++; if (actual[i] <= 1e-5) holes++;
+        const error = Math.abs(actual[i] - expected[i]) / expected[i]; errors.push(error);
+        const px = v.left + (x + .5) / v.width * (v.right - v.left), py = v.bottom + (y + .5) / v.height * (v.top - v.bottom);
+        if (px >= 1 && px <= 5 && py >= -258 && py <= -252) {ostiumChecked++; ostiumError += error;}
+    }
+    errors.sort((a, b) => a - b);
+    const p95 = errors[Math.floor(errors.length * .95)];
+    lines.push(`Diagnostyka: ubytki ${holes}/${checked}, P95 ${(p95 * 100).toFixed(2)}%, błąd ujścia ${(100 * ostiumError / ostiumChecked).toFixed(2)}%; GPU ${gpuMs.toFixed(1)} ms.`);
+    lines.push(`Suma: obraz ${actual.reduce((a,b)=>a+b,0).toFixed(1)}, odniesienie ${expected.reduce((a,b)=>a+b,0).toFixed(1)}. Pole stężeń: ${volume.current.reduce((a,b)=>Math.min(a,b),Infinity).toFixed(3)}…${volume.current.reduce((a,b)=>Math.max(a,b),-Infinity).toFixed(3)}.`);
+    window.__ostiumResult = {holes, checked, p95, ostiumChecked, ostiumMeanRelativeError: ostiumError / ostiumChecked,
+        gpuMs, diagnostics: volume.diagnostics};
+    assert(checked > 10000 && ostiumChecked > 100, 'Test nie obejmuje rzeczywistego światła i ujścia');
+    assert(holes === 0, `Puste piksele wewnątrz wypełnionego światła: ${holes}/${checked}`);
+    assert(p95 < .2, `Nieprawidłowa całka jodu: błąd P95 ${(p95 * 100).toFixed(2)}%`);
+    assert(ostiumError / ostiumChecked < .15, 'Błędna droga optyczna przy rzeczywistym przednim ujściu');
+    lines.push(`PASS: ${checked} pikseli światła, ubytki ${holes}; ujście ${ostiumChecked} pikseli.`);
+    lines.push(`PASS: błąd P95 ${(p95 * 100).toFixed(2)}%; średni błąd ujścia ${(100 * ostiumError / ostiumChecked).toFixed(2)}%.`);
+    lines.push(`GPU z odczytem: ${gpuMs.toFixed(0)} ms. WSZYSTKIE TESTY GPU ZALICZONE.`);
+    result.textContent = lines.join('\n');
+} catch (error) {result.textContent = lines.join('\n') + '\nFAIL: ' + error.message; throw error;}
+finally {volume?.dispose(); legacy?.dispose(); geometry?.dispose(); target?.dispose(); renderer?.dispose();}
+</script></html>

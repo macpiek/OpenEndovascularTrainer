@@ -19,8 +19,11 @@ const wall=geometry.toNonIndexed();let count=0;
 const offsets=Uint32Array.from(network.edges,e=>{const offset=count;count+=e.cellCount;return offset;});
 const profile=y=>Math.max(0,Math.min(1,.5+(40-y)/20));
 for(const e of network.edges)for(let i=0;i<e.cellCount;i++)e.massMg[i]=e.volumes[i]*.3*profile(e.start.y+(e.end.y-e.start.y)*(i+.5)/e.cellCount);
-const surface=new AnatomicalContrastSurface(network,offsets,{fallbackGeometry:wall});
-const built=buildAnatomicalContrastSurface(network,{fallbackGeometry:wall},surface.field);
+// This challenge edits wall stencils to reproduce the historical seam, so it
+// deliberately exercises the scalar surface reconstruction rather than the
+// volumetric projector, whose samples are evaluated inside the blood column.
+const surface=new AnatomicalContrastSurface(network,offsets,{fallbackGeometry:wall},{projection:'surface'});
+const built=buildAnatomicalContrastSurface(network,{fallbackGeometry:wall},surface.field,{projection:'surface'});
 surface.mesh.geometry.dispose();surface.mesh.geometry=built.geometry;surface.update(new Float32Array(count),.3,false);
 const current=built.geometry,legacy=current.clone(),p=current.attributes.position,s=current.attributes.flowStencil,old=legacy.attributes.flowStencil;
 const shared=new Map();
