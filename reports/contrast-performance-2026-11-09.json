@@ -1,0 +1,1098 @@
+{
+  "date": "2026-11-09",
+  "environment": "Codex in-app browser; local development app; detector30x30cm; existing reference5mm solver with persisted fast/predictive Newton settings unchanged",
+  "method": "Passive20s wall-clock measurement of committed synchronized steps; real UI injections. First two runs insert wire for7s and catheter for5s. Third run advances each tool for2s during the injection/washout window.",
+  "preserved": [
+    "1/60s shared physical timestep",
+    "solver/contacts/tolerances",
+    "native STL geometry",
+    "projection resolution and quadrature",
+    "conservative flow and iodine transport"
+  ],
+  "limitations": [
+    "Measured60Hz is average committed physics throughput, not fluoroscopic renderFPS.",
+    "Long catheter bolus still produces GPU frame stalls; peak accumulated debt0.83s is recovered without skipping steps.",
+    "CPU render submission and gl.finish are not reliable GPU duration measures; asynchronous GPU timer results are separate."
+  ],
+  "runs": [
+    {
+      "scenario": "before_clock_and_transport_optimization",
+      "measurement": {
+        "kind": "passive-contrast-performance",
+        "valid": true,
+        "reason": "complete",
+        "requestedDurationSeconds": 20,
+        "wallSeconds": 20.049900000002236,
+        "initial": {
+          "acceptedSteps": 3440,
+          "completedSimulationTime": 57.33333333333136,
+          "accumulator": 0.016166666666667853,
+          "paused": false,
+          "contrastActive": false,
+          "failedSteps": 0,
+          "recoveries": 0
+        },
+        "final": {
+          "acceptedSteps": 3749,
+          "completedSimulationTime": 62.48333333333107,
+          "accumulator": 14.916066666666561,
+          "paused": false,
+          "contrastActive": true,
+          "failedSteps": 0,
+          "recoveries": 0,
+          "simulationMs": 8.699999999254942,
+          "updateMs": 0.30000000074505806,
+          "renderMs": 0.10000000149011612,
+          "rendererUpdateMs": 0,
+          "contrastTransportMs": 0,
+          "acquisitions": 0
+        },
+        "failedSteps": 0,
+        "recoveries": 0,
+        "windows": {
+          "all": {
+            "wallSeconds": 20.049900000002236,
+            "acceptedSteps": 309,
+            "acceptedPhysicsHz": 15.411548187271036,
+            "completedSimulationSeconds": 5.149999999999707,
+            "simulationToWallRatio": 0.25685913645450265,
+            "frames": 388,
+            "framesPerSecond": 19.351717464922853,
+            "acquisitions": 77,
+            "acquisitionsPerSecond": 3.8404181566986075,
+            "startBacklogSeconds": 0.016166666666667853,
+            "endBacklogSeconds": 14.916066666666561,
+            "backlogGrowthSeconds": 14.899899999999892,
+            "peakBacklogSeconds": 14.916066666666561,
+            "frameIntervals": {
+              "count": 388,
+              "meanMs": 51.67500000000576,
+              "medianMs": 17.399999998509884,
+              "p95Ms": 250.10000000149012,
+              "maxMs": 382.69999999925494,
+              "totalMs": 20049.900000002235
+            },
+            "costs": {
+              "simulationMs": {
+                "count": 388,
+                "meanMs": 11.514175257683952,
+                "medianMs": 10,
+                "p95Ms": 19.200000002980232,
+                "maxMs": 29.700000002980232,
+                "totalMs": 4467.499999981374
+              },
+              "updateMs": {
+                "count": 388,
+                "meanMs": 1.9018041236594934,
+                "medianMs": 0.19999999925494194,
+                "p95Ms": 11.399999998509884,
+                "maxMs": 44.599999997764826,
+                "totalMs": 737.8999999798834
+              },
+              "renderMs": {
+                "count": 388,
+                "meanMs": 0.6533505155503289,
+                "medianMs": 0.10000000149011612,
+                "p95Ms": 2.800000000745058,
+                "maxMs": 17.200000002980232,
+                "totalMs": 253.5000000335276
+              },
+              "rendererUpdateMs": {
+                "count": 388,
+                "meanMs": 1.7208762886290698,
+                "medianMs": 0,
+                "p95Ms": 11.300000000745058,
+                "maxMs": 44.30000000074506,
+                "totalMs": 667.6999999880791
+              },
+              "contrastTransportMs": {
+                "count": 388,
+                "meanMs": 5.159020618535578,
+                "medianMs": 7.300000000745058,
+                "p95Ms": 12.899999998509884,
+                "maxMs": 21.099999997764826,
+                "totalMs": 2001.6999999918044
+              }
+            }
+          },
+          "contrastActive": {
+            "wallSeconds": 18.9,
+            "acceptedSteps": 240,
+            "acceptedPhysicsHz": 12.6984126984127,
+            "completedSimulationSeconds": 3.9999999999997726,
+            "simulationToWallRatio": 0.21164021164019964,
+            "frames": 319,
+            "framesPerSecond": 16.87830687830688,
+            "acquisitions": 59,
+            "acquisitionsPerSecond": 3.121693121693122,
+            "startBacklogSeconds": 0.016166666666667853,
+            "endBacklogSeconds": 14.916066666666561,
+            "backlogGrowthSeconds": 14.899899999999892,
+            "peakBacklogSeconds": 14.916066666666561,
+            "frameIntervals": {
+              "count": 319,
+              "meanMs": 59.24764890282132,
+              "medianMs": 19.400000002235174,
+              "p95Ms": 254.59999999776483,
+              "maxMs": 382.69999999925494,
+              "totalMs": 18900
+            },
+            "costs": {
+              "simulationMs": {
+                "count": 319,
+                "meanMs": 12.212225705268429,
+                "medianMs": 13,
+                "p95Ms": 19.800000000745058,
+                "maxMs": 29.700000002980232,
+                "totalMs": 3895.6999999806285
+              },
+              "updateMs": {
+                "count": 319,
+                "meanMs": 2.2683385579516897,
+                "medianMs": 0.19999999925494194,
+                "p95Ms": 11.899999998509884,
+                "maxMs": 44.599999997764826,
+                "totalMs": 723.599999986589
+              },
+              "renderMs": {
+                "count": 319,
+                "meanMs": 0.7194357367355061,
+                "medianMs": 0.10000000149011612,
+                "p95Ms": 2.900000002235174,
+                "maxMs": 17.200000002980232,
+                "totalMs": 229.50000001862645
+              },
+              "rendererUpdateMs": {
+                "count": 319,
+                "meanMs": 2.0931034482384923,
+                "medianMs": 0,
+                "p95Ms": 11.599999997764826,
+                "maxMs": 44.30000000074506,
+                "totalMs": 667.6999999880791
+              },
+              "contrastTransportMs": {
+                "count": 319,
+                "meanMs": 6.27178683381843,
+                "medianMs": 7.800000000745058,
+                "p95Ms": 14.300000000745058,
+                "maxMs": 21.099999997764826,
+                "totalMs": 2000.699999988079
+              }
+            }
+          },
+          "contrastInactive": {
+            "wallSeconds": 1.1499000000022352,
+            "acceptedSteps": 69,
+            "acceptedPhysicsHz": 60.00521784491336,
+            "completedSimulationSeconds": 1.1499999999999346,
+            "simulationToWallRatio": 1.0000869640818324,
+            "frames": 69,
+            "framesPerSecond": 60.00521784491336,
+            "acquisitions": 18,
+            "acquisitionsPerSecond": 15.653535089977398,
+            "startBacklogSeconds": 0.016166666666667853,
+            "endBacklogSeconds": 0.016166666666667853,
+            "backlogGrowthSeconds": 0,
+            "peakBacklogSeconds": 0.01626666666667367,
+            "frameIntervals": {
+              "count": 69,
+              "meanMs": 16.665217391336743,
+              "medianMs": 16.5,
+              "p95Ms": 18.800000000745058,
+              "maxMs": 19.699999999254942,
+              "totalMs": 1149.9000000022352
+            },
+            "costs": {
+              "simulationMs": {
+                "count": 69,
+                "meanMs": 8.286956521749929,
+                "medianMs": 8.300000000745058,
+                "p95Ms": 9.100000001490116,
+                "maxMs": 9.5,
+                "totalMs": 571.8000000007451
+              },
+              "updateMs": {
+                "count": 69,
+                "meanMs": 0.2072463767144127,
+                "medianMs": 0.19999999925494194,
+                "p95Ms": 0.3999999985098839,
+                "maxMs": 0.4000000022351742,
+                "totalMs": 14.299999993294477
+              },
+              "renderMs": {
+                "count": 69,
+                "meanMs": 0.3478260871724806,
+                "medianMs": 0.10000000149011612,
+                "p95Ms": 1.199999999254942,
+                "maxMs": 1.300000000745058,
+                "totalMs": 24.00000001490116
+              },
+              "rendererUpdateMs": {
+                "count": 69,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "totalMs": 0
+              },
+              "contrastTransportMs": {
+                "count": 69,
+                "meanMs": 0.01449275367717812,
+                "medianMs": 0,
+                "p95Ms": 0.10000000149011612,
+                "maxMs": 0.10000000149011612,
+                "totalMs": 1.0000000037252903
+              }
+            }
+          },
+          "paused": {
+            "wallSeconds": 0,
+            "acceptedSteps": 0,
+            "acceptedPhysicsHz": 0,
+            "completedSimulationSeconds": 0,
+            "simulationToWallRatio": 0,
+            "frames": 0,
+            "framesPerSecond": 0,
+            "acquisitions": 0,
+            "acquisitionsPerSecond": 0,
+            "startBacklogSeconds": null,
+            "endBacklogSeconds": null,
+            "backlogGrowthSeconds": 0,
+            "peakBacklogSeconds": 0,
+            "frameIntervals": {
+              "count": 0,
+              "meanMs": 0,
+              "medianMs": 0,
+              "p95Ms": 0,
+              "maxMs": 0,
+              "totalMs": 0
+            },
+            "costs": {
+              "simulationMs": {
+                "count": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "totalMs": 0
+              },
+              "updateMs": {
+                "count": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "totalMs": 0
+              },
+              "renderMs": {
+                "count": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "totalMs": 0
+              },
+              "rendererUpdateMs": {
+                "count": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "totalMs": 0
+              },
+              "contrastTransportMs": {
+                "count": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "totalMs": 0
+              }
+            }
+          }
+        },
+        "limitations": [
+          "Intervals are attributed to the contrast/paused state supplied for that rendered frame.",
+          "CPU render submission excludes asynchronous GPU completion; acquisitions and committed physics are separate counters.",
+          "This passive timing capture does not certify mechanical accuracy or alter the simulation."
+        ]
+      }
+    },
+    {
+      "scenario": "catheter_100ml_12.1ml_per_s",
+      "measurement": {
+        "kind": "passive-contrast-performance",
+        "valid": true,
+        "reason": "complete",
+        "requestedDurationSeconds": 20,
+        "wallSeconds": 20.00710000000149,
+        "initial": {
+          "acceptedSteps": 2263,
+          "completedSimulationTime": 37.71666666666581,
+          "accumulator": 0.027033333336315003,
+          "paused": false,
+          "contrastActive": false,
+          "failedSteps": 0,
+          "recoveries": 0
+        },
+        "final": {
+          "acceptedSteps": 3463,
+          "completedSimulationTime": 57.71666666666467,
+          "accumulator": 0.024233333335568676,
+          "paused": false,
+          "contrastActive": true,
+          "failedSteps": 0,
+          "recoveries": 0,
+          "simulationMs": 7.899999998509884,
+          "updateMs": 8.800000000745058,
+          "renderMs": 2.100000001490116,
+          "rendererUpdateMs": 8.699999999254942,
+          "contrastTransportMs": 0.9000000022351742,
+          "acquisitions": 1
+        },
+        "failedSteps": 0,
+        "recoveries": 0,
+        "windows": {
+          "all": {
+            "wallSeconds": 20.00710000000149,
+            "acceptedSteps": 1200,
+            "acceptedPhysicsHz": 59.978707558812154,
+            "completedSimulationSeconds": 19.999999999998863,
+            "simulationToWallRatio": 0.9996451259801458,
+            "frames": 523,
+            "framesPerSecond": 26.1407200443823,
+            "acquisitions": 156,
+            "acquisitionsPerSecond": 7.79723198264558,
+            "startBacklogSeconds": 0.027033333336315003,
+            "endBacklogSeconds": 0.024233333335568676,
+            "backlogGrowthSeconds": -0.0028000000007464033,
+            "peakBacklogSeconds": 0.8324999999999871,
+            "frameIntervals": {
+              "count": 523,
+              "meanMs": 38.25449330784224,
+              "medianMs": 16.800000000745058,
+              "p95Ms": 286.30000000074506,
+              "maxMs": 463.1000000014901,
+              "totalMs": 20007.10000000149
+            },
+            "costs": {
+              "simulationMs": {
+                "count": 523,
+                "meanMs": 5.998087954068161,
+                "medianMs": 6.099999997764826,
+                "p95Ms": 10.800000000745058,
+                "maxMs": 79.30000000074506,
+                "totalMs": 3136.9999999776483
+              },
+              "updateMs": {
+                "count": 523,
+                "meanMs": 2.8915869980110265,
+                "medianMs": 0.19999999925494194,
+                "p95Ms": 11.399999998509884,
+                "maxMs": 38,
+                "totalMs": 1512.2999999597669
+              },
+              "renderMs": {
+                "count": 523,
+                "meanMs": 0.8332695985430172,
+                "medianMs": 0.10000000149011612,
+                "p95Ms": 2.800000000745058,
+                "maxMs": 12.300000000745058,
+                "totalMs": 435.80000003799796
+              },
+              "rendererUpdateMs": {
+                "count": 523,
+                "meanMs": 2.7275334607318302,
+                "medianMs": 0,
+                "p95Ms": 10.800000000745058,
+                "maxMs": 37.899999998509884,
+                "totalMs": 1426.499999962747
+              },
+              "contrastTransportMs": {
+                "count": 523,
+                "meanMs": 5.645124282830361,
+                "medianMs": 1.0999999977648258,
+                "p95Ms": 35,
+                "maxMs": 100.80000001564622,
+                "totalMs": 2952.399999920279
+              }
+            }
+          },
+          "contrastActive": {
+            "wallSeconds": 19.45970000000298,
+            "acceptedSteps": 1166,
+            "acceptedPhysicsHz": 59.91870378268018,
+            "completedSimulationSeconds": 19.43333333333223,
+            "simulationToWallRatio": 0.9986450630446129,
+            "frames": 489,
+            "framesPerSecond": 25.12885604608114,
+            "acquisitions": 148,
+            "acquisitionsPerSecond": 7.6054615435991995,
+            "startBacklogSeconds": 0.016566666668903295,
+            "endBacklogSeconds": 0.024233333335568676,
+            "backlogGrowthSeconds": 0.007666666666665389,
+            "peakBacklogSeconds": 0.8324999999999871,
+            "frameIntervals": {
+              "count": 489,
+              "meanMs": 39.79488752556847,
+              "medianMs": 16.800000000745058,
+              "p95Ms": 328,
+              "maxMs": 463.1000000014901,
+              "totalMs": 19459.70000000298
+            },
+            "costs": {
+              "simulationMs": {
+                "count": 489,
+                "meanMs": 6.326584867020814,
+                "medianMs": 6.200000002980232,
+                "p95Ms": 10.900000002235174,
+                "maxMs": 79.30000000074506,
+                "totalMs": 3093.699999973178
+              },
+              "updateMs": {
+                "count": 489,
+                "meanMs": 3.077300613407038,
+                "medianMs": 0.10000000149011612,
+                "p95Ms": 11.399999998509884,
+                "maxMs": 38,
+                "totalMs": 1504.7999999560416
+              },
+              "renderMs": {
+                "count": 489,
+                "meanMs": 0.8668711657401609,
+                "medianMs": 0.10000000149011612,
+                "p95Ms": 2.899999998509884,
+                "maxMs": 12.300000000745058,
+                "totalMs": 423.90000004693866
+              },
+              "rendererUpdateMs": {
+                "count": 489,
+                "meanMs": 2.9171779140342475,
+                "medianMs": 0,
+                "p95Ms": 11.099999997764826,
+                "maxMs": 37.899999998509884,
+                "totalMs": 1426.499999962747
+              },
+              "contrastTransportMs": {
+                "count": 489,
+                "meanMs": 6.0361963188568994,
+                "medianMs": 1.2999999970197678,
+                "p95Ms": 48.099999994039536,
+                "maxMs": 100.80000001564622,
+                "totalMs": 2951.699999921024
+              }
+            }
+          },
+          "contrastInactive": {
+            "wallSeconds": 0.5473999999985099,
+            "acceptedSteps": 34,
+            "acceptedPhysicsHz": 62.11180124240511,
+            "completedSimulationSeconds": 0.5666666666666345,
+            "simulationToWallRatio": 1.0351966873733596,
+            "frames": 34,
+            "framesPerSecond": 62.11180124240511,
+            "acquisitions": 8,
+            "acquisitionsPerSecond": 14.614541468801201,
+            "startBacklogSeconds": 0.027033333336315003,
+            "endBacklogSeconds": 0.016566666668903295,
+            "backlogGrowthSeconds": -0.010466666667411709,
+            "peakBacklogSeconds": 0.027033333336315003,
+            "frameIntervals": {
+              "count": 34,
+              "meanMs": 16.09999999995617,
+              "medianMs": 16.600000001490116,
+              "p95Ms": 24.399999998509884,
+              "maxMs": 27.699999999254942,
+              "totalMs": 547.3999999985099
+            },
+            "costs": {
+              "simulationMs": {
+                "count": 34,
+                "meanMs": 1.2735294118961866,
+                "medianMs": 0,
+                "p95Ms": 8.299999997019768,
+                "maxMs": 9.900000002235174,
+                "totalMs": 43.30000000447035
+              },
+              "updateMs": {
+                "count": 34,
+                "meanMs": 0.220588235403685,
+                "medianMs": 0.19999999925494194,
+                "p95Ms": 0.4000000022351742,
+                "maxMs": 0.6000000014901161,
+                "totalMs": 7.50000000372529
+              },
+              "renderMs": {
+                "count": 34,
+                "meanMs": 0.3499999997370383,
+                "medianMs": 0.09999999776482582,
+                "p95Ms": 1.3999999985098839,
+                "maxMs": 1.4000000022351742,
+                "totalMs": 11.899999991059303
+              },
+              "rendererUpdateMs": {
+                "count": 34,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "totalMs": 0
+              },
+              "contrastTransportMs": {
+                "count": 34,
+                "meanMs": 0.020588235272204176,
+                "medianMs": 0,
+                "p95Ms": 0.10000000149011612,
+                "maxMs": 0.10000000149011612,
+                "totalMs": 0.6999999992549419
+              }
+            }
+          },
+          "paused": {
+            "wallSeconds": 0,
+            "acceptedSteps": 0,
+            "acceptedPhysicsHz": 0,
+            "completedSimulationSeconds": 0,
+            "simulationToWallRatio": 0,
+            "frames": 0,
+            "framesPerSecond": 0,
+            "acquisitions": 0,
+            "acquisitionsPerSecond": 0,
+            "startBacklogSeconds": null,
+            "endBacklogSeconds": null,
+            "backlogGrowthSeconds": 0,
+            "peakBacklogSeconds": 0,
+            "frameIntervals": {
+              "count": 0,
+              "meanMs": 0,
+              "medianMs": 0,
+              "p95Ms": 0,
+              "maxMs": 0,
+              "totalMs": 0
+            },
+            "costs": {
+              "simulationMs": {
+                "count": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "totalMs": 0
+              },
+              "updateMs": {
+                "count": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "totalMs": 0
+              },
+              "renderMs": {
+                "count": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "totalMs": 0
+              },
+              "rendererUpdateMs": {
+                "count": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "totalMs": 0
+              },
+              "contrastTransportMs": {
+                "count": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "maxMs": 0,
+                "totalMs": 0
+              }
+            }
+          }
+        },
+        "limitations": [
+          "Intervals are attributed to the contrast/paused state supplied for that rendered frame.",
+          "CPU render submission excludes asynchronous GPU completion; acquisitions and committed physics are separate counters.",
+          "This passive timing capture does not certify mechanical accuracy or alter the simulation."
+        ],
+        "contrastGpu": {
+          "supported": true,
+          "disjointCount": 0,
+          "pending": 1,
+          "count": 155,
+          "meanMs": 76.1257400838709,
+          "p95Ms": 389.401291,
+          "maxMs": 423.372291
+        }
+      }
+    },
+    {
+      "scenario": "sheath_20ml_15ml_per_s_with_tool_motion",
+      "measurement": {
+        "contrastGpu": {
+          "count": 248,
+          "disjointCount": 0,
+          "maxMs": 378.629124,
+          "meanMs": 16.58836711693549,
+          "p95Ms": 6.250999,
+          "pending": 0,
+          "supported": true
+        },
+        "failedSteps": 0,
+        "final": {
+          "acceptedSteps": 8801,
+          "accumulator": 0.015466666667416366,
+          "acquisitions": 0,
+          "completedSimulationTime": 146.6833333333422,
+          "contrastActive": false,
+          "contrastTransportMs": 0,
+          "failedSteps": 0,
+          "paused": false,
+          "recoveries": 0,
+          "renderMs": 0,
+          "rendererUpdateMs": 0,
+          "simulationMs": 0,
+          "updateMs": 0.30000000074505806
+        },
+        "initial": {
+          "acceptedSteps": 7600,
+          "accumulator": 0.01473333333557041,
+          "completedSimulationTime": 126.66666666666076,
+          "contrastActive": false,
+          "failedSteps": 0,
+          "paused": false,
+          "recoveries": 0
+        },
+        "kind": "passive-contrast-performance",
+        "limitations": [
+          "Intervals are attributed to the contrast/paused state supplied for that rendered frame.",
+          "CPU render submission excludes asynchronous GPU completion; acquisitions and committed physics are separate counters.",
+          "This passive timing capture does not certify mechanical accuracy or alter the simulation."
+        ],
+        "reason": "complete",
+        "recoveries": 0,
+        "requestedDurationSeconds": 20,
+        "valid": true,
+        "wallSeconds": 20.008,
+        "windows": {
+          "all": {
+            "acceptedPhysicsHz": 60.02598960415834,
+            "acceptedSteps": 1201,
+            "acquisitions": 248,
+            "acquisitionsPerSecond": 12.39504198320672,
+            "backlogGrowthSeconds": 0.0007333333318459458,
+            "completedSimulationSeconds": 20.016666666681445,
+            "costs": {
+              "contrastTransportMs": {
+                "count": 980,
+                "maxMs": 30.49999999254942,
+                "meanMs": 0.8893877550845548,
+                "medianMs": 0.10000000149011612,
+                "p95Ms": 2.5,
+                "totalMs": 871.5999999828637
+              },
+              "renderMs": {
+                "count": 980,
+                "maxMs": 9.5,
+                "meanMs": 0.5521428570721526,
+                "medianMs": 0.09999999776482582,
+                "p95Ms": 2.5,
+                "totalMs": 541.0999999307096
+              },
+              "rendererUpdateMs": {
+                "count": 980,
+                "maxMs": 34.80000000074506,
+                "meanMs": 1.2702040816752278,
+                "medianMs": 0,
+                "p95Ms": 8.399999998509884,
+                "totalMs": 1244.8000000417233
+              },
+              "simulationMs": {
+                "count": 980,
+                "maxMs": 74,
+                "meanMs": 4.46153061227987,
+                "medianMs": 4.399999998509884,
+                "p95Ms": 10.699999999254942,
+                "totalMs": 4372.300000034273
+              },
+              "updateMs": {
+                "count": 980,
+                "maxMs": 34.900000002235174,
+                "meanMs": 1.3967346940227614,
+                "medianMs": 0.10000000149011612,
+                "p95Ms": 8.5,
+                "totalMs": 1368.800000142306
+              }
+            },
+            "endBacklogSeconds": 0.015466666667416366,
+            "frameIntervals": {
+              "count": 980,
+              "maxMs": 383.69999999925494,
+              "meanMs": 20.416326530612245,
+              "medianMs": 16.600000001490116,
+              "p95Ms": 32.69999999925494,
+              "totalMs": 20008
+            },
+            "frames": 980,
+            "framesPerSecond": 48.980407836865254,
+            "peakBacklogSeconds": 0.3682666666681603,
+            "simulationToWallRatio": 1.0004331600700442,
+            "startBacklogSeconds": 0.01473333333557041,
+            "wallSeconds": 20.008
+          },
+          "contrastActive": {
+            "acceptedPhysicsHz": 60.035559523714454,
+            "acceptedSteps": 780,
+            "acquisitions": 145,
+            "acquisitionsPerSecond": 11.160456578126404,
+            "backlogGrowthSeconds": 0.001100000001492813,
+            "completedSimulationSeconds": 13.000000000009663,
+            "costs": {
+              "contrastTransportMs": {
+                "count": 566,
+                "maxMs": 30.49999999254942,
+                "meanMs": 1.5144876324811904,
+                "medianMs": 1,
+                "p95Ms": 2.6999999955296516,
+                "totalMs": 857.1999999843538
+              },
+              "renderMs": {
+                "count": 566,
+                "maxMs": 9.5,
+                "meanMs": 0.6779151942265013,
+                "medianMs": 0.10000000149011612,
+                "p95Ms": 2.699999999254942,
+                "totalMs": 383.6999999321997
+              },
+              "rendererUpdateMs": {
+                "count": 566,
+                "maxMs": 34.80000000074506,
+                "meanMs": 2.1992932862927974,
+                "medianMs": 0,
+                "p95Ms": 8.900000002235174,
+                "totalMs": 1244.8000000417233
+              },
+              "simulationMs": {
+                "count": 566,
+                "maxMs": 74,
+                "meanMs": 6.533922261555182,
+                "medianMs": 7.099999997764826,
+                "p95Ms": 10.699999999254942,
+                "totalMs": 3698.200000040233
+              },
+              "updateMs": {
+                "count": 566,
+                "maxMs": 34.900000002235174,
+                "meanMs": 2.3303886926716504,
+                "medianMs": 0.10000000149011612,
+                "p95Ms": 9,
+                "totalMs": 1319.000000052154
+              }
+            },
+            "endBacklogSeconds": 0.015733333335573103,
+            "frameIntervals": {
+              "count": 566,
+              "maxMs": 383.69999999925494,
+              "meanMs": 22.95459363957729,
+              "medianMs": 16.100000001490116,
+              "p95Ms": 37.80000000074506,
+              "totalMs": 12992.300000000743
+            },
+            "frames": 566,
+            "framesPerSecond": 43.564264987721,
+            "peakBacklogSeconds": 0.3682666666681603,
+            "simulationToWallRatio": 1.000592658729318,
+            "startBacklogSeconds": 0.014633333334080314,
+            "wallSeconds": 12.992300000000744
+          },
+          "contrastInactive": {
+            "acceptedPhysicsHz": 60.00826717220587,
+            "acceptedSteps": 421,
+            "acquisitions": 103,
+            "acquisitionsPerSecond": 14.681357526691698,
+            "backlogGrowthSeconds": -0.0003666666696468292,
+            "completedSimulationSeconds": 7.016666666671782,
+            "costs": {
+              "contrastTransportMs": {
+                "count": 414,
+                "maxMs": 1.0999999977648258,
+                "meanMs": 0.03478260869205286,
+                "medianMs": 0,
+                "p95Ms": 0.10000000149011612,
+                "totalMs": 14.399999998509884
+              },
+              "renderMs": {
+                "count": 414,
+                "maxMs": 1.899999998509884,
+                "meanMs": 0.38019323671137656,
+                "medianMs": 0.09999999776482582,
+                "p95Ms": 1.5,
+                "totalMs": 157.39999999850988
+              },
+              "rendererUpdateMs": {
+                "count": 414,
+                "maxMs": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "totalMs": 0
+              },
+              "simulationMs": {
+                "count": 414,
+                "maxMs": 21.600000001490116,
+                "meanMs": 1.62826086955082,
+                "medianMs": 0,
+                "p95Ms": 10.300000000745058,
+                "totalMs": 674.0999999940395
+              },
+              "updateMs": {
+                "count": 414,
+                "maxMs": 0.4000000022351742,
+                "meanMs": 0.12028985529022228,
+                "medianMs": 0.10000000149011612,
+                "p95Ms": 0.30000000074505806,
+                "totalMs": 49.800000090152025
+              }
+            },
+            "endBacklogSeconds": 0.015466666667416366,
+            "frameIntervals": {
+              "count": 414,
+              "maxMs": 76,
+              "meanMs": 16.946135265698683,
+              "medianMs": 16.699999999254942,
+              "p95Ms": 26.700000002980232,
+              "totalMs": 7015.699999999255
+            },
+            "frames": 414,
+            "framesPerSecond": 59.0105050101977,
+            "peakBacklogSeconds": 0.060866666669651515,
+            "simulationToWallRatio": 1.0001377862041605,
+            "startBacklogSeconds": 0.01473333333557041,
+            "wallSeconds": 7.015699999999255
+          },
+          "paused": {
+            "acceptedPhysicsHz": 0,
+            "acceptedSteps": 0,
+            "acquisitions": 0,
+            "acquisitionsPerSecond": 0,
+            "backlogGrowthSeconds": 0,
+            "completedSimulationSeconds": 0,
+            "costs": {
+              "contrastTransportMs": {
+                "count": 0,
+                "maxMs": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "totalMs": 0
+              },
+              "renderMs": {
+                "count": 0,
+                "maxMs": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "totalMs": 0
+              },
+              "rendererUpdateMs": {
+                "count": 0,
+                "maxMs": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "totalMs": 0
+              },
+              "simulationMs": {
+                "count": 0,
+                "maxMs": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "totalMs": 0
+              },
+              "updateMs": {
+                "count": 0,
+                "maxMs": 0,
+                "meanMs": 0,
+                "medianMs": 0,
+                "p95Ms": 0,
+                "totalMs": 0
+              }
+            },
+            "endBacklogSeconds": null,
+            "frameIntervals": {
+              "count": 0,
+              "maxMs": 0,
+              "meanMs": 0,
+              "medianMs": 0,
+              "p95Ms": 0,
+              "totalMs": 0
+            },
+            "frames": 0,
+            "framesPerSecond": 0,
+            "peakBacklogSeconds": 0,
+            "simulationToWallRatio": 0,
+            "startBacklogSeconds": null,
+            "wallSeconds": 0
+          }
+        }
+      }
+    }
+  ],
+  "gpuOptimization": {
+    "status": "in_progress_live_validation_pending",
+    "hardware": "ANGLE Metal Renderer: Apple M3",
+    "fixture": "Full renal manufactured concentration, active deformation, perspective, 1555x1555 HalfFloat target",
+    "sourceTriangles": 3509364,
+    "rayAndQuadratureResolutionUnchanged": true,
+    "comparisons": [
+      {
+        "mode": "full",
+        "summary": {
+          "diagnosticMode": "full",
+          "yaw": 0,
+          "medianMs": 0.8000000044703484,
+          "p95Ms": 1.7999999970197678,
+          "minMs": 0.5999999940395355,
+          "maxMs": 1.7999999970197678,
+          "gpuElapsedMs": {
+            "medianMs": 556.941124,
+            "p95Ms": 1235.489874,
+            "minMs": 499.020458,
+            "maxMs": 1235.489874
+          }
+        },
+        "image": {
+          "key": "0:0:1555:1555",
+          "iodinePixels": {
+            "positive": 597455,
+            "total": 2418025,
+            "invalid": 0,
+            "peak": 4.55078125,
+            "sum": 280529.4086034298,
+            "readbackAndAnalysisMs": 22
+          },
+          "comparison": {
+            "referenceMode": "full",
+            "missing": 0,
+            "extra": 0,
+            "both": 597455,
+            "union": 597455,
+            "maskIoU": 1,
+            "different": 0,
+            "meanAbsoluteError": 0,
+            "maxAbsoluteError": 0
+          }
+        }
+      },
+      {
+        "mode": "wideCandidates",
+        "summary": {
+          "diagnosticMode": "wideCandidates",
+          "yaw": 0,
+          "medianMs": 1.1000000014901161,
+          "p95Ms": 2.399999998509884,
+          "minMs": 0.5,
+          "maxMs": 2.399999998509884,
+          "gpuElapsedMs": {
+            "medianMs": 727.34525,
+            "p95Ms": 1587.208708,
+            "minMs": 713.688791,
+            "maxMs": 1587.208708
+          }
+        },
+        "image": {
+          "key": "0:0:1555:1555",
+          "iodinePixels": {
+            "positive": 597455,
+            "total": 2418025,
+            "invalid": 0,
+            "peak": 4.55078125,
+            "sum": 280529.4086034298,
+            "readbackAndAnalysisMs": 16.100000001490116
+          },
+          "comparison": {
+            "referenceMode": "full",
+            "missing": 0,
+            "extra": 0,
+            "both": 597455,
+            "union": 597455,
+            "maskIoU": 1,
+            "different": 0,
+            "meanAbsoluteError": 0,
+            "maxAbsoluteError": 0
+          }
+        }
+      },
+      {
+        "mode": "referenceWide",
+        "summary": {
+          "diagnosticMode": "referenceWide",
+          "yaw": 0,
+          "medianMs": 0.3999999985098839,
+          "p95Ms": 0.3999999985098839,
+          "minMs": 0.3999999985098839,
+          "maxMs": 0.3999999985098839,
+          "gpuElapsedMs": {
+            "medianMs": 846.464958,
+            "p95Ms": 1097.823083,
+            "minMs": 635.635333,
+            "maxMs": 1097.823083
+          }
+        },
+        "image": {
+          "key": "0:0:1555:1555",
+          "iodinePixels": {
+            "positive": 597455,
+            "total": 2418025,
+            "invalid": 0,
+            "peak": 4.55078125,
+            "sum": 280529.4086034298,
+            "readbackAndAnalysisMs": 15.399999998509884
+          },
+          "comparison": {
+            "referenceMode": "full",
+            "missing": 0,
+            "extra": 0,
+            "both": 597455,
+            "union": 597455,
+            "maskIoU": 1,
+            "different": 0,
+            "meanAbsoluteError": 0,
+            "maxAbsoluteError": 0
+          }
+        }
+      }
+    ],
+    "shaderParity": {
+      "scenarios": 31,
+      "maximumFloat32Difference": 2.384185791015625e-07,
+      "note": "Includes T/Y junctions at 0, 30 and 180 degrees; current/previous interpolation; zero and uniform fields; and the exact fallback for 41 arms. Compared with frozen original quadrature and nearest/history functions."
+    },
+    "remaining": "A full live injection has not yet been remeasured. Stress-case GPU durations remain far above the 16.67 ms frame budget. Newly opened simulator tabs became unresponsive during startup; automatic closing also failed. The user was asked to close remaining local simulator tabs or restart Codex before the next measurement. The cancellable warmup fix passes 14 lifecycle tests. Stable 60 FPS has not been demonstrated.",
+    "latestValidation": {
+      "unitTests": {
+        "passed": 24,
+        "failed": 0,
+        "coverage": "Nearest-atlas cache, diagnostic shader variants, and cancellable projection preparation"
+      },
+      "productionBuild": {
+        "passed": true,
+        "elapsedSeconds": 8.16,
+        "includesStartupDiagnostics": true
+      },
+      "liveInjectionRemeasured": false,
+      "latestNearestAndHistoryGpuTimingMeasured": false,
+      "startupDiagnostics": {
+        "focusedTestsPassed": 29,
+        "description": "Startup-only stage labels and timings distinguish import, contexts, C-arm preview, anatomy, flow, projection geometry, and shader compilation. Three bounded cancellable paint opportunities; no recurring runtime work.",
+        "liveStartupVerified": false
+      }
+    },
+    "browserBlocker": "Final browser inventory still shows two unresponsive simulator tabs (127.0.0.1 and localhost) and explicitly reports that the Mac is locked. Manual unlock and tab recovery are required before live GPU validation."
+  }
+}

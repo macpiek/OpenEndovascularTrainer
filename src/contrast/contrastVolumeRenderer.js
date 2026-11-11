@@ -5,6 +5,7 @@ import { ContrastDebugPass } from './contrastDebugPass.js';
 import {FlowContrastVolume} from './flowContrastVolume.js';
 import * as THREE from 'three';
 import {FlowConcentrationField} from './flowConcentrationField.js';
+import {prepareContrastProjection} from './prepareContrastProjection.js';
 import {
     createContactResult
 } from '../physics/collision/vesselContactField.js';
@@ -2389,10 +2390,32 @@ export class ContrastVolumeRenderer {
         for(const m of this._trappedMesh.material)m.uniforms.displayAlpha.value=alpha;
     }
 
+    prepareProjection(renderer, camera, {signal}={}) {
+        if(!this._flowVolume.projection)return Promise.resolve({prepared:false});
+        this._projectionPreparations??=new WeakMap();
+        let preparation=this._projectionPreparations.get(renderer);
+        if(!preparation) {
+            preparation=prepareContrastProjection(renderer,this._flowVolume.mesh,camera,{signal}).catch(error=>{
+                this._projectionPreparations.delete(renderer);
+                throw error;
+            });
+            this._projectionPreparations.set(renderer,preparation);
+        }
+        return preparation;
+    }
+
+    _needsFlowLumenUpdate(remodeling) {
+        // The exact anatomical projector reconstructs blood directly from
+        // transport cells. Its hidden tube mesh does not contribute in either
+        // view mode. Grafts and trapped sacs still use the tube sampling path.
+        return !(this._flowVolume instanceof AnatomicalContrastSurface) || !!remodeling;
+    }
+
     // Only uniforms change between committed contrast steps. Interpolation is
     // presentation-only: it neither transports nor creates iodine.
     update({reuseUnchanged=false}={}) {
         const remodeling=this.system.flowNetwork.stentGraftRemodeling;
+        const updateFlowLumen=this._needsFlowLumenUpdate(remodeling);
         const revision=remodeling?.surface.revision??-1;
         const time=this.system.simulationTimeSeconds??this.system.flowNetwork.time;
         const alpha=this.system.synchronized?1:reuseUnchanged?Math.min(1,(this.system._solverAccumulator??1/30)*30):1;
@@ -2407,8 +2430,10 @@ export class ContrastVolumeRenderer {
         const renalVisible=this.renalRenderer?.update(this._debugMode,this.flowTubeMaterial.uniforms.signalGain.value) ?? false;
         const advanceHistory=this._lastDisplayTime!==time;
         this._lastDisplayTime=time;this._lastUsedSamples=reuseUnchanged;
-        if(reuseUnchanged)for(const i of this._flowTrueJunctionConnectorVertexIndices)this._previousFlowConcentration[i]=this._flowVertexConcentration[i];
-        else this._previousFlowConcentration.set(this._flowVertexConcentration);
+        if(updateFlowLumen) {
+            if(reuseUnchanged)for(const i of this._flowTrueJunctionConnectorVertexIndices)this._previousFlowConcentration[i]=this._flowVertexConcentration[i];
+            else this._previousFlowConcentration.set(this._flowVertexConcentration);
+        }
         if(remodeling&&this._graftRevision!==revision)this._rebuildGraftDisplay(remodeling);
         if(this._trappedMesh)this._updateSacDisplay(remodeling,alpha,advanceHistory);
         this._graftRevision=revision;
@@ -2507,6 +2532,7 @@ export class ContrastVolumeRenderer {
         }
 
         let activeFlowEdges = 0;
+        if (updateFlowLumen) {
         // Edge averages are retained for diagnostic callers. The rendered
         // signal uses cell samples exclusively; avoid two redundant full-tree
         // smoothing passes in the production update.
@@ -2624,6 +2650,10 @@ export class ContrastVolumeRenderer {
             mesh.geometry.attributes.flowConcentration.needsUpdate=true;
             mesh.geometry.attributes.previousFlowConcentration.needsUpdate=true;
             mesh.material.uniforms.displayAlpha.value=alpha;mesh.material.uniforms.debugMode.value=this._debugMode;
+            // The first graft frame has no earlier proxy field when native
+            // anatomy was rendered alone. Initialize its history to the same
+            // current sample instead of interpolating from an unused buffer.
+            if(this._flowLumenPrepared===false)previous.set(concentration);
         }
         if(remodeling)for(const i of (reuseUnchanged?this._flowTrueJunctionConnectorVertexIndices:this._flowVertexConcentration.keys())) {
             const edge=edges[this._flowVertexConcentrationEdgeIndex[i]];
@@ -2640,7 +2670,14 @@ export class ContrastVolumeRenderer {
         }
         this.flowMesh.geometry.attributes.flowOpticalWeight.needsUpdate =
             this._flowDynamicOpticalVertexIndices.length > 0;
+        }
+        this._flowLumenPrepared=updateFlowLumen;
         this._flowVolume.update(this._flowCellLocalPlumeMassMg, mediumConcentrationMgPerMm3, advanceHistory, !!((remodeling?.surface.sealed || remodeling?.surface.openGate) && this._graftMeshes.length));
+        if(!updateFlowLumen) {
+            // Report activity from the image which is actually drawn, rather
+            // than evaluating the unused tube image just for its counter.
+            for(const visible of this._flowVolume.edgeVisible)activeFlowEdges+=visible;
+        }
         // Native tubes are masked by volumeBlend=1; fine renal tubes provide
         // the subvoxel vascular signal alongside the parenchymal volume.
         this.flowMesh.visible = !(this._flowVolume instanceof AnatomicalContrastSurface) &&

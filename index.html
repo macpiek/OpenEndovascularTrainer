@@ -747,6 +747,12 @@
                 <output id="browserBenchmarkStatus" class="browser-benchmark-status" aria-live="polite">Idle</output>
                 <textarea id="browserBenchmarkReport" class="browser-benchmark-report" rows="4"
                     aria-label="Browser benchmark report" readonly>No report</textarea>
+                <div class="browser-benchmark-actions">
+                    <button id="passiveContrastStart" type="button">Zmierz bieżącą symulację · 20 s</button>
+                </div>
+                <output id="passiveContrastStatus" class="browser-benchmark-status" aria-live="polite">Pomiar bez zmiany położenia narzędzi</output>
+                <textarea id="passiveContrastReport" class="browser-benchmark-report" rows="5"
+                    aria-label="Raport wydajności podczas podawania kontrastu" readonly>Brak pomiaru</textarea>
             </div>
             <label class="debug-toggle"><input id="renderVoxels" type="checkbox" checked> Render contrast</label>
         </div>

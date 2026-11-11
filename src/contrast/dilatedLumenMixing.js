@@ -28,6 +28,7 @@ export class DilatedLumenMixing {
         const eligible=edge=>edge && !edge.transportExcluded && !edge.renderExcluded &&
             (includeNormal || this.weights[edge.index]>0);
         this.regions = [];
+        this.edgeRegions = new Int32Array(network.edges.length).fill(-1);
         const visited = new Set();
         for (const root of network.edges) {
             if (!eligible(root) || visited.has(root.index)) continue;
@@ -44,14 +45,17 @@ export class DilatedLumenMixing {
                         ? network.edges[edge.childEdgeIndices[0]]
                         : null;
             }
-            if (cells.length)
+            if (cells.length) {
+                for (const {edge} of cells) this.edgeRegions[edge.index] = this.regions.length;
                 this.regions.push({
                     cells,
                     upper: new Float64Array(cells.length),
                     rhs: new Float64Array(cells.length),
                     conductance: new Float64Array(cells.length)
                 });
+            }
         }
+        this.activeRegions = new Uint8Array(this.regions.length);
     }
 
     update(dt, touched, marks, waveform=1) {
@@ -60,7 +64,23 @@ export class DilatedLumenMixing {
         const shear=this.includeNormal
             ? Math.max(0,this.network.hemodynamics.axialFlowDispersionFactor??.04)
             : 0;
-        for (const { cells, upper, rhs, conductance } of this.regions) {
+        const sparse = !!this.network._activeEdgeIndices;
+        if (sparse) {
+            this.activeRegions.fill(0);
+            for (const index of this.network._activeEdgeIndices) {
+                const region = this.edgeRegions[index];
+                if (region >= 0) this.activeRegions[region] = 1;
+            }
+            // Advection and junction exchange can reach a previously clear
+            // chain during this same step. Include all of those recipients.
+            for (const index of touched) {
+                const region = this.edgeRegions[index];
+                if (region >= 0) this.activeRegions[region] = 1;
+            }
+        }
+        for (let region = 0; region < this.regions.length; region++) {
+            if (sparse && !this.activeRegions[region]) continue;
+            const { cells, upper, rhs, conductance } = this.regions[region];
             let mass = 0;
             for (let i = 0; i < cells.length; i++) {
                 const { edge, cell } = cells[i];

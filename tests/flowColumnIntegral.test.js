@@ -4,6 +4,7 @@ import {Vector3} from 'three';
 import {ContrastFlowNetwork} from '../src/contrast/flowNetwork.js';
 import {FlowConcentrationField} from '../src/contrast/flowConcentrationField.js';
 import {createFlowColumnIntegral} from '../src/contrast/flowColumnIntegral.js';
+import {createFlowColumnLookup} from '../src/contrast/flowColumnLookup.js';
 
 const near = (actual, expected, tolerance = 1e-7) => assert.ok(Math.abs(actual - expected) <= tolerance,
     `${actual} differs from ${expected}`);
@@ -64,6 +65,40 @@ test('current and previous histories remain independent in CPU queries and textu
         const last = (f.columns.sampleCount - 1) * 4;
         assert.deepEqual(Array.from(f.columns.currentData.slice(last, last + 4)), [24, .75, 18, 0]);
         assert.deepEqual(Array.from(f.columns.previousData.slice(last, last + 4)), [24, .25, 6, 0]);
+    } finally {f.columns.dispose();}
+});
+
+test('uniform-path bounds certify the complete GPU field independently for both histories', () => {
+    const f = fixture({lengths: [12, 12], branch: true});
+    const bounds = (territory, previous = false) => {
+        const {start} = f.columns.ranges.get(territory);
+        const data = previous ? f.columns.previousData : f.columns.currentData;
+        return [data[start * 4 + 3], data[(start + 1) * 4 + 3]];
+    };
+    try {
+        f.fill(0, .25); f.fill(1, .25); f.fill(2, 0); f.update();
+        const previous = f.field.values.slice();
+        f.fill(0, .75); f.fill(1, .75); f.field.update(f.cells);
+        f.columns.update(f.field.values, previous);
+        const daughter = f.territories[f.edge(2).index];
+        assert.deepEqual(bounds(0), [.75, .75]);
+        assert.deepEqual(bounds(0, true), [.25, .25]);
+        assert.deepEqual(bounds(daughter), [0, 0]);
+        assert.deepEqual(bounds(daughter, true), [0, 0]);
+        // A narrow interior bolus must reject the constant shortcut even
+        // when both endpoints and nearly all cells remain clear.
+        f.cells.fill(0); f.cells[5] = .625; f.field.update(f.cells);
+        f.columns.update(f.field.values, previous);
+        assert.deepEqual(bounds(0), [0, .625]);
+        assert.deepEqual(bounds(0, true), [.25, .25]);
+        assert.deepEqual(bounds(daughter), [0, 0]);
+        for (const [territory, range] of f.columns.ranges) {
+            const [minimum, maximum] = bounds(territory);
+            for (let i = 0; i <= 100; i++) {
+                const c = f.columns.sample(territory, range.length * i / 100);
+                assert.ok(c >= minimum && c <= maximum);
+            }
+        }
     } finally {f.columns.dispose();}
 });
 
@@ -199,4 +234,51 @@ test('duplicate edge seam coordinates add no artificial iodine or distance', () 
         near(f.columns.ranges.get(0).length, 24);
         near(f.columns.integral(0, 0, 24), 12);
     } finally {f.columns.dispose();}
+});
+
+test('static column buckets preserve original GPU sample pairs at Float32 boundaries and duplicate seams', () => {
+    const fixtures = [fixture({lengths: [1200]}), fixture({lengths: [2.3, 3.7, 5.1], cellLength: .17, branch: true}),
+        fixture({lengths: [5.7, 6.9, 11.4], cellLength: .7})];
+    const bits = new Uint32Array(1), scalar = new Float32Array(bits.buffer);
+    const neighbour = (x, direction) => {
+        scalar[0] = x;
+        if (x === 0 && direction < 0) return -1.401298464324817e-45;
+        bits[0] += direction;
+        return scalar[0];
+    };
+    const search = (data, s, lo, hi) => {
+        while (hi - lo > 1) {
+            const middle = (lo + hi) >>> 1;
+            if (data[middle * 4] <= s) lo = middle;
+            else hi = middle;
+        }
+        return [lo, hi];
+    };
+    try {
+        for (const f of fixtures) {
+            const lookup = createFlowColumnLookup(f.columns, f.network.edges.length);
+            const before = lookup.data.slice();
+            for (const [path, range] of f.columns.ranges) {
+                const [first, count, step] = lookup.data.subarray(path * 4, path * 4 + 3);
+                const queries = [0, Math.fround(range.length)], last = range.start + range.count - 1;
+                for (let i = range.start; i <= last; i++) queries.push(f.columns.currentData[i * 4]);
+                for (let i = 1; i < count; i++) queries.push(Math.fround(i * step));
+                for (let i = 0; i < 1024; i++) queries.push(Math.fround(range.length * (i + .371) / 1024));
+                for (const x of queries) for (const s0 of [neighbour(x, -1), x, neighbour(x, 1)]) {
+                    const s = Math.max(0, Math.min(Math.fround(range.length), s0));
+                    const bucket = Math.min(count - 1, Math.max(0, Math.floor(Math.fround(s / Math.max(step, 1e-8)))));
+                    const at = (first + bucket) * 4, lo = lookup.data[at], hi = lookup.data[at + 1];
+                    assert.deepEqual(search(f.columns.currentData, s, lo, hi),
+                        search(f.columns.currentData, s, range.start, last),
+                        `Path ${path}, arc ${s}: acceleration must select identical original records`);
+                    if (range.count > 1000) assert.ok(hi - lo <= 6,
+                        'A long uniform path must reduce a thousand-record search to a local bracket');
+                }
+            }
+            // The static bracket atlas remains valid when both iodine
+            // histories change; it indexes the same authoritative records.
+            f.cells.fill(.375); f.update();
+            assert.deepEqual(lookup.data, before);
+        }
+    } finally {for (const f of fixtures) f.columns.dispose();}
 });

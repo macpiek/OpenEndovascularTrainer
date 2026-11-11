@@ -16,7 +16,10 @@ function makeTexture(sampleCount) {
  * Antiderivatives of the piecewise-linear blood concentration field.
  * A territory is a single continuous graph chain, not all branches supplied
  * by the same organ. Separate territories can never borrow each other's iodine.
- * Texture records are [arc length, concentration, cumulative integral, 0].
+ * Texture records are [arc length, concentration, cumulative integral, metadata].
+ * The first two records of each territory store its concentration min/max in
+ * metadata. These bound the complete piecewise-linear field, including its
+ * owner-gated junction traces, so the GPU can recognize exactly uniform paths.
  * The two histories have identical sample coordinates and layouts.
  */
 export function createFlowColumnIntegral(network, field, territories, continuations) {
@@ -89,7 +92,7 @@ export function createFlowColumnIntegral(network, field, territories, continuati
 
     function updateHistory(values, samples, prefix, data) {
         for (const range of ranges.values()) {
-            let accumulated = 0, previousX = 0, previousC = 0;
+            let accumulated = 0, previousX = 0, previousC = 0, minimum = Infinity, maximum = 0;
             const end = range.start + range.count;
             for (let i = range.start; i < end; i++) {
                 const c = Math.max(0, sampleFlowConcentration(values, lower[i], upper[i], fraction[i], owner[i]));
@@ -101,8 +104,12 @@ export function createFlowColumnIntegral(network, field, territories, continuati
                 prefix[i] = accumulated;
                 data[i * 4 + 1] = c;
                 data[i * 4 + 2] = accumulated;
+                minimum = Math.min(minimum, c);
+                maximum = Math.max(maximum, c);
                 previousX = x; previousC = c;
             }
+            data[range.start * 4 + 3] = minimum;
+            data[(range.start + 1) * 4 + 3] = maximum;
         }
     }
 

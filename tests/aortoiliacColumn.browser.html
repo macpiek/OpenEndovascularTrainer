@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pl"><meta charset="utf-8"><title>Mieszanie kontrastu w rozwidleniu aorty</title>
+<style>
+body{background:#15212b;color:#edf4fa;font:15px system-ui;padding:20px}h1{font-size:26px}main{display:flex;gap:20px}canvas{width:440px;height:440px}pre{white-space:pre-wrap}select,button{font:inherit}button{margin-left:16px}summary{cursor:pointer}
+</style>
+<h1>Przejście kontrastu w rozwidleniu aorty</h1>
+<p>Ten sam zapis podania i ta sama geometria naczyń. Po prawej: wspólna, płynna mieszanina w rozwidleniu.</p>
+<label>Klatka <select id="frame"></select></label>
+<label>Kąt <select id="angle"><option>0</option><option>30</option><option>-30</option></select></label>
+<button id="verify" disabled>Sprawdź wszystkie klatki i kąty</button>
+<main><section><h2>Przed</h2><canvas id="before"></canvas></section><section><h2>Po</h2><canvas id="after"></canvas></section></main>
+<pre id="results">Wczytywanie…</pre>
+<details><summary>Wyniki testu GPU</summary><pre id="metrics"></pre></details>
+<script type="module">
+import * as T from 'three';
+import {VesselDeformation} from '../src/vesselDeformation.js';
+import {aortoiliacColumnFixture} from './helpers/aortoiliacColumnFixture.js';
+const results=document.querySelector('#results'),metrics=document.querySelector('#metrics');
+try {
+    const response=await fetch('./fixtures/aortoiliac-column.json.gz');
+    const data=response.headers.get('content-encoding')==='gzip' ? await response.json()
+        : await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).json();
+    const f=aortoiliacColumnFixture(data),renderer=new T.WebGLRenderer({antialias:false}),size=512;
+    // Production attaches contact deformation even while no instrument is
+    // bending this fragment. Include its samplers and shader in this test.
+    const deformation=new VesselDeformation();deformation.attach(f.surface.material);
+    renderer.setSize(size,size);
+    const target=new T.WebGLRenderTarget(size,size,{type:T.HalfFloatType,depthBuffer:false}),scene=new T.Scene();
+    scene.add(f.surface.mesh);
+    let contextLost=false,shaderError=false;
+    renderer.domElement.addEventListener('webglcontextlost',()=>{contextLost=true;});
+    renderer.debug.onShaderError=()=>{shaderError=true;};
+    const material=f.surface.material,production=material.fragmentShader;
+    const maskShader=production.replace(' * mean * signalGain;', ' * signalGain;');
+    const raw=new Uint16Array(size*size*4),frames=document.querySelector('#frame'),angle=document.querySelector('#angle');
+    const assert=(ok,message)=>{if(!ok)throw Error(message);};
+    data.frames.forEach((frame,index)=>{const o=document.createElement('option');o.value=index;o.textContent=`Faza ${frame.phase} · ${frame.elapsed.toFixed(3)} s`;frames.append(o);});frames.value=3;
+    function cameraFor(degrees) {
+        const radians=degrees*Math.PI/180,camera=new T.OrthographicCamera(-40,40,40,-40,.1,1000);
+        camera.position.set(-4+300*Math.sin(radians),-299,300*Math.cos(radians));camera.lookAt(-4,-299,0);camera.updateMatrixWorld(true);
+        return camera;
+    }
+    function render(camera,shader=production,cached=true) {
+        if(material.fragmentShader!==shader){material.fragmentShader=shader;material.needsUpdate=true;}
+        material.uniforms.columnRayCacheEnabled.value=cached;
+        renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.clear();
+        renderer.render(scene,camera);renderer.readRenderTargetPixels(target,0,0,size,size,raw);
+        assert(!contextLost&&!shaderError,'Błąd kompilacji lub utrata kontekstu WebGL');
+        return Float32Array.from({length:size*size},(_,i)=>T.DataUtils.fromHalfFloat(raw[i*4]));
+    }
+    function preview(id,values) {
+        const pixels=new Uint8ClampedArray(size*size*4);
+        for(let y=0;y<size;y++)for(let x=0;x<size;x++) {
+            const v=Math.round(240*Math.exp(-values[x+y*size]*3.25)),at=4*(x+(size-y-1)*size);
+            pixels[at]=pixels[at+1]=pixels[at+2]=v;pixels[at+3]=255;
+        }
+        const canvas=document.getElementById(id);canvas.width=canvas.height=size;
+        canvas.getContext('2d').putImageData(new ImageData(pixels,size,size),0,0);
+    }
+    function frontMetric(values,mask,camera) {
+        const center=new T.Vector3(-4.069403171539307,-291.30096435546875,5.18477201461792).project(camera);
+        const cx=(center.x+1)*size/2,cy=(center.y+1)*size/2,pixelsPerMm=size/80;
+        let maximum=0,curvature=0,checked=0;
+        for(let y=Math.floor(cy);y<cy+10*pixelsPerMm;y++)for(let x=Math.floor(cx-3*pixelsPerMm);x<cx+3*pixelsPerMm;x++) {
+            const i=x+y*size,j=i+size;
+            if(Math.min(mask[i],mask[j],mask[i-size],mask[i-1],mask[i+1])<.3)continue;
+            maximum=Math.max(maximum,Math.abs(values[i]/mask[i]-values[j]/mask[j]));
+            curvature=Math.max(curvature,Math.abs(values[j]/mask[j]-2*values[i]/mask[i]+values[i-size]/mask[i-size]));checked++;
+        }
+        return {maxConcentrationStepPerPixel:maximum,maxSecondDifference:curvature,checked};
+    }
+    function draw() {
+        const frame=f.show(Number(frames.value)),camera=cameraFor(Number(angle.value));
+        const before=render(camera,data.referenceShader),after=render(camera),mask=render(camera,maskShader);
+        preview('before',before);preview('after',after);
+        const a=frontMetric(before,mask,camera),b=frontMetric(after,mask,camera);
+        results.textContent=`Klatka ${frame.elapsed.toFixed(3)} s · ${angle.value}°. Największy skok stężenia na froncie: ${(a.maxConcentrationStepPerPixel*100).toFixed(1)}% → ${(b.maxConcentrationStepPerPixel*100).toFixed(1)}% na piksel.`;
+    }
+    async function verify() {
+        const button=document.querySelector('#verify');button.disabled=true;
+        const report={size,cases:[],contextLost:false,shaderError:false,status:'running'};
+        try {
+            for(let index=0;index<data.frames.length;index++)for(const degrees of[0,30,-30]) {
+                f.show(index);const camera=cameraFor(degrees),before=render(camera,data.referenceShader);
+                const after=render(camera),reference=render(camera,production,false),mask=render(camera,maskShader);
+                let cacheError=0,outside=0,total=0;
+                for(let i=0;i<after.length;i++) {
+                    assert(Number.isFinite(after[i]),'Nieprawidłowe stężenie');
+                    cacheError=Math.max(cacheError,Math.abs(after[i]-reference[i]));total+=after[i];
+                    if(after[i]>1e-5&&mask[i]===0)outside++;
+                }
+                const row={frame:index,angle:degrees,cacheError,outside,total,
+                    before:frontMetric(before,mask,camera),after:frontMetric(after,mask,camera)};
+                report.cases.push(row);
+                assert(cacheError<.004,'Pamięć podręczna zmienia obraz');
+                assert(outside===0,'Sygnał poza rzeczywistym światłem');
+                if(index>0)assert(total>100,'Pusta klatka podania kontrastu');
+                metrics.textContent=JSON.stringify(report,null,2);
+                results.textContent=`Sprawdzanie GPU: ${report.cases.length}/27…`;
+                await new Promise(requestAnimationFrame);
+            }
+            // The reproduced hard front must be demonstrably softer in each
+            // view, not merely obscured by detector noise or a blurred outline.
+            for(const row of report.cases.filter(r=>r.frame===3)) {
+                assert(row.after.checked>500,'Test omija wnętrze aorty');
+                assert(row.after.maxConcentrationStepPerPixel<.035 && row.after.maxConcentrationStepPerPixel<row.before.maxConcentrationStepPerPixel,'Pozostał skok przy podziale gałęzi');
+                assert(row.after.maxSecondDifference<row.before.maxSecondDifference*.5,'Pozostała ostra krawędź frontu');
+            }
+            for(const edge of f.network.edges)edge.massMg.fill(0);
+            f.surface.update(new Float32Array(f.surface.field.cellCount),.3,false);
+            f.surface.projection.update(f.surface.current,f.surface.current);
+            assert(render(cameraFor(0)).every(value=>value===0),'Pozostały kontrast po wypłukaniu');
+            report.status='pass';
+        } catch(error) {report.status='fail';report.error=error.message;console.error(error);}
+        report.contextLost=contextLost;report.shaderError=shaderError;
+        metrics.textContent=JSON.stringify(report,null,2);document.body.dataset.status=report.status;
+        draw();results.textContent+=report.status==='pass'?' PASS: 27 projekcji, bez błędów WebGL.':' FAIL: '+report.error;
+        button.disabled=false;
+    }
+    frames.addEventListener('change',draw);angle.addEventListener('change',draw);
+    document.querySelector('#verify').addEventListener('click',verify);
+    draw();document.querySelector('#verify').disabled=false;
+    addEventListener('pagehide',()=>{f.dispose();deformation.dispose();target.dispose();renderer.dispose();});
+} catch(error) {results.textContent='FAIL '+error.stack;throw error;}
+</script></html>

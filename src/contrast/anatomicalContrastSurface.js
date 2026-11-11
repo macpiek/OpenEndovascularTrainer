@@ -404,7 +404,10 @@ export class AnatomicalContrastSurface {
             .setAttribute('position', built.geometry.getAttribute('position')) : built.geometry;
         if (this.projection) {
             const owner = built.geometry.getAttribute('projectionOwner');
-            if (owner) rasterGeometry.setAttribute('projectionOwner', owner);
+            // The column shader uses territory/arc coordinates and its BVH
+            // face ID. Keep edge ownership on the CPU without uploading an
+            // unused four-byte attribute for every anatomical wall vertex.
+            if (owner && options?.projection !== 'column') rasterGeometry.setAttribute('projectionOwner', owner);
             if (options?.projection === 'column') {
                 rasterGeometry.setAttribute('columnCoordinate', built.geometry.getAttribute('columnCoordinate'));
                 rasterGeometry.setAttribute('columnFace', built.geometry.getAttribute('columnFace'));

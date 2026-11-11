@@ -1,0 +1,467 @@
+{
+  "size": 512,
+  "cases": [
+    {
+      "frame": 0,
+      "angle": 0,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 0,
+      "before": {
+        "maxConcentrationStepPerPixel": 0,
+        "maxSecondDifference": 0,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0,
+        "maxSecondDifference": 0,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 0,
+      "angle": 30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 0,
+      "before": {
+        "maxConcentrationStepPerPixel": 0,
+        "maxSecondDifference": 0,
+        "checked": 2600
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0,
+        "maxSecondDifference": 0,
+        "checked": 2600
+      }
+    },
+    {
+      "frame": 0,
+      "angle": -30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 0,
+      "before": {
+        "maxConcentrationStepPerPixel": 0,
+        "maxSecondDifference": 0,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0,
+        "maxSecondDifference": 0,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 1,
+      "angle": 0,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 10620.742269098759,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.005160202592003255,
+        "maxSecondDifference": 0.003283748724110941,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.0023723661475418684,
+        "maxSecondDifference": 0.00026545272346734095,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 1,
+      "angle": 30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 10622.018052875996,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.003803766940168863,
+        "maxSecondDifference": 0.0022362442166484232,
+        "checked": 2600
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.0032396462811257187,
+        "maxSecondDifference": 0.0003338069096744112,
+        "checked": 2600
+      }
+    },
+    {
+      "frame": 1,
+      "angle": -30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 10623.217171788216,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.004435043668122272,
+        "maxSecondDifference": 0.002081592342185551,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.0025992438563327003,
+        "maxSecondDifference": 0.0002540673125244891,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 2,
+      "angle": 0,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 13898.08583432436,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.03325719520859563,
+        "maxSecondDifference": 0.01537688301770182,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.01963832160078388,
+        "maxSecondDifference": 0.0018312527501150866,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 2,
+      "angle": 30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 13903.750263690948,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.02612325055553391,
+        "maxSecondDifference": 0.018967754490129635,
+        "checked": 2600
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.019091474325808933,
+        "maxSecondDifference": 0.0018207099873907007,
+        "checked": 2600
+      }
+    },
+    {
+      "frame": 2,
+      "angle": -30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 13903.4944511652,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.03624454148471615,
+        "maxSecondDifference": 0.02249357326478152,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.018807201826320286,
+        "maxSecondDifference": 0.0021454598650849643,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 3,
+      "angle": 0,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 15451.14840489626,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.04872320623563969,
+        "maxSecondDifference": 0.022887161707951603,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.02845020210282162,
+        "maxSecondDifference": 0.002991345154335967,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 3,
+      "angle": 30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 15457.600861608982,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.037370862734396326,
+        "maxSecondDifference": 0.031012790702169335,
+        "checked": 2600
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.027585459864669926,
+        "maxSecondDifference": 0.0028233308085848785,
+        "checked": 2600
+      }
+    },
+    {
+      "frame": 3,
+      "angle": -30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 15458.284129142761,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.05218340611353711,
+        "maxSecondDifference": 0.03706083976006852,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.02746280126667816,
+        "maxSecondDifference": 0.0027597361115078156,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 4,
+      "angle": 0,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 12947.452400445938,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.034499157788472345,
+        "maxSecondDifference": 0.014974642171810743,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.005976000278459431,
+        "maxSecondDifference": 0.0008477496463339951,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 4,
+      "angle": 30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 12951.451848983765,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.01790332740477249,
+        "maxSecondDifference": 0.02215394499585438,
+        "checked": 2600
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.007721635141516775,
+        "maxSecondDifference": 0.0012130196291864348,
+        "checked": 2600
+      }
+    },
+    {
+      "frame": 4,
+      "angle": -30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 12953.187694013119,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.03442569098706641,
+        "maxSecondDifference": 0.014702658728723172,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.007561436672967853,
+        "maxSecondDifference": 0.000883255566902108,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 5,
+      "angle": 0,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 17444.863279223442,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.02259268282980964,
+        "maxSecondDifference": 0.007063183283619157,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.01770237693590737,
+        "maxSecondDifference": 0.002155079106861857,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 5,
+      "angle": 30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 17444.717914521694,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.02011032708276478,
+        "maxSecondDifference": 0.006699121409747218,
+        "checked": 2600
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.017080556896147847,
+        "maxSecondDifference": 0.007768425090105287,
+        "checked": 2600
+      }
+    },
+    {
+      "frame": 5,
+      "angle": -30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 17442.389446556568,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.027947598253275086,
+        "maxSecondDifference": 0.010607093990036676,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.017439487422876154,
+        "maxSecondDifference": 0.0018507874287795323,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 6,
+      "angle": 0,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 14872.253799080849,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.020006585679874844,
+        "maxSecondDifference": 0.009291736568789122,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.010422005124919947,
+        "maxSecondDifference": 0.0012126865671641673,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 6,
+      "angle": 30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 14872.386964321136,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.013679778566137751,
+        "maxSecondDifference": 0.0055597038977992785,
+        "checked": 2600
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.010149871162025398,
+        "maxSecondDifference": 0.0031020878232810977,
+        "checked": 2600
+      }
+    },
+    {
+      "frame": 6,
+      "angle": -30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 14872.817936301231,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.017467248908296956,
+        "maxSecondDifference": 0.006536544562400853,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.010268492477636199,
+        "maxSecondDifference": 0.0009767137156810324,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 7,
+      "angle": 0,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 14461.566273391247,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.021435467075643658,
+        "maxSecondDifference": 0.010376656831328282,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.006902515506125195,
+        "maxSecondDifference": 0.0009211920907226945,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 7,
+      "angle": 30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 14464.037690758705,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.005231899984614027,
+        "maxSecondDifference": 0.0038045016235064705,
+        "checked": 2600
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.007882112246311856,
+        "maxSecondDifference": 0.0012725800869519974,
+        "checked": 2600
+      }
+    },
+    {
+      "frame": 7,
+      "angle": -30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 14457.933915913105,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.006146649260226289,
+        "maxSecondDifference": 0.0026004540526894104,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.007325141776937605,
+        "maxSecondDifference": 0.000649810964083189,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 8,
+      "angle": 0,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 14814.839180469513,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.013793399899912039,
+        "maxSecondDifference": 0.007117432644692966,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.0056290888993523955,
+        "maxSecondDifference": 0.0007828529243909289,
+        "checked": 2535
+      }
+    },
+    {
+      "frame": 8,
+      "angle": 30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 14815.912242650986,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.0027255026081691204,
+        "maxSecondDifference": 0.0025877215004774454,
+        "checked": 2600
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.007002757802580646,
+        "maxSecondDifference": 0.0006833619558236359,
+        "checked": 2600
+      }
+    },
+    {
+      "frame": 8,
+      "angle": -30,
+      "cacheError": 0,
+      "outside": 0,
+      "total": 14819.241293728352,
+      "before": {
+        "maxConcentrationStepPerPixel": 0.002719756309834641,
+        "maxSecondDifference": 0.001110338184931503,
+        "checked": 2535
+      },
+      "after": {
+        "maxConcentrationStepPerPixel": 0.006586720226843097,
+        "maxSecondDifference": 0.000649810964083182,
+        "checked": 2535
+      }
+    }
+  ],
+  "contextLost": false,
+  "shaderError": false,
+  "status": "pass"
+}

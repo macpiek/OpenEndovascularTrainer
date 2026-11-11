@@ -1,3 +1,5 @@
+import {startupDiagnostics} from './startupDiagnostics.js';
+
 const loadingMessage = document.getElementById('loadingMessage');
 
 function setLoadingMessage(message) {
@@ -9,10 +11,11 @@ function describeBootError(error) {
     return String(error || 'Unknown startup error');
 }
 
-setLoadingMessage('Starting simulator');
+await startupDiagnostics.before('Loading simulator code');
 
 const slowBootTimer = setTimeout(() => {
-    setLoadingMessage('Simulator startup is taking longer than expected');
+    const stage = loadingMessage?.textContent || 'Starting simulator';
+    setLoadingMessage(`${stage} — taking longer than expected`);
 }, 15000);
 
 try {

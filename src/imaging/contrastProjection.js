@@ -12,9 +12,14 @@ export function createContrastProjectionTarget(displaySize, capabilities) {
     const size = contrastProjectionSize(displaySize, capabilities.maxTextureSize);
     return new WebGLRenderTarget(size, size, {
         type: HalfFloatType,
-        samples: capabilities.isWebGL2 ? Math.min(4, capabilities.maxSamples) : 0,
+        // The column projector traces one physical ray through each pixel
+        // centre. MSAA repeats that ray at triangle coverage samples without
+        // adding spatial information, while multiplying half-float storage
+        // and work on the dense anatomical mesh. The 2× projection resolution
+        // above already supplies independent rays for edge antialiasing.
+        samples: 0,
         // Iodine integrates along the ray; all contrast materials add their
-        // signal without depth testing. No multisampled depth storage is needed.
+        // signal without depth testing. No depth storage is needed.
         depthBuffer: false
     });
 }

@@ -14,6 +14,15 @@ export class FlowAdvection {
         this.network = network;
         const edges = network.edges,
             nodes = [...network.nodes.values()];
+        // Hydraulic redistribution changes these together. Keep the large
+        // immutable atlas topology separate from each tick's small source
+        // arrays, avoiding scattered object reads for every blood face.
+        this.meanFlows = new Float64Array(edges.length);
+        this.excluded = new Uint8Array(edges.length);
+        this.faceDeltas = edges.map(edge => edge.faceFlowDeltaMm3PerS);
+        this.faceCounts = Uint32Array.from(edges, edge => edge.cellCount + 1);
+        this.faceDeltaEdges = new Uint8Array(edges.length);
+        this.hydraulicRevision = -1;
         this.offsets = new Uint32Array(edges.length);
         let cellCount = 0;
         for (const edge of edges) {
@@ -51,6 +60,8 @@ export class FlowAdvection {
         this.outEvents = [];
         this.mass = new Float64Array(cellCount);
         this.order = new Uint32Array(count);
+        this.rank = new Uint32Array(count);
+        this.pendingOrder = new Uint32Array(Math.ceil(count / 32));
         this.indegree = new Uint16Array(count);
         this.head = new Int32Array(count);
         this.next = new Int32Array(from.length);
@@ -66,27 +77,43 @@ export class FlowAdvection {
 
     prepare(waveform) {
         const net = this.network,
-            edges = net.edges;
+            flows = this.flows, signs = this.signs,
+            outflow = this.outflow, from = this.from, to = this.to,
+            overrides = net._flowOverridesMm3PerS, uniform = net._edgeFlowDeltasMm3PerS,
+            meanFlows = this.meanFlows, excluded = this.excluded, faceDeltas = this.faceDeltas,
+            faceCounts = this.faceCounts, faceDeltaEdges = this.faceDeltaEdges;
+        if (this.hydraulicRevision !== net.hydraulicRevision || net.hydraulicRevision === undefined) {
+            for (const edge of net.edges) {
+                meanFlows[edge.index] = edge.meanFlowMm3PerS;
+                excluded[edge.index] = Boolean(edge.transportExcluded);
+            }
+            this.hydraulicRevision = net.hydraulicRevision;
+        }
+        // Only actual source edges have per-face corrections. In particular,
+        // do not dereference tens of thousands of separate zero arrays.
+        faceDeltaEdges.fill(net._faceFlowDeltaEdgeIndices ? 0 : 1);
+        for (const index of net._faceFlowDeltaEdgeIndices ?? []) faceDeltaEdges[index] = 1;
         let topologyChanged = false;
-        this.outflow.fill(0);
+        outflow.fill(0);
         let link = 0;
-        for (const edge of edges) {
+        for (let edgeIndex = 0; edgeIndex < meanFlows.length; edgeIndex++) {
             // Resolve the shared arterial/override term once per edge. Faces
             // are already in range and ordered when the topology is compiled.
-            const delta = edge.faceFlowDeltaMm3PerS;
-            const override = net._flowOverridesMm3PerS[edge.index];
-            const base = (Number.isFinite(override) ? override : edge.meanFlowMm3PerS * waveform) +
-                net._edgeFlowDeltasMm3PerS[edge.index];
-            for (let face = 0; face <= edge.cellCount; face++, link++) {
-                const q = edge.transportExcluded ? 0 : base + delta[face];
+            const delta = faceDeltaEdges[edgeIndex] ? faceDeltas[edgeIndex] : null;
+            const override = overrides[edgeIndex], blocked = excluded[edgeIndex];
+            const base = (Number.isFinite(override) ? override : meanFlows[edgeIndex] * waveform) +
+                uniform[edgeIndex];
+            const end = link + faceCounts[edgeIndex];
+            for (let face = 0; link < end; face++, link++) {
+                const q = blocked ? 0 : base + (delta ? delta[face] : 0);
                 const sign = Math.sign(q),
                     magnitude = Math.abs(q);
-                if (sign !== this.signs[link]) {
-                    this.signs[link] = sign;
+                if (sign !== signs[link]) {
+                    signs[link] = sign;
                     topologyChanged = true;
                 }
-                this.flows[link] = magnitude;
-                if (sign) this.outflow[sign > 0 ? this.from[link] : this.to[link]] += magnitude;
+                flows[link] = magnitude;
+                if (sign) outflow[sign > 0 ? from[link] : to[link]] += magnitude;
             }
         }
         if (topologyChanged) this._orderByFlow();
@@ -101,11 +128,16 @@ export class FlowAdvection {
         this.linkMass.fill(0);
         this.mass.fill(0);
         this.edgeMarks.fill(0);
+        this.pendingOrder.fill(0);
         this.touchedEdges.length = 0;
         for (const edgeIndex of net._activeEdgeIndices) {
             const edge = edges[edgeIndex],
                 offset = this.offsets[edgeIndex];
-            for (let i = 0; i < edge.cellCount; i++) this.mass[offset + i] = edge.massMg[i];
+            for (let i = 0; i < edge.cellCount; i++) {
+                const vertex = offset + i;
+                this.mass[vertex] = edge.massMg[i];
+                if (edge.massMg[i] > 0) this._queueVertex(vertex);
+            }
             this.edgeMarks[edgeIndex] = 1;
             this.touchedEdges.push(edgeIndex);
         }
@@ -119,9 +151,16 @@ export class FlowAdvection {
             );
             this.eventMarks[vertex] = 1;
             this.eventVertices.push(vertex);
+            this._queueVertex(vertex);
         }
         const sac = net.stentGraftRemodeling?.sac;
-        for (const vertex of this.order) {
+        // Traverse the same topological order, but visit only vertices with
+        // initial iodine or an arriving time profile. Clear upstream blood is
+        // still included in outflow, so junction dilution is unchanged.
+        for (let word = 0; word < this.pendingOrder.length; word++) while (this.pendingOrder[word]) {
+            const bits = this.pendingOrder[word], bit = 31 - Math.clz32(bits & -bits);
+            this.pendingOrder[word] = bits & (bits - 1);
+            const vertex = this.order[word * 32 + bit];
             const incoming = this.events[vertex],
                 q = this.outflow[vertex];
             let outgoing = incoming,
@@ -178,6 +217,7 @@ export class FlowAdvection {
                     if (!this.eventMarks[target]) {
                         this.eventMarks[target] = 1;
                         this.eventVertices.push(target);
+                        this._queueVertex(target);
                     }
                     const targetEvents = this.events[target];
                     for (let i = 0; i < outgoing.length; i += 3)
@@ -221,6 +261,12 @@ export class FlowAdvection {
             }
         if (count !== this.order.length)
             throw new Error('Contrast transport requires an acyclic vessel tree');
+        for (let i = 0; i < count; i++) this.rank[this.order[i]] = i;
+    }
+
+    _queueVertex(vertex) {
+        const rank = this.rank[vertex];
+        this.pendingOrder[rank >>> 5] |= 1 << (rank & 31);
     }
 
     _returnClosedNodeMass(node) {

@@ -1,9 +1,11 @@
 <!doctype html><html lang="pl"><meta charset="utf-8"><title>Kontrast — pełny model, wydajność GPU</title>
 <style>body{margin:20px;background:#15212b;color:#eef4f8;font:15px system-ui}pre{white-space:pre-wrap;max-width:1100px}canvas{display:block;max-width:90vw;height:auto;margin-top:18px}button{padding:9px 14px;margin-right:10px;background:#29404f;color:inherit;border:1px solid #718695;border-radius:5px}</style>
 <h1>Pełna anatomia — koszt projekcji kontrastu</h1>
-<p>Oryginalny STL, cały graf przepływu i produkcyjny renderer. Domyślnie bolus z koszulki: 20 ml przy 15 ml/s, po 1,3 s transportu. Profil „renal” sprawdza nierównomierne wypełnienie aorty i tętnic nerkowych. Czasy klatek obejmują zakończenie pracy GPU.</p>
-<pre id="results">Rozpoczynanie…</pre>
-<button id="repeat" disabled>Powtórz 5 klatek</button><button id="rotate" disabled>Obrót o 30°</button><div id="image"></div>
+<p>Oryginalny STL, cały graf przepływu i produkcyjny renderer. Domyślnie bolus z koszulki: 20 ml przy 15 ml/s, po 1,3 s transportu. Profil „renal” sprawdza nierównomierne wypełnienie aorty i tętnic nerkowych. Czas GPU pochodzi z asynchronicznego zapytania zegara GPU, jeżeli rozszerzenie przeglądarki jest dostępne. Koszt wysłania poleceń CPU jest podawany oddzielnie. Diagnostyka pierwszego podania: <code>?target=production&amp;css=684&amp;camera=perspective&amp;deformation=inactive&amp;profile=renal&amp;frames=2</code>. Deformacja: <code>absent|inactive|active</code>; <code>samples=4</code> wymusza dawny bufor MSAA do porównania. Domyślnie używana jest projekcja column. <code>dynamic=120</code> dodaje transport kolejnego bolusa przez 120 kroków i rozdziela koszt transportu, przebudowy stężeń oraz GPU; <code>legacyFlow=1</code> przywraca referencyjną aktualizację ukrytych siatek do porównania. <code>sync=none|readback|finish</code> wybiera synchronizację dynamicznych klatek (domyślnie asynchronicznie); dodatkowo zawsze wykonywana jest para porównawcza gl.finish / odczyt 1 piksela. <code>volume=100</code> wydłuża dynamiczne podawanie bolusa.</p>
+<pre id="results">Rozpoczynanie…</pre><details><summary>Dane diagnostyczne</summary><pre id="metrics"></pre></details>
+<button id="repeat" disabled>Powtórz pomiar</button><button id="rotate" disabled>Obrót o 30°</button>
+<p id="diagnostic-warning">Tryby diagnostyczne poniżej celowo zmieniają obraz; służą wyłącznie rozdzieleniu kosztów GPU. „Pełna projekcja produkcyjna” zachowuje właściwy obraz. Przełączanie nie przebudowuje anatomii.</p>
+<div id="modes"></div><div id="mode-results" style="display:flex;flex-wrap:wrap;gap:12px"></div><div id="image"></div>
 <script type="module">
 import * as THREE from 'three';
 import {STLLoader} from 'three/examples/jsm/loaders/STLLoader.js';
@@ -14,20 +16,55 @@ import {HybridContrastSystem} from '../src/contrast/hybridContrastSystem.js';
 import {ContrastVolumeRenderer} from '../src/contrast/contrastVolumeRenderer.js';
 import {transformAortaGeometry} from '../src/aortaTransform.js';
 import {generateVessel} from '../src/vesselGeometry.js';
+import {VesselDeformation} from '../src/vesselDeformation.js';
+import {createContrastProjectionTarget} from '../src/imaging/contrastProjection.js';
+import {applyCArmProjection, CARM_SOURCE_TO_ISOCENTER_MM} from '../src/imaging/carmProjection.js';
+import {contrastGpuDiagnosticModes, contrastGpuDiagnosticShader} from './helpers/contrastGpuDiagnosticShader.js';
+import {columnProjectionVertexShader} from '../src/contrast/anatomicalColumnProjection.js';
+import {deformationHooks} from '../src/contrast/anatomicalContrastProjection.js';
+import {vesselDeformationGLSL} from '../src/vesselDeformation.js';
 const output = document.querySelector('#results'), params = new URLSearchParams(location.search);
 const pixels = Math.max(128, Math.min(1200, Number(params.get('pixels')) || 800));
 const frames = Math.max(1, Math.min(20, Number(params.get('frames')) || 5));
+const dynamicFrames = Math.max(0, Math.min(600, Math.floor(Number(params.get('dynamic')) || 0)));
+const legacyFlow = params.get('legacyFlow') === '1';
+const junctionCache = params.get('junctionCache') !== '0';
+const rasterCache = params.get('rasterCache') !== '0';
+const rayCache = params.get('rayCache') !== '0';
+let diagnosticMode = params.get('mode') ?? (junctionCache ? 'full' : 'uncached');
+if (!Object.hasOwn(contrastGpuDiagnosticModes, diagnosticMode)) diagnosticMode = 'full';
+const dynamicSync = ['finish', 'readback'].includes(params.get('sync')) ? params.get('sync') : 'none';
+const dynamicVolumeMl = Math.max(1, Math.min(200, Number(params.get('volume')) || 20));
 const profile = ['uniform', 'renal'].includes(params.get('profile')) ? params.get('profile') : 'clinical';
+const targetMode = params.get('target') === 'production' ? 'production' : 'benchmark';
+const css = Math.max(128, Math.min(1600, Number(params.get('css')) || 684));
+const deformationMode = ['inactive', 'active'].includes(params.get('deformation')) ? params.get('deformation') : 'absent';
+const cameraMode = params.get('camera') ?? (targetMode === 'production' ? 'perspective' : 'orthographic');
+const projection = params.get('projection') === 'surface' ? 'surface' : 'column';
 let yaw = Number(params.get('yaw')) || 0;
-const measurements = window.__fullContrastBenchmark = {status: 'loading', pixels, profile, stages: {}, samples: []};
-const lines = [], show = message => {output.textContent = [...lines, message].filter(Boolean).join('\n');};
+const measurements = window.__fullContrastBenchmark = {status: 'loading', pixels, profile, targetMode, css, deformationMode, cameraMode, projectionMode: projection, dynamicFrames, legacyFlow, junctionCache, rasterCache, rayCache, diagnosticMode, dynamicSync, dynamicVolumeMl, stages: {}, samples: [], variants: [],
+    diagnosticLimitations: ['All shader substitutions are local to this test page; only full mode is the production image.',
+        'Modes retain the same auxiliary passes and display blit, except cacheOverflow which isolates the anatomical column mesh for an uncontaminated pixel count.',
+        'cacheOverflow counts iodine-visible pixels using the uncapped fallback; instrumentation can change GPU timing and is not a production-speed measurement.',
+        'Different modes may compile to different GPU register allocations; differences are measured cost bounds, not additive timings.']};
+const lines = [], show = message => {output.textContent = [...lines, message].filter(Boolean).join('\n'); document.querySelector('#metrics').textContent = JSON.stringify(measurements, null, 2); document.body.dataset.status = measurements.status;};
 const paint = () => new Promise(requestAnimationFrame);
 const summarize = samples => {
     const a = [...samples].sort((x, y) => x - y);
     return {medianMs: a[Math.floor(a.length / 2)], p95Ms: a[Math.min(a.length - 1, Math.floor(a.length * .95))],
         minMs: a[0], maxMs: a.at(-1)};
 };
-let renderer, display, geometry, target, screenMaterial, screenGeometry, contextFailure;
+let renderer, display, geometry, target, screenMaterial, screenGeometry, contextFailure, deformation;
+let stageTimings = null, lastFrameTimings = null;
+function instrument(object, method, label) {
+    if (typeof object?.[method] !== 'function') return;
+    const original = object[method];
+    object[method] = function(...args) {
+        const started = performance.now();
+        try { return original.apply(this, args); }
+        finally { if (stageTimings) stageTimings[label] = (stageTimings[label] ?? 0) + performance.now() - started; }
+    };
+}
 try {
     show('Pobieranie pełnego modelu Aorta_plain_renal.stl i pola kolizji…');
     const started = performance.now();
@@ -95,65 +132,376 @@ try {
     if (!measurements.activeEdges) throw Error('Brak jodu w grafie — pomiar pustego obrazu byłby nieważny');
     measurements.totalIodineMg = network.edges.reduce((sum, edge) => sum + edge.massMg.reduce((a, b) => a + b, 0), 0);
     lines.push(`Profil ${profile}: ${measurements.activeEdges}/${network.edges.length} krawędzi z jodem; ${measurements.totalIodineMg.toFixed(1)} mg; przygotowanie ${measurements.stages.transportMs.toFixed(0)} ms.`);
+    // Match the app's first-injection transition: compile and draw an empty
+    // scene first, then activate the existing concentration snapshot. Attaching
+    // even an inactive deformation changes the production fragment program.
+    const iodineSnapshot = network.edges.map(edge => edge.massMg.slice());
+    for (const edge of network.edges) edge.massMg.fill(0);
+    const plumeCount = system.localSolver.count; system.localSolver.count = 0;
+    const center = profile === 'renal' ? renalCenter : new THREE.Vector3(0, -285, 0);
+    if (deformationMode !== 'absent') {
+        deformation = new VesselDeformation();
+        const patches = [];
+        if (deformationMode === 'active') {
+            const anchor = network.edges.filter(edge => edge.radiusStart > 5)
+                .sort((a, b) => a.start.distanceToSquared(center) - b.start.distanceToSquared(center))[0];
+            if (!anchor) throw Error('Brak aorty dla aktywnego odkształcenia');
+            const midpoint = anchor.start.clone().lerp(anchor.end, .5);
+            const radius = .5 * (anchor.radiusStart + anchor.radiusEnd);
+            for (let i = 0; i < 8; i++) {
+                const angle = i / 8 * Math.PI * 2;
+                const normal = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+                patches.push({center: midpoint.clone().addScaledVector(normal, radius).toArray(),
+                    normal: normal.toArray(), width: 6, displacement: .5});
+            }
+        }
+        deformation.update(patches);
+        measurements.deformation = {active: deformation.uniforms.vesselDeformActive.value, patches: patches.length};
+    }
     show('Budowanie pełnego produkcyjnego renderera kontrastu…'); await paint(); stage = performance.now();
-    display = new ContrastVolumeRenderer(system, {anatomicalProjection: params.get('projection') === 'column' ? 'column' : 'surface'}); display.update();
+    display = new ContrastVolumeRenderer(system, {anatomicalProjection: projection, vesselDeformation: deformation}); display.update();
+    const productionFragmentShader = display._flowVolume.material.fragmentShader;
+    const productionVertexShader = display._flowVolume.material.vertexShader;
+    const originalVertexShader = deformation ? vesselDeformationGLSL + columnProjectionVertexShader.replace(
+        deformationHooks.vertex, 'vec3 projectionVertexPosition(vec3 point) { return point + vesselDisplacement(point); }')
+        : columnProjectionVertexShader;
+    const visitedModes = new Set();
+    function selectDiagnosticMode(mode) {
+        if (projection !== 'column' && mode !== 'full') throw Error('Tryby diagnostyczne wymagają projekcji column');
+        const material = display._flowVolume.material;
+        const source = contrastGpuDiagnosticShader(productionFragmentShader, mode);
+        if (material.fragmentShader !== source) {material.fragmentShader = source; material.needsUpdate = true;}
+        const vertex = mode === 'rasterOriginal' || !rasterCache ? originalVertexShader : productionVertexShader;
+        if (material.vertexShader !== vertex) {material.vertexShader = vertex; material.needsUpdate = true;}
+        if (mode === 'noRayCache' && !material.uniforms.columnRayCacheEnabled)
+            throw Error('Ten renderer nie ma pamięci podręcznej promienia');
+        if (material.uniforms.columnRayCacheEnabled) material.uniforms.columnRayCacheEnabled.value = rayCache && mode !== 'noRayCache';
+        diagnosticMode = mode; measurements.diagnosticMode = mode;
+        document.querySelectorAll('[data-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === mode)));
+    }
+    selectDiagnosticMode(diagnosticMode);
+    if (legacyFlow) {
+        if (typeof display._needsFlowLumenUpdate !== 'function') throw Error('Brak przełącznika referencyjnej aktualizacji geometrii');
+        display._needsFlowLumenUpdate = () => true;
+    }
+    for (const [object, method, label] of [
+        [display._flowVolume, 'update', 'anatomicalUpdateMs'],
+        [display._flowVolume.field, 'update', 'anatomicalFieldMs'],
+        [display._flowVolume.junctionField, 'update', 'surfaceJunctionFieldMs'],
+        [display._flowVolume.projection, 'update', 'columnIntegralMs'],
+        [display._flowVolume.activity, 'update', 'activityBoundsMs'],
+        [display._flowField, 'update', 'legacyFieldMs'],
+        [display._flowField, 'sampleInto', 'legacyResampleMs'],
+        [display, '_enforceMonotonicPressureDrivenColumn', 'legacyRefluxSmoothingMs'],
+        [display, '_updateJunctionOpticalWeights', 'legacyOpticalWeightsMs'],
+        [display.renalRenderer, 'update', 'renalParenchymaMs']
+    ]) instrument(object, method, label);
     measurements.stages.rendererBuildMs = performance.now() - stage;
     measurements.projection = display._flowVolume.diagnostics;
     lines.push(`Renderer: ${(measurements.stages.rendererBuildMs / 1000).toFixed(2)} s; tekstury projekcji ${(measurements.projection.projectionMemoryBytes / 1048576).toFixed(1)} MiB.`);
-    renderer = new THREE.WebGLRenderer({antialias: false, preserveDrawingBuffer: true});
+    const rasterGeometry = display._flowVolume.mesh.geometry;
+    measurements.rasterAttributes = Object.fromEntries(Object.entries(rasterGeometry.attributes)
+        .map(([name, attribute]) => [name, attribute.array.byteLength]));
+    measurements.rasterAttributeBytes = Object.values(measurements.rasterAttributes).reduce((a, b) => a + b, 0);
+    measurements.fragmentShaderCharacters = display._flowVolume.material.fragmentShader.length;
+    measurements.spatialDeformationAttached = !!display._flowVolume.material.userData.columnSpatialDeformationAttached;
+    measurements.deformationCache = display._flowVolume.projection?.deformationDiagnostics ?? null;
+    if (deformationMode === 'active' && !measurements.deformationCache?.updatedVertices) throw Error('Aktywne kontakty nie zmieniły żadnego wierzchołka anatomii');
+    lines.push(`Atrybuty rastra: ${(measurements.rasterAttributeBytes / 1048576).toFixed(1)} MiB; deformacja ${deformationMode}; shader ${measurements.fragmentShaderCharacters} znaków.`);
+    renderer = new THREE.WebGLRenderer({antialias: targetMode === 'production', preserveDrawingBuffer: true});
     renderer.debug.checkShaderErrors = true;
     renderer.debug.onShaderError = (gl, program, vertex, fragment) => {
         throw Error(`Shader compilation failed: ${gl.getProgramInfoLog(program)} ${gl.getShaderInfoLog(vertex)} ${gl.getShaderInfoLog(fragment)}`);
     };
-    renderer.setPixelRatio(1); renderer.setSize(pixels, pixels); document.querySelector('#image').append(renderer.domElement);
+    renderer.setPixelRatio(1); renderer.setSize(targetMode === 'production' ? css : pixels, targetMode === 'production' ? css : pixels); document.querySelector('#image').append(renderer.domElement);
     renderer.domElement.addEventListener('webglcontextlost', () => {
         contextFailure = new Error('Utrata kontekstu WebGL podczas pełnej projekcji.'); fail(contextFailure);
     });
-    measurements.gpu = renderer.getContext().getParameter(renderer.getContext().RENDERER);
-    target = new THREE.WebGLRenderTarget(pixels, pixels, {type: THREE.HalfFloatType});
+    const gl = renderer.getContext(), timerExtension = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+    measurements.gpu = gl.getParameter(gl.RENDERER);
+    const rendererInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    measurements.gpuInfo = {renderer: measurements.gpu, vendor: gl.getParameter(gl.VENDOR),
+        version: gl.getParameter(gl.VERSION), shadingLanguageVersion: gl.getParameter(gl.SHADING_LANGUAGE_VERSION),
+        debugRendererInfoSupported: !!rendererInfo,
+        unmaskedRenderer: rendererInfo ? gl.getParameter(rendererInfo.UNMASKED_RENDERER_WEBGL) : null,
+        unmaskedVendor: rendererInfo ? gl.getParameter(rendererInfo.UNMASKED_VENDOR_WEBGL) : null};
+    lines.push(`GPU: ${measurements.gpuInfo.unmaskedRenderer ?? measurements.gpuInfo.renderer}; dostawca ${measurements.gpuInfo.unmaskedVendor ?? measurements.gpuInfo.vendor}.`);
+    const pendingQueries = [], completedGpuMs = [];
+    measurements.gpuTiming = {extension: 'EXT_disjoint_timer_query_webgl2', supported: !!timerExtension,
+        issued: 0, completed: 0, disjoint: 0, timedOut: 0,
+        note: 'GPU elapsed time is queried only after availability; CPU submit/finish/readback costs are separate.'};
+    const queryFrame = () => {
+        const gpu = {status: timerExtension ? 'pending' : 'unsupported', elapsedMs: null};
+        if (!timerExtension) return {gpu, query: null};
+        const query = gl.createQuery();
+        if (!query) throw Error('GPU timer query allocation failed');
+        gl.beginQuery(timerExtension.TIME_ELAPSED_EXT, query);
+        measurements.gpuTiming.issued++;
+        return {query, gpu};
+    };
+    const pollGpuQueries = () => {
+        if (!timerExtension || !pendingQueries.length) return;
+        if (gl.getParameter(timerExtension.GPU_DISJOINT_EXT)) {
+            for (const item of pendingQueries) {item.gpu.status = 'disjoint'; gl.deleteQuery(item.query); measurements.gpuTiming.disjoint++;}
+            pendingQueries.length = 0; return;
+        }
+        for (let i = pendingQueries.length - 1; i >= 0; i--) {
+            const item = pendingQueries[i];
+            if (!gl.getQueryParameter(item.query, gl.QUERY_RESULT_AVAILABLE)) continue;
+            const ns = gl.getQueryParameter(item.query, gl.QUERY_RESULT);
+            gl.deleteQuery(item.query); pendingQueries.splice(i, 1);
+            if (!Number.isFinite(ns) || ns < 0) {item.gpu.status = 'invalid'; continue;}
+            item.gpu.status = 'complete'; item.gpu.elapsedMs = ns / 1e6;
+            completedGpuMs.push(item.gpu.elapsedMs); measurements.gpuTiming.completed++;
+        }
+    };
+    const settleGpuQueries = async () => {
+        const deadline = performance.now() + 10000;
+        while (pendingQueries.length && performance.now() < deadline) {
+            await paint(); pollGpuQueries();
+            if (contextFailure || gl.isContextLost()) throw contextFailure ?? Error('WebGL context lost while waiting for GPU timers');
+        }
+        for (const item of pendingQueries) {item.gpu.status = 'timeout'; gl.deleteQuery(item.query); measurements.gpuTiming.timedOut++;}
+        pendingQueries.length = 0;
+        measurements.gpuTiming.all = completedGpuMs.length ? summarize(completedGpuMs) : null;
+    };
+    const readbackPixel = new Uint16Array(4);
+    let readbackPosition = null;
+    target = targetMode === 'production' ? createContrastProjectionTarget(css, renderer.capabilities)
+        : new THREE.WebGLRenderTarget(pixels, pixels, {type: THREE.HalfFloatType});
+    if (params.has('samples')) target.samples = Math.max(0, Math.min(renderer.capabilities.maxSamples ?? 0, Number(params.get('samples')) || 0));
+    measurements.target = {width: target.width, height: target.height, samples: target.samples, depthBuffer: target.depthBuffer};
+    lines.push(`Cel: ${target.width}×${target.height}, MSAA ${target.samples}; kamera ${cameraMode}.`);
     const scene = new THREE.Scene(); scene.add(display.group);
-    const camera = new THREE.OrthographicCamera(-90, 90, 90, -90, .1, 2500);
-    const center = profile === 'renal' ? renalCenter : new THREE.Vector3(0, -285, 0);
+    const camera = cameraMode === 'perspective' ? new THREE.PerspectiveCamera(45, 1, .1, 2500)
+        : new THREE.OrthographicCamera(-90, 90, 90, -90, .1, 2500);
+    if (camera.isPerspectiveCamera) measurements.camera = applyCArmProjection(camera, CARM_SOURCE_TO_ISOCENTER_MM, 350, Number(params.get('zoom')) || 1, 300);
+    const cameraDistance = camera.isPerspectiveCamera ? CARM_SOURCE_TO_ISOCENTER_MM : 700;
     const screen = new THREE.Scene(), screenCamera = new THREE.Camera();
     screenGeometry = new THREE.PlaneGeometry(2, 2);
     screenMaterial = new THREE.ShaderMaterial({uniforms: {map: {value: target.texture}},
         vertexShader: 'varying vec2 v;void main(){v=uv;gl_Position=vec4(position.xy,0.,1.);}',
         fragmentShader: 'varying vec2 v;uniform sampler2D map;void main(){float depth=texture2D(map,v).r;gl_FragColor=vec4(vec3(.94*exp(-depth*8.)),1.);}'});
     screen.add(new THREE.Mesh(screenGeometry, screenMaterial));
-    function timedFrame() {
+    function timedFrame(sync = 'none') {
+        pollGpuQueries();
         if (contextFailure || renderer.getContext().isContextLost()) throw contextFailure ?? new Error('WebGL context lost');
         const radians = yaw * Math.PI / 180;
-        camera.position.copy(center).add(new THREE.Vector3(Math.sin(radians) * 700, 0, Math.cos(radians) * 700)); camera.lookAt(center);
-        const t = performance.now();
-        display.update({reuseUnchanged: true}); renderer.setRenderTarget(target); renderer.setClearColor(0, 0); renderer.clear();
-        renderer.render(scene, camera);
+        camera.position.copy(center).add(new THREE.Vector3(Math.sin(radians) * cameraDistance, 0, Math.cos(radians) * cameraDistance)); camera.lookAt(center);
+        const t = performance.now(); stageTimings = {};
+        display.update({reuseUnchanged: true}); const updateEnded = performance.now();
+        const gpuQuery = queryFrame(); renderer.setRenderTarget(target); renderer.setClearColor(0, 0); renderer.clear();
+        const hidden = [];
+        if (diagnosticMode === 'cacheOverflow') display.group.traverse(object => {
+            if (object !== display._flowVolume.mesh && object.visible && (object.isMesh || object.isPoints || object.isLine)) {
+                hidden.push(object); object.visible = false;
+            }
+        });
+        try {renderer.render(scene, camera);} finally {for (const object of hidden) object.visible = true;}
         measurements.draw = {calls: renderer.info.render.calls, triangles: renderer.info.render.triangles};
-        renderer.setRenderTarget(null); renderer.render(screen, screenCamera); renderer.getContext().finish();
+        measurements.programs = renderer.info.programs.length;
+        renderer.setRenderTarget(null); renderer.render(screen, screenCamera);
+        if (gpuQuery.query) {gl.endQuery(timerExtension.TIME_ELAPSED_EXT); pendingQueries.push(gpuQuery);}
+        const submitted = performance.now(); gl.flush();
+        if (sync === 'finish') gl.finish();
+        else if (sync === 'readback') {
+            const [x, y] = readbackPosition ?? [Math.floor(target.width / 2), Math.floor(target.height / 2)];
+            renderer.readRenderTargetPixels(target, x, y, 1, 1, readbackPixel);
+            measurements.singlePixelReadback = {x, y, value: THREE.DataUtils.fromHalfFloat(readbackPixel[0])};
+        }
+        const finished = performance.now();
+        lastFrameTimings = {sync, diagnosticMode, updateMs: updateEnded - t, renderSubmitMs: submitted - updateEnded,
+            gpu: gpuQuery.gpu, syncWaitMs: finished - submitted,
+            gpuFinishMs: sync === 'finish' ? finished - submitted : null,
+            readbackWaitMs: sync === 'readback' ? finished - submitted : null,
+            // Historical name retained in JSON for comparisons; this is CPU
+            // elapsed wall time, NOT asynchronous GPU execution time.
+            renderAndGpuMs: finished - updateEnded, totalMs: finished - t, stages: stageTimings};
+        stageTimings = null;
         if (contextFailure || renderer.getContext().isContextLost()) throw contextFailure ?? new Error('WebGL context lost during projection');
         return performance.now() - t;
     }
+    function verifyIodinePixels(requirePositive = true) {
+        const readbackStarted = performance.now();
+        const raw = new Uint16Array(target.width * target.height * 4);
+        renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, raw);
+        let positive = 0, invalid = 0, peak = 0, peakIndex = 0, sum = 0;
+        for (let i = 0; i < raw.length; i += 4) {
+            const value = THREE.DataUtils.fromHalfFloat(raw[i]);
+            if (!Number.isFinite(value) || value < 0) invalid++;
+            if (value > 1e-7) positive++;
+            if (value > peak) {peak = value; peakIndex = i / 4;} sum += value;
+        }
+        if (positive) readbackPosition = [peakIndex % target.width, Math.floor(peakIndex / target.width)];
+        measurements.iodinePixels = {positive, total: target.width * target.height, invalid, peak, sum,
+            readbackAndAnalysisMs: performance.now() - readbackStarted};
+        if (invalid || requirePositive && !positive) throw Error(`Nieważna projekcja: ${positive} pikseli jodu, ${invalid} niefinitywnych/ujemnych`);
+        lines.push(`Odczyt GPU: ${positive.toLocaleString()} pikseli z jodem, maksimum ${peak.toFixed(4)}.`);
+        return raw;
+    }
+    let referenceImage = null;
+    function captureDiagnosticImage() {
+        const raw = verifyIodinePixels(!['junctionMask', 'cacheOverflow'].includes(diagnosticMode));
+        const key = `${yaw}:${system.simulationTimeSeconds}:${target.width}:${target.height}`;
+        const values = new Float32Array(target.width * target.height);
+        for (let i = 0; i < values.length; i++) values[i] = THREE.DataUtils.fromHalfFloat(raw[i * 4]);
+        if (diagnosticMode === 'full') referenceImage = {key, values};
+        const reference = referenceImage?.key === key ? referenceImage.values : null;
+        let missing = 0, extra = 0, both = 0, union = 0, absoluteError = 0, maxError = 0, different = 0;
+        if (reference) for (let i = 0; i < values.length; i++) {
+            const positive = values[i] > 1e-7, original = reference[i] > 1e-7;
+            if (!positive && original) missing++;
+            if (positive && !original) extra++;
+            if (positive && original) both++;
+            if (positive || original) union++;
+            const error = Math.abs(values[i] - reference[i]); absoluteError += error;
+            maxError = Math.max(maxError, error); if (error) different++;
+        }
+        const comparison = reference ? {referenceMode: 'full', missing, extra, both, union,
+            maskIoU: union ? both / union : 1, different,
+            meanAbsoluteError: absoluteError / values.length, maxAbsoluteError: maxError} : null;
+        const id = `${diagnosticMode}-${yaw}`;
+        document.querySelector(`[data-mask="${id}"]`)?.remove();
+        const figure = document.createElement('figure'); figure.dataset.mask = id; figure.style.margin = '0';
+        const caption = document.createElement('figcaption');
+        caption.textContent = `${diagnosticMode}, ${yaw}°: ${measurements.iodinePixels.positive} px${comparison ? `; maska IoU ${comparison.maskIoU.toFixed(4)}` : '; brak wzorca full w tej pozycji'}`;
+        caption.style.maxWidth = '220px'; figure.append(caption);
+        const canvas = document.createElement('canvas'); canvas.width = canvas.height = 192;
+        canvas.style.marginTop = '5px'; canvas.style.width = '192px';
+        const context = canvas.getContext('2d'), image = context.createImageData(192, 192);
+        // White: mask shared with full (or no reference yet). Blue: missing
+        // compared with full. Red: additional coverage. Image values remain
+        // available in the normal radiographic preview below.
+        for (let y = 0; y < 192; y++) for (let x = 0; x < 192; x++) {
+            const px = Math.min(target.width - 1, Math.floor((x + .5) * target.width / 192));
+            const py = target.height - 1 - Math.min(target.height - 1, Math.floor((y + .5) * target.height / 192));
+            const index = py * target.width + px, out = (y * 192 + x) * 4;
+            const positive = values[index] > 1e-7, original = reference ? reference[index] > 1e-7 : positive;
+            const color = positive && original ? [225, 230, 235] : positive ? [255, 90, 70] : original ? [75, 155, 255] : [12, 22, 30];
+            image.data.set([...color, 255], out);
+        }
+        context.putImageData(image, 0, 0); figure.append(canvas); document.querySelector('#mode-results').append(figure);
+        return {key, iodinePixels: {...measurements.iodinePixels}, comparison};
+    }
     async function runBatch(count = frames) {
         document.querySelectorAll('button').forEach(button => button.disabled = true);
-        measurements.status = 'rendering'; show(`Projekcja ${pixels}×${pixels}, kąt ${yaw}° — oczekiwanie na GPU…`); await paint();
-        if (measurements.firstFrameMs === undefined) {
-            measurements.firstFrameMs = timedFrame(); lines.push(`Pierwsza klatka z kompilacją: ${measurements.firstFrameMs.toFixed(1)} ms.`); await paint();
+        measurements.status = 'rendering'; show(`${diagnosticMode}: projekcja ${target.width}×${target.height}, kąt ${yaw}° — oczekiwanie na GPU…`); await paint();
+        const variant = {mode: diagnosticMode, label: contrastGpuDiagnosticModes[diagnosticMode], yaw,
+            physicalOutput: ['full', 'uncached', 'rasterOriginal', 'noRayCache', 'referenceStack', 'wideCandidates', 'referenceWide', 'referenceNearest', 'referenceHistory'].includes(diagnosticMode),
+            passScope: diagnosticMode === 'cacheOverflow' ? 'anatomical-column-only' : 'production-contrast-group',
+            rasterCache: rasterCache && diagnosticMode !== 'rasterOriginal',
+            rayCache: display._flowVolume.material.uniforms.columnRayCacheEnabled?.value ?? null,
+            frames: [], compiledPreviously: visitedModes.has(diagnosticMode)};
+        measurements.variants.push(variant);
+        if (!visitedModes.has(diagnosticMode)) {
+            measurements.gpuStage = 'first-iodine-frame';
+            variant.firstFrameMs = timedFrame(); variant.firstFrameTimings = lastFrameTimings;
+            measurements.firstFrameMs ??= variant.firstFrameMs;
+            measurements.firstFrameTimings ??= variant.firstFrameTimings;
+            measurements.gpuStage = 'verify-first-iodine-readback'; verifyIodinePixels(!['junctionMask', 'cacheOverflow'].includes(diagnosticMode));
+            visitedModes.add(diagnosticMode);
+            lines.push(`${diagnosticMode}: pierwsza klatka z kompilacją, wysłanie CPU ${variant.firstFrameMs.toFixed(1)} ms.`); await paint();
         }
+        measurements.gpuStage = 'steady-iodine-frames';
         const times = [];
         for (let i = 0; i < count; i++) {
-            show(`Pomiar ${i + 1}/${count}, ${pixels}×${pixels}, kąt ${yaw}°…`); await paint();
-            const ms = timedFrame(); times.push(ms); measurements.samples.push({yaw, ms});
+            show(`Pomiar ${i + 1}/${count}, ${target.width}×${target.height}, kąt ${yaw}°…`); await paint();
+            const ms = timedFrame(); times.push(ms); const row = {yaw, ms, ...lastFrameTimings}; measurements.samples.push(row); variant.frames.push(row);
             if (contextFailure) throw contextFailure;
         }
-        const summary = summarize(times); measurements.latest = {yaw, ...summary};
+        await settleGpuQueries();
+        const validGpu = measurements.samples.slice(-count).map(row => row.gpu).filter(gpu => gpu.status === 'complete').map(gpu => gpu.elapsedMs);
+        const summary = summarize(times); measurements.latest = {diagnosticMode, yaw, ...summary, gpuElapsedMs: validGpu.length ? summarize(validGpu) : null};
+        Object.assign(variant, {summary: {...measurements.latest}, image: captureDiagnosticImage()});
         measurements.heapMiB = performance.memory ? performance.memory.usedJSHeapSize / 1048576 : null;
-        lines.push(`Klatka CPU+GPU ${yaw}° (${count} klatek): mediana ${summary.medianMs.toFixed(1)} ms, P95 ${summary.p95Ms.toFixed(1)} ms, ${(1000 / summary.medianMs).toFixed(1)} kl./s.`);
+        lines.push(`${diagnosticMode}: klatka CPU (bez wymuszenia synchronizacji) ${yaw}° (${count} klatek): mediana ${summary.medianMs.toFixed(1)} ms, P95 ${summary.p95Ms.toFixed(1)} ms.`);
+        lines.push(validGpu.length ? `Zegar GPU: mediana ${summarize(validGpu).medianMs.toFixed(2)} ms, P95 ${summarize(validGpu).p95Ms.toFixed(2)} ms.` : 'Zegar GPU: brak prawidłowego wyniku; koszt CPU nie jest czasem wykonania GPU.');
         lines.push(`Wywołania rysowania: ${measurements.draw.calls}; trójkąty: ${measurements.draw.triangles.toLocaleString()}.`);
         measurements.status = 'complete'; show('POMIAR ZAKOŃCZONY'); document.querySelectorAll('button').forEach(button => button.disabled = false);
     }
-    document.querySelector('#repeat').onclick = () => runBatch(5).catch(fail);
-    document.querySelector('#rotate').onclick = () => {yaw = yaw >= 30 ? -30 : yaw + 30; runBatch(5).catch(fail);};
+    async function compareSynchronization() {
+        document.querySelectorAll('button').forEach(button => button.disabled = true);
+        measurements.gpuStage = 'synchronization-comparison';
+        measurements.synchronization = [];
+        for (const sync of ['finish', 'readback']) {
+            await paint(); timedFrame(sync);
+            measurements.synchronization.push({...lastFrameTimings, readback: sync === 'readback' ? {...measurements.singlePixelReadback} : null});
+        }
+        await settleGpuQueries();
+        lines.push(`Synchronizacja: gl.finish ${measurements.synchronization[0].syncWaitMs.toFixed(2)} ms; odczyt 1 piksela ${measurements.synchronization[1].syncWaitMs.toFixed(2)} ms.`);
+        show('PORÓWNANIE SYNCHRONIZACJI GOTOWE');
+        document.querySelectorAll('button').forEach(button => button.disabled = false);
+    }
+    async function runDynamic() {
+        document.querySelectorAll('button').forEach(button => button.disabled = true);
+        system.stopInjection();
+        const injection = system.startInjection({source: 'sheath', volumeMl: dynamicVolumeMl, rateMlPerSec: 15});
+        if (!injection.ok) throw Error('Nie można rozpocząć dynamicznego bolusa: ' + JSON.stringify(injection));
+        const dynamic = measurements.dynamic = {status: 'running', injection, dt: 1 / 60,
+            startSimulationTime: system.simulationTimeSeconds, frames: [],
+            limitations: ['This fixture measures contrast transport and rendering; it contains no mechanical solver.',
+                'Nested stage costs overlap their parent update cost. The initial frozen baseline is reported separately.']};
+        measurements.status = 'dynamic'; measurements.gpuStage = 'dynamic-injection';
+        const wallStart = performance.now(); let previousRaf = null;
+        for (let frame = 0; frame < dynamicFrames; frame++) {
+            const rafTime = await paint(), frameWallMs = previousRaf === null ? null : rafTime - previousRaf; previousRaf = rafTime;
+            const injecting = !!system.isInjecting, began = performance.now();
+            system.advanceSynchronized(1 / 60);
+            const transportMs = performance.now() - began;
+            timedFrame(dynamicSync);
+            dynamic.frames.push({frame, frameWallMs, injecting, transportMs, ...lastFrameTimings,
+                transportAndRenderMs: transportMs + lastFrameTimings.totalMs,
+                activeEdges: display._flowVolume.activity?.diagnostics.activeEdges ?? null});
+            if (frame % 30 === 29) show(`Dynamiczny bolus: ${frame + 1}/${dynamicFrames} kroków…`);
+        }
+        dynamic.wallSeconds = (performance.now() - wallStart) / 1000;
+        dynamic.completedContrastSteps = dynamic.frames.length;
+        dynamic.contrastTransportStepsHz = dynamic.completedContrastSteps / dynamic.wallSeconds;
+        dynamic.endSimulationTime = system.simulationTimeSeconds;
+        await settleGpuQueries();
+        const metrics = ['frameWallMs', 'transportMs', 'updateMs', 'renderSubmitMs', 'syncWaitMs', 'gpuFinishMs', 'readbackWaitMs', 'renderAndGpuMs', 'totalMs', 'transportAndRenderMs'];
+        const aggregate = rows => ({frames: rows.length,
+            ...Object.fromEntries(metrics.map(name => {const values = rows.map(row => row[name]).filter(Number.isFinite); return [name, values.length ? summarize(values) : null];})),
+            gpuElapsedMs: (() => {const values = rows.filter(row => row.gpu.status === 'complete').map(row => row.gpu.elapsedMs); return values.length ? summarize(values) : null;})(),
+            stages: Object.fromEntries([...new Set(rows.flatMap(row => Object.keys(row.stages)))].map(name =>
+                [name, summarize(rows.map(row => row.stages[name] ?? 0))]))});
+        dynamic.all = aggregate(dynamic.frames);
+        dynamic.duringInjection = aggregate(dynamic.frames.filter(frame => frame.injecting));
+        dynamic.afterInjection = aggregate(dynamic.frames.filter(frame => !frame.injecting));
+        verifyIodinePixels(false);
+        dynamic.finalIodinePixels = {...measurements.iodinePixels};
+        dynamic.status = 'complete'; measurements.status = 'complete';
+        lines.push(`Dynamika: transport ${dynamic.all.transportMs.medianMs.toFixed(2)} ms; aktualizacja obrazu ${dynamic.all.updateMs.medianMs.toFixed(2)} ms (max ${dynamic.all.updateMs.maxMs.toFixed(2)}); wysłanie do GPU ${dynamic.all.renderSubmitMs.medianMs.toFixed(2)} ms.`);
+        lines.push(`Odstępy klatek RAF P95: ${dynamic.all.frameWallMs?.p95Ms.toFixed(2) ?? '—'} ms; zegar GPU P95: ${dynamic.all.gpuElapsedMs?.p95Ms.toFixed(2) ?? 'niedostępny'} ms.`);
+        lines.push(`Kroki transportu kontrastu: ${dynamic.contrastTransportStepsHz.toFixed(1)} Hz. Ten test nie mierzy mechaniki narzędzi.`);
+        show('POMIAR DYNAMICZNY ZAKOŃCZONY');
+        document.querySelectorAll('button').forEach(button => button.disabled = false);
+    }
+    document.querySelector('#repeat').onclick = () => runBatch(frames).catch(fail);
+    document.querySelector('#rotate').onclick = () => {yaw = yaw >= 30 ? -30 : yaw + 30; runBatch(frames).catch(fail);};
+    for (const [mode, label] of Object.entries(contrastGpuDiagnosticModes)) {
+        if (projection !== 'column' && mode !== 'full') continue;
+        if (mode === 'noRayCache' && !display._flowVolume.material.uniforms.columnRayCacheEnabled) continue;
+        const button = document.createElement('button'); button.dataset.mode = mode;
+        button.textContent = `${mode}: ${label}`; button.disabled = true; button.style.marginBottom = '8px';
+        button.setAttribute('aria-pressed', String(mode === diagnosticMode));
+        button.onclick = () => {try {selectDiagnosticMode(mode); runBatch(frames).catch(fail);} catch (error) {fail(error);}};
+        document.querySelector('#modes').append(button);
+    }
+    measurements.gpuStage = 'empty-frame';
+    show('Klatka przed pierwszym podaniem kontrastu…'); await paint();
+    measurements.emptyFrameMs = timedFrame();
+    measurements.emptyProjectionVisible = display._flowVolume.mesh.visible;
+    measurements.emptyPrograms = renderer.info.programs.length;
+    lines.push(`Klatka bez jodu: ${measurements.emptyFrameMs.toFixed(1)} ms; projekcja widoczna: ${measurements.emptyProjectionVisible}; programy ${measurements.emptyPrograms}.`);
+    network.edges.forEach((edge, index) => edge.massMg.set(iodineSnapshot[index]));
+    iodineSnapshot.length = 0; system.localSolver.count = plumeCount;
+    display.update();
+    if (!display._flowVolume.mesh.visible) throw Error('Po przywróceniu jodu projekcja nadal jest ukryta');
     await runBatch();
-    addEventListener('pagehide', () => {display.dispose(); geometry.dispose(); target.dispose(); screenMaterial.dispose(); screenGeometry.dispose(); renderer.dispose();}, {once: true});
+    await compareSynchronization();
+    if (dynamicFrames) await runDynamic();
+    addEventListener('pagehide', () => {display.dispose(); geometry.dispose(); target.dispose(); screenMaterial.dispose(); screenGeometry.dispose(); for (const item of pendingQueries) gl.deleteQuery(item.query); renderer.dispose(); deformation?.dispose();}, {once: true});
 } catch (error) {fail(error);}
-function fail(error) {measurements.status = 'failed'; measurements.error = error.message; show('FAIL: ' + error.message); console.error(error);}
+function fail(error) {measurements.status = 'failed'; measurements.failedStage = measurements.gpuStage; measurements.error = error.message; show('FAIL: ' + error.message); console.error(error);}
 </script></html>

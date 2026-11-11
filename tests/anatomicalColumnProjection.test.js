@@ -111,7 +111,8 @@ test('column projection retains deduplicated BVH positions and bounded per-face 
             projection.uniforms.columnFaces.value, projection.uniforms.columnRanges.value,
             projection.uniforms.columnCurrent.value, projection.uniforms.columnPrevious.value,
             projection.uniforms.columnGeometry.value, projection.uniforms.columnGeometryRanges.value,
-            projection.uniforms.columnJunctionBounds.value, projection.uniforms.columnJunctionRecords.value];
+            projection.uniforms.columnJunctionBounds.value, projection.uniforms.columnJunctionRecords.value,
+            projection.uniforms.columnSharedHistory.value];
         assert.equal(projection.memoryBytes, textures.reduce((sum, texture) => sum + texture.image.data.byteLength, 0));
         const atlasBytes = projection.uniforms.columnGeometry.value.image.data.byteLength +
             projection.uniforms.columnGeometryRanges.value.image.data.byteLength;
@@ -158,6 +159,14 @@ test('indirect column BVH contact cache updates every affected vertex and restor
 test('column surface keeps clear entry caps and active draw groups for iodine hidden inside', () => {
     const f = axialProjectionFixture({projection: 'column'});
     try {
+        const raster = f.surface.mesh.geometry, cpu = f.surface.samplingGeometry;
+        assert.deepEqual(Object.keys(raster.attributes).sort(), ['columnCoordinate', 'columnFace', 'position'],
+            'Only attributes used by the column shader may allocate full-anatomy GPU buffers');
+        assert.ok(cpu.hasAttribute('projectionOwner'), 'Retain edge ownership for CPU bookkeeping');
+        for (const name of ['position', 'columnCoordinate', 'columnFace'])
+            assert.equal(raster.getAttribute(name), cpu.getAttribute(name), 'Share the exact original projection data');
+        assert.equal(Object.values(raster.attributes).reduce((sum, attribute) => sum + attribute.array.byteLength, 0),
+            raster.getAttribute('position').count * 24, 'Column raster needs 24 bytes per vertex, with no unused owner buffer');
         f.fill(y => Math.abs(y) < 3 ? 1 : 0);
         const surface = f.surface, samples = surface.uniforms.columnCurrent.value.image.data;
         const range = surface.uniforms.columnRanges.value.image.data;

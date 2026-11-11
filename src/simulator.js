@@ -22,6 +22,7 @@ import {initStentGraftControls} from './ui/stentGraftControls.js';
 import {initAnatomyControls} from './ui/anatomyControls.js';
 import {createFemoralAccessController} from './femoralAccessController.js';
 import {runPhysicsFrameBudget,runPhysicsIdleBudget} from './physics/physicsFrameBudget.js';
+import {estimateRenderReserve} from './physics/renderReserve.js';
 import {createSharedAxisRealtimeSystem} from './physics/kirchhoffSharedAxisRealtime.js';
 import {FULL_CYCLE_BENCHMARK_MODE,fullCycleDurationMs,sampleFullCycleBenchmark,summarizeFullCycle} from './benchmark/fullCycleBenchmark.js';
 import {WIRE60_BENCHMARK_MODE,wire60BenchmarkSteps,sampleWire60Benchmark} from './benchmark/wire60CatheterBenchmark.js';
@@ -39,6 +40,10 @@ import { SHORT_CATHETER_BENCHMARK_MODE, SHORT_CATHETER_BENCHMARK_DURATION_MS,
 // Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
 import { createRuntimeLifetime } from './runtimeLifetime.js';
+import { startupDiagnostics } from './startupDiagnostics.js';
+import { createPassiveContrastProbe } from './benchmark/passiveContrastProbe.js';
+import { createGpuTimerProbe } from './benchmark/gpuTimerProbe.js';
+import { createSimulationWallClock } from './physics/simulationWallClock.js';
 import { disposeThreeResources } from './disposeThreeResources.js';
 import { disposeCArmPreview } from './ui/carmPreview.js';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
@@ -143,6 +148,7 @@ import {
     stopCatheterAortaSetup
 } from './benchmark/catheterAortaSetup.js';
 
+startupDiagnostics.mark('Initializing simulator state');
 const runtime = createRuntimeLifetime();
 const selectedCoupledSolver = resolveAppCoupledSolver(window.location.search);
 const projectiveCrossover = selectedCoupledSolver === 'shared-axis-projective-crossover';
@@ -156,6 +162,8 @@ let synchronizedStep = null;
 let synchronizedInputs = null;
 let completedSimulationTime = 0;
 let simulationPaused = false;
+let passiveContrastProbe = null, contrastGpuProbe = null;
+let contrastFrameUpdateMs = 0, contrastFrameTransportMs = 0, contrastFrameAcquisitions = 0;
 let monitorPublishedTime = 0;
 const deferredSimulationChanges = new Map();
 function changePhysicsSetting(key, apply) {
@@ -384,7 +392,7 @@ function completeFirstLoadedFrame() {
     completeLoadingMilestone('firstFrame', 'Ready');
 }
 
-setLoadingMessage('Preparing renderer');
+await startupDiagnostics.before('Creating fluoroscopy graphics context', {signal: runtime.signal});
 
 // Fit the square detector into its own layout cell. Resizing the UI changes
 // display resolution, not the physical field of view or the C-arm pose.
@@ -400,6 +408,7 @@ const canvas = document.getElementById('sim');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
 renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
 renderer.setSize(detectorSize, detectorSize);
+startupDiagnostics.mark('Preparing fluoroscopy scenes and targets');
 runtime.onDispose(() => {
     renderer.dispose();
     renderer.forceContextLoss();
@@ -868,11 +877,13 @@ function applyDebugLayerVisibility() {
         object.visible = !!debugLayerVisibility[layer];
     });
 }
-setLoadingMessage('Loading anatomy models');
+startupDiagnostics.mark('Loading anatomy models');
 const aortaModel = createAortaModel(vessel, {
     anatomy: selectedAnatomy,
     signal: runtime.signal,
-    onLoaded: ({ collision }) => {
+    onStage: message => startupDiagnostics.mark(message),
+    onLoaded: async ({ collision }) => {
+        await startupDiagnostics.before('Building vessel flow model', {signal: runtime.signal});
         vesselCollisionTarget = {
             ...collision,
             segments: Object.values(vessel.sheaths)
@@ -891,6 +902,7 @@ const aortaModel = createAortaModel(vessel, {
                 contrastHydraulicParameters
             );
         }
+        startupDiagnostics.mark('Building vessel debug geometry');
         lumenDebugGroup.clear();
         debugVesselSurface?.dispose();
         debugVesselSurface = createDebugVesselSurface(collision.geometry, STL_MODEL_DEBUG_COLOR, vesselDeformation);
@@ -916,13 +928,25 @@ const aortaModel = createAortaModel(vessel, {
         for (const sheath of Object.values(vessel.sheaths)) lumenDebugGroup.add(createSheathEntryDebugMarker(collision, sheath));
         applyDebugLayerVisibility();
         xpbdWireBody?.wake();
+        startupDiagnostics.mark('Building contrast projection geometry');
         contrastVolumeRenderer = new ContrastVolumeRenderer(contrastSystem,{vesselDeformation});
         contrastVolumeRenderer.setDebugMode(!fluoroscopy);
         voxelGroup.add(contrastVolumeRenderer.group);
-        completeLoadingMilestone(
-            'aorta',
-            loadingMilestones.has('skeleton') ? 'Loading skeleton model' : 'Rendering first frame'
-        );
+        // Compile and upload the unchanged anatomical projection while the
+        // loading screen still owns the frame, not at the first injection.
+        startupDiagnostics.mark('Compiling contrast projection shader');
+        contrastVolumeRenderer.prepareProjection(renderer, camera, {signal: runtime.signal}).then(() => {
+            if (runtime.disposed) return;
+            startupDiagnostics.mark('Contrast projection shader ready');
+            completeLoadingMilestone(
+                'aorta',
+                loadingMilestones.has('skeleton') ? 'Loading skeleton model' : 'Rendering first frame'
+            );
+        }).catch(error => {
+            if (runtime.disposed) return;
+            console.error('Contrast projection preparation failed', error);
+            setLoadingMessage('Nie udało się przygotować grafiki kontrastu. Odśwież symulację.');
+        });
     },
     onError: () => {
         failLoadingMilestone('aorta');
@@ -1113,6 +1137,7 @@ let wallBreachMarkers = null;
 let wallWorstPointMarker = null;
 if (Number.isFinite(selectedAnatomy.focusY))
     document.getElementById('carmY').value = String(selectedAnatomy.focusY - vessel.branchPoint.y);
+startupDiagnostics.mark('Preparing controls and C-arm preview');
 const ui = initUI({
     onCatheterToolChange: value=>stentGraftControls?.selectTool(value),
     readCatheterDeliveryState: ()=>stentGraftSystem?.accesses[accessController?.activeId]?.device,
@@ -2638,12 +2663,19 @@ function getBrowserLongFrameEvents() {
 
 function recordBrowserFrameCpu(startedAt, simulationEndedAt, updateEndedAt) {
     const endedAt = performance.now();
-    // Reserve the observed presentation cost even outside benchmarks. Decay
-    // peaks slowly, so one cheap frame does not immediately shrink the reserve.
-    simulationRenderReserveMs=Math.max(1.5,endedAt-simulationEndedAt,simulationRenderReserveMs*.98);
+    // A first-use shader compile/upload is not the next frame's render cost.
+    simulationRenderReserveMs=estimateRenderReserve(simulationRenderReserveMs,endedAt-simulationEndedAt,{
+        frameMs:TARGET_RENDER_FRAME_MS,guardMs:PHYSICS_IDLE_GUARD_MS,physicsSliceMs:PHYSICS_MAX_SLICE_MS});
     if(typeof crossoverAppBenchmark!=='undefined')crossoverAppBenchmark?.recordFrameCosts({
         simulationMs:simulationEndedAt-startedAt,updateMs:updateEndedAt-simulationEndedAt,
         renderMs:endedAt-updateEndedAt,reserveMs:simulationRenderReserveMs});
+    if (passiveContrastProbe?.running) contrastGpuProbe?.poll();
+    if (passiveContrastProbe?.running) passiveContrastProbe.recordFrame({
+        simulationMs:simulationEndedAt-startedAt, updateMs:updateEndedAt-simulationEndedAt,
+        renderMs:endedAt-updateEndedAt, rendererUpdateMs:contrastFrameUpdateMs,
+        contrastTransportMs:contrastFrameTransportMs, acquisitions:contrastFrameAcquisitions
+    });
+    contrastFrameUpdateMs = contrastFrameTransportMs = contrastFrameAcquisitions = 0;
     if (!browserBenchmarkScenario.running) return;
     const simulationMs = simulationEndedAt - startedAt;
     const updateMs = updateEndedAt - simulationEndedAt;
@@ -3452,10 +3484,10 @@ let simulationRenderReserveMs = PHYSICS_RENDER_RESERVE_MS;
 // The renderer starts only after the asynchronous anatomy/contact assets are
 // ready. Time spent loading those assets is not elapsed simulation time: no
 // controls are available and no physical state has started advancing yet.
-// Establish the wall-clock origin on the first animation frame so startup
+// Establish the wall-clock origin when assets are ready so startup
 // cannot manufacture minutes of physics backlog that then has to be replayed.
 let lastRenderTime = null;
-let compositePhysicsClockStarted = false;
+const simulationWallClock = createSimulationWallClock();
 let simulationAccumulator = 0;
 let simulationPeakBacklog = 0;
 let simulationPeakBacklogScenarioMs = 0;
@@ -3463,7 +3495,7 @@ let simulationPeakBacklogElapsedMs = 0;
 let simulationPeakBacklogGuidewireMm = 0;
 let simulationExecutedSteps = 0;
 let simulationIdleExecutedSteps = 0;
-// Wall time admitted by rAF, including time still waiting in the backlog.
+// Wall time admitted by the shared clock, including unsolved backlog.
 // The benchmark's existing acceptedSeconds field uses this denominator;
 // completed physical time is simulationExecutedSteps * fixedDt instead.
 let simulationAcceptedTime = 0;
@@ -3736,6 +3768,7 @@ document.addEventListener('simulation-pause',stopIntroducer);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopIntroducer();});
 
 function setSimulationPaused(paused) {
+    simulationWallClock.reset();
     simulationPaused = paused;
     // Do not accumulate wall time spent paused, or abandon a prepared shared
     // solver step. It resumes from the same publication barrier on unpause.
@@ -4608,7 +4641,9 @@ synchronizedStep = createSynchronizedStep({
             access.sharedAxisAppSystem?.captureVesselDeformation?.()??[]));
         contrastSystem?.setStentGraftSurface(stentGraftSystem?.getContrastSurface(dt,
             contrastSystem.isInjecting || contrastSystem.hasVisibleContrast()));
+        const contrastTransportStart = passiveContrastProbe?.running ? performance.now() : null;
         contrastSystem?.advanceSynchronized(dt);
+        if (contrastTransportStart !== null) contrastFrameTransportMs += performance.now() - contrastTransportStart;
         monitor.advance(dt);
         simulationAccumulator = Math.max(0, simulationAccumulator - dt);
         simulationExecutedSteps++;
@@ -4662,13 +4697,43 @@ function executeAccumulatedPhysicsStep(idle = false, sliceBudgetMs = null) {
     }
 }
 
-function runIdlePhysicsCatchup(epoch = synchronizedStep.epoch, scheduled = true) {
+function admitSimulationTime(now) {
+    const compositeReady = !wholeAxisAppSystem || loadingAssetsReady() && !!endovascularWorld.contactField;
+    // A numerical rejection can block retries only until the next frame while
+    // retaining the prepared dt. That gate does not pause elapsed wall time.
+    // A terminal rollback awaiting new input, or a publication fault, does.
+    const recoveryBlocked = !synchronizedStep.canAttempt() && accessController.values().some(access =>
+        accessController.run(access.activeAccessId, () => simulationStepTransaction.blocked && !simulationStepTransaction.canAttempt()));
+    const enabled = document.visibilityState === 'visible' && !simulationPaused && compositeReady &&
+        !synchronizedStep.fault && !recoveryBlocked;
+    const physicsDt = simulationWallClock.sample(now, enabled);
+    simulationAcceptedTime += physicsDt;
+    simulationAccumulator += physicsDt;
+    if (simulationAccumulator > simulationPeakBacklog) {
+        simulationPeakBacklog = simulationAccumulator;
+        if (
+            browserBenchmarkScenario.running &&
+            !browserBenchmarkScenario.warmingUp
+        ) {
+            simulationPeakBacklogScenarioMs =
+                browserBenchmarkScenario.simulationElapsedMs;
+            simulationPeakBacklogElapsedMs =
+                performance.now() - browserBenchmarkScenario.startedAt;
+            simulationPeakBacklogGuidewireMm = guidewireTransport.progress;
+        }
+    }
+}
+
+function runIdlePhysicsCatchup(epoch = synchronizedStep.epoch, scheduled = true, taskBudgetMs = PHYSICS_MAX_SLICE_MS) {
     // A worker message is already a new browser task. Use the remaining idle
     // budget directly instead of adding another timer between physical steps.
     // Preserve the pending timer flag when entering from that message.
     if(scheduled)simulationCatchupPending = false;
     if (simulationPaused || epoch !== synchronizedStep.epoch || document.visibilityState !== 'visible') return;
-    const deadline = (lastRenderTime ?? performance.now()) + TARGET_RENDER_FRAME_MS;
+    admitSimulationTime(performance.now());
+    const now = performance.now();
+    const deadline = scheduled ? (lastRenderTime ?? now) + TARGET_RENDER_FRAME_MS
+        : now + taskBudgetMs + PHYSICS_IDLE_GUARD_MS;
     runPhysicsIdleBudget({deadline,now:()=>performance.now(),guardMs:PHYSICS_IDLE_GUARD_MS,maxSliceMs:PHYSICS_MAX_SLICE_MS,
         hasDebt:()=>simulationAccumulator+1e-9>=fixedDt,
         canAttempt:()=>synchronizedStep.canAttempt()&&(!accessController.switchRequested||synchronizedStep.pending),
@@ -4682,6 +4747,33 @@ function scheduleIdlePhysicsCatchup() {
     simulationCatchupPending = true;
     const epoch = synchronizedStep.epoch;
     runtime.timeout(() => runIdlePhysicsCatchup(epoch), 0);
+}
+
+// GPU presentation can delay rAF while the JavaScript thread is otherwise
+// idle. Keep the unchanged fixed-step transactions progressing in bounded
+// timer tasks; the render loop consumes only their committed snapshots.
+function pumpIndependentPhysics() {
+    if (document.visibilityState === 'visible') {
+        flushSimulationChanges();
+        accessController.applyRequested();
+        admitSimulationTime(performance.now());
+        runIdlePhysicsCatchup(synchronizedStep.epoch, false, 2 * PHYSICS_MAX_SLICE_MS);
+    } else simulationWallClock.reset();
+    runtime.timeout(pumpIndependentPhysics, 4);
+}
+
+function updateContrastPresentation() {
+    const startedAt = passiveContrastProbe?.running ? performance.now() : null;
+    const contrastShouldRender = !!contrastSystem && (
+        contrastSystem.isInjecting || contrastSystem.hasVisibleContrast()
+    );
+    if (contrastShouldRender) {
+        contrastVolumeRenderer?.setDebugMode(!fluoroscopy);
+        contrastVolumeRenderer?.update({reuseUnchanged:true});
+    } else if (contrastVolumeRenderer) {
+        contrastVolumeRenderer.group.visible = false;
+    }
+    if (startedAt !== null) contrastFrameUpdateMs += performance.now() - startedAt;
 }
 
 function animate(time) {
@@ -4730,25 +4822,7 @@ function animate(time) {
     lastRenderTime = time;
     recordBrowserFrame(frameMs);
     if (browserBenchmarkScenario.running) shortCatheterBenchmarkMetrics?.recordFrame(frameMs);
-    const compositeReady = !wholeAxisAppSystem || loadingAssetsReady() && !!endovascularWorld.contactField;
-    const physicsDt = simulationPaused || wholeAxisAppSystem && (!compositeReady || !compositePhysicsClockStarted) ||
-        !synchronizedStep.canAttempt() ? 0 : dt;
-    if (compositeReady) compositePhysicsClockStarted = true;
-    simulationAcceptedTime += physicsDt;
-    simulationAccumulator += physicsDt;
-    if (simulationAccumulator > simulationPeakBacklog) {
-        simulationPeakBacklog = simulationAccumulator;
-        if (
-            browserBenchmarkScenario.running &&
-            !browserBenchmarkScenario.warmingUp
-        ) {
-            simulationPeakBacklogScenarioMs =
-                browserBenchmarkScenario.simulationElapsedMs;
-            simulationPeakBacklogElapsedMs =
-                performance.now() - browserBenchmarkScenario.startedAt;
-            simulationPeakBacklogGuidewireMm = guidewireTransport.progress;
-        }
-    }
+    admitSimulationTime(performance.now());
     // Every shared-axis provider is cooperative. Resume its private pending
     // step within the available frame budget, irrespective of solver preset.
     const adaptiveSlices=!!sharedAxisAppSystem;
@@ -4816,16 +4890,6 @@ function animate(time) {
         for (const access of accessController.values()) if(!access.wholeAxisAppSystem)access.pigtailCatheter.updateMesh();
         framePresentationMs.catheterMesh+=performance.now()-started;
     }
-    const contrastShouldRender = !!contrastSystem && (
-        contrastSystem.isInjecting || contrastSystem.hasVisibleContrast()
-    );
-    if (contrastShouldRender) {
-        contrastVolumeRenderer?.setDebugMode(!fluoroscopy);
-        contrastVolumeRenderer?.update({reuseUnchanged:true});
-    } else if (contrastVolumeRenderer) {
-        contrastVolumeRenderer.group.visible = false;
-    }
-
     if (fluoroscopy && voxelGroup.parent !== contrastScene) {
         scene.remove(voxelGroup);
         contrastScene.add(voxelGroup);
@@ -4901,7 +4965,11 @@ function animate(time) {
             scenarioStatus.running ? null : lastBrowserBenchmarkScenarioReport
         );
     }
-    const frameUpdateEndedAt = performance.now();
+    // A live fluoroscopic image changes only at acquisition pulses. Preparing
+    // another full anatomical concentration field between pulses is discarded
+    // work; transport still advances at every committed physical step.
+    if (!fluoroscopy) updateContrastPresentation();
+    let frameUpdateEndedAt = performance.now();
     if (fluoroscopy) {
         updateAutoExposure(simulationPaused ? 0 : dt);
         updateXrayTechniqueReadout();
@@ -4923,7 +4991,10 @@ function animate(time) {
         lastFluoroPulseTime = completedSimulationTime * 1000;
         lastFluoroViewRevision = viewRevision;
         fluoroPulseIndex += 1;
+        contrastFrameAcquisitions++;
         displayMaterial.uniforms.fluoroPulseIndex.value = fluoroPulseIndex;
+        updateContrastPresentation();
+        frameUpdateEndedAt = performance.now();
 
         // Fluoroscopy path:
         // 1) render front/back depth for legacy thickness/scatter cues
@@ -4947,7 +5018,9 @@ function animate(time) {
         renderer.setRenderTarget(contrastTarget);
         renderer.setClearColor(0x000000, 0);
         renderer.clear();
+        if (passiveContrastProbe?.running) contrastGpuProbe?.begin();
         renderer.render(contrastScene, camera);
+        if (passiveContrastProbe?.running) contrastGpuProbe?.end();
         renderer.setClearColor(0x000000, 1);
 
         renderer.setRenderTarget(metalTarget);
@@ -5031,9 +5104,37 @@ function animate(time) {
 
     runtime.frame(animate);
 }
+contrastGpuProbe = createGpuTimerProbe(renderer.getContext());
+passiveContrastProbe = createPassiveContrastProbe({
+    readState: () => ({
+        acceptedSteps: simulationExecutedSteps, completedSimulationTime,
+        accumulator: simulationAccumulator, paused: simulationPaused,
+        contrastActive: !!contrastSystem && (contrastSystem.isInjecting || contrastSystem.hasVisibleContrast()),
+        failedSteps: accessController.values().reduce((sum, access) => sum + (access.sharedAxisAppSystem?.diagnostics.failedSteps ?? 0), 0),
+        recoveries: accessController.values().reduce((sum, access) => sum + (access.sharedAxisAppSystem?.diagnostics.recoveries ?? 0), 0)
+    }),
+    onUpdate: ({running, elapsedSeconds, report}) => {
+        document.getElementById('passiveContrastStart').disabled = running;
+        document.getElementById('passiveContrastStatus').textContent = running
+            ? `Pomiar: ${elapsedSeconds.toFixed(1)} / 20 s — możesz podawać kontrast i sterować narzędziami.`
+            : report ? report.valid
+                ? `Zakończono: fizyka ${report.windows.all.acceptedPhysicsHz.toFixed(1)} Hz; podczas kontrastowania ${report.windows.contrastActive.acceptedPhysicsHz.toFixed(1)} Hz.`
+                : 'Pomiar przerwany — stan symulacji zmienił się podczas pomiaru.' : 'Gotowe';
+        if (report) report.contrastGpu = contrastGpuProbe.report();
+        document.getElementById('passiveContrastReport').value = report ? JSON.stringify(report) : 'Pomiar trwa…';
+    }
+});
+runtime.listen(document.getElementById('passiveContrastStart'), 'click', () => {
+    contrastFrameUpdateMs = contrastFrameTransportMs = contrastFrameAcquisitions = 0;
+    contrastGpuProbe.reset();
+    passiveContrastProbe.start();
+});
+runtime.onDispose(() => {passiveContrastProbe.dispose(); contrastGpuProbe.dispose();});
 runtime.frame(animate);
+runtime.timeout(pumpIndependentPhysics, 4);
 
 runtime.listen(document, 'visibilitychange', () => {
+    simulationWallClock.reset();
     if (document.visibilityState === 'visible') {
         // Time spent while requestAnimationFrame is suspended is a deliberate
         // application pause, not elapsed simulation time. Preserve any real
@@ -5173,7 +5274,7 @@ if(crossoverBenchmarkMode&&!crossoverScenarioMode)import('./benchmark/crossoverA
                 document.getElementById('bloodFlowCoupling').checked=true;
                 completedSimulationTime=monitorPublishedTime=request.options.bloodFlow.time;
                 simulationExecutedSteps=simulationIdleExecutedSteps=0;simulationAcceptedTime=0;
-                simulationAccumulator=fixedDt;lastRenderTime=null;simulationCatchupPending=false;
+                simulationAccumulator=fixedDt;lastRenderTime=null;simulationWallClock.reset();simulationCatchupPending=false;
                 ui.updateInsertedLength(w.insertion/10,w.rotation);ui.updateCatheterLength(c.insertion/10,c.rotation);
                 updateWireMesh();pigtailCatheter.updateMesh();resolve(sharedAxisAppSystem.whenReady?.());
             }catch(error){reject(error);}
@@ -5231,7 +5332,7 @@ if(crossoverScenarioMode)import('./benchmark/crossoverScenarioPanel.js').then(as
                 if(configuration){contrastSystem.setHemodynamics(configuration.flow.parameters);document.getElementById('bloodFlowCoupling').checked=configuration.flow.enabled;}
                 contrastSystem.flowNetwork.time=0;completedSimulationTime=monitorPublishedTime=0;
                 simulationExecutedSteps=simulationIdleExecutedSteps=0;simulationAcceptedTime=0;
-                simulationAccumulator=0;lastRenderTime=null;simulationCatchupPending=false;
+                simulationAccumulator=0;lastRenderTime=null;simulationWallClock.reset();simulationCatchupPending=false;
                 ui.updateInsertedLength(0,0);ui.updateCatheterLength(0,0);
                 // Activate synchronously at this boundary, before any zero-tool
                 // step can escape recording while a Promise continuation waits.

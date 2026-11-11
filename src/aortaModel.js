@@ -164,7 +164,7 @@ function createAssetPreprocessing(contactField, geometry, transform) {
     };
 }
 
-export function createAortaModel(vessel, { onLoaded, onError, signal, anatomy = resolveAnatomyVariant() } = {}) {
+export function createAortaModel(vessel, { onLoaded, onError, onStage, signal, anatomy = resolveAnatomyVariant() } = {}) {
     const group = new THREE.Group();
     group.visible = false;
 
@@ -182,6 +182,7 @@ export function createAortaModel(vessel, { onLoaded, onError, signal, anatomy = 
     ]).then(async ([sourceBuffer, collisionBuffer]) => {
             const [sourceHash] = await Promise.all([bufferHash(sourceBuffer)]);
             if (signal?.aborted) return;
+            onStage?.('Parsing vessel anatomy');
             const geometry = new STLLoader().parse(sourceBuffer);
             // STLLoader has copied the vertices/normals. The source file is
             // no longer needed by hashing, rendering or collision detection.
@@ -189,9 +190,11 @@ export function createAortaModel(vessel, { onLoaded, onError, signal, anatomy = 
             const transform = transformAortaGeometry(geometry, vessel);
             const asset = decodeCollisionAsset(collisionBuffer);
             validateCollisionAsset(asset, sourceHash, transform);
+            onStage?.('Building vessel collision geometry');
             geometry.computeVertexNormals();
             geometry.computeBoundingSphere();
             geometry.boundsTree = new MeshBVH(geometry);
+            onStage?.('Building vessel contact field');
             const contactField = new VesselContactField(asset, {
                 fallbackGeometry: geometry,
                 bvhValidationDistance: 0.02,
@@ -218,7 +221,7 @@ export function createAortaModel(vessel, { onLoaded, onError, signal, anatomy = 
             };
 
             if (typeof onLoaded === 'function') {
-                onLoaded({ group, mesh, geometry, collision, preprocessing, scale: transform.scale });
+                await onLoaded({ group, mesh, geometry, collision, preprocessing, scale: transform.scale });
             }
         }).catch(error => {
             if (signal?.aborted) return;

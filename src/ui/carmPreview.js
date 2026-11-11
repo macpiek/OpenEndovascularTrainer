@@ -3,6 +3,7 @@ import { createCArmModel } from './carmModel.js';
 import { createOperatingTable } from './operatingTable.js';
 import { createCArmPreviewFramer } from './carmPreviewFraming.js';
 import { disposeThreeResources } from '../disposeThreeResources.js';
+import { startupDiagnostics } from '../startupDiagnostics.js';
 
 let previewScene;
 let previewCamera;
@@ -48,6 +49,7 @@ export function initCArmPreview() {
     previewCamera.lookAt(PREVIEW_CAMERA_TARGET);
     previewScene.add(previewCamera);
 
+    startupDiagnostics.mark('Creating C-arm preview graphics context');
     previewRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     previewRenderer.setSize(width, height, false);
     previewRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -61,6 +63,7 @@ export function initCArmPreview() {
     });
     previewResizeObserver.observe(viewport);
 
+    startupDiagnostics.mark('Building C-arm preview geometry');
     cArmTable = createOperatingTable();
     previewScene.add(cArmTable);
 
@@ -74,7 +77,9 @@ export function initCArmPreview() {
     fitPreviewCamera = createCArmPreviewFramer(previewCamera, [cArmGroup, cArmTable]);
 
     // Render once so the preview displays immediately.
+    startupDiagnostics.mark('Rendering first C-arm preview');
     renderCArmPreview();
+    startupDiagnostics.mark('C-arm preview ready');
     return {
         group: cArmGroup,
         gantry: cArmGantry,

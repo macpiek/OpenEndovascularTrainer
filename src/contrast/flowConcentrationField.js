@@ -89,36 +89,41 @@ export class FlowConcentrationField {
             const node = this.nodes[n];
             let weighted = 0,
                 total = 0;
-            if (node.parentEdgeIndex >= 0) {
-                const edge = this.edges[node.parentEdgeIndex],
-                    i = edge.cellCount - 1;
-                if (!edge.transportExcluded) {
-                    const weight = edge.areas[i] / edge.cellLength;
-                    weighted += source[this.offsets[edge.index] + i] * weight;
-                    total += weight;
-                }
-            }
-            for (const childIndex of node.childEdgeIndices) {
-                const edge = this.edges[childIndex];
-                if (edge.transportExcluded) continue;
-                const weight = edge.areas[0] / edge.cellLength;
-                weighted += source[this.offsets[childIndex]] * weight;
-                total += weight;
-            }
             if (node.parentEdgeIndex >= 0 && node.childEdgeIndices.length > 1 && this.network.getFaceSignedFlowMm3PerS) {
                 // At a true confluence/fork the blood mixture is weighted by
                 // actual inflow, including reflux. Weighting by cell length
                 // makes the apparent dilution depend on atlas fragmentation.
-                let inflow = 0, iodineFlux = 0;
-                const add = (edgeIndex, atEnd) => {
-                    const e = this.edges[edgeIndex], cell = atEnd ? e.cellCount - 1 : 0;
-                    if (e.transportExcluded) return;
-                    const q = (atEnd ? 1 : -1) * this.network.getFaceSignedFlowMm3PerS(edgeIndex, atEnd ? e.cellCount : 0, waveform);
-                    if (q > 0) {inflow += q; iodineFlux += q * source[this.offsets[edgeIndex] + cell];}
-                };
-                add(node.parentEdgeIndex, true);
-                for (const child of node.childEdgeIndices) add(child, false);
-                if (inflow > 0) {weighted = iodineFlux; total = inflow;}
+                // Compute this authoritative mixture first: the geometric
+                // fallback was previously calculated and then overwritten at
+                // every flowing fork, with one temporary closure per node.
+                const parent = this.edges[node.parentEdgeIndex];
+                if (!parent.transportExcluded) {
+                    const q = this.network.getFaceSignedFlowMm3PerS(parent.index, parent.cellCount, waveform);
+                    if (q > 0) {total += q; weighted += q * source[this.offsets[parent.index] + parent.cellCount - 1];}
+                }
+                for (const childIndex of node.childEdgeIndices) {
+                    const child = this.edges[childIndex];
+                    if (child.transportExcluded) continue;
+                    const q = -this.network.getFaceSignedFlowMm3PerS(childIndex, 0, waveform);
+                    if (q > 0) {total += q; weighted += q * source[this.offsets[childIndex]];}
+                }
+            }
+            if (!(total > 0)) {
+                if (node.parentEdgeIndex >= 0) {
+                    const edge = this.edges[node.parentEdgeIndex], i = edge.cellCount - 1;
+                    if (!edge.transportExcluded) {
+                        const weight = edge.areas[i] / edge.cellLength;
+                        weighted += source[this.offsets[edge.index] + i] * weight;
+                        total += weight;
+                    }
+                }
+                for (const childIndex of node.childEdgeIndices) {
+                    const edge = this.edges[childIndex];
+                    if (edge.transportExcluded) continue;
+                    const weight = edge.areas[0] / edge.cellLength;
+                    weighted += source[this.offsets[childIndex]] * weight;
+                    total += weight;
+                }
             }
             this.values[this.cellCount + n] = total > 0 ? weighted / total : 0;
         }

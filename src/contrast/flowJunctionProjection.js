@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import {createFlowColumnRayCandidates} from './flowColumnRayCandidates.js';
+import {createColumnJunctionMixing} from './columnJunctionMixing.js';
 
 function makeTexture(records) {
     const width = Math.min(2048, Math.max(1, Math.ceil(Math.sqrt(records.length / 4))));
@@ -13,7 +15,8 @@ function makeTexture(records) {
 // Geometry-local concentration support. Surface territory labels cannot decide
 // whether a visible ray contains a daughter: a complete small ostium may have
 // both boundary triangles assigned to its larger parent.
-export function createFlowJunctionProjection(network, integral, territories, spatial) {
+export function createFlowJunctionProjection(network, integral, territories, spatial, junctionField = null) {
+    const shared = createColumnJunctionMixing(network, integral, territories, junctionField);
     const components = new Int32Array(network.edges.length).fill(-1);
     const maxRadii = new Float32Array(network.edges.length);
     for (const edge of network.edges) if (territories[edge.index] >= 0) {
@@ -41,7 +44,7 @@ export function createFlowJunctionProjection(network, integral, territories, spa
         const radius = Math.max(...arms.map(edge => Math.max(edge.radiusStart, edge.radiusEnd)));
         const reach = 3 * radius + .25, center = node.point ?? parent.end;
         const first = leaves.length / 4, root = component(territories[parent.index]);
-        leaves.push(seeds.size, root, radius, 0);
+        leaves.push(seeds.size, root, radius, (shared.indexByParent.get(parent.index) ?? -1) + 1);
         for (const [path, s] of seeds) leaves.push(path, s, 0, 0);
         junctions.push({min: [center.x - reach, center.y - reach, center.z - reach],
             max: [center.x + reach, center.y + reach, center.z + reach], first, root, seeds});
@@ -82,7 +85,13 @@ export function createFlowJunctionProjection(network, integral, territories, spa
         leaves[path * 4] = leaves.length / 4; leaves[path * 4 + 1] = refs.length;
         for (const reference of refs) leaves.push(...reference);
     }
-    const boundsTexture = makeTexture(bounds), recordsTexture = makeTexture(leaves);
+    const rayCandidates = createFlowColumnRayCandidates(spatial);
+    const rayNodeOffset = leaves.length / 4;
+    const sharedOffset = (leaves.length + rayCandidates.data.length) / 4;
+    const combined = new Float32Array(leaves.length + rayCandidates.data.length + shared.records.length);
+    combined.set(leaves); combined.set(rayCandidates.data, leaves.length);
+    combined.set(shared.records, sharedOffset * 4);
+    const boundsTexture = makeTexture(bounds), recordsTexture = makeTexture(combined);
     const records = recordsTexture.image.data;
     const connected = (first, a, b) => records[first * 4 + 1] === components[a] || records[first * 4 + 1] === components[b];
     function segmentHits(entry, exit, node) {
@@ -106,6 +115,21 @@ export function createFlowJunctionProjection(network, integral, territories, spa
             index++;
         }
         return false;
+    }
+    function rayCache(entry, exit, a, b = a, limit = 16) {
+        const junctionNodes = [];
+        for (let index = 0; index < nodes.length;) {
+            const node = nodes[index];
+            if (!segmentHits(entry, exit, node)) {index = node.escape; continue;}
+            if (node.first >= 0 && connected(node.first, a, b)) {
+                junctionNodes.push(index);
+                if (junctionNodes.length > limit) return {valid: false};
+            }
+            index++;
+        }
+        const candidates = rayCandidates.query(entry, exit, {limit, accept: path =>
+            path !== a && path !== b && (components[path] === components[a] || components[path] === components[b])});
+        return {valid: !candidates.overflow, junctionNodes, paths: candidates.paths};
     }
     const sample = {};
     const taper = (point, node) => {
@@ -132,11 +156,13 @@ export function createFlowJunctionProjection(network, integral, territories, spa
         if (count < 2) secondSeed = seed;
         return {alpha, firstActive, seed, secondSeed};
     }
-    function pointValue(point, a, sa, b, sb, result = null) {
+    function pointValue(point, a, sa, b, sb, result = null, cache = null) {
         const choices = new Map([[a, {seed: sa, own: true}]]);
         if (b !== a) choices.set(b, {seed: sb, own: true});
-        let beta = 0, localRadius = 0;
-        for (let index = 0; index < nodes.length;) {
+        let beta = 0, localRadius = 0, sharedWeighted = 0, sharedTotal = 0, remaining = 1;
+        let cursor = 0;
+        for (let index = 0; cache?.valid ? cursor < cache.junctionNodes.length : index < nodes.length;) {
+            if (cache?.valid) index = cache.junctionNodes[cursor++];
             const node = nodes[index];
             if ([0, 1, 2].some(axis => point.getComponent(axis) < node.min[axis] || point.getComponent(axis) > node.max[axis])) {
                 index = node.escape; continue;
@@ -145,14 +171,23 @@ export function createFlowJunctionProjection(network, integral, territories, spa
                 const weight = taper(point, node);
                 if (weight > 0) {
                     beta = Math.max(beta, weight); localRadius = Math.max(localRadius, weight * records[node.first * 4 + 2]);
+                    const common = records[node.first * 4 + 3] - 1;
+                    if (common >= 0 && shared.hasPath(common, a, b)) {
+                        const value = shared.sample(common, point), amount = weight * value.blend;
+                        sharedWeighted += amount * value.value; sharedTotal += amount; remaining *= 1 - amount;
+                    }
                     const count = records[node.first * 4];
                     for (let incident = 0; incident < count; incident++) {
                         const at = (node.first + 1 + incident) * 4, path = records[at];
-                        if (!choices.has(path)) choices.set(path, {seed: records[at + 1], own: false});
+                        if ((!cache?.valid || cache.paths.has(path)) && !choices.has(path)) choices.set(path, {seed: records[at + 1], own: false});
                     }
                 }
             }
             index++;
+        }
+        if (remaining === 0) {
+            if (result) {result.owner = -1; result.support = beta;}
+            return sharedWeighted / sharedTotal;
         }
         const width = Math.max(.08, Math.min(1.2, .2 * localRadius));
         let best = Infinity, owner = a;
@@ -181,16 +216,18 @@ export function createFlowJunctionProjection(network, integral, territories, spa
             if (weight > 0) {weighted += weight * integral.sample(path, choice.coordinate); total += weight;}
         }
         if (result) {result.owner = owner; result.support = beta;}
-        return total > 0 ? weighted / total : 0;
+        const baseline = total > 0 ? weighted / total : 0;
+        return sharedTotal > 0 ? baseline * remaining + sharedWeighted / sharedTotal * (1 - remaining) : baseline;
     }
     function average(a, sa, b, sb, entry, exit) {
         let baseline;
         const baseTotal = () => baseline ??= a === b ? integral.average(a, sa, sb) : spatial.spatialAverage(a, sa, b, sb, entry, exit);
         if (!hasSupport(entry, exit, a, b)) return baseTotal();
+        const cache = rayCache(entry, exit, a, b);
         const point = new THREE.Vector3();
         const evaluate = t => {
             point.copy(entry).lerp(exit, t);
-            const state = {}, concentration = pointValue(point, a, sa, b, sb, state);
+            const state = {}, concentration = pointValue(point, a, sa, b, sb, state, cache);
             return [concentration, state.owner, state.support];
         };
         const base = (lo, hi) => a === b ? integral.average(a, sa + (sb - sa) * lo, sa + (sb - sa) * hi) : baseTotal();
@@ -213,6 +250,7 @@ export function createFlowJunctionProjection(network, integral, territories, spa
         return sum;
     }
     return {junctions, nodes, components, maxRadii, boundsTexture, recordsTexture, hasSupport, pointValue, average,
-        memoryBytes: boundsTexture.image.data.byteLength + recordsTexture.image.data.byteLength,
-        dispose() {boundsTexture.dispose(); recordsTexture.dispose();}};
+        rayCandidates, rayNodeOffset, rayCache, shared, sharedOffset,
+        memoryBytes: boundsTexture.image.data.byteLength + recordsTexture.image.data.byteLength + shared.memoryBytes,
+        dispose() {boundsTexture.dispose(); recordsTexture.dispose(); shared.dispose();}};
 }

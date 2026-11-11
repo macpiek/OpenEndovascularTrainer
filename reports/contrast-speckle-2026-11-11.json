@@ -1,0 +1,787 @@
+{
+  "date": "2026-11-11",
+  "issue": "Bright interior pinholes in contrasted vessels caused by float32 cancellation in the combined inverse projection/view matrix.",
+  "change": "Perform homogeneous division in camera coordinates, then transform origin and direction to local anatomy coordinates separately.",
+  "validation": {
+    "gpu_fixture": "tests/contrastSpeckle.browser.html?size=512",
+    "views": 12,
+    "resolution": [
+      512,
+      512
+    ],
+    "near": 0.1,
+    "far": 2000,
+    "summary": {
+      "productionEmpty": 0,
+      "productionShort": 0,
+      "productionWorstP95": 0.0007286706737875772,
+      "legacyEmpty": 1010,
+      "legacyShort": 1010,
+      "legacyWorstP95": 0.017277127003811673
+    },
+    "column_regressions": "Axial bolus, disconnected overlapping vessels and actual anterior ostium GPU fixture passed; no empty interior pixels or signal outside lumen.",
+    "node_tests": "18 focused projection, raster, diagnostic and camera precision checks passed.",
+    "build": "npm run build passed",
+    "full_simulator": "20 ml sheath injection at 15 ml/s inspected with detector noise 0.1. Speckles absent; no console errors captured. Paused contrast frame saved.",
+    "performance": "This change corrects ray accuracy; it does not establish sustained 60 FPS during contrast."
+  },
+  "cases": [
+    {
+      "name": "origin, 0\u00b0, orthographic",
+      "triangles": 32892,
+      "cachedRaster": true,
+      "gpuReadbackMs": 70,
+      "interior": 16188,
+      "empty": 0,
+      "short": 0,
+      "outside": 0,
+      "p95RelativeError": 0.0007078324346521893,
+      "firstFailures": [],
+      "legacyCombinedInverse": {
+        "interior": 16188,
+        "empty": 0,
+        "short": 0,
+        "outside": 0,
+        "p95RelativeError": 0.0007072683023444474,
+        "firstFailures": [],
+        "gpuReadbackMs": 45.70000000298023
+      },
+      "variants": {}
+    },
+    {
+      "name": "origin, 0\u00b0, perspective",
+      "triangles": 32892,
+      "cachedRaster": true,
+      "gpuReadbackMs": 19.600000008940697,
+      "interior": 16509,
+      "empty": 0,
+      "short": 0,
+      "outside": 0,
+      "p95RelativeError": 0.0007038427849559545,
+      "firstFailures": [],
+      "legacyCombinedInverse": {
+        "interior": 16509,
+        "empty": 0,
+        "short": 0,
+        "outside": 1,
+        "p95RelativeError": 0.001368963491964613,
+        "firstFailures": [],
+        "gpuReadbackMs": 12.200000002980232
+      },
+      "variants": {}
+    },
+    {
+      "name": "origin, 31\u00b0, perspective",
+      "triangles": 32892,
+      "cachedRaster": true,
+      "gpuReadbackMs": 22.899999991059303,
+      "interior": 15017,
+      "empty": 0,
+      "short": 0,
+      "outside": 0,
+      "p95RelativeError": 0.0006853003042584978,
+      "firstFailures": [],
+      "legacyCombinedInverse": {
+        "interior": 15017,
+        "empty": 9,
+        "short": 9,
+        "outside": 0,
+        "p95RelativeError": 0.0035738758084524836,
+        "firstFailures": [
+          {
+            "x": 131,
+            "y": 77,
+            "actual": 0,
+            "expected": 3.3379769325256348
+          },
+          {
+            "x": 130,
+            "y": 81,
+            "actual": 0,
+            "expected": 2.8301098346710205
+          },
+          {
+            "x": 166,
+            "y": 150,
+            "actual": 0,
+            "expected": 3.0578689575195312
+          },
+          {
+            "x": 138,
+            "y": 157,
+            "actual": 0,
+            "expected": 3.2715842723846436
+          },
+          {
+            "x": 139,
+            "y": 163,
+            "actual": 0,
+            "expected": 2.807551860809326
+          },
+          {
+            "x": 140,
+            "y": 166,
+            "actual": 0,
+            "expected": 2.856086492538452
+          },
+          {
+            "x": 162,
+            "y": 210,
+            "actual": 0,
+            "expected": 3.359091281890869
+          },
+          {
+            "x": 177,
+            "y": 231,
+            "actual": 0,
+            "expected": 2.57104229927063
+          },
+          {
+            "x": 272,
+            "y": 345,
+            "actual": 0,
+            "expected": 2.2162396907806396
+          }
+        ],
+        "gpuReadbackMs": 12.400000005960464
+      },
+      "variants": {}
+    },
+    {
+      "name": "origin, 45\u00b0, perspective",
+      "triangles": 32892,
+      "cachedRaster": true,
+      "gpuReadbackMs": 24.100000008940697,
+      "interior": 14180,
+      "empty": 0,
+      "short": 0,
+      "outside": 0,
+      "p95RelativeError": 0.0007005311979647577,
+      "firstFailures": [],
+      "legacyCombinedInverse": {
+        "interior": 14180,
+        "empty": 0,
+        "short": 0,
+        "outside": 0,
+        "p95RelativeError": 0.001117464955193228,
+        "firstFailures": [],
+        "gpuReadbackMs": 11.5
+      },
+      "variants": {}
+    },
+    {
+      "name": "origin, 79\u00b0, perspective",
+      "triangles": 32892,
+      "cachedRaster": true,
+      "gpuReadbackMs": 410.70000000298023,
+      "interior": 12769,
+      "empty": 0,
+      "short": 0,
+      "outside": 0,
+      "p95RelativeError": 0.0007286706737875772,
+      "firstFailures": [],
+      "legacyCombinedInverse": {
+        "interior": 12769,
+        "empty": 0,
+        "short": 0,
+        "outside": 0,
+        "p95RelativeError": 0.0012108322532322507,
+        "firstFailures": [],
+        "gpuReadbackMs": 2451.5
+      },
+      "variants": {}
+    },
+    {
+      "name": "origin, 150\u00b0, perspective",
+      "triangles": 32892,
+      "cachedRaster": true,
+      "gpuReadbackMs": 24.799999997019768,
+      "interior": 14926,
+      "empty": 0,
+      "short": 0,
+      "outside": 0,
+      "p95RelativeError": 0.0006989355747283508,
+      "firstFailures": [],
+      "legacyCombinedInverse": {
+        "interior": 14926,
+        "empty": 168,
+        "short": 168,
+        "outside": 0,
+        "p95RelativeError": 0.013362611126344568,
+        "firstFailures": [
+          {
+            "x": 369,
+            "y": 76,
+            "actual": 0,
+            "expected": 2.9717154502868652
+          },
+          {
+            "x": 370,
+            "y": 77,
+            "actual": 0,
+            "expected": 2.4110267162323
+          },
+          {
+            "x": 340,
+            "y": 81,
+            "actual": 0,
+            "expected": 2.2536234855651855
+          },
+          {
+            "x": 342,
+            "y": 82,
+            "actual": 0,
+            "expected": 3.7653911113739014
+          },
+          {
+            "x": 357,
+            "y": 83,
+            "actual": 0,
+            "expected": 6.201892852783203
+          },
+          {
+            "x": 349,
+            "y": 84,
+            "actual": 0,
+            "expected": 5.668601036071777
+          },
+          {
+            "x": 341,
+            "y": 85,
+            "actual": 0,
+            "expected": 2.723867893218994
+          },
+          {
+            "x": 345,
+            "y": 85,
+            "actual": 0,
+            "expected": 4.6609272956848145
+          },
+          {
+            "x": 371,
+            "y": 85,
+            "actual": 0,
+            "expected": 3.049525260925293
+          },
+          {
+            "x": 342,
+            "y": 86,
+            "actual": 0,
+            "expected": 3.236335277557373
+          },
+          {
+            "x": 351,
+            "y": 86,
+            "actual": 0,
+            "expected": 5.894012928009033
+          },
+          {
+            "x": 372,
+            "y": 86,
+            "actual": 0,
+            "expected": 2.471299648284912
+          }
+        ],
+        "gpuReadbackMs": 14.200000002980232
+      },
+      "variants": {}
+    },
+    {
+      "name": "translated, 0\u00b0, orthographic",
+      "triangles": 32892,
+      "cachedRaster": true,
+      "gpuReadbackMs": 47.5,
+      "interior": 16188,
+      "empty": 0,
+      "short": 0,
+      "outside": 0,
+      "p95RelativeError": 0.0007070904714018557,
+      "firstFailures": [],
+      "legacyCombinedInverse": {
+        "interior": 16188,
+        "empty": 0,
+        "short": 0,
+        "outside": 0,
+        "p95RelativeError": 0.0007072455494528281,
+        "firstFailures": [],
+        "gpuReadbackMs": 32.79999999701977
+      },
+      "variants": {}
+    },
+    {
+      "name": "translated, 0\u00b0, perspective",
+      "triangles": 32892,
+      "cachedRaster": true,
+      "gpuReadbackMs": 18.100000008940697,
+      "interior": 16509,
+      "empty": 0,
+      "short": 0,
+      "outside": 0,
+      "p95RelativeError": 0.0007030054229284212,
+      "firstFailures": [],
+      "legacyCombinedInverse": {
+        "interior": 16509,
+        "empty": 213,
+        "short": 213,
+        "outside": 1,
+        "p95RelativeError": 0.01550613540909584,
+        "firstFailures": [
+          {
+            "x": 117,
+            "y": 53,
+            "actual": 0,
+            "expected": 4.385634422302246
+          },
+          {
+            "x": 122,
+            "y": 54,
+            "actual": 0,
+            "expected": 4.607020378112793
+          },
+          {
+            "x": 109,
+            "y": 55,
+            "actual": 0,
+            "expected": 2.8680551052093506
+          },
+          {
+            "x": 111,
+            "y": 55,
+            "actual": 0,
+            "expected": 3.8397438526153564
+          },
+          {
+            "x": 108,
+            "y": 56,
+            "actual": 0,
+            "expected": 2.2855772972106934
+          },
+          {
+            "x": 118,
+            "y": 57,
+            "actual": 0,
+            "expected": 5.5915985107421875
+          },
+          {
+            "x": 138,
+            "y": 57,
+            "actual": 0,
+            "expected": 3.1165449619293213
+          },
+          {
+            "x": 132,
+            "y": 58,
+            "actual": 0,
+            "expected": 5.4897871017456055
+          },
+          {
+            "x": 139,
+            "y": 58,
+            "actual": 0,
+            "expected": 3.6569430828094482
+          },
+          {
+            "x": 140,
+            "y": 58,
+            "actual": 0,
+            "expected": 3.1771228313446045
+          },
+          {
+            "x": 113,
+            "y": 59,
+            "actual": 0,
+            "expected": 4.692049503326416
+          },
+          {
+            "x": 123,
+            "y": 59,
+            "actual": 0,
+            "expected": 5.9984893798828125
+          }
+        ],
+        "gpuReadbackMs": 11.799999997019768
+      },
+      "variants": {}
+    },
+    {
+      "name": "translated, 31\u00b0, perspective",
+      "triangles": 32892,
+      "cachedRaster": true,
+      "gpuReadbackMs": 22.799999997019768,
+      "interior": 15017,
+      "empty": 0,
+      "short": 0,
+      "outside": 0,
+      "p95RelativeError": 0.0006848916998313749,
+      "firstFailures": [],
+      "legacyCombinedInverse": {
+        "interior": 15017,
+        "empty": 214,
+        "short": 214,
+        "outside": 0,
+        "p95RelativeError": 0.0157376863412452,
+        "firstFailures": [
+          {
+            "x": 166,
+            "y": 150,
+            "actual": 0,
+            "expected": 3.057861566543579
+          },
+          {
+            "x": 138,
+            "y": 157,
+            "actual": 0,
+            "expected": 3.2715752124786377
+          },
+          {
+            "x": 139,
+            "y": 163,
+            "actual": 0,
+            "expected": 2.807563304901123
+          },
+          {
+            "x": 142,
+            "y": 163,
+            "actual": 0,
+            "expected": 4.382503509521484
+          },
+          {
+            "x": 140,
+            "y": 166,
+            "actual": 0,
+            "expected": 2.8560891151428223
+          },
+          {
+            "x": 168,
+            "y": 167,
+            "actual": 0,
+            "expected": 4.97590446472168
+          },
+          {
+            "x": 143,
+            "y": 169,
+            "actual": 0,
+            "expected": 4.011192798614502
+          },
+          {
+            "x": 143,
+            "y": 174,
+            "actual": 0,
+            "expected": 3.0246753692626953
+          },
+          {
+            "x": 145,
+            "y": 174,
+            "actual": 0,
+            "expected": 4.124825477600098
+          },
+          {
+            "x": 148,
+            "y": 175,
+            "actual": 0,
+            "expected": 5.087844371795654
+          },
+          {
+            "x": 172,
+            "y": 175,
+            "actual": 0,
+            "expected": 4.961263656616211
+          },
+          {
+            "x": 175,
+            "y": 176,
+            "actual": 0,
+            "expected": 3.9533045291900635
+          }
+        ],
+        "gpuReadbackMs": 10.200000002980232
+      },
+      "variants": {}
+    },
+    {
+      "name": "translated, 45\u00b0, perspective",
+      "triangles": 32892,
+      "cachedRaster": true,
+      "gpuReadbackMs": 21.799999997019768,
+      "interior": 14180,
+      "empty": 0,
+      "short": 0,
+      "outside": 0,
+      "p95RelativeError": 0.0006995796249292001,
+      "firstFailures": [],
+      "legacyCombinedInverse": {
+        "interior": 14180,
+        "empty": 94,
+        "short": 94,
+        "outside": 0,
+        "p95RelativeError": 0.010990506715592088,
+        "firstFailures": [
+          {
+            "x": 188,
+            "y": 165,
+            "actual": 0,
+            "expected": 3.2879014015197754
+          },
+          {
+            "x": 192,
+            "y": 178,
+            "actual": 0,
+            "expected": 3.8281779289245605
+          },
+          {
+            "x": 165,
+            "y": 189,
+            "actual": 0,
+            "expected": 2.598994255065918
+          },
+          {
+            "x": 173,
+            "y": 195,
+            "actual": 0,
+            "expected": 5.721560955047607
+          },
+          {
+            "x": 199,
+            "y": 196,
+            "actual": 0,
+            "expected": 4.951369285583496
+          },
+          {
+            "x": 175,
+            "y": 199,
+            "actual": 0,
+            "expected": 5.884281158447266
+          },
+          {
+            "x": 181,
+            "y": 204,
+            "actual": 0,
+            "expected": 6.934868812561035
+          },
+          {
+            "x": 184,
+            "y": 206,
+            "actual": 0,
+            "expected": 7.330738067626953
+          },
+          {
+            "x": 206,
+            "y": 207,
+            "actual": 0,
+            "expected": 4.885366439819336
+          },
+          {
+            "x": 179,
+            "y": 209,
+            "actual": 0,
+            "expected": 5.794744491577148
+          },
+          {
+            "x": 213,
+            "y": 214,
+            "actual": 0,
+            "expected": 3.364488363265991
+          },
+          {
+            "x": 216,
+            "y": 218,
+            "actual": 0,
+            "expected": 3.2692933082580566
+          }
+        ],
+        "gpuReadbackMs": 10.100000008940697
+      },
+      "variants": {}
+    },
+    {
+      "name": "translated, 79\u00b0, perspective",
+      "triangles": 32892,
+      "cachedRaster": true,
+      "gpuReadbackMs": 17.099999994039536,
+      "interior": 12769,
+      "empty": 0,
+      "short": 0,
+      "outside": 0,
+      "p95RelativeError": 0.0007282379588537985,
+      "firstFailures": [],
+      "legacyCombinedInverse": {
+        "interior": 12769,
+        "empty": 77,
+        "short": 77,
+        "outside": 0,
+        "p95RelativeError": 0.01048058581626733,
+        "firstFailures": [
+          {
+            "x": 238,
+            "y": 101,
+            "actual": 0,
+            "expected": 3.4591052532196045
+          },
+          {
+            "x": 212,
+            "y": 104,
+            "actual": 0,
+            "expected": 3.0905988216400146
+          },
+          {
+            "x": 240,
+            "y": 105,
+            "actual": 0,
+            "expected": 2.4313929080963135
+          },
+          {
+            "x": 238,
+            "y": 109,
+            "actual": 0,
+            "expected": 3.9407355785369873
+          },
+          {
+            "x": 240,
+            "y": 118,
+            "actual": 0,
+            "expected": 3.4937691688537598
+          },
+          {
+            "x": 215,
+            "y": 130,
+            "actual": 0,
+            "expected": 3.1336610317230225
+          },
+          {
+            "x": 242,
+            "y": 136,
+            "actual": 0,
+            "expected": 3.580251693725586
+          },
+          {
+            "x": 241,
+            "y": 146,
+            "actual": 0,
+            "expected": 4.615350723266602
+          },
+          {
+            "x": 218,
+            "y": 151,
+            "actual": 0,
+            "expected": 3.7860209941864014
+          },
+          {
+            "x": 218,
+            "y": 170,
+            "actual": 0,
+            "expected": 2.8281357288360596
+          },
+          {
+            "x": 220,
+            "y": 176,
+            "actual": 0,
+            "expected": 4.136988162994385
+          },
+          {
+            "x": 247,
+            "y": 180,
+            "actual": 0,
+            "expected": 3.7045252323150635
+          }
+        ],
+        "gpuReadbackMs": 10
+      },
+      "variants": {}
+    },
+    {
+      "name": "translated, 150\u00b0, perspective",
+      "triangles": 32892,
+      "cachedRaster": true,
+      "gpuReadbackMs": 23.700000002980232,
+      "interior": 14926,
+      "empty": 0,
+      "short": 0,
+      "outside": 0,
+      "p95RelativeError": 0.0006972688583217491,
+      "firstFailures": [],
+      "legacyCombinedInverse": {
+        "interior": 14926,
+        "empty": 235,
+        "short": 235,
+        "outside": 0,
+        "p95RelativeError": 0.017277127003811673,
+        "firstFailures": [
+          {
+            "x": 369,
+            "y": 73,
+            "actual": 0,
+            "expected": 2.3849778175354004
+          },
+          {
+            "x": 343,
+            "y": 155,
+            "actual": 0,
+            "expected": 3.533266305923462
+          },
+          {
+            "x": 370,
+            "y": 155,
+            "actual": 0,
+            "expected": 4.3565216064453125
+          },
+          {
+            "x": 346,
+            "y": 160,
+            "actual": 0,
+            "expected": 5.3132781982421875
+          },
+          {
+            "x": 371,
+            "y": 162,
+            "actual": 0,
+            "expected": 2.8899989128112793
+          },
+          {
+            "x": 342,
+            "y": 166,
+            "actual": 0,
+            "expected": 4.822154521942139
+          },
+          {
+            "x": 369,
+            "y": 168,
+            "actual": 0,
+            "expected": 3.0213911533355713
+          },
+          {
+            "x": 340,
+            "y": 170,
+            "actual": 0,
+            "expected": 4.749004364013672
+          },
+          {
+            "x": 333,
+            "y": 175,
+            "actual": 0,
+            "expected": 2.502685308456421
+          },
+          {
+            "x": 361,
+            "y": 176,
+            "actual": 0,
+            "expected": 5.144485950469971
+          },
+          {
+            "x": 336,
+            "y": 177,
+            "actual": 0,
+            "expected": 4.6287078857421875
+          },
+          {
+            "x": 339,
+            "y": 177,
+            "actual": 0,
+            "expected": 5.463259220123291
+          }
+        ],
+        "gpuReadbackMs": 13.599999994039536
+      },
+      "variants": {}
+    }
+  ]
+}

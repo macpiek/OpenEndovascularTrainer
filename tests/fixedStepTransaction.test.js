@@ -1,5 +1,6 @@
 import {createSynchronizedStep} from '../src/physics/synchronizedStep.js';
 import {runPhysicsFrameBudget,runPhysicsIdleBudget} from '../src/physics/physicsFrameBudget.js';
+import {createSimulationWallClock} from '../src/physics/simulationWallClock.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
@@ -128,7 +129,7 @@ function schedulerHarness(outcomes,{shared=false,fixedDt=dt,sliceMs=1,realtime=f
         fixedDt,WIRE60_BENCHMARK_MODE:'wire60-catheter',FULL_CYCLE_BENCHMARK_MODE:'full-cycle-60hz',MAX_PHYSICS_STEPS_PER_FRAME:2,MAX_IDLE_PHYSICS_STEPS:6,
         TARGET_RENDER_FRAME_MS:1000/60,PHYSICS_IDLE_GUARD_MS:.75,PHYSICS_RENDER_RESERVE_MS:3.5,
         PHYSICS_MIN_SLICE_MS:.5,PHYSICS_MAX_SLICE_MS:4,simulationRenderReserveMs:3.5,sliceBudgets:[],
-        lastRenderTime:null,simulationAccumulator:0,simulationPeakBacklog:0,simulationPeakBacklogScenarioMs:0,
+        lastRenderTime:null,simulationWallClock:createSimulationWallClock(),simulationAccumulator:0,simulationPeakBacklog:0,simulationPeakBacklogScenarioMs:0,
         simulationPeakBacklogElapsedMs:0,simulationPeakBacklogGuidewireMm:0,
         simulationExecutedSteps:0,simulationIdleExecutedSteps:0,simulationAcceptedTime:0,
         simulationStepEstimateMs:1,simulationCatchupPending:false,simulationLastAttempt:null,
@@ -178,7 +179,10 @@ test('actual scheduler pauses terminal failures without accumulating catch-up de
     s.frame(60000);assert.equal(s.world.attempts,1);assert.equal(s.simulationAccumulator,.02);
     assert.match(s.compositeStatus.textContent,/ruch odrzucony/);
     assert.equal(s.simulationAcceptedTime,.02);
-    command=1;s.frame(60020);
+    command=1;
+    // The independent clock observes the input-resume boundary before the
+    // next rendered frame; the preceding blocked minute remains excluded.
+    s.admitSimulationTime(s.performance.now());s.frame(60020);
     assert.equal(s.world.stepCount,2);assert.equal(s.commits,2);assert.equal(s.contrastTime,2*fixedDt);
     assert.ok(s.simulationAccumulator<fixedDt);
 });
@@ -200,7 +204,8 @@ test('actual rAF and already queued idle callback share one rejected-attempt lim
     s.queue.push(()=>s.runIdlePhysicsCatchup(oldEpoch));
     s.frame(25);assert.equal(s.world.attempts,1);assert.equal(s.simulationExecutedSteps,0);
     while(s.queue.length)s.queue.shift()();
-    assert.equal(s.world.attempts,1);assert.equal(s.simulationAccumulator,.025);
+    assert.equal(s.world.attempts,1);assert.ok(Math.abs(s.simulationAccumulator-.026)<1e-12);
+    assert.ok(Math.abs(s.simulationAcceptedTime-.026)<1e-12,'the idle callback admits the 1 ms spent in the rejected slice');
     assert.equal(s.simulationIdleExecutedSteps,0);assert.equal(s.contrastTime,0);assert.equal(s.benchmarkTime,0);
     s.frame(50);assert.equal(s.world.attempts,2);assert.equal(s.prepares,1);assert.equal(s.simulationAccumulator,.05);
     s.frame(75);assert.equal(s.simulationExecutedSteps,2);assert.equal(s.commits,2);
@@ -241,19 +246,20 @@ test('actual scheduler hands a pending frame slice to bounded idle work without 
     assert.equal(s.contrastTime,fixedDt);assert.equal(s.simulationPendingStepCpuMs,0);
     assert.deepEqual(records,[{},{},{},{fullStepCpuMs:4}]);
     assert.deepEqual(s.world.admitted,[fixedDt,0,0,0]);
-    assert.ok(Math.abs(s.simulationAccumulator-(.02-fixedDt))<1e-12);
+    assert.ok(Math.abs(s.simulationAcceptedTime-.024)<1e-12);
+    assert.ok(Math.abs(s.simulationAccumulator-(.024-fixedDt))<1e-12);
 });
 
 test('actual idle loop bounds pending slices by both its attempt cap and the remaining render deadline',()=>{
     const s=schedulerHarness(Array.from({length:30},cooperative),{shared:true,fixedDt:1/60});
     s.world.contactField={};s.MAX_IDLE_PHYSICS_STEPS=1;s.frame(0);s.frame(20);s.MAX_IDLE_PHYSICS_STEPS=6;s.queue.shift()();
     assert.equal(s.world.attempts,1+s.MAX_IDLE_PHYSICS_STEPS);
-    assert.equal(s.prepares,1);assert.equal(s.simulationExecutedSteps,0);assert.equal(s.simulationAccumulator,.02);
+    assert.equal(s.prepares,1);assert.equal(s.simulationExecutedSteps,0);assert.equal(s.simulationAccumulator,.021);
     const timed=schedulerHarness(Array.from({length:30},cooperative),{shared:true,fixedDt:1/60,sliceMs:3});
     timed.world.contactField={};timed.MAX_IDLE_PHYSICS_STEPS=1;timed.frame(0);timed.frame(20);timed.MAX_IDLE_PHYSICS_STEPS=6;timed.elapse(9);timed.queue.shift()();
     assert.equal(timed.world.attempts,3,'The last attempt gets only the remaining partial slice');
     assert.ok(Math.abs(timed.sliceBudgets.at(-1)-(1000/60-15-.75))<1e-12);
-    assert.equal(timed.simulationExecutedSteps,0);assert.equal(timed.simulationAccumulator,.02);
+    assert.equal(timed.simulationExecutedSteps,0);assert.equal(timed.simulationAccumulator,.032);
 });
 
 test('an error after cooperative progress stops idle work even when the previous World report said pending',()=>{
@@ -310,7 +316,7 @@ test('actual post-commit credits only the originating benchmark epoch without ad
         simulationAccumulator:3*dt,shortCatheterBenchmarkMetrics:{recordStep:()=>calls.metrics++},
         endovascularWorld:{},recordBrowserPhysicsEnvelope:()=>calls.envelope++,
         contrastSystem:{setStentGraftSurface:()=>{},update:time=>calls.contrast+=time,totalDeliveredVolumeMl:1},displayedContrastDoseMl:0,
-        updateGuidewireResistance:()=>calls.resistance++,guidewireRotation:.1,
+        updateGuidewireResistance:()=>calls.resistance++,syncDilatorControls(){},guidewireRotation:.1,
         pigtailCatheter:{progress:4,rotation:.2},ui:{updateAutomaticWithdrawalLengths:()=>{},updateInsertedLength:()=>{},updateCatheterLength:()=>{},updateDose:()=>calls.dose++}};
     vm.createContext(state);vm.runInContext(simulatorSource.slice(simulatorSource.indexOf('function commitSimulationStep('),
         simulatorSource.indexOf('const renderHiddenObjects')),state);
@@ -480,7 +486,57 @@ test('realtime idle work can use a partial slice but stops before the deadline g
     assert.ok(s.sliceBudgets.at(-2)<2);
     assert.ok(s.sliceBudgets.at(-1)<1);
     assert.equal(s.prepares,1);assert.equal(s.commits,0);
-    assert.equal(s.simulationAccumulator,.02);
+    assert.equal(s.simulationAccumulator,.034);
+    assert.equal(s.simulationAcceptedTime,.034,'time between rAF and the idle callback is retained');
+});
+
+test('actual independent timer cannot prepare or commit before anatomy becomes ready', () => {
+    const s=schedulerHarness([true],{shared:true,fixedDt:1/60});
+    s.assetsReady=false;s.loadingAssetsReady=()=>s.assetsReady;
+    s.pumpIndependentPhysics();s.elapse(60000);s.pumpIndependentPhysics();
+    assert.equal(s.prepares,0);assert.equal(s.world.attempts,0);assert.equal(s.simulationAcceptedTime,0);
+    assert.equal(s.simulationAccumulator,0);
+    s.assetsReady=true;s.world.contactField={};s.pumpIndependentPhysics();
+    assert.equal(s.world.attempts,0,'the loading interval is not a pending physical timestep');
+    s.elapse(20);s.pumpIndependentPhysics();
+    assert.equal(s.world.stepCount,1);assert.equal(s.prepares,1);assert.equal(s.commits,1);
+    assert.equal(s.simulationAcceptedTime,.02);
+    assert.ok(Math.abs(s.simulationAcceptedTime-s.completedSimulationTime-s.simulationAccumulator)<1e-12);
+});
+
+test('independent timer publishes every prepared 60 Hz tick without any intervening render frames', () => {
+    const outcomes=Array.from({length:360},(_,i)=>i%3===2?true:cooperative());
+    const s=schedulerHarness(outcomes,{shared:true,fixedDt:1/60,sliceMs:0});s.world.contactField={};
+    s.frame(0);
+    for(let i=0;i<500;i++){s.elapse(4);s.pumpIndependentPhysics();}
+    assert.equal(s.world.stepCount,120);assert.equal(s.commits,120);assert.equal(s.prepares,120);
+    assert.equal(s.simulationExecutedSteps,120);assert.equal(s.simulationIdleExecutedSteps,120);
+    assert.ok(Math.abs(s.simulationAcceptedTime-2)<1e-12);
+    assert.ok(Math.abs(s.contrastTime-2)<1e-12);assert.ok(Math.abs(s.simulationAccumulator)<1e-12);
+    assert.equal(s.world.admitted.filter(value=>value>0).length,120);
+    assert.ok(s.world.admitted.every((value,i)=>value===(i%3===0?1/60:0)));
+});
+
+test('independent task deadline is bounded even immediately after a fresh animation frame', () => {
+    const s=schedulerHarness(Array.from({length:30},cooperative),{shared:true,fixedDt:1/60,sliceMs:2});
+    s.world.contactField={};s.frame(0);s.simulationAccumulator=.1;
+    s.runIdlePhysicsCatchup(s.synchronizedStep.epoch,false,8);
+    assert.equal(s.world.attempts,4,'the 16.7 ms render deadline cannot extend an 8 ms timer task');
+    assert.equal(s.performance.now(),8);assert.deepEqual(s.sliceBudgets,[4,4,4,2]);
+    assert.equal(s.prepares,1);assert.equal(s.commits,0);assert.equal(s.world.accumulator,1/60);
+});
+
+test('timer pause and visibility gates retain a pending transaction without admitting their elapsed time', () => {
+    const s=schedulerHarness([...Array.from({length:8},cooperative),true],{shared:true,fixedDt:1/60,sliceMs:0});
+    s.world.contactField={};s.frame(0);s.elapse(20);s.pumpIndependentPhysics();
+    const attempts=s.world.attempts;assert.ok(s.simulationStepTransaction.pending);assert.equal(s.prepares,1);
+    s.simulationPaused=true;s.simulationWallClock.reset();s.elapse(60000);s.pumpIndependentPhysics();
+    assert.equal(s.world.attempts,attempts);assert.equal(s.simulationAccumulator,.02);
+    s.simulationPaused=false;s.document.visibilityState='hidden';s.elapse(60000);s.pumpIndependentPhysics();
+    assert.equal(s.world.attempts,attempts);assert.equal(s.simulationAcceptedTime,.02);
+    s.document.visibilityState='visible';s.pumpIndependentPhysics();
+    assert.equal(s.prepares,1);assert.equal(s.commits,1);assert.equal(s.world.stepCount,1);
+    assert.equal(s.simulationAcceptedTime,.02);assert.deepEqual(s.world.admitted,[1/60,0,0,0,0,0,0,0,0]);
 });
 
 test('access switch drains one prepared step without preparing further commands', () => {
@@ -570,13 +626,14 @@ test('queued injection is drained before switching the shared source to the othe
 test('actual common publication continues when a mesh or dose readout fails',()=>{
     const events=[],errors=[];
     const entries=['right','left'].map(activeAccessId=>({activeAccessId,rodNodes:{update(){}}}));
-    const s={createSynchronizedStep,synchronizedStep:null,synchronizedInputs:{},crossoverScenario:null,
+    const s={createSynchronizedStep,synchronizedStep:null,synchronizedInputs:{},crossoverScenario:null,passiveContrastProbe:null,
         activeAccessId:'right',simulationAccumulator:2/60,simulationExecutedSteps:0,completedSimulationTime:0,
         console:{error:(...args)=>errors.push(args)},simulationStepTransaction:{canAttempt:()=>true,beginFrame(){}},
         executeAccessPhysicsStep:()=>({accepted:true,context:{}}),
         prepareBrowserBenchmarkBoundary(){},flushSimulationChanges(){},sampleSynchronizedInputs:()=>({}),
         commitSimulationStep:()=>events.push(`mechanics:${s.activeAccessId}`),
         presentSimulationStep(){},updateWireMesh(){if(s.activeAccessId==='right')throw Error('mesh failed');},
+        vesselDeformation:{update(){}},publishBalloon(){},syncBalloonControls(){},isControlledAccess:()=>s.activeAccessId==='right',
         pigtailCatheter:{updateMesh(){}},xpbdWireBody:{},xpbdCatheterBody:{},fluoroscopy:true,debugLayerVisibility:{},
         stentGraftSystem:{getContrastSurface:()=>({}),refreshDelivery(){}},
         contrastSystem:{setStentGraftSurface(){},isInjecting:true,advanceSynchronized:dt=>events.push(`contrast:${dt}`),totalDeliveredVolumeMl:1},
