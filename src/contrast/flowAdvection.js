@@ -30,6 +30,11 @@ export class FlowAdvection {
             cellCount += edge.cellCount;
         }
         this.cellCount = cellCount;
+        // Device entrainment is a rate over the next network interval, not
+        // an initial cell bolus. Reuse sparse typed storage across updates.
+        this.queuedSourceMassMg = new Float64Array(cellCount);
+        this.queuedSourceVertices = [];
+        this.sourceIntervalSeconds = 0;
         this.touchedEdges = [];
         this.edgeMarks = new Uint8Array(edges.length);
         const count = cellCount + nodes.length;
@@ -119,6 +124,18 @@ export class FlowAdvection {
         if (topologyChanged) this._orderByFlow();
     }
 
+    queueSource(edgeIndex, cellIndex, mass) {
+        const vertex = this.offsets[edgeIndex] + cellIndex;
+        if (!(this.queuedSourceMassMg[vertex] > 0)) this.queuedSourceVertices.push(vertex);
+        this.queuedSourceMassMg[vertex] += mass;
+    }
+
+    finishSourceInterval() {
+        for (const vertex of this.queuedSourceVertices) this.queuedSourceMassMg[vertex] = 0;
+        this.queuedSourceVertices.length = 0;
+        this.sourceIntervalSeconds = 0;
+    }
+
     update(dt) {
         const net = this.network,
             edges = net.edges;
@@ -152,6 +169,20 @@ export class FlowAdvection {
             this.eventMarks[vertex] = 1;
             this.eventVertices.push(vertex);
             this._queueVertex(vertex);
+        }
+        if (this.sourceIntervalSeconds > 0) {
+            for (const vertex of this.queuedSourceVertices) {
+                // A steady source remains present after a high-Courant sweep.
+                // Depositing it as initial mass instead created short plugs
+                // separated by an empty source neighbourhood every frame.
+                this.events[vertex].push(0, dt,
+                    this.queuedSourceMassMg[vertex] / this.sourceIntervalSeconds);
+                if (!this.eventMarks[vertex]) {
+                    this.eventMarks[vertex] = 1;
+                    this.eventVertices.push(vertex);
+                    this._queueVertex(vertex);
+                }
+            }
         }
         const sac = net.stentGraftRemodeling?.sac;
         // Traverse the same topological order, but visit only vertices with

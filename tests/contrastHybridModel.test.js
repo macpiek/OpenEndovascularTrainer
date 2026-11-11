@@ -1159,6 +1159,7 @@ const localFluoroRenderer = new ContrastVolumeRenderer({
     localSolver: localA,
     medium: { iodineMgPerMl: 300 }
 });
+const mixedMassBeforeProjection = localNetwork.getIodineMassMg();
 localFluoroRenderer.setDebugMode(false);
 localFluoroRenderer.update();
 assert.ok(
@@ -1167,7 +1168,7 @@ assert.ok(
 );
 assert.equal(
     localNetwork.getIodineMassMg(),
-    0,
+    mixedMassBeforeProjection,
     'fluoroscopic plume projection must not duplicate iodine in the physical flow network'
 );
 assert.equal(
@@ -1241,8 +1242,9 @@ assert.equal(
     'a coherent catheter jet must not shed an artificial dilute precursor'
 );
 assert.ok(
-    bulkRefluxNetwork.getIodineMassMg() < 1e-12,
-    'the vascular model must remain empty until the coherent front reaches the handoff target'
+    bulkRefluxNetwork.edges.every(edge => edge.index === bulkRefluxSource.index ||
+        edge.massMg.every(mass => mass < 1e-12)),
+    'early outlet entrainment must stay in the supplying lumen without a remote precursor'
 );
 for (let step = 0; step < 480; step++) {
     bulkRefluxSolver.update(1 / 120);

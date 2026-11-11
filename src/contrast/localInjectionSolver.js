@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createContactResult } from '../physics/collision/vesselContactField.js';
+import { arterialWaveform } from './flowNetwork.js';
 
 const MM3_PER_ML = 1000;
 const DEFAULT_PARTICLE_CAPACITY = 16000;
@@ -26,6 +27,27 @@ export const DEFAULT_CONTRAST_MEDIUM = Object.freeze({
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
+}
+
+function chainParent(edges, edge) {
+    const parent = edges[edge.parentEdgeIndex];
+    return parent?.childEdgeIndices.length === 1 && !parent.transportExcluded ? parent : null;
+}
+
+function chainChild(edges, edge) {
+    const child = edge.childEdgeIndices.length === 1 ? edges[edge.childEdgeIndices[0]] : null;
+    return child && !child.transportExcluded ? child : null;
+}
+
+function projectedAxial(edge, x, y, z) {
+    return clamp((x - edge.start.x) * edge.axis.x + (y - edge.start.y) * edge.axis.y +
+        (z - edge.start.z) * edge.axis.z, 0, edge.length);
+}
+
+function projectedDistanceSquared(edge, axial, x, y, z) {
+    return (x - edge.start.x - edge.axis.x * axial) ** 2 +
+        (y - edge.start.y - edge.axis.y * axial) ** 2 +
+        (z - edge.start.z - edge.axis.z * axial) ** 2;
 }
 
 function portArea(port) {
@@ -59,6 +81,15 @@ export class LocalContrastInjectionSolver {
         this.positionX = new Float32Array(capacity);
         this.positionY = new Float32Array(capacity);
         this.positionZ = new Float32Array(capacity);
+        this.outletPositionX = new Float32Array(capacity);
+        this.outletPositionY = new Float32Array(capacity);
+        this.outletPositionZ = new Float32Array(capacity);
+        this.outletDirectionX = new Float32Array(capacity);
+        this.outletDirectionY = new Float32Array(capacity);
+        this.outletDirectionZ = new Float32Array(capacity);
+        this.outletRadiusMm = new Float32Array(capacity);
+        this.resolvedOutletRadiusMm = new Float32Array(capacity);
+        this.initialTransportSpeedMmPerSec = new Float32Array(capacity);
         this.jetVelocityX = new Float32Array(capacity);
         this.jetVelocityY = new Float32Array(capacity);
         this.jetVelocityZ = new Float32Array(capacity);
@@ -77,6 +108,7 @@ export class LocalContrastInjectionSolver {
         this.preferredHandoffCellIndex = new Int32Array(capacity);
         this.sourceEdgeIndex = new Int32Array(capacity);
         this.sourceCellIndex = new Int32Array(capacity);
+        this.handoffEdgeIndex = new Int32Array(capacity).fill(-1);
         this.retrogradeProgressMm = new Float32Array(capacity);
         this.preferredHandoffEdgeIndex.fill(-1);
         this.preferredHandoffCellIndex.fill(-1);
@@ -114,6 +146,10 @@ export class LocalContrastInjectionSolver {
         this._randomState = randomSeed >>> 0 || 1;
         this._velocityScratch = {};
         this._locationScratch = {};
+        this._handoffLocationScratch = {};
+        this._sourceFlowTime = NaN;
+        this._sourceFlowHeartRate = NaN;
+        this._sourceFlowWaveform = 1;
         this._contactScratch = createContactResult();
         this._pointScratch = new THREE.Vector3();
     }
@@ -414,14 +450,26 @@ export class LocalContrastInjectionSolver {
             this.lastTargetedCoreFraction = targetedCoreFraction;
             const decay = effectiveJetSpeed / decayDistance;
 
+            if (!allowPressureDrivenRetrograde && sourceEdgeIndex >= 0 &&
+                this._hasBidirectionalSourceOutflow(sourceEdgeIndex, sourceCellIndex)) {
+                // Both faces carry fluid away from this source: no blood is
+                // entering its finite mixing volume. All newly supplied fluid
+                // is therefore the injection itself. Its iodine must enter
+                // with that volume source, not additionally occupy a delayed
+                // local core on top of an already contrast-filled lumen.
+                if (this.flowNetwork.queueIodineSource(sourceEdgeIndex, sourceCellIndex, portMassMg)) {
+                    this.totalHandedOffIodineMassMg += portMassMg;
+                    this.directHandoffIodineMassMg += portMassMg;
+                    this.sourceHandoffIodineMassMg += portMassMg;
+                    emittedMassMg += portMassMg;
+                    continue;
+                }
+            }
+
             for (let particleIndex = 0; particleIndex < particleCount; particleIndex++) {
                 if (this.count >= this.capacity) {
                     const handedOff = sourceEdgeIndex >= 0
-                        ? this.flowNetwork.depositIodine(
-                            sourceEdgeIndex,
-                            sourceCellIndex,
-                            massPerParticle
-                        )
+                        ? this._depositOverflowIodine(sourceEdgeIndex, sourceCellIndex, location, massPerParticle)
                         : this.flowNetwork.depositIodineAtPoint(
                             port.position,
                             massPerParticle
@@ -445,6 +493,18 @@ export class LocalContrastInjectionSolver {
                 this.positionX[index] = port.position.x + direction.x * 0.15 + jitterX;
                 this.positionY[index] = port.position.y + direction.y * 0.15 + jitterY;
                 this.positionZ[index] = port.position.z + direction.z * 0.15 + jitterZ;
+                this.outletPositionX[index] = port.position.x;
+                this.outletPositionY[index] = port.position.y;
+                this.outletPositionZ[index] = port.position.z;
+                this.outletDirectionX[index] = direction.x;
+                this.outletDirectionY[index] = direction.y;
+                this.outletDirectionZ[index] = direction.z;
+                this.outletRadiusMm[index] = Math.sqrt(areaMm2 / Math.PI);
+                // The resolved near-field jet moves more slowly than the
+                // sub-millimetre nozzle core. Preserve its injected volume
+                // flux by increasing its effective area by the same ratio.
+                this.resolvedOutletRadiusMm[index] = this.outletRadiusMm[index] *
+                    Math.sqrt(idealJetSpeed / Math.max(1e-9, effectiveJetSpeed));
                 const angularSpread = clamp(0.035 + idealJetSpeed / 50000, 0.035, 0.16);
                 let jetX = direction.x +
                     this._randomSigned() * angularSpread;
@@ -456,6 +516,9 @@ export class LocalContrastInjectionSolver {
                 jetX /= jetLength;
                 jetY /= jetLength;
                 jetZ /= jetLength;
+                this.initialTransportSpeedMmPerSec[index] = Math.max(1,
+                    effectiveJetSpeed + backgroundVelocity.velocityX * jetX +
+                    backgroundVelocity.velocityY * jetY + backgroundVelocity.velocityZ * jetZ);
                 this.jetVelocityX[index] = jetX * effectiveJetSpeed;
                 this.jetVelocityY[index] = jetY * effectiveJetSpeed;
                 this.jetVelocityZ[index] = jetZ * effectiveJetSpeed;
@@ -485,7 +548,30 @@ export class LocalContrastInjectionSolver {
                         : -1;
                 this.sourceEdgeIndex[index] = sourceEdgeIndex;
                 this.sourceCellIndex[index] = sourceCellIndex;
+                this.handoffEdgeIndex[index] = sourceEdgeIndex;
                 this.retrogradeProgressMm[index] = 0;
+                if (!allowPressureDrivenRetrograde && sourceEdgeIndex >= 0) {
+                    // A narrow lumen may not contain the Q/v-resolved core.
+                    // Mix the excess iodine into its connected blood volume
+                    // instead of compressing it above stock concentration or
+                    // enlarging the rendered plume beyond the vessel wall.
+                    const sourceEdge = this.flowNetwork.edges[sourceEdgeIndex];
+                    const maximumSigma = .4 * Math.max(sourceEdge.radiusStart, sourceEdge.radiusEnd);
+                    const resolvedSigma = this.resolvedOutletRadiusMm[index] / Math.SQRT2;
+                    const coherentFraction = Math.min(1, maximumSigma * maximumSigma /
+                        Math.max(1e-12, resolvedSigma * resolvedSigma));
+                    const excess = massPerParticle * (1 - coherentFraction);
+                    if (excess > 0) {
+                        // All source/location metadata is initialized before
+                        // using the same conservative hydraulic handoff as
+                        // subsequent entrainment, including reflux splitting.
+                        const deposited = this._depositSourceEntrainment(index, excess);
+                        this.iodineMassMg[index] -= deposited;
+                        this.initialIodineMassMg[index] -= deposited;
+                        this.totalHandedOffIodineMassMg += deposited;
+                        this.sourceHandoffIodineMassMg += deposited;
+                    }
+                }
                 if (particleTargetsJunction) {
                     this.retrogradeTargetedIodineMassMg += massPerParticle;
                 }
@@ -724,6 +810,49 @@ export class LocalContrastInjectionSolver {
                 this.jetVelocityY[index],
                 this.jetVelocityZ[index]
             );
+            if (this.sourceEdgeIndex[index] >= 0 && !pressureDrivenRetrograde) {
+                // Entrainment transfers iodine continuously from the resolved
+                // outlet jet into blood along its finite travelled path. A
+                // fixed-age return of the entire parcel to its source cell
+                // produced a stationary full-lumen plug at the catheter tip.
+                const distanceProgress = (
+                    this.travelDistanceMm[index] /
+                        Math.max(1, this.handoffDistanceMm[index]) - 0.2
+                ) / 1.05;
+                // Once a weak jet has lost momentum, its residual core mixes
+                // locally too; it must not wait indefinitely for more travel.
+                const ageProgress = (this.ageSeconds[index] - 0.025) / 0.095;
+                const progress = clamp(Math.max(distanceProgress, ageProgress), 0, 1);
+                const bloodAlongJet = (
+                    velocity.velocityX * this.jetVelocityX[index] +
+                    velocity.velocityY * this.jetVelocityY[index] +
+                    velocity.velocityZ * this.jetVelocityZ[index]
+                ) / Math.max(1e-6, jetSpeed);
+                // Opposing blood compresses the spacing of emitted parcels
+                // as the jet slows, then turns them back downstream. Preserve
+                // volume continuity (Q = v A): the coherent share decreases
+                // with its net forward speed, while the rest joins the blood.
+                // Otherwise packets pile up at the turning point at several
+                // times the concentration of the injected preparation.
+                const counterflowMixedFraction = bloodAlongJet < 0 ? 1 - clamp(
+                    (jetSpeed + bloodAlongJet) / Math.max(1, this.initialTransportSpeedMmPerSec[index]), 0, 1
+                ) : 0;
+                const mixedFraction = Math.max(progress * progress * (3 - 2 * progress), counterflowMixedFraction);
+                const retainedMass = this.initialIodineMassMg[index] * (1 - mixedFraction);
+                const release = Math.max(0, this.iodineMassMg[index] - retainedMass);
+                if (release > 0) {
+                    const deposited = this._depositSourceEntrainment(index, release);
+                    this.iodineMassMg[index] -= deposited;
+                    this.totalHandedOffIodineMassMg += deposited;
+                    this.sourceHandoffIodineMassMg += deposited;
+                }
+                if (!(this.iodineMassMg[index] > 0)) {
+                    this._removeParticle(index);
+                    continue;
+                }
+                index++;
+                continue;
+            }
             const mixedWithBlood =
                 this.sourceEdgeIndex[index] < 0 &&
                 this.ageSeconds[index] >= MIXED_HANDOFF_AGE_SECONDS &&
@@ -834,12 +963,133 @@ export class LocalContrastInjectionSolver {
         }
     }
 
+    // Follow only the source's continuous vessel, never a closer but unrelated
+    // axis. At a true fork the jet joins its incident lumen; the conservative
+    // signed-flow solver then decides which connected arms receive iodine.
+    resolveSourceHandoffLocation(index, out = {}) {
+        const edges = this.flowNetwork.edges;
+        let edgeIndex = this.handoffEdgeIndex[index] >= 0
+            ? this.handoffEdgeIndex[index] : this.sourceEdgeIndex[index];
+        let edge = edges[edgeIndex];
+        if (!edge) { out.edgeIndex = -1; return out; }
+        const x = this.positionX[index], y = this.positionY[index], z = this.positionZ[index];
+        let axial = projectedAxial(edge, x, y, z);
+        let distance = projectedDistanceSquared(edge, axial, x, y, z);
+        for (let hop = 0; hop < edges.length; hop++) {
+            let candidate = null, candidateAxial = axial, candidateDistance = distance;
+            for (let side = 0; side < 2; side++) {
+                const adjacent = side ? chainChild(edges, edge) : chainParent(edges, edge);
+                if (!adjacent) continue;
+                const s = projectedAxial(adjacent, x, y, z);
+                const d = projectedDistanceSquared(adjacent, s, x, y, z);
+                if (d + 1e-10 < candidateDistance) {
+                    candidate = adjacent; candidateAxial = s; candidateDistance = d;
+                }
+            }
+            if (!candidate) break;
+            edge = candidate; edgeIndex = edge.index;
+            axial = candidateAxial; distance = candidateDistance;
+        }
+        this.handoffEdgeIndex[index] = edgeIndex;
+        const cellPosition = axial / edge.cellLength - 0.5;
+        let lowerEdge = edge, upperEdge = edge;
+        let lower = clamp(Math.floor(cellPosition), 0, edge.cellCount - 1);
+        let upper = clamp(Math.ceil(cellPosition), 0, edge.cellCount - 1);
+        let upperWeight = clamp(cellPosition - lower, 0, 1);
+        if (cellPosition < 0) {
+            const parent = chainParent(edges, edge);
+            if (parent) {
+                lowerEdge = parent; lower = parent.cellCount - 1; upper = 0;
+                upperWeight = (axial + parent.cellLength * 0.5) /
+                    ((parent.cellLength + edge.cellLength) * 0.5);
+            }
+        } else if (cellPosition > edge.cellCount - 1) {
+            const child = chainChild(edges, edge);
+            if (child) {
+                upperEdge = child; upper = 0; lower = edge.cellCount - 1;
+                upperWeight = (axial - edge.length + edge.cellLength * 0.5) /
+                    ((edge.cellLength + child.cellLength) * 0.5);
+            }
+        }
+        out.edgeIndex = edgeIndex;
+        out.cellIndex = clamp(Math.floor(axial / edge.cellLength), 0, edge.cellCount - 1);
+        out.t = axial / edge.length;
+        out.lowerEdgeIndex = lowerEdge.index; out.lowerCellIndex = lower;
+        out.upperEdgeIndex = upperEdge.index; out.upperCellIndex = upper;
+        out.upperWeight = clamp(upperWeight, 0, 1);
+        return out;
+    }
+
+    _depositSourceEntrainment(index, mass) {
+        const net = this.flowNetwork;
+        if (net.depositGraftSacAtCoordinates(
+            this.positionX[index], this.positionY[index], this.positionZ[index], mass
+        )) return mass;
+        const sourceEdge = this.sourceEdgeIndex[index], sourceCell = this.sourceCellIndex[index];
+        if (this._hasBidirectionalSourceOutflow(sourceEdge, sourceCell)) {
+            // Opposing source outflows share one finite mixing volume. Moving
+            // all entrained iodine to the jet's upstream side bypasses this
+            // hydraulic split and sends too much contrast into reflux. Keep
+            // the resolved jet separate, but release its mixed fraction into
+            // that shared volume so the signed face fluxes divide it once.
+            return net.queueIodineSource(sourceEdge, sourceCell, mass) ? mass : 0;
+        }
+        const location = this.resolveSourceHandoffLocation(index, this._handoffLocationScratch);
+        if (location.edgeIndex < 0) return 0;
+        const upperMass = mass * location.upperWeight, lowerMass = mass - upperMass;
+        let deposited = 0;
+        if (lowerMass > 0 && net.queueIodineSource(location.lowerEdgeIndex, location.lowerCellIndex, lowerMass))
+            deposited += lowerMass;
+        if (upperMass > 0 && net.queueIodineSource(location.upperEdgeIndex, location.upperCellIndex, upperMass))
+            deposited += upperMass;
+        return deposited;
+    }
+
+    _hasBidirectionalSourceOutflow(edgeIndex, cellIndex) {
+        const net = this.flowNetwork;
+        const heartRate = net.hemodynamics.heartRateBpm;
+        if (this._sourceFlowTime !== net.time || this._sourceFlowHeartRate !== heartRate) {
+            this._sourceFlowTime = net.time;
+            this._sourceFlowHeartRate = heartRate;
+            this._sourceFlowWaveform = arterialWaveform(net.time, heartRate);
+        }
+        const waveform = this._sourceFlowWaveform;
+        return net.getFaceSignedFlowMm3PerS(edgeIndex, cellIndex, waveform) < 0 &&
+            net.getFaceSignedFlowMm3PerS(edgeIndex, cellIndex + 1, waveform) > 0;
+    }
+
+    _depositOverflowIodine(edgeIndex, sourceCell, location, mass) {
+        // Capacity is a last-resort unresolved mixing fallback. Keep its
+        // source topology, but retain the outlet's subcell position rather
+        // than introducing a new hard bin boundary at high injection rates.
+        const edge = this.flowNetwork.edges[edgeIndex];
+        if (this._hasBidirectionalSourceOutflow(edgeIndex, sourceCell))
+            return this.flowNetwork.queueIodineSource(edgeIndex, sourceCell, mass);
+        const position = location.edgeIndex === edgeIndex
+            ? location.t * edge.cellCount - 0.5 : sourceCell;
+        const lower = clamp(Math.floor(position), 0, edge.cellCount - 1);
+        const upper = clamp(Math.ceil(position), 0, edge.cellCount - 1);
+        const fraction = clamp(position - lower, 0, 1);
+        const upperMass = mass * fraction;
+        if (mass - upperMass > 0 && !this.flowNetwork.queueIodineSource(edgeIndex, lower, mass - upperMass)) return false;
+        return !(upperMass > 0) || this.flowNetwork.queueIodineSource(edgeIndex, upper, upperMass);
+    }
+
     _removeParticle(index) {
         const last = --this.count;
         if (index === last) return;
         this.positionX[index] = this.positionX[last];
         this.positionY[index] = this.positionY[last];
         this.positionZ[index] = this.positionZ[last];
+        this.outletPositionX[index] = this.outletPositionX[last];
+        this.outletPositionY[index] = this.outletPositionY[last];
+        this.outletPositionZ[index] = this.outletPositionZ[last];
+        this.outletDirectionX[index] = this.outletDirectionX[last];
+        this.outletDirectionY[index] = this.outletDirectionY[last];
+        this.outletDirectionZ[index] = this.outletDirectionZ[last];
+        this.outletRadiusMm[index] = this.outletRadiusMm[last];
+        this.resolvedOutletRadiusMm[index] = this.resolvedOutletRadiusMm[last];
+        this.initialTransportSpeedMmPerSec[index] = this.initialTransportSpeedMmPerSec[last];
         this.jetVelocityX[index] = this.jetVelocityX[last];
         this.jetVelocityY[index] = this.jetVelocityY[last];
         this.jetVelocityZ[index] = this.jetVelocityZ[last];
@@ -854,6 +1104,7 @@ export class LocalContrastInjectionSolver {
         this.preferredHandoffCellIndex[index] = this.preferredHandoffCellIndex[last];
         this.sourceEdgeIndex[index] = this.sourceEdgeIndex[last];
         this.sourceCellIndex[index] = this.sourceCellIndex[last];
+        this.handoffEdgeIndex[index] = this.handoffEdgeIndex[last];
         this.retrogradeProgressMm[index] = this.retrogradeProgressMm[last];
     }
 

@@ -77,7 +77,7 @@ export function createProjectionActivity(network, geometry, field, triangleEdges
     const diagnostics = {activeEdges: 0, fallbackEdges: 0, drawnChunks: 0, culledChunks: 0};
     return {
         uniforms, bounds, chunks, diagnostics,
-        update(current, previous) {
+        update(current, previous, localBounds = null) {
             bounds.makeEmpty(); diagnostics.activeEdges = 0; diagnostics.fallbackEdges = 0;
             for (const edge of network.edges) {
                 if (edge.transportExcluded || edge.lumenMappingExcluded || edge.renderExcluded) continue;
@@ -93,6 +93,7 @@ export function createProjectionActivity(network, geometry, field, triangleEdges
             }
             for (const junction of junctionField?.junctions ?? [])
                 if (junction.dependencies.some(index => current[index] > 0 || previous[index] > 0)) bounds.union(junctions[junction.index]);
+            if (localBounds && !localBounds.isEmpty()) bounds.union(localBounds);
             const active = !bounds.isEmpty();
             if (active) bounds.expandByScalar(.001);
             uniforms.projectionCullActive.value = active;

@@ -31,7 +31,9 @@ try {
     renderer.domElement.addEventListener('webglcontextlost',()=>{contextLost=true;});
     renderer.debug.onShaderError=()=>{shaderError=true;};
     const material=f.surface.material,production=material.fragmentShader;
-    const maskShader=production.replace(' * mean * signalGain;', ' * signalGain;');
+    const depthExpression='float depth = .5 * (chord * mean + jet) * signalGain;';
+    if(!production.includes(depthExpression))throw Error('Brak wzoru projekcji dla maski światła');
+    const maskShader=production.replace(depthExpression, 'float depth = .5 * chord * signalGain;');
     const raw=new Uint16Array(size*size*4),frames=document.querySelector('#frame'),angle=document.querySelector('#angle');
     const assert=(ok,message)=>{if(!ok)throw Error(message);};
     data.frames.forEach((frame,index)=>{const o=document.createElement('option');o.value=index;o.textContent=`Faza ${frame.phase} · ${frame.elapsed.toFixed(3)} s`;frames.append(o);});frames.value=3;

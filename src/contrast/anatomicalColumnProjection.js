@@ -6,6 +6,7 @@ import {createFlowColumnLookup} from './flowColumnLookup.js';
 import {createFlowColumnGeometry} from './flowColumnGeometry.js';
 import {createFlowJunctionProjection} from './flowJunctionProjection.js';
 import {columnJunctionMixingGLSL} from './columnJunctionMixing.js';
+import {createOutletJetField, outletJetGLSL} from './outletJetField.js';
 import {attachColumnRasterPosition} from './columnRasterPosition.js';
 import {vesselDeformationGLSL} from '../vesselDeformation.js';
 import {boundedRayFunctions, deformationHooks, attachAnatomicalProjectionDeformation,
@@ -642,6 +643,7 @@ float junctionColumnAverage(int a, float sa, int b, float sb, vec3 entry, vec3 r
     return sum;
 }
 
+${outletJetGLSL}
 void main() {
     // Raster interpolants follow quantized triangle coverage, not exactly the
     // detector pixel centre. A 0.0001 mm transverse error can select the wrong
@@ -689,6 +691,10 @@ void main() {
     int entryPath = int(entryColumn.x + .5), exitPath = int(exitColumn.w + .5);
     float exitS = dot(exitColumn.xyz, bary);
     float chord = distance + epsilon;
+    // Unmixed iodine has its own 3-D outlet field. Integrate it only over
+    // this exact blood-filled interval, without painting a wider billboard
+    // or subtracting from the already mixed bulk field.
+    float jet = outletJetIntegral(entryPosition, ray, chord, entryPath, exitPath);
     float mean;
     if (columnHasJunction(entryPosition, ray, chord, entryPath, exitPath)) {
         if (!columnUniformRay(entryPath, exitPath, mean))
@@ -697,12 +703,13 @@ void main() {
     else mean = entryPath == exitPath
         ? columnAverage(entryPath, entryColumn.y, exitPath, exitS)
         : spatialColumnAverage(entryPath, entryColumn.y, exitPath, exitS, entryPosition, ray, chord);
-    float depth = .5 * (distance + epsilon) * mean * signalGain;
+    float depth = .5 * (chord * mean + jet) * signalGain;
     if (depth <= 0.) discard;
     gl_FragColor = vec4((debugMode ? debugColor : vec3(1.)) * depth, depth);
 }`;
 
 export function buildAnatomicalColumnProjection(network, geometry, field, {territories, continuations, junctionField = null}) {
+    const outletJet = createOutletJetField(network, territories);
     const integral = createFlowColumnIntegral(network, field, territories, continuations);
     const spatial = createFlowColumnGeometry(network, integral, territories, continuations);
     const junctions = createFlowJunctionProjection(network, integral, territories, spatial, junctionField);
@@ -759,7 +766,8 @@ export function buildAnatomicalColumnProjection(network, geometry, field, {terri
             };
         },
         vertexShader: columnProjectionVertexShader, fragmentShader: columnProjectionFragmentShader,
-        uniforms: {lumenBvh: {value: bvh}, columnFaces: {value: faceTexture}, columnRanges: {value: rangeTexture},
+        outletJet,
+        uniforms: {...outletJet.uniforms, lumenBvh: {value: bvh}, columnFaces: {value: faceTexture}, columnRanges: {value: rangeTexture},
             columnLookupOffset: {value: lookupOffset},
             columnCurrent: {value: integral.currentTexture}, columnPrevious: {value: integral.previousTexture},
             columnGeometry: {value: spatial.texture}, columnGeometryRanges: {value: geometryRangeTexture},

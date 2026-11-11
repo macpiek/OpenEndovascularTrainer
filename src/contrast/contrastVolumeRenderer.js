@@ -2672,7 +2672,7 @@ export class ContrastVolumeRenderer {
             this._flowDynamicOpticalVertexIndices.length > 0;
         }
         this._flowLumenPrepared=updateFlowLumen;
-        this._flowVolume.update(this._flowCellLocalPlumeMassMg, mediumConcentrationMgPerMm3, advanceHistory, !!((remodeling?.surface.sealed || remodeling?.surface.openGate) && this._graftMeshes.length));
+        this._flowVolume.update(this._flowCellLocalPlumeMassMg, mediumConcentrationMgPerMm3, advanceHistory, !!((remodeling?.surface.sealed || remodeling?.surface.openGate) && this._graftMeshes.length), solver);
         if(!updateFlowLumen) {
             // Report activity from the image which is actually drawn, rather
             // than evaluating the unused tube image just for its counter.

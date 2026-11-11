@@ -58,6 +58,17 @@ test('camera culling preserves clear entry chunks and restores draw range after 
     material.dispose(); f.geometry.dispose();
 });
 
+test('an unmixed outlet jet keeps its exact entry walls active before bulk iodine arrives', () => {
+    const f = fixture(), activity = createProjectionActivity(f.network, f.geometry, f.field, f.owners);
+    const jetBounds = new THREE.Box3(new THREE.Vector3(-1, -2, -1), new THREE.Vector3(1, 2, 1));
+    assert.equal(activity.update(f.current, f.previous, jetBounds), true);
+    assert.ok(activity.bounds.containsBox(jetBounds));
+    assert.equal(activity.diagnostics.activeEdges, 0, 'the bulk remains clear');
+    assert.ok(activity.bounds.max.x < 20, 'unrelated vessels do not enlarge jet support');
+    assert.equal(activity.update(f.current, f.previous, new THREE.Box3()), false);
+    f.geometry.dispose();
+});
+
 test('an active edge without anatomical support falls back to the complete mesh', () => {
     const f = fixture();
     const missing = {index: 2, start: new THREE.Vector3(0, 0, 0), end: new THREE.Vector3(0, 1, 0),

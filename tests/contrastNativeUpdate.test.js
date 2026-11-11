@@ -34,6 +34,40 @@ function compareNative(a, b, history = true) {
     assert.deepEqual(left.mesh.geometry.groups, right.mesh.geometry.groups);
 }
 
+test('native fluoroscopy projects pending iodine as a local jet without also filling the source cell', () => {
+    const f = fixture(), solver = f.system.localSolver, surface = f.fast._flowVolume;
+    try {
+        const edge = f.system.flowNetwork.edges[0], center = edge.start.clone().lerp(edge.end, .5);
+        solver.count = 1;
+        solver.sourceEdgeIndex[0] = 0;
+        solver.sourceCellIndex[0] = Math.floor(edge.cellCount / 2);
+        solver.iodineMassMg[0] = solver.initialIodineMassMg[0] = .3;
+        solver.positionX[0] = solver.outletPositionX[0] = center.x;
+        solver.positionY[0] = solver.outletPositionY[0] = center.y;
+        solver.positionZ[0] = solver.outletPositionZ[0] = center.z;
+        solver.jetVelocityX[0] = edge.axis.x * 100;
+        solver.jetVelocityY[0] = edge.axis.y * 100;
+        solver.jetVelocityZ[0] = edge.axis.z * 100;
+        solver.outletRadiusMm[0] = .4;
+        f.fast.update();
+        const jet = surface.projection.outletJet;
+        assert.ok(jet.active && jet.count > 0);
+        assert.ok(Math.abs(jet.massMg - .3) < 1e-12);
+        assert.ok(surface.cellValues.every(value => value === 0), 'unmixed iodine must not be rendered twice');
+        assert.ok(surface.mesh.visible && surface.mesh.geometry.groups.length > 0, 'a clear entry wall must still draw the hidden jet');
+        assert.ok(surface.activity.bounds.containsPoint(center), 'activity culling includes the outlet');
+        // A parcel that has entered the network is no longer drawn locally.
+        f.system.flowNetwork.depositIodine(0, solver.sourceCellIndex[0], .3);
+        solver.count = 0;
+        f.fast.update();
+        assert.equal(jet.count, 0);
+        assert.ok(surface.cellValues.some(value => value > 0));
+        surface.resetHistory();
+        assert.equal(jet.active, false);
+        assert.equal(surface.mesh.visible, false);
+    } finally { f.dispose(); }
+});
+
 test('native image and histories match full tube preparation without any unused tube updates', () => {
     const f = fixture(), { system, fast, reference } = f;
     try {

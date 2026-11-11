@@ -1,0 +1,1363 @@
+{
+  "outlet": [
+    {
+      "phase": "startup-shader",
+      "deformation": true,
+      "compileMs": 24.200000002980232,
+      "emptyEightFramesMs": 75,
+      "emptyPeak": 0,
+      "programs": [
+        {
+          "samplers": 16,
+          "activeUniforms": 48
+        },
+        {
+          "samplers": 16,
+          "activeUniforms": 48
+        }
+      ],
+      "maxFragmentSamplers": 16
+    },
+    {
+      "phase": "scenario",
+      "stepSeconds": 0.016666666666666666,
+      "rateMlPerSec": 12.1,
+      "flow": "hydraulic-source",
+      "radiusMm": 8
+    },
+    {
+      "phase": "young-core",
+      "time": 0.016666666666666666,
+      "local": 32.53438067724186,
+      "bulk": 27.965619322758137,
+      "outlet": 0,
+      "emitted": 60.49999999999992,
+      "error": 7.815970093361102e-14,
+      "outside": 0,
+      "holes": 0,
+      "checked": 992,
+      "nonfinite": 0,
+      "sum": 355.24161028862,
+      "max": 1.884765625,
+      "p95RelativeError": 0.0007224075824211962,
+      "readbackMs": 5.5
+    },
+    {
+      "phase": "first-source-frame",
+      "time": 0.016666666666666666,
+      "local": 32.53438067724186,
+      "bulk": 27.965619322758137,
+      "outlet": 0,
+      "emitted": 60.49999999999992,
+      "error": 7.815970093361102e-14,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 659.3947536349297,
+      "max": 2.2109375,
+      "p95RelativeError": 0,
+      "readbackMs": 6.200000002980232
+    },
+    {
+      "phase": "4/60 s · strumień miesza się z krwią",
+      "time": 0.06666666666666667,
+      "local": 38.769774560608695,
+      "bulk": 203.23022543939126,
+      "outlet": 2.988666366535982e-40,
+      "emitted": 241.9999999999997,
+      "error": 2.5579538487363607e-13,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 2632.36086833477,
+      "max": 4.40625,
+      "p95RelativeError": 0,
+      "kernels": 4,
+      "readbackMs": 6.700000002980232
+    },
+    {
+      "phase": "0,20 s · płynne przejście do przepływu",
+      "time": 0.19999999999999998,
+      "local": 38.74254514010467,
+      "bulk": 687.2574548598956,
+      "outlet": 5.934609974118164e-25,
+      "emitted": 725.999999999999,
+      "error": 1.2505552149383699e-12,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 7894.284802675247,
+      "max": 6.984375,
+      "p95RelativeError": 0,
+      "kernels": 4,
+      "readbackMs": 7.5999999940395355
+    },
+    {
+      "phase": "high-rate-source-profile",
+      "minimumValleyRatio": 1,
+      "minimumCoreRatio": 1,
+      "profile": [
+        {
+          "y": 23.242187499999993,
+          "depth": 1.8349609375
+        },
+        {
+          "y": 23.632812500000007,
+          "depth": 1.8994140625
+        },
+        {
+          "y": 24.0234375,
+          "depth": 1.962890625
+        },
+        {
+          "y": 24.414062499999993,
+          "depth": 2.025390625
+        },
+        {
+          "y": 24.804687500000007,
+          "depth": 2.0859375
+        },
+        {
+          "y": 25.1953125,
+          "depth": 2.146484375
+        },
+        {
+          "y": 25.585937499999993,
+          "depth": 2.20703125
+        },
+        {
+          "y": 25.976562500000007,
+          "depth": 2.265625
+        },
+        {
+          "y": 26.3671875,
+          "depth": 2.32421875
+        },
+        {
+          "y": 26.757812499999993,
+          "depth": 2.37890625
+        },
+        {
+          "y": 27.148437500000007,
+          "depth": 2.43359375
+        },
+        {
+          "y": 27.5390625,
+          "depth": 2.484375
+        },
+        {
+          "y": 27.929687499999993,
+          "depth": 2.53515625
+        },
+        {
+          "y": 28.320312500000007,
+          "depth": 2.583984375
+        },
+        {
+          "y": 28.7109375,
+          "depth": 2.630859375
+        },
+        {
+          "y": 29.101562499999993,
+          "depth": 2.677734375
+        },
+        {
+          "y": 29.492187500000007,
+          "depth": 2.72265625
+        },
+        {
+          "y": 29.8828125,
+          "depth": 2.765625
+        },
+        {
+          "y": 30.273437499999993,
+          "depth": 2.806640625
+        },
+        {
+          "y": 30.664062500000007,
+          "depth": 2.84765625
+        },
+        {
+          "y": 31.0546875,
+          "depth": 2.896484375
+        },
+        {
+          "y": 31.445312499999993,
+          "depth": 2.951171875
+        },
+        {
+          "y": 31.835937500000007,
+          "depth": 3.0234375
+        },
+        {
+          "y": 32.2265625,
+          "depth": 3.1015625
+        },
+        {
+          "y": 32.61718749999999,
+          "depth": 3.158203125
+        },
+        {
+          "y": 33.00781250000001,
+          "depth": 3.22265625
+        },
+        {
+          "y": 33.3984375,
+          "depth": 3.28125
+        },
+        {
+          "y": 33.78906249999999,
+          "depth": 3.380859375
+        },
+        {
+          "y": 34.17968750000001,
+          "depth": 3.576171875
+        },
+        {
+          "y": 34.5703125,
+          "depth": 3.818359375
+        },
+        {
+          "y": 34.96093749999999,
+          "depth": 4.13671875
+        },
+        {
+          "y": 35.35156250000001,
+          "depth": 4.60546875
+        },
+        {
+          "y": 35.7421875,
+          "depth": 5.27734375
+        },
+        {
+          "y": 36.13281249999999,
+          "depth": 5.80859375
+        },
+        {
+          "y": 36.52343750000001,
+          "depth": 6.1875
+        },
+        {
+          "y": 36.9140625,
+          "depth": 6.47265625
+        },
+        {
+          "y": 37.30468749999999,
+          "depth": 6.6875
+        },
+        {
+          "y": 37.69531250000001,
+          "depth": 6.83203125
+        },
+        {
+          "y": 38.0859375,
+          "depth": 6.93359375
+        },
+        {
+          "y": 38.47656249999999,
+          "depth": 6.9765625
+        },
+        {
+          "y": 38.86718750000001,
+          "depth": 6.984375
+        },
+        {
+          "y": 39.2578125,
+          "depth": 6.94140625
+        },
+        {
+          "y": 39.64843749999999,
+          "depth": 6.875
+        },
+        {
+          "y": 40.03906250000001,
+          "depth": 6.74609375
+        },
+        {
+          "y": 40.4296875,
+          "depth": 6.6015625
+        },
+        {
+          "y": 40.82031249999999,
+          "depth": 6.421875
+        },
+        {
+          "y": 41.21093750000001,
+          "depth": 6.234375
+        },
+        {
+          "y": 41.6015625,
+          "depth": 6.02734375
+        },
+        {
+          "y": 41.99218749999999,
+          "depth": 5.8125
+        },
+        {
+          "y": 42.38281250000001,
+          "depth": 5.55859375
+        },
+        {
+          "y": 42.7734375,
+          "depth": 5.28125
+        },
+        {
+          "y": 43.16406249999999,
+          "depth": 4.94140625
+        },
+        {
+          "y": 43.55468750000001,
+          "depth": 4.61328125
+        },
+        {
+          "y": 43.9453125,
+          "depth": 4.3125
+        },
+        {
+          "y": 44.33593749999999,
+          "depth": 4.01171875
+        },
+        {
+          "y": 44.72656250000001,
+          "depth": 3.71875
+        },
+        {
+          "y": 45.1171875,
+          "depth": 3.28515625
+        },
+        {
+          "y": 45.50781249999999,
+          "depth": 2.720703125
+        },
+        {
+          "y": 45.89843750000001,
+          "depth": 2.14453125
+        },
+        {
+          "y": 46.2890625,
+          "depth": 1.560546875
+        },
+        {
+          "y": 46.67968749999999,
+          "depth": 1.14453125
+        }
+      ]
+    },
+    {
+      "phase": "entrainment-width",
+      "spread": [
+        {
+          "distance": 2.7834215288820308,
+          "ageSeconds": 0.0033878603883289123,
+          "travelDistanceMm": 2.671238432412697,
+          "radialSigma": 1.3040528141213936,
+          "centerConcentration": 1.01786226181339
+        },
+        {
+          "distance": 6.263856935837535,
+          "ageSeconds": 0.009883207082797961,
+          "travelDistanceMm": 6.215935495727724,
+          "radialSigma": 1.647685043605199,
+          "centerConcentration": 0.7917413725692063
+        },
+        {
+          "distance": 9.900485153968917,
+          "ageSeconds": 0.020801716270211653,
+          "travelDistanceMm": 9.922405590557188,
+          "radialSigma": 2.039307826277733,
+          "centerConcentration": 0.33722305196659785
+        },
+        {
+          "distance": 10.44688695605347,
+          "ageSeconds": 0.02798504822232117,
+          "travelDistanceMm": 10.520662373715624,
+          "radialSigma": 2.1878952785325607,
+          "centerConcentration": 0.2711346093057501
+        }
+      ]
+    },
+    {
+      "phase": "angle",
+      "angle": 0,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 7894.284802675247,
+      "max": 6.984375,
+      "p95RelativeError": 0,
+      "readbackMs": 6.4000000059604645
+    },
+    {
+      "phase": "angle",
+      "angle": 35,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 7894.581202626228,
+      "max": 7.42578125,
+      "p95RelativeError": 0,
+      "readbackMs": 6.5999999940395355
+    },
+    {
+      "phase": "angle",
+      "angle": 90,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 137505.875,
+      "max": 10.234375,
+      "p95RelativeError": 0,
+      "readbackMs": 11.900000005960464
+    },
+    {
+      "phase": "0,40 s · koniec wstrzyknięcia",
+      "time": 0.39999999999999997,
+      "local": 38.736517347040795,
+      "bulk": 1413.2634826522403,
+      "outlet": 7.180868256620656e-10,
+      "emitted": 1451.9999999999984,
+      "error": 7.228796386684641e-13,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 15787.133635997772,
+      "max": 6.98046875,
+      "p95RelativeError": 0,
+      "kernels": 4,
+      "readbackMs": 4.799999997019768
+    },
+    {
+      "phase": "1,10 s · wypłukiwanie",
+      "time": 1.100000000000001,
+      "local": 0,
+      "bulk": 1321.4809751373705,
+      "outlet": 130.519024862628,
+      "emitted": 1451.9999999999984,
+      "error": 5.684341886080802e-14,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 14354.81224322319,
+      "max": 3.634765625,
+      "p95RelativeError": 0,
+      "kernels": 0,
+      "readbackMs": 4.700000002980232
+    },
+    {
+      "phase": "washout",
+      "time": 3.9999999999999907,
+      "local": 0,
+      "bulk": 0,
+      "outlet": 1451.999999999998,
+      "emitted": 1451.9999999999984,
+      "error": 4.547473508864641e-13,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 0,
+      "max": 0,
+      "p95RelativeError": 0
+    }
+  ],
+  "divergent": [
+    {
+      "phase": "startup-shader",
+      "deformation": true,
+      "compileMs": 23.69999998807907,
+      "emptyEightFramesMs": 88.70000000298023,
+      "emptyPeak": 0,
+      "programs": [
+        {
+          "samplers": 16,
+          "activeUniforms": 48
+        },
+        {
+          "samplers": 16,
+          "activeUniforms": 48
+        }
+      ],
+      "maxFragmentSamplers": 16
+    },
+    {
+      "phase": "scenario",
+      "stepSeconds": 0.016666666666666666,
+      "rateMlPerSec": 12.1,
+      "flow": "divergent-source",
+      "radiusMm": 4
+    },
+    {
+      "phase": "first-source-frame",
+      "time": 0.016666666666666666,
+      "local": 0,
+      "bulk": 60.49999999999999,
+      "outlet": 0,
+      "emitted": 60.5,
+      "error": 7.105427357601002e-15,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 657.8444212675095,
+      "max": 3.609375,
+      "p95RelativeError": 0,
+      "readbackMs": 6
+    },
+    {
+      "phase": "4/60 s · strumień miesza się z krwią",
+      "time": 0.06666666666666667,
+      "local": 0,
+      "bulk": 241.99999999999986,
+      "outlet": 3.427208254376444e-17,
+      "emitted": 242,
+      "error": 1.4207427506947627e-13,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 2634.69573700428,
+      "max": 3.986328125,
+      "p95RelativeError": 0,
+      "kernels": 0,
+      "readbackMs": 5.9000000059604645
+    },
+    {
+      "phase": "0,20 s · płynne przejście do przepływu",
+      "time": 0.19999999999999998,
+      "local": 0,
+      "bulk": 725.9999981888512,
+      "outlet": 0.0000018111488203003532,
+      "emitted": 726,
+      "error": 5.689164341111052e-14,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 7904.443885445595,
+      "max": 3.9921875,
+      "p95RelativeError": 0,
+      "kernels": 0,
+      "readbackMs": 5.299999997019768
+    },
+    {
+      "phase": "high-rate-source-profile",
+      "minimumValleyRatio": 1,
+      "minimumCoreRatio": 1,
+      "profile": [
+        {
+          "y": 23.242187499999993,
+          "depth": 3.9921875
+        },
+        {
+          "y": 23.632812500000007,
+          "depth": 3.9921875
+        },
+        {
+          "y": 24.0234375,
+          "depth": 3.9921875
+        },
+        {
+          "y": 24.414062499999993,
+          "depth": 3.9921875
+        },
+        {
+          "y": 24.804687500000007,
+          "depth": 3.9921875
+        },
+        {
+          "y": 25.1953125,
+          "depth": 3.9921875
+        },
+        {
+          "y": 25.585937499999993,
+          "depth": 3.9921875
+        },
+        {
+          "y": 25.976562500000007,
+          "depth": 3.9921875
+        },
+        {
+          "y": 26.3671875,
+          "depth": 3.9921875
+        },
+        {
+          "y": 26.757812499999993,
+          "depth": 3.9921875
+        },
+        {
+          "y": 27.148437500000007,
+          "depth": 3.9921875
+        },
+        {
+          "y": 27.5390625,
+          "depth": 3.9921875
+        },
+        {
+          "y": 27.929687499999993,
+          "depth": 3.9921875
+        },
+        {
+          "y": 28.320312500000007,
+          "depth": 3.9921875
+        },
+        {
+          "y": 28.7109375,
+          "depth": 3.9921875
+        },
+        {
+          "y": 29.101562499999993,
+          "depth": 3.9921875
+        },
+        {
+          "y": 29.492187500000007,
+          "depth": 3.9921875
+        },
+        {
+          "y": 29.8828125,
+          "depth": 3.9921875
+        },
+        {
+          "y": 30.273437499999993,
+          "depth": 3.9921875
+        },
+        {
+          "y": 30.664062500000007,
+          "depth": 3.9921875
+        },
+        {
+          "y": 31.0546875,
+          "depth": 3.9921875
+        },
+        {
+          "y": 31.445312499999993,
+          "depth": 3.9921875
+        },
+        {
+          "y": 31.835937500000007,
+          "depth": 3.9921875
+        },
+        {
+          "y": 32.2265625,
+          "depth": 3.9921875
+        },
+        {
+          "y": 32.61718749999999,
+          "depth": 3.9921875
+        },
+        {
+          "y": 33.00781250000001,
+          "depth": 3.9921875
+        },
+        {
+          "y": 33.3984375,
+          "depth": 3.9921875
+        },
+        {
+          "y": 33.78906249999999,
+          "depth": 3.9921875
+        },
+        {
+          "y": 34.17968750000001,
+          "depth": 3.9921875
+        },
+        {
+          "y": 34.5703125,
+          "depth": 3.9921875
+        },
+        {
+          "y": 34.96093749999999,
+          "depth": 3.9921875
+        },
+        {
+          "y": 35.35156250000001,
+          "depth": 3.9921875
+        },
+        {
+          "y": 35.7421875,
+          "depth": 3.9921875
+        },
+        {
+          "y": 36.13281249999999,
+          "depth": 3.9921875
+        },
+        {
+          "y": 36.52343750000001,
+          "depth": 3.9921875
+        },
+        {
+          "y": 36.9140625,
+          "depth": 3.9921875
+        },
+        {
+          "y": 37.30468749999999,
+          "depth": 3.9921875
+        },
+        {
+          "y": 37.69531250000001,
+          "depth": 3.9921875
+        },
+        {
+          "y": 38.0859375,
+          "depth": 3.9921875
+        },
+        {
+          "y": 38.47656249999999,
+          "depth": 3.9921875
+        },
+        {
+          "y": 38.86718750000001,
+          "depth": 3.9921875
+        },
+        {
+          "y": 39.2578125,
+          "depth": 3.9921875
+        },
+        {
+          "y": 39.64843749999999,
+          "depth": 3.9921875
+        },
+        {
+          "y": 40.03906250000001,
+          "depth": 3.990234375
+        },
+        {
+          "y": 40.4296875,
+          "depth": 3.990234375
+        },
+        {
+          "y": 40.82031249999999,
+          "depth": 3.990234375
+        },
+        {
+          "y": 41.21093750000001,
+          "depth": 3.98828125
+        },
+        {
+          "y": 41.6015625,
+          "depth": 3.986328125
+        },
+        {
+          "y": 41.99218749999999,
+          "depth": 3.984375
+        },
+        {
+          "y": 42.38281250000001,
+          "depth": 3.98046875
+        },
+        {
+          "y": 42.7734375,
+          "depth": 3.974609375
+        },
+        {
+          "y": 43.16406249999999,
+          "depth": 3.966796875
+        },
+        {
+          "y": 43.55468750000001,
+          "depth": 3.958984375
+        },
+        {
+          "y": 43.9453125,
+          "depth": 3.947265625
+        },
+        {
+          "y": 44.33593749999999,
+          "depth": 3.931640625
+        },
+        {
+          "y": 44.72656250000001,
+          "depth": 3.91015625
+        },
+        {
+          "y": 45.1171875,
+          "depth": 3.884765625
+        },
+        {
+          "y": 45.50781249999999,
+          "depth": 3.8515625
+        },
+        {
+          "y": 45.89843750000001,
+          "depth": 3.810546875
+        },
+        {
+          "y": 46.2890625,
+          "depth": 3.76171875
+        },
+        {
+          "y": 46.67968749999999,
+          "depth": 3.69921875
+        }
+      ]
+    },
+    {
+      "phase": "divergent-source-fill",
+      "sourceDepth": 3.9921875,
+      "stockHalfColumn": 4,
+      "localMass": 0
+    },
+    {
+      "phase": "angle",
+      "angle": 0,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 7904.443885445595,
+      "max": 3.9921875,
+      "p95RelativeError": 0,
+      "readbackMs": 5.4000000059604645
+    },
+    {
+      "phase": "angle",
+      "angle": 35,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 7903.785708606243,
+      "max": 4.875,
+      "p95RelativeError": 0,
+      "readbackMs": 5.299999997019768
+    },
+    {
+      "phase": "angle",
+      "angle": 90,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 137637.5,
+      "max": 24.0625,
+      "p95RelativeError": 0,
+      "readbackMs": 8.899999991059303
+    },
+    {
+      "phase": "0,40 s · koniec wstrzyknięcia",
+      "time": 0.39999999999999997,
+      "local": 0,
+      "bulk": 1441.5811503705152,
+      "outlet": 10.418849629483994,
+      "emitted": 1452,
+      "error": 8.455458555545192e-13,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 15691.310407400131,
+      "max": 3.9921875,
+      "p95RelativeError": 0,
+      "kernels": 0,
+      "readbackMs": 4.700000002980232
+    },
+    {
+      "phase": "1,10 s · wypłukiwanie",
+      "time": 1.100000000000001,
+      "local": 0,
+      "bulk": 1107.7565522108052,
+      "outlet": 344.2434477891752,
+      "emitted": 1452,
+      "error": 1.9554136088117957e-11,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 12048.092718362808,
+      "max": 3.9921875,
+      "p95RelativeError": 0,
+      "kernels": 0,
+      "readbackMs": 4.399999991059303
+    },
+    {
+      "phase": "washout",
+      "time": 3.9999999999999907,
+      "local": 0,
+      "bulk": 0,
+      "outlet": 1451.9999999999707,
+      "emitted": 1452,
+      "error": 2.9331204132176936e-11,
+      "outside": 0,
+      "holes": 0,
+      "checked": 0,
+      "nonfinite": 0,
+      "sum": 0,
+      "max": 0,
+      "p95RelativeError": 0
+    }
+  ],
+  "junction": {
+    "size": 512,
+    "cases": [
+      {
+        "frame": 0,
+        "angle": 0,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 0,
+        "before": {
+          "maxConcentrationStepPerPixel": 0,
+          "maxSecondDifference": 0,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0,
+          "maxSecondDifference": 0,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 0,
+        "angle": 30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 0,
+        "before": {
+          "maxConcentrationStepPerPixel": 0,
+          "maxSecondDifference": 0,
+          "checked": 2600
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0,
+          "maxSecondDifference": 0,
+          "checked": 2600
+        }
+      },
+      {
+        "frame": 0,
+        "angle": -30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 0,
+        "before": {
+          "maxConcentrationStepPerPixel": 0,
+          "maxSecondDifference": 0,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0,
+          "maxSecondDifference": 0,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 1,
+        "angle": 0,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 10620.742269098759,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.005160202592003255,
+          "maxSecondDifference": 0.003283748724110941,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.0023723661475418684,
+          "maxSecondDifference": 0.00026545272346734095,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 1,
+        "angle": 30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 10622.018052875996,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.003803766940168863,
+          "maxSecondDifference": 0.0022362442166484232,
+          "checked": 2600
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.0032396462811257187,
+          "maxSecondDifference": 0.0003338069096744112,
+          "checked": 2600
+        }
+      },
+      {
+        "frame": 1,
+        "angle": -30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 10623.217171788216,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.004435043668122272,
+          "maxSecondDifference": 0.002081592342185551,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.0025992438563327003,
+          "maxSecondDifference": 0.0002540673125244891,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 2,
+        "angle": 0,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 13898.08583432436,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.03325719520859563,
+          "maxSecondDifference": 0.01537688301770182,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.01963832160078388,
+          "maxSecondDifference": 0.0018312527501150866,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 2,
+        "angle": 30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 13903.750263690948,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.02612325055553391,
+          "maxSecondDifference": 0.018967754490129635,
+          "checked": 2600
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.019091474325808933,
+          "maxSecondDifference": 0.0018207099873907007,
+          "checked": 2600
+        }
+      },
+      {
+        "frame": 2,
+        "angle": -30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 13903.4944511652,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.03624454148471615,
+          "maxSecondDifference": 0.02249357326478152,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.018807201826320286,
+          "maxSecondDifference": 0.0021454598650849643,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 3,
+        "angle": 0,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 15451.14840489626,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.04872320623563969,
+          "maxSecondDifference": 0.022887161707951603,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.02845020210282162,
+          "maxSecondDifference": 0.002991345154335967,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 3,
+        "angle": 30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 15457.600861608982,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.037370862734396326,
+          "maxSecondDifference": 0.031012790702169335,
+          "checked": 2600
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.027585459864669926,
+          "maxSecondDifference": 0.0028233308085848785,
+          "checked": 2600
+        }
+      },
+      {
+        "frame": 3,
+        "angle": -30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 15458.284129142761,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.05218340611353711,
+          "maxSecondDifference": 0.03706083976006852,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.02746280126667816,
+          "maxSecondDifference": 0.0027597361115078156,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 4,
+        "angle": 0,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 12947.452400445938,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.034499157788472345,
+          "maxSecondDifference": 0.014974642171810743,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.005976000278459431,
+          "maxSecondDifference": 0.0008477496463339951,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 4,
+        "angle": 30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 12951.451848983765,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.01790332740477249,
+          "maxSecondDifference": 0.02215394499585438,
+          "checked": 2600
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.007721635141516775,
+          "maxSecondDifference": 0.0012130196291864348,
+          "checked": 2600
+        }
+      },
+      {
+        "frame": 4,
+        "angle": -30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 12953.187694013119,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.03442569098706641,
+          "maxSecondDifference": 0.014702658728723172,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.007561436672967853,
+          "maxSecondDifference": 0.000883255566902108,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 5,
+        "angle": 0,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 17444.863279223442,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.02259268282980964,
+          "maxSecondDifference": 0.007063183283619157,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.01770237693590737,
+          "maxSecondDifference": 0.002155079106861857,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 5,
+        "angle": 30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 17444.717914521694,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.02011032708276478,
+          "maxSecondDifference": 0.006699121409747218,
+          "checked": 2600
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.017080556896147847,
+          "maxSecondDifference": 0.007768425090105287,
+          "checked": 2600
+        }
+      },
+      {
+        "frame": 5,
+        "angle": -30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 17442.389446556568,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.027947598253275086,
+          "maxSecondDifference": 0.010607093990036676,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.017439487422876154,
+          "maxSecondDifference": 0.0018507874287795323,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 6,
+        "angle": 0,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 14872.253799080849,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.020006585679874844,
+          "maxSecondDifference": 0.009291736568789122,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.010422005124919947,
+          "maxSecondDifference": 0.0012126865671641673,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 6,
+        "angle": 30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 14872.386964321136,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.013679778566137751,
+          "maxSecondDifference": 0.0055597038977992785,
+          "checked": 2600
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.010149871162025398,
+          "maxSecondDifference": 0.0031020878232810977,
+          "checked": 2600
+        }
+      },
+      {
+        "frame": 6,
+        "angle": -30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 14872.817936301231,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.017467248908296956,
+          "maxSecondDifference": 0.006536544562400853,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.010268492477636199,
+          "maxSecondDifference": 0.0009767137156810324,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 7,
+        "angle": 0,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 14461.566273391247,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.021435467075643658,
+          "maxSecondDifference": 0.010376656831328282,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.006902515506125195,
+          "maxSecondDifference": 0.0009211920907226945,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 7,
+        "angle": 30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 14464.037690758705,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.005231899984614027,
+          "maxSecondDifference": 0.0038045016235064705,
+          "checked": 2600
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.007882112246311856,
+          "maxSecondDifference": 0.0012725800869519974,
+          "checked": 2600
+        }
+      },
+      {
+        "frame": 7,
+        "angle": -30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 14457.933915913105,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.006146649260226289,
+          "maxSecondDifference": 0.0026004540526894104,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.007325141776937605,
+          "maxSecondDifference": 0.000649810964083189,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 8,
+        "angle": 0,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 14814.839180469513,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.013793399899912039,
+          "maxSecondDifference": 0.007117432644692966,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.0056290888993523955,
+          "maxSecondDifference": 0.0007828529243909289,
+          "checked": 2535
+        }
+      },
+      {
+        "frame": 8,
+        "angle": 30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 14815.912242650986,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.0027255026081691204,
+          "maxSecondDifference": 0.0025877215004774454,
+          "checked": 2600
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.007002757802580646,
+          "maxSecondDifference": 0.0006833619558236359,
+          "checked": 2600
+        }
+      },
+      {
+        "frame": 8,
+        "angle": -30,
+        "cacheError": 0,
+        "outside": 0,
+        "total": 14819.241293728352,
+        "before": {
+          "maxConcentrationStepPerPixel": 0.002719756309834641,
+          "maxSecondDifference": 0.001110338184931503,
+          "checked": 2535
+        },
+        "after": {
+          "maxConcentrationStepPerPixel": 0.006586720226843097,
+          "maxSecondDifference": 0.000649810964083182,
+          "checked": 2535
+        }
+      }
+    ],
+    "contextLost": false,
+    "shaderError": false,
+    "status": "pass"
+  }
+}

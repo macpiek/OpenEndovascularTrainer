@@ -427,7 +427,12 @@ export class AnatomicalContrastSurface {
         this.edgeVisible = new Uint8Array(network.edges.length);
         this.mesh.visible = false;
     }
-    update(plume, stock, advanceHistory, graftReplacesLumen = false) {
+    update(plume, stock, advanceHistory, graftReplacesLumen = false, localSolver = null) {
+        const outletJet = this.projection?.outletJet;
+        // The graft proxy owns blood inside covered fabric. Keep its existing
+        // source sampling until the jet can be clipped to that separate lumen.
+        const spatialJet = outletJet && localSolver && !graftReplacesLumen;
+        outletJet?.update(spatialJet ? localSolver : null, stock);
         if (advanceHistory) this.previous.set(this.current);
         for (const e of this.network.edges) {
             let visible = false;
@@ -435,8 +440,9 @@ export class AnatomicalContrastSurface {
                 const i = this.offsets[e.index] + cell;
                 this.excludedCells[i] = Boolean(e.transportExcluded || e.renderExcluded ||
                     (graftReplacesLumen && e.graftSections?.[cell]));
+                const pending = spatialJet ? (outletJet.fallbackMassByCell?.[i] ?? 0) : plume[i];
                 this.cellValues[i] = this.excludedCells[i] ? 0 :
-                    (e.massMg[cell] + plume[i]) / e.volumes[cell] / stock;
+                    (e.massMg[cell] + pending) / e.volumes[cell] / stock;
                 visible ||= this.cellValues[i] > 0 || this.previous[i] > 0;
             }
             this.edgeVisible[e.index] = visible;
@@ -453,7 +459,7 @@ export class AnatomicalContrastSurface {
         if (this.projection) {
             // Keep clear entry walls whose rays can reach active blood, while
             // avoiding unrelated anatomical regions in this camera's view.
-            const active = this.activity.update(this.current, this.previous);
+            const active = this.activity.update(this.current, this.previous, outletJet?.bounds);
             if (active) {
                 this.activity.setGroups();
                 // Activity support is computed from the CPU metadata, but
@@ -475,6 +481,7 @@ export class AnatomicalContrastSurface {
         this.mesh.visible = this.mesh.geometry.groups.length > 0;
     }
     resetHistory() {
+        this.projection?.outletJet?.update(null, 1);
         this.cellValues.fill(0); this.excludedCells.fill(0); this.current.fill(0); this.previous.fill(0); this.data.fill(0);
         this.texture.needsUpdate = true; this.mesh.visible = false;
         this.projection?.update?.(this.current, this.previous);

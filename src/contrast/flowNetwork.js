@@ -1969,10 +1969,26 @@ export class ContrastFlowNetwork {
         return true;
     }
 
+    // Entrainment delivered between two transport boundaries is continuous
+    // during that next interval. Ordinary depositIodine remains an instant
+    // bolus for callers which intentionally set an initial concentration.
+    queueIodineSource(edgeIndex, cellIndex, iodineMassMg) {
+        const edge = this.edges[edgeIndex];
+        if (!edge || !(iodineMassMg > 0) || !Number.isFinite(iodineMassMg)) return false;
+        if (edge.transportExcluded) return this.depositIodine(edgeIndex, cellIndex, iodineMassMg);
+        const cell = THREE.MathUtils.clamp(Math.floor(cellIndex), 0, edge.cellCount - 1);
+        this._advection.queueSource(edgeIndex, cell, iodineMassMg);
+        // Pending source iodine has already left the local jet and belongs to
+        // this network. Count it once even before update consumes the queue.
+        this.totalIodineMassMg += iodineMassMg;
+        return true;
+    }
+
     update(dt) {
         if (!(dt > 0)) return;
         if (
             !(this.totalIodineMassMg > 1e-10) &&
+            !this._advection.queuedSourceVertices.length &&
             !this._branchInletEdgeIndices.size &&
             !(this.stentGraftRemodeling?.sac && this.stentGraftRemodeling.trappedIodineMassMg > 1e-10)
         ) {
@@ -1982,6 +1998,7 @@ export class ContrastFlowNetwork {
         // Accuracy steps resolve the pulse; stability no longer depends
         // on the smallest atlas cell or an arbitrary cap on CFL substeps.
         const count = Math.max(1, Math.ceil(dt*30)), step = dt/count;
+        this._advection.sourceIntervalSeconds = dt;
         this.lastTransportSubstepCount = count;
         for (let i = 0; i < count; i++) {
             const waveform=arterialWaveform(this.time+step*.5,this.hemodynamics.heartRateBpm);
@@ -1990,6 +2007,7 @@ export class ContrastFlowNetwork {
             this.stentGraftRemodeling?.sac?.update(step);
             this.time += step;
         }
+        this._advection.finishSourceInterval();
         this._updateEdgeConcentrations(true);
     }
 

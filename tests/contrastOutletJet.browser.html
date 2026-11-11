@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="pl">
+<meta charset="utf-8">
+<title>Strumień kontrastu z ujścia cewnika</title>
+<style>
+body{margin:24px;background:#15212b;color:#edf4fa;font:15px system-ui}h1{font-size:24px}h2{font-size:19px}p{max-width:1000px;line-height:1.5}pre{white-space:pre-wrap}#frames,#angles{display:flex;flex-wrap:wrap;gap:18px}figure{margin:0 0 20px}canvas{width:220px;max-width:100%;height:auto;background:#edf1f3}figcaption{max-width:220px;margin:8px 0;color:#c9d8e1}#metrics{font-size:12px;color:#b7c9d5}#results{padding:16px;background:#20323f;border-radius:8px}
+</style>
+<h1>Strumień kontrastu z ujścia cewnika</h1>
+<p>Rzeczywisty solver wstrzyknięcia i renderer fluoroskopii: 12,1 ml/s, ujście cewnika skierowane pod prąd krwi oraz krok fizyki 1/60 s. Kontrast wychodzi z ujścia, miesza się i przechodzi do przepływu krwi. Kontur naczynia wyznacza geometria.</p>
+<nav><a href="?flow=normal">Przepływ krwi i wstrzyknięcie przez cewnik</a> · <a href="?flow=divergent">Duży CFL, odpływ po obu stronach ujścia</a></nav>
+<pre id="results" role="status">Przygotowanie testu GPU…</pre>
+<h2>Przepływ w czasie</h2>
+<div id="frames"></div>
+<h2>Ten sam strumień pod różnymi kątami</h2>
+<div id="angles"></div>
+<details><summary>Pomiary</summary><pre id="metrics"></pre></details>
+<script type="module">
+import * as THREE from 'three';
+import {LocalContrastInjectionSolver,DEFAULT_CONTRAST_MEDIUM} from '../src/contrast/localInjectionSolver.js';
+import {axialProjectionFixture} from './helpers/contrastAxialProjectionFixture.js';
+import {VesselDeformation} from '../src/vesselDeformation.js';
+import {ContinuousInjectionFlowCoupler} from '../src/contrast/continuousInjectionFlowCoupler.js';
+
+const results=document.querySelector('#results'),metrics=document.querySelector('#metrics');
+const lines=[],measurements=[];
+const assert=(value,message)=>{if(!value)throw Error(message);};
+const publish=()=>{results.textContent=lines.join('\n');metrics.textContent=JSON.stringify(measurements,null,2);};
+let contextLost=false,shaderError=false;
+const renderer=new THREE.WebGLRenderer({antialias:false});renderer.setPixelRatio(1);
+renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();contextLost=true;});
+renderer.debug.onShaderError=(gl,program,vertex,fragment)=>{
+    shaderError=true;
+    lines.push(`FAIL shader: ${gl.getProgramInfoLog(program)} ${gl.getShaderInfoLog(fragment)}`);publish();
+};
+const scene=new THREE.Scene(),target=new THREE.WebGLRenderTarget(256,384,{type:THREE.HalfFloatType});
+let width=256,height=384,raw=new Uint16Array(width*height*4);
+const divergent=new URLSearchParams(location.search).get('flow')==='divergent';
+const fixture=axialProjectionFixture({radius:divergent?4:8,length:140,projection:'column'});
+const network=fixture.network,surface=fixture.surface,edge=network.edges[0],stock=.3;
+network.setHemodynamics({cardiacOutputMlPerMin:Math.PI*fixture.radius**2*90/1000*60});
+const coupler=new ContinuousInjectionFlowCoupler(network);
+const deformation=new URLSearchParams(location.search).get('deform')==='0'?null:new VesselDeformation();
+deformation?.attach(surface.material);
+const solver=new LocalContrastInjectionSolver({flowNetwork:network,capacity:2048,parcelVolumeMl:.0025,randomSeed:1212});
+const emptyPlume=new Float32Array(edge.cellCount);
+surface.uniforms.signalGain.value=1;surface.uniforms.displayAlpha.value=1;
+scene.add(surface.mesh);
+const port={position:new THREE.Vector3(0,35,0),direction:new THREE.Vector3(0,1,0),radiusMm:.45,valid:true};
+const rate=12.1,duration=.4,dt=1/60;
+let elapsed=0,emitted=0;
+
+function dimensions(w,h){width=w;height=h;renderer.setSize(w,h);target.setSize(w,h);raw=new Uint16Array(w*h*4);}
+function cameraFor(angle){
+    const rad=angle*Math.PI/180,endOn=angle===90,spanX=endOn?12:50,spanY=endOn?12:75;
+    const camera=new THREE.OrthographicCamera(-spanX,spanX,spanY,-spanY,.1,500);
+    camera.position.set(0,200*Math.sin(rad),200*Math.cos(rad));
+    if(endOn)camera.up.set(0,0,-1);
+    camera.lookAt(0,0,0);camera.updateMatrixWorld(true);return camera;
+}
+function updateSurface(){surface.update(emptyPlume,stock,false,false,solver);}
+function advance(to){
+    const ticks=Math.round(to/dt);
+    while(Math.round(elapsed/dt)<ticks){
+        const step=dt;
+        network.clearFlowOverrides();coupler.beginStep();
+        network.setFlowOverride([0],Math.PI*fixture.radius**2*90);
+        const injectionStep=Math.max(0,Math.min(step,duration-elapsed));
+        if(injectionStep>1e-10){
+            let locations;
+            if(divergent){
+                // Known conservative volume-source test: 4 ml/s leaves one
+                // face and 8.1 ml/s leaves the other, exactly the 12.1 ml/s
+                // injected. Its source-cell residence time is below one
+                // production tick, exposing impulse-before-advection holes.
+                const location=network.findInjectionLocation(port.position,port.direction,{});
+                network.setFlowOverride([0],-4000);
+                network.addFaceFlowDelta(0,location.cellIndex+1,edge.cellCount+1,rate*1000);
+                locations=[location];
+            }else locations=coupler.configure({ports:[port],rateMlPerSec:rate}).map(split=>split.location);
+            const emission=solver.emit({ports:[port],volumeMl:rate*injectionStep,rateMlPerSec:rate,
+                emissionWindowSeconds:injectionStep,medium:DEFAULT_CONTRAST_MEDIUM,allowPressureDrivenRetrograde:false,
+                portInjectionLocations:locations});emitted+=emission.emittedIodineMassMg;
+        }
+        solver.update(step);network.update(step);elapsed+=step;
+    }
+    updateSurface();
+}
+function draw(camera){
+    renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.clear();
+    const start=performance.now();renderer.render(scene,camera);renderer.readRenderTargetPixels(target,0,0,width,height,raw);
+    assert(!contextLost,'Utrata kontekstu WebGL');assert(!shaderError,'Błąd kompilacji shadera');
+    return {values:Float32Array.from({length:width*height},(_,i)=>THREE.DataUtils.fromHalfFloat(raw[i*4])),readbackMs:performance.now()-start};
+}
+function preview(container,values,label,camera){
+    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+    const rgba=new Uint8ClampedArray(width*height*4);
+    for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+        const i=(x+(height-1-y)*width)*4,v=Math.round(240*Math.exp(-Math.max(0,values[x+y*width])*.35));
+        rgba[i]=rgba[i+1]=rgba[i+2]=v;rgba[i+3]=255;
+    }
+    const ctx=canvas.getContext('2d');ctx.putImageData(new ImageData(rgba,width,height),0,0);
+    // The short line is only an explanatory catheter overlay on this report,
+    // never part of the GPU measurements or the projected iodine field.
+    const tip=port.position.clone().project(camera),shaft=port.position.clone().addScaledVector(port.direction,-20).project(camera);
+    ctx.strokeStyle='#75818a';ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo((shaft.x+1)*width/2,(1-shaft.y)*height/2);ctx.lineTo((tip.x+1)*width/2,(1-tip.y)*height/2);ctx.stroke();
+    const figure=document.createElement('figure'),caption=document.createElement('figcaption');caption.textContent=label;figure.append(canvas,caption);document.querySelector(container).append(figure);
+}
+function cylinderInterval(origin,ray){
+    const a=ray.x*ray.x+ray.z*ray.z,b=2*(origin.x*ray.x+origin.z*ray.z),c=origin.x**2+origin.z**2-fixture.radius**2;
+    let lo=0,hi=Infinity;
+    if(a<1e-12){if(c>=0)return null;}
+    else{const determinant=b*b-4*a*c;if(determinant<=0)return null;const root=Math.sqrt(determinant);lo=Math.max(lo,(-b-root)/(2*a));hi=Math.min(hi,(-b+root)/(2*a));}
+    if(Math.abs(ray.y)<1e-12){if(Math.abs(origin.y)>=fixture.length/2)return null;}
+    else{const p=(-fixture.length/2-origin.y)/ray.y,q=(fixture.length/2-origin.y)/ray.y;lo=Math.max(lo,Math.min(p,q));hi=Math.min(hi,Math.max(p,q));}
+    return hi>lo?{lo,hi}:null;
+}
+function inspect(values,camera,localOnly=false){
+    const raycaster=new THREE.Raycaster(),entry=new THREE.Vector3(),errors=[];
+    let outside=0,holes=0,checked=0,nonfinite=0,sum=0,max=0;
+    for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+        const actual=values[x+y*width];sum+=actual;max=Math.max(max,actual);if(!Number.isFinite(actual))nonfinite++;
+        raycaster.setFromCamera(new THREE.Vector2(2*(x+.5)/width-1,2*(y+.5)/height-1),camera);
+        const ray=raycaster.ray,interval=cylinderInterval(ray.origin,ray.direction);
+        if(!interval){if(actual>1e-5)outside++;continue;}
+        if(localOnly){
+            entry.copy(ray.origin).addScaledVector(ray.direction,interval.lo);
+            const expected=.5*surface.projection.outletJet.integrate(entry,ray.direction,interval.hi-interval.lo,0,0);
+            if(expected>.01){checked++;if(actual<1e-6)holes++;errors.push(Math.abs(actual-expected)/expected);}
+        }
+    }
+    errors.sort((a,b)=>a-b);
+    return {outside,holes,checked,nonfinite,sum,max,p95RelativeError:errors.length?errors[Math.floor(errors.length*.95)]:0};
+}
+function mass(){const local=solver.iodineMassMg.subarray(0,solver.count).reduce((a,b)=>a+b,0),bulk=network.getIodineMassMg(),outlet=network.outletIodineMassMg;return {local,bulk,outlet,emitted,error:Math.abs(emitted-local-bulk-outlet)};}
+function nearfieldProfile(values,camera){
+    const center=port.position.clone().project(camera),cx=Math.floor((center.x+1)*width/2);
+    const profile=[];let minimumValleyRatio=1,minimumCoreRatio=1;
+    for(let row=0;row<height;row++){
+        const y=(2*(row+.5)/height-1)*75;
+        if(Math.abs(y-port.position.y)>12)continue;
+        const value=values[cx+row*width],left=values[Math.max(0,cx-4)+row*width],right=values[Math.min(width-1,cx+4)+row*width];
+        if(Math.max(left,right)>.03)minimumCoreRatio=Math.min(minimumCoreRatio,value/Math.max(left,right));
+        profile.push({y,depth:value});
+    }
+    // A smooth gradient or bolus front is allowed. A one-cell bright notch
+    // between opacified sections is not: look for a dip bracketed on BOTH
+    // sides, not a contrast threshold at its leading or trailing front.
+    for(let i=4;i<profile.length-4;i++){
+        const support=Math.min(profile[i-4].depth,profile[i+4].depth);
+        if(support>.05)minimumValleyRatio=Math.min(minimumValleyRatio,profile[i].depth/support);
+    }
+    return {minimumValleyRatio,minimumCoreRatio,profile};
+}
+
+try{
+    const sideCamera=cameraFor(0);
+    lines.push(`Przygotowanie shadera ${deformation?'z pełną deformacją naczyń (jak w symulatorze)':'bez deformacji'}…`);publish();
+    // Compile and draw the same empty-lumen path used at application startup.
+    // Keeping a real draw range avoids accidentally skipping shader creation
+    // merely because there is no contrast before the first injection.
+    surface.mesh.visible=true;
+    surface.mesh.geometry.clearGroups();
+    surface.mesh.geometry.addGroup(0,surface.mesh.geometry.index?.count??surface.mesh.geometry.attributes.position.count,0);
+    surface.uniforms.projectionCullActive.value=false;
+    const compileStart=performance.now();
+    await renderer.compileAsync(scene,sideCamera);
+    const compileMs=performance.now()-compileStart;
+    const emptyStart=performance.now();let emptyPeak=0;
+    for(let i=0;i<8;i++)for(const value of draw(sideCamera).values)emptyPeak=Math.max(emptyPeak,value);
+    const gl=renderer.getContext(),programs=renderer.info.programs.map(p=>{
+        const samplerTypes=[gl.SAMPLER_2D,gl.SAMPLER_3D,gl.SAMPLER_CUBE,gl.INT_SAMPLER_2D,gl.UNSIGNED_INT_SAMPLER_2D];
+        const activeUniforms=gl.getProgramParameter(p.program,gl.ACTIVE_UNIFORMS);let samplers=0;
+        for(let i=0;i<activeUniforms;i++){const uniform=gl.getActiveUniform(p.program,i);if(samplerTypes.includes(uniform.type))samplers+=uniform.size;}
+        return {samplers,activeUniforms};
+    });
+    measurements.push({phase:'startup-shader',deformation:!!deformation,compileMs,emptyEightFramesMs:performance.now()-emptyStart,emptyPeak,programs,maxFragmentSamplers:gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)});
+    assert(emptyPeak===0,'Pusty shader powinien zwracać zerowy sygnał');
+    lines.push(`PASS: shader startowy ${deformation?'z deformacją':''}, ${programs.map(p=>p.samplers).join('/')} samplerów, 8 pustych klatek bez błędów.`);publish();
+    // Isolate the young local component for a numerical GPU/CPU comparison.
+    // The physical run already entrains a small amount continuously, so its
+    // bulk cells are restored immediately after this diagnostic draw.
+    measurements.push({phase:'scenario',stepSeconds:dt,rateMlPerSec:rate,flow:divergent?'divergent-source':'hydraulic-source',radiusMm:fixture.radius});
+    advance(dt);
+    if(!divergent){
+        const savedMass=edge.massMg.slice();edge.massMg.fill(0);updateSurface();
+        const isolated=draw(sideCamera),young=inspect(isolated.values,sideCamera,true);
+        edge.massMg.set(savedMass);updateSurface();
+        measurements.push({phase:'young-core',time:elapsed,...mass(),...young,readbackMs:isolated.readbackMs});
+        assert(mass().local>0,'Brak miejscowego strumienia po emisji');
+        assert(young.checked>0&&young.max>0,'Strumień przy ujściu jest niewidoczny');
+        assert(young.holes===0&&young.outside===0&&young.nonfinite===0,'Ubytki lub kontrast poza światłem w młodym strumieniu');
+        assert(young.p95RelativeError<.08,'Projekcja strumienia różni się od całki w rzeczywistym świetle');
+        lines.push('PASS: młody strumień jest widoczny niezależnie od wymieszanej krwi, bez pustego środka.');
+    }else{
+        // Both faces carry fluid out of this control volume: its content is
+        // supplied by the injection itself, with no second incoming blood
+        // stream. A separate retained jet would count the same volume twice.
+        assert(solver.count===0&&mass().local===0,'Źródło bez dopływu krwi nie powinno przechowywać dodatkowego rdzenia strumienia');
+        assert(surface.projection.outletJet.count===0,'Dodatkowa objętość strumienia nad czystym wypełnieniem źródła');
+        lines.push('PASS: odpływ po obu stronach — cały jod trafia ciągle do jednej objętości źródła.');
+    }
+    publish();const first=draw(sideCamera),firstMass=mass(),firstStats=inspect(first.values,sideCamera);
+    measurements.push({phase:'first-source-frame',time:elapsed,...firstMass,...firstStats,readbackMs:first.readbackMs});
+    assert(firstMass.error<1e-7&&firstStats.max>0,'Nieprawidłowy bilans lub brak źródła w pierwszej klatce');
+    assert(firstStats.outside===0&&firstStats.nonfinite===0,'Nieprawidłowy kontur lub piksele pierwszej klatki');
+    assert(firstStats.max<=fixture.radius*1.06,'Pierwsza klatka przekracza stężenie roztworu wyjściowego');
+    preview('#frames',first.values,'1/60 s · strumień przy ujściu',sideCamera);
+    for(const [time,label] of [[4*dt,'4/60 s · strumień miesza się z krwią'],[.2,'0,20 s · płynne przejście do przepływu'],[.4,'0,40 s · koniec wstrzyknięcia'],[1.1,'1,10 s · wypłukiwanie']]){
+        advance(time);const image=draw(sideCamera),stats=inspect(image.values,sideCamera),balance=mass();
+        measurements.push({phase:label,time:elapsed,...balance,...stats,kernels:surface.projection.outletJet.count,readbackMs:image.readbackMs});
+        assert(balance.error<1e-7,'Utrata masy podczas mieszania strumienia z krwią');
+        assert(stats.outside===0&&stats.nonfinite===0,'Kontrast poza światłem lub nieprawidłowe piksele');
+        // This is a density bound, not an arbitrary brightness threshold:
+        // a side-view ray cannot contain more iodine than a full cylinder of
+        // undiluted stock (half-column = radius at its centre).
+        assert(stats.max<=fixture.radius*1.06,
+            `Suma strumienia i krwi przekracza stężenie roztworu wyjściowego: ${stats.max.toFixed(3)} > ${(fixture.radius*1.06).toFixed(3)}`);
+        preview('#frames',image.values,label,sideCamera);
+        if(time===.2){
+            const nearfield=nearfieldProfile(image.values,sideCamera);
+            measurements.push({phase:'high-rate-source-profile',...nearfield});
+            assert(nearfield.minimumCoreRatio>.8,'Jasny środek przy ciemnych brzegach strumienia');
+            assert(nearfield.minimumValleyRatio>.75,'Jasny poprzeczny segment między zakontrastowanymi częściami przy źródle');
+            lines.push('PASS: 12,1 ml/s przy 60 Hz — pełny środek strumienia i brak jasnego poprzecznego segmentu.');publish();
+            if(!divergent){
+            const spread=surface.projection.outletJet.kernels.map(k=>({
+                distance:Math.hypot(k.x-port.position.x,k.y-port.position.y,k.z-port.position.z),
+                ageSeconds:k.ageSeconds,
+                travelDistanceMm:k.travelDistanceMm,
+                radialSigma:1/Math.sqrt(k.inverseRadialVariance),
+                centerConcentration:surface.projection.outletJet.sample(new THREE.Vector3(k.x,k.y,k.z),k.pathA,k.pathB)
+            })).sort((a,b)=>a.ageSeconds-b.ageSeconds);
+            measurements.push({phase:'entrainment-width',spread});
+            // A countercurrent jet can turn back towards the outlet. Its
+            // Euclidean distance then shrinks while age and travelled path
+            // still grow; compare younger and older distributions instead.
+            assert(spread.length>1&&spread.at(-1).ageSeconds>spread[0].ageSeconds&&
+                spread.at(-1).travelDistanceMm>spread[0].travelDistanceMm&&
+                spread.at(-1).radialSigma>spread[0].radialSigma*1.05,
+                'Strumień powinien poszerzać się w miarę mieszania z krwią');
+            lines.push('PASS: starsza część strumienia jest szersza po przebyciu dłuższej drogi.');publish();
+            }else{
+                const sourceNdc=port.position.clone().project(sideCamera),sourceX=Math.floor((sourceNdc.x+1)*width/2),sourceY=Math.floor((sourceNdc.y+1)*height/2);
+                const sourceDepth=image.values[sourceX+sourceY*width];
+                measurements.push({phase:'divergent-source-fill',sourceDepth,stockHalfColumn:fixture.radius,localMass:balance.local});
+                assert(balance.local===0&&surface.projection.outletJet.count===0,'Podwójnie policzona objętość przy źródle bez dopływu krwi');
+                assert(sourceDepth>=fixture.radius*.9,'Ubytek wypełnienia w objętości źródła przy odpływie obustronnym');
+                lines.push('PASS: źródło bez dopływu krwi jest wypełnione, bez przejaśnienia i dodatkowego rdzenia.');publish();
+            }
+            for(const angle of [0,35,90]){
+                dimensions(angle===90?256:256,angle===90?256:384);const camera=cameraFor(angle),view=draw(camera),checked=inspect(view.values,camera);
+                measurements.push({phase:'angle',angle,...checked,readbackMs:view.readbackMs});
+                assert(checked.outside===0&&checked.nonfinite===0,`Kontrast poza światłem przy kącie ${angle}°`);
+                assert(checked.max>0,`Brak kontrastu przy kącie ${angle}°`);
+                preview('#angles',view.values,angle===90?'90° · widok wzdłuż naczynia':`${angle}° · widok boczny`,camera);
+            }
+            dimensions(256,384);
+        }
+    }
+    lines.push('PASS: zachowana masa jodu podczas ciągłego mieszania i przekazania do przepływu.');
+    lines.push('PASS: brak kontrastu poza światłem przy 0°, 35° i 90°.');publish();
+    advance(4);const washed=draw(sideCamera),wash=inspect(washed.values,sideCamera),balance=mass();
+    measurements.push({phase:'washout',time:elapsed,...balance,...wash});
+    assert(solver.count===0,'Pozostały cząstki miejscowego strumienia po wypłukaniu');
+    assert(wash.max<1e-4,'Pozostał widoczny kontrast po wypłukaniu');
+    assert(balance.error<1e-7,'Bilans masy po wypłukaniu');
+    preview('#frames',washed.values,'4,00 s · po wypłukaniu',sideCamera);
+    lines.push('PASS: po wypłukaniu brak obwódek i pozostałości strumienia.');
+    lines.push('PASS: bez błędu kompilacji i utraty kontekstu WebGL.');
+    document.body.dataset.status='passed';publish();
+}catch(error){document.body.dataset.status='failed';lines.push(`FAIL: ${error.message}`);measurements.push({error:error.stack});publish();console.error(error);}
+finally{renderer.setRenderTarget(null);surface.dispose();deformation?.dispose();fixture.geometry.dispose();target.dispose();renderer.dispose();}
+</script>
+</html>
