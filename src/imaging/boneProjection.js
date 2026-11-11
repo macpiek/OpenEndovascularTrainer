@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 export const BONE_DEPTH_SCALE = 0.00072;
 
-/** Signed boundary integral of bone thickness, limited to the physical ray. */
+/** Signed boundary integral of bone thickness within the projection depth range. */
 export function createBoneProjectionMaterial() {
     const material = new THREE.ShaderMaterial({
         defines: {BONE_DEPTH_SCALE},
@@ -30,7 +30,7 @@ export function createBoneProjectionMaterial() {
                 vec4 worldPosition = modelMatrix * vec4(position, 1.0);
                 vWorldPosition = worldPosition.xyz;
                 gl_Position = projectionMatrix * mvPosition;
-                // Retain exit faces beyond the detector for the boundary sum.
+                // Retain exit faces beyond the depth limit for the boundary sum.
                 // XY/W is unchanged: this never enlarges the detector field.
                 gl_Position.z = clamp(gl_Position.z, -gl_Position.w, gl_Position.w);
             }
@@ -79,10 +79,11 @@ export function createBoneProjectionMaterial() {
                 float trabeculae = smoothstep(0.42, 0.92, coarse * 0.62 + fine * 0.38);
                 float marrowMottle = mix(0.72, 1.08, valueNoise(p * 1.35 + vec3(2.0, 7.0, 13.0)));
 
-                // Integrate only between source/near plane and physical detector.
+                // Integrate within the anatomy camera's depth range.
                 // A clipped exit still closes the volume at rayFar. Clamping
                 // boundary depths (rather than dropping faces) also makes a bone
-                // wholly behind the detector cancel to zero.
+                // wholly beyond that range cancel to zero. The anatomy camera
+                // fits this range to the full skeleton when the table moves.
                 float viewDepth = -vViewPosition.z;
                 float rayScale = isOrthographic ? 1. : length(vViewPosition) / max(1e-6, viewDepth);
                 float encodedDepth = clamp(viewDepth - rayNear, 0., rayFar - rayNear) * rayScale * BONE_DEPTH_SCALE;

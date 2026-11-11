@@ -82,6 +82,7 @@ import { generateVessel } from './vesselGeometry.js';
 import { initUI } from './ui/ui.js';
 import { createBoneModel } from './boneModel.js';
 import { createBoneProjectionMaterial } from './imaging/boneProjection.js';
+import { createAnatomyProjectionCamera } from './imaging/anatomyProjectionCamera.js';
 import { ContrastVolumeRenderer } from './contrast/contrastVolumeRenderer.js';
 import { HybridContrastSystem } from './contrast/hybridContrastSystem.js';
 import {
@@ -648,6 +649,7 @@ const { group: skeletonModel, material: boneMaterial } = createBoneModel({
     },
     onError: () => failLoadingMilestone('skeleton')
 });
+const anatomyProjection = createAnatomyProjectionCamera(camera, skeletonModel);
 
 // Lightweight centerline metadata; the visible vessel and collision surface are
 // loaded from the STL aorta model.
@@ -4311,6 +4313,7 @@ function staticAnatomyProjectionChanged() {
 }
 
 function updateStaticAnatomyProjection() {
+    const anatomyCamera = anatomyProjection.update();
     depthHiddenObjects.length = 0;
     depthHiddenVisibility.length = 0;
     for (const child of scene.children) {
@@ -4323,11 +4326,11 @@ function updateStaticAnatomyProjection() {
     scene.overrideMaterial = depthMaterialFront;
     renderer.setRenderTarget(frontDepthTarget);
     renderer.clear();
-    renderer.render(scene, camera);
+    renderer.render(scene, anatomyCamera);
     scene.overrideMaterial = depthMaterialBack;
     renderer.setRenderTarget(backDepthTarget);
     renderer.clear();
-    renderer.render(scene, camera);
+    renderer.render(scene, anatomyCamera);
     scene.overrideMaterial = null;
     renderer.setRenderTarget(null);
     for (let index = 0; index < depthHiddenObjects.length; index++) {
@@ -4343,7 +4346,7 @@ function updateStaticAnatomyProjection() {
     renderer.setRenderTarget(boneTarget);
     renderer.clear();
     scene.overrideMaterial = boneProjectionMaterial;
-    renderOnlySceneObject(scene, camera, skeletonModel);
+    renderOnlySceneObject(scene, anatomyCamera, skeletonModel);
     scene.overrideMaterial = null;
     renderer.setRenderTarget(null);
 }

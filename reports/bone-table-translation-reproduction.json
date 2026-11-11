@@ -1,0 +1,55 @@
+{
+  "summary": {
+    "cases": 1,
+    "checkedPixels": 154256,
+    "lostPixels": 0,
+    "negativePixels": 0,
+    "legacyLostPixels": 14785,
+    "clippedIntersections": 11568,
+    "worstP95Mm": 0.5142,
+    "unmatchedRays": 0,
+    "seconds": 1.0029,
+    "size": 512
+  },
+  "sliders": {
+    "carmZ": {
+      "value": 60,
+      "min": -40,
+      "max": 180
+    },
+    "carmDetDist": {
+      "value": 350,
+      "min": 200,
+      "max": 600
+    }
+  },
+  "projection": "anatomy",
+  "records": [
+    {
+      "index": 6,
+      "region": "Miednica",
+      "x": 100,
+      "y": -390,
+      "height": -40,
+      "yaw": 50,
+      "pitch": 0,
+      "roll": 0,
+      "detector": 350,
+      "side": 300,
+      "zoom": 1,
+      "caseIndex": 6,
+      "checked": 154256,
+      "lost": 0,
+      "lostExamples": [],
+      "negative": 0,
+      "p95Mm": 0.5142,
+      "maxMm": 1.90614,
+      "unmatched": 0,
+      "clipped": 11568,
+      "removedByDetector": 15225,
+      "legacyLost": 14785,
+      "unmatchedExamples": [],
+      "maxIntersections": 10
+    }
+  ]
+}
