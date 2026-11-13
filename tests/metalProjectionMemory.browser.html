@@ -1,0 +1,39 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Porównanie obrazu metalu</title>
+<style>body{font:16px system-ui;background:#10202b;color:#eaf4ff;padding:24px}pre{white-space:pre-wrap}</style>
+<h1>Porównanie obrazu metalu</h1><p>Ten sam obraz i 4× MSAA, z buforem głębokości i bez niego.</p><pre id="report">Testowanie…</pre>
+<script type="module">
+import * as THREE from 'three';
+import {createGuidewireProjectionMaterial,createMetalProjectionTarget} from '../src/imaging/guidewireProjection.js';
+import {renderMetalProjection} from '../src/imaging/renderMetalProjection.js';
+import {graftWire,wireSegment,updateWire,disposeWire} from '../src/devices/stentGraftWire.js';
+const renderer=new THREE.WebGLRenderer(),gl=renderer.getContext();
+const scene=new THREE.Scene();scene.background=new THREE.Color(0);
+const wires=[new THREE.Group(),new THREE.Group()],graft=new THREE.Group();scene.add(...wires,graft);
+const material=new THREE.MeshBasicMaterial({color:0xffffff});
+const curve=new THREE.CatmullRomCurve3([[-9,-12,0],[-3,-3,3],[6,4,-3],[3,12,0]].map(p=>new THREE.Vector3(...p)));
+const geometry=new THREE.TubeGeometry(curve,64,.45,12,false);
+wires[0].add(new THREE.Mesh(geometry,material));const other=new THREE.Mesh(geometry,material);other.rotation.z=1.2;other.position.z=4;wires[1].add(other);
+const marker=new THREE.Mesh(new THREE.SphereGeometry(.8,16,8),material);marker.position.set(-2,-1,-2);graft.add(marker);
+const struts=graftWire(3,material,.18);graft.add(struts);
+for(let i=0;i<3;i++)wireSegment(struts,i,new THREE.Vector3(-8+i*5,-9,2),new THREE.Vector3(7-i*3,10,-3));updateWire(struts);
+const wireMaterial=createGuidewireProjectionMaterial(),graftMaterial=new THREE.MeshBasicMaterial({color:0xffffff,depthTest:false,depthWrite:false,toneMapped:false});
+const target=createMetalProjectionTarget(128,renderer.capabilities),reference=target.clone();reference.depthBuffer=true;
+const cases=[];
+try {
+    for(const position of [[0,0,45],[18,5,35],[0,15,30]]) {
+        const camera=new THREE.PerspectiveCamera(45,1,.1,100);camera.position.fromArray(position);camera.lookAt(0,0,0);camera.updateMatrixWorld();
+        const pixels=[];
+        for(const t of [reference,target]){
+            renderer.setRenderTarget(t);renderer.clear();renderMetalProjection(renderer,scene,camera,{wireGroups:wires,graftGroup:graft,wireMaterial,graftMaterial});
+            const data=new Uint8Array(t.width*t.height*4);renderer.readRenderTargetPixels(t,0,0,t.width,t.height,data);pixels.push(data);
+        }
+        let differences=0,maxDifference=0,signal=0;
+        for(let i=0;i<pixels[0].length;i++){const delta=Math.abs(pixels[0][i]-pixels[1][i]);if(delta)differences++;maxDifference=Math.max(maxDifference,delta);if(i%4!==3)signal+=pixels[0][i];}
+        cases.push({position,differences,maxDifference,signal});
+    }
+    const result={status:cases.every(c=>c.differences===0&&c.signal>0)&&!gl.isContextLost()?'pass':'fail',samples:target.samples,size:target.width,contextLost:gl.isContextLost(),glError:gl.getError(),cases};
+    document.getElementById('report').textContent=JSON.stringify(result,null,2);
+}finally{
+    reference.dispose();target.dispose();geometry.dispose();marker.geometry.dispose();disposeWire(struts);struts.geometry.dispose();wireMaterial.dispose();graftMaterial.dispose();material.dispose();renderer.dispose();renderer.forceContextLoss();
+}
+</script></html>

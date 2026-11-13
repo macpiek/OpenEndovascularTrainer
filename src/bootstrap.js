@@ -1,4 +1,6 @@
 import {startupDiagnostics} from './startupDiagnostics.js';
+import {disposeSimulatorRuntime} from './runtimeLifetime.js';
+import {showSimulatorGraphicsFailure} from './graphicsLifetime.js';
 
 const loadingMessage = document.getElementById('loadingMessage');
 
@@ -23,7 +25,9 @@ try {
     clearTimeout(slowBootTimer);
 } catch (error) {
     clearTimeout(slowBootTimer);
+    disposeSimulatorRuntime();
     const detail = describeBootError(error);
     setLoadingMessage(`Simulator failed to start: ${detail}`);
+    showSimulatorGraphicsFailure(`Nie udało się uruchomić symulacji: ${detail}`);
     console.error('Simulator bootstrap failed', error);
 }

@@ -49,6 +49,20 @@ test('back/forward cache preserves the runtime for restoration', () => {
     runtime.dispose();
 });
 
+test('owned DOM listeners retain the boolean capture form used by keyboard controls', () => {
+    const runtime = createRuntimeLifetime(fakeHost());
+    const options = [];
+    const target = {addEventListener(_type, _callback, settings) {options.push(settings);}};
+    runtime.listen(target, 'keydown', () => {}, true);
+    runtime.listen(target, 'keyup', () => {}, false);
+    runtime.listen(target, 'touchmove', () => {}, {capture: true, passive: false});
+    assert.deepEqual(options.map(({capture, passive}) => ({capture, passive})), [
+        {capture: true, passive: undefined}, {capture: false, passive: undefined}, {capture: true, passive: false}
+    ]);
+    assert.ok(options.every(settings => settings.signal === runtime.signal));
+    runtime.dispose();
+});
+
 test('shared geometry, materials, uniforms and offscreen textures release their CPU references', () => {
     const geometry = new BoxGeometry();
     geometry.boundsTree = { retainedBuffer: new Float32Array(100) };

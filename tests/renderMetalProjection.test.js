@@ -26,3 +26,21 @@ for(const fail of [false,true])test(`single metal pass preserves both wires, gra
     assert.equal(fabric.visible,false);
     for(const group of [...wireGroups,graftGroup])for(const mesh of group.children)assert.equal(mesh.material,original);
 });
+
+test('metal projection drops only unused depth storage, preserving resolution and multisampling', async()=>{
+    const {createMetalProjectionTarget,metalProjectionSize,createGuidewireProjectionMaterial}=await import('../src/imaging/guidewireProjection.js');
+    const capabilities={isWebGL2:true,maxTextureSize:4096};
+    for(const displaySize of [384,684,1095]){
+        const target=createMetalProjectionTarget(displaySize,capabilities);
+        assert.equal(target.width,metalProjectionSize(displaySize,capabilities.maxTextureSize));
+        assert.equal(target.height,target.width);
+        assert.equal(target.samples,4);
+        assert.equal(target.texture.type,THREE.UnsignedByteType);
+        assert.equal(target.depthBuffer,false);
+        target.dispose();
+    }
+    const material=createGuidewireProjectionMaterial();
+    assert.equal(material.depthTest,false);
+    assert.equal(material.depthWrite,false);
+    material.dispose();
+});

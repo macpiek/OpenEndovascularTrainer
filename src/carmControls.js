@@ -13,7 +13,11 @@ import {
 // magnification. Rays diverge from the source toward this plane, so objects
 // nearer the source appear larger on the on-screen "detector" view just as in a
 // real C-arm.
-export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, previewGantry, previewDetectorAssembly, previewLift, previewTable, renderPreview = () => {}) {
+export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, previewGantry, previewDetectorAssembly, previewLift, previewTable, renderPreview = () => {}, runtime = null) {
+    const listen = (target, ...args) => {
+        if (target) runtime ? runtime.listen(target, ...args) : target.addEventListener(...args);
+    };
+    const frame = callback => runtime ? runtime.frame(callback) : requestAnimationFrame(callback);
     const carmXSlider = document.getElementById('carmX');
     const carmYSlider = document.getElementById('carmY');
     const carmZSlider = document.getElementById('carmZ');
@@ -42,7 +46,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         carmZSlider,
         carmDetDistSlider
     ];
-    sliders.filter(Boolean).forEach(s => s.addEventListener('change', () => s.blur()));
+    sliders.filter(Boolean).forEach(s => listen(s, 'change', () => s.blur()));
 
     let carmYaw = 0;
     let carmPitch = 0;
@@ -128,7 +132,8 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         }
         if (!detectorZoomBadge) return;
         if (detectorZoomBadgeTimer !== null) {
-            window.clearTimeout(detectorZoomBadgeTimer);
+            if (runtime) runtime.clearTimeout(detectorZoomBadgeTimer);
+            else window.clearTimeout(detectorZoomBadgeTimer);
             detectorZoomBadgeTimer = null;
         }
         if (!announce) {
@@ -141,7 +146,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
                 `${fieldCm} cm · ` +
                 `${detectorZoomMode.zoomFactor.toFixed(2)}×`;
         detectorZoomBadge.hidden = false;
-        detectorZoomBadgeTimer = window.setTimeout(() => {
+        detectorZoomBadgeTimer = (runtime ? runtime.timeout : window.setTimeout.bind(window))(() => {
             detectorZoomBadge.hidden = true;
             detectorZoomBadgeTimer = null;
         }, 2200);
@@ -201,27 +206,27 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
 
     updateCamera();
     updateDetectorZoomUi();
-    carmXSlider.addEventListener('input', e => {
+    listen(carmXSlider, 'input', e => {
         if (locked) return;
         carmX = parseFloat(e.target.value);
         updateCamera();
     });
-    carmYSlider.addEventListener('input', e => {
+    listen(carmYSlider, 'input', e => {
         if (locked) return;
         carmY = parseFloat(e.target.value);
         updateCamera();
     });
-    carmZSlider.addEventListener('input', e => {
+    listen(carmZSlider, 'input', e => {
         if (locked) return;
         carmZ = parseFloat(e.target.value);
         updateCamera();
     });
-    carmDetDistSlider.addEventListener('input', e => {
+    listen(carmDetDistSlider, 'input', e => {
         if (locked) return;
         detectorRadius = parseFloat(e.target.value);
         updateCamera();
     });
-    detectorSizeSelect?.addEventListener('change', () => {
+    listen(detectorSizeSelect, 'change', () => {
         if (locked) return;
         const nextSideMm = normalizeDetectorSideMm(detectorSizeSelect.value);
         if (nextSideMm === detectorSideMm) return;
@@ -232,7 +237,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         detectorSizeSelect.blur();
     });
     for (const button of detectorZoomButtons) {
-        button.addEventListener('click', () => {
+        listen(button, 'click', () => {
             if (locked) return;
             const nextMode = getDetectorZoomMode(button.dataset.detectorZoom, detectorSideMm);
             if (nextMode.id === detectorZoomMode.id) return;
@@ -277,9 +282,9 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             if (resetOnRelease) joystickHandle.style.transform = 'translate(-50%, -50%)';
             onRelease();
         }
-        joystick.addEventListener('lostpointercapture', cancelDrag);
-        window.addEventListener('blur', cancelDrag);
-        document.addEventListener('visibilitychange', () => {
+        listen(joystick, 'lostpointercapture', cancelDrag);
+        listen(window, 'blur', cancelDrag);
+        listen(document, 'visibilitychange', () => {
             if (document.visibilityState === 'hidden') cancelDrag();
         });
         function updateFromJoystick(clientX, clientY) {
@@ -296,35 +301,35 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             joystickHandle.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
             onMove(x / maxDistance, y / maxDistance);
         }
-        joystick.addEventListener('mousedown', e => {
+        listen(joystick, 'mousedown', e => {
             if (locked) return;
             dragging = true;
             joystickHandle.style.transition = 'none';
             updateFromJoystick(e.clientX, e.clientY);
         });
-        window.addEventListener('mousemove', e => {
+        listen(window, 'mousemove', e => {
             if (!dragging) return;
             updateFromJoystick(e.clientX, e.clientY);
         });
-        window.addEventListener('mouseup', () => {
+        listen(window, 'mouseup', () => {
             if (!dragging) return;
             dragging = false;
             joystickHandle.style.transition = handleTransition;
             if (resetOnRelease) joystickHandle.style.transform = 'translate(-50%, -50%)';
             onRelease();
         });
-        joystick.addEventListener('pointerdown', e => {
+        listen(joystick, 'pointerdown', e => {
             if (locked) return;
             dragging = true;
             joystick.setPointerCapture?.(e.pointerId);
             joystickHandle.style.transition = 'none';
             updateFromJoystick(e.clientX, e.clientY);
         });
-        joystick.addEventListener('pointermove', e => {
+        listen(joystick, 'pointermove', e => {
             if (!dragging) return;
             updateFromJoystick(e.clientX, e.clientY);
         });
-        joystick.addEventListener('pointerup', e => {
+        listen(joystick, 'pointerup', e => {
             if (!dragging) return;
             dragging = false;
             joystick.releasePointerCapture?.(e.pointerId);
@@ -332,7 +337,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             if (resetOnRelease) joystickHandle.style.transform = 'translate(-50%, -50%)';
             onRelease();
         });
-        joystick.addEventListener('pointercancel', e => {
+        listen(joystick, 'pointercancel', e => {
             if (!dragging) return;
             dragging = false;
             joystick.releasePointerCapture?.(e.pointerId);
@@ -340,7 +345,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             if (resetOnRelease) joystickHandle.style.transform = 'translate(-50%, -50%)';
             onRelease();
         });
-        joystick.addEventListener('touchstart', e => {
+        listen(joystick, 'touchstart', e => {
             if (locked) return;
             e.preventDefault();
             dragging = true;
@@ -348,12 +353,12 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             const t = e.touches[0];
             updateFromJoystick(t.clientX, t.clientY);
         });
-        window.addEventListener('touchmove', e => {
+        listen(window, 'touchmove', e => {
             if (!dragging) return;
             const t = e.touches[0];
             updateFromJoystick(t.clientX, t.clientY);
         }, { passive: false });
-        window.addEventListener('touchend', () => {
+        listen(window, 'touchend', () => {
             if (!dragging) return;
             dragging = false;
             joystickHandle.style.transition = handleTransition;
@@ -390,7 +395,7 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
             ? THREE.MathUtils.clamp((now - lastTime) / 1000, 0, 0.1) : 0;
         lastTime = Number.isFinite(now) ? now : null;
         if (locked) {
-            requestAnimationFrame(step);
+            frame(step);
             return;
         }
         let updated = false;
@@ -445,9 +450,9 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         if (updated) {
             updateCamera();
         }
-        requestAnimationFrame(step);
+        frame(step);
     }
-    requestAnimationFrame(step);
+    frame(step);
 
     function startZ(dir) {
         if (locked) return;
@@ -457,13 +462,13 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         speedZ = 0;
     }
     if (carmZUpButton && carmZDownButton) {
-        carmZUpButton.addEventListener('mousedown', () => startZ(1));
-        carmZDownButton.addEventListener('mousedown', () => startZ(-1));
-        window.addEventListener('mouseup', stopZ);
-        carmZUpButton.addEventListener('touchstart', e => { e.preventDefault(); startZ(1); });
-        carmZDownButton.addEventListener('touchstart', e => { e.preventDefault(); startZ(-1); });
-        window.addEventListener('touchend', stopZ);
-        window.addEventListener('touchcancel', stopZ);
+        listen(carmZUpButton, 'mousedown', () => startZ(1));
+        listen(carmZDownButton, 'mousedown', () => startZ(-1));
+        listen(window, 'mouseup', stopZ);
+        listen(carmZUpButton, 'touchstart', e => { e.preventDefault(); startZ(1); });
+        listen(carmZDownButton, 'touchstart', e => { e.preventDefault(); startZ(-1); });
+        listen(window, 'touchend', stopZ);
+        listen(window, 'touchcancel', stopZ);
     }
 
     function startRoll(dir) {
@@ -474,13 +479,13 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         rollSpeed = 0;
     }
     if (carmRollLeftButton && carmRollRightButton) {
-        carmRollLeftButton.addEventListener('mousedown', () => startRoll(-1));
-        carmRollRightButton.addEventListener('mousedown', () => startRoll(1));
-        window.addEventListener('mouseup', stopRoll);
-        carmRollLeftButton.addEventListener('touchstart', e => { e.preventDefault(); startRoll(-1); });
-        carmRollRightButton.addEventListener('touchstart', e => { e.preventDefault(); startRoll(1); });
-        window.addEventListener('touchend', stopRoll);
-        window.addEventListener('touchcancel', stopRoll);
+        listen(carmRollLeftButton, 'mousedown', () => startRoll(-1));
+        listen(carmRollRightButton, 'mousedown', () => startRoll(1));
+        listen(window, 'mouseup', stopRoll);
+        listen(carmRollLeftButton, 'touchstart', e => { e.preventDefault(); startRoll(-1); });
+        listen(carmRollRightButton, 'touchstart', e => { e.preventDefault(); startRoll(1); });
+        listen(window, 'touchend', stopRoll);
+        listen(window, 'touchcancel', stopRoll);
     }
 
     function startAngleReset(e) {
@@ -503,19 +508,19 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         carmAngleResetButton?.classList.remove('active');
     }
     if (carmAngleResetButton) {
-        carmAngleResetButton.addEventListener('pointerdown', e => {
+        listen(carmAngleResetButton, 'pointerdown', e => {
             carmAngleResetButton.setPointerCapture?.(e.pointerId);
             startAngleReset(e);
         });
-        carmAngleResetButton.addEventListener('pointerup', e => {
+        listen(carmAngleResetButton, 'pointerup', e => {
             carmAngleResetButton.releasePointerCapture?.(e.pointerId);
             stopAngleReset();
         });
-        carmAngleResetButton.addEventListener('pointercancel', stopAngleReset);
-        carmAngleResetButton.addEventListener('lostpointercapture', stopAngleReset);
-        carmAngleResetButton.addEventListener('pointerleave', stopAngleReset);
-        carmAngleResetButton.addEventListener('click', e => e.preventDefault());
-        window.addEventListener('blur', stopAngleReset);
+        listen(carmAngleResetButton, 'pointercancel', stopAngleReset);
+        listen(carmAngleResetButton, 'lostpointercapture', stopAngleReset);
+        listen(carmAngleResetButton, 'pointerleave', stopAngleReset);
+        listen(carmAngleResetButton, 'click', e => e.preventDefault());
+        listen(window, 'blur', stopAngleReset);
     }
 
     function startAngleTarget(targetYaw, button, e) {
@@ -543,22 +548,22 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
     }
     function bindAngleTarget(button, targetYaw) {
         if (!button) return;
-        button.addEventListener('pointerdown', e => {
+        listen(button, 'pointerdown', e => {
             button.setPointerCapture?.(e.pointerId);
             startAngleTarget(targetYaw, button, e);
         });
-        button.addEventListener('pointerup', e => {
+        listen(button, 'pointerup', e => {
             button.releasePointerCapture?.(e.pointerId);
             stopAngleTarget();
         });
-        button.addEventListener('pointercancel', stopAngleTarget);
-        button.addEventListener('lostpointercapture', stopAngleTarget);
-        button.addEventListener('pointerleave', stopAngleTarget);
-        button.addEventListener('click', e => e.preventDefault());
+        listen(button, 'pointercancel', stopAngleTarget);
+        listen(button, 'lostpointercapture', stopAngleTarget);
+        listen(button, 'pointerleave', stopAngleTarget);
+        listen(button, 'click', e => e.preventDefault());
     }
     bindAngleTarget(carmLao30Button, THREE.MathUtils.degToRad(30));
     bindAngleTarget(carmRao30Button, THREE.MathUtils.degToRad(-30));
-    window.addEventListener('blur', stopAngleTarget);
+    listen(window, 'blur', stopAngleTarget);
 
     wireJoystick(positionJoystick, positionJoystickHandle, (normX, normY) => {
         speedX = -normY;
@@ -617,10 +622,11 @@ export function setupCArmControls(camera, vessel, cameraRadius, previewGroup, pr
         updateCamera();
     }
 
-    window.addEventListener('blur', stopMotion);
-    document.addEventListener('simulation-controls-help-open', stopMotion);
-    document.addEventListener('simulation-pause', stopMotion);
-    document.addEventListener('visibilitychange', () => {
+    runtime?.onDispose(stopMotion);
+    listen(window, 'blur', stopMotion);
+    listen(document, 'simulation-controls-help-open', stopMotion);
+    listen(document, 'simulation-pause', stopMotion);
+    listen(document, 'visibilitychange', () => {
         lastTime = null;
         if (document.visibilityState === 'hidden') stopMotion();
     });

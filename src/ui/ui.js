@@ -28,6 +28,9 @@ import {
 // Expects options with references and callbacks to interact with the simulator.
 // Returns helpers to query UI-driven state and update UI readouts.
 export function initUI(options) {
+  const listen = (target, ...args) => {
+    if (target) options.runtime ? options.runtime.listen(target, ...args) : target.addEventListener(...args);
+  };
   renderCatheterTipPreviews();
   renderGuidewireTipPreviews();
   const {
@@ -91,7 +94,7 @@ export function initUI(options) {
   );
 
   // C-arm UI preview + controls
-  const cArmPreview = initCArmPreview();
+  const cArmPreview = initCArmPreview({runtime: options.runtime});
   const cArmControls = setupCArmControls(
     camera,
     vessel,
@@ -101,7 +104,8 @@ export function initUI(options) {
     cArmPreview?.detectorAssembly || cArmPreviewDetectorAssembly,
     cArmPreview?.lift,
     cArmPreview?.table || cArmPreviewTable,
-    renderCArmPreview
+    renderCArmPreview,
+    options.runtime
   );
 
   // UI elements
@@ -236,9 +240,9 @@ export function initUI(options) {
   const reproduceArchBolusButton = document.getElementById('reproduceArchBolus');
   const catheterAortaSetupStatusEl = document.getElementById('catheterAortaSetupStatus');
   const runFullCycleBenchmarkButton = document.getElementById('runFullCycleBenchmark');
-  runFullCycleBenchmarkButton?.addEventListener('click',()=>onStartBrowserBenchmark?.({mode:'full-cycle-60hz',skipWarmup:true,automated:true}));
+  listen(runFullCycleBenchmarkButton, 'click',()=>onStartBrowserBenchmark?.({mode:'full-cycle-60hz',skipWarmup:true,automated:true}));
   const runWire60BenchmarkButton = document.getElementById('runWire60Benchmark');
-  runWire60BenchmarkButton?.addEventListener('click',()=>onStartBrowserBenchmark?.({mode:'wire60-catheter',skipWarmup:true,automated:true}));
+  listen(runWire60BenchmarkButton, 'click',()=>onStartBrowserBenchmark?.({mode:'wire60-catheter',skipWarmup:true,automated:true}));
   const runSoloCatheterBenchmarkButton = document.getElementById('runSoloCatheterBenchmark');
   const runGuidewireBenchmarkButton = document.getElementById('runGuidewireBenchmark');
   const runGuidewireBenchmarkFullButton = document.getElementById('runGuidewireBenchmarkFull');
@@ -297,46 +301,46 @@ export function initUI(options) {
     }
   }
 
-  debugStlModelToggle?.addEventListener('change', e => {
+  listen(debugStlModelToggle, 'change', e => {
     debugLayerState.stlModel = e.target.checked;
     emitDebugLayerChange();
   });
-  debugVesselShadingToggle?.addEventListener('change', e => {
+  listen(debugVesselShadingToggle, 'change', e => {
     debugLayerState.vesselShading = e.target.checked;
     emitDebugLayerChange();
   });
-  debugLegacyVesselToggle?.addEventListener('change', e => {
+  listen(debugLegacyVesselToggle, 'change', e => {
     debugLayerState.legacyVesselView = e.target.checked;
     emitDebugLayerChange();
   });
-  debugLumenCastToggle?.addEventListener('change', e => {
+  listen(debugLumenCastToggle, 'change', e => {
     debugLayerState.lumenCast = e.target.checked;
     emitDebugLayerChange();
   });
-  debugSectionsToggle?.addEventListener('change', e => {
+  listen(debugSectionsToggle, 'change', e => {
     debugLayerState.sections = e.target.checked;
     emitDebugLayerChange();
   });
-  debugCenterlineToggle?.addEventListener('change', e => {
+  listen(debugCenterlineToggle, 'change', e => {
     debugLayerState.centerline = e.target.checked;
     emitDebugLayerChange();
   });
-  debugCapsulesToggle?.addEventListener('change', e => {
+  listen(debugCapsulesToggle, 'change', e => {
     debugLayerState.capsules = e.target.checked;
     emitDebugLayerChange();
   });
   emitDebugLayerChange();
 
-  debugVesselLabelsToggle?.addEventListener('change', e => {
+  listen(debugVesselLabelsToggle, 'change', e => {
     debugLayerState.vesselLabels = e.target.checked;
     emitDebugLayerChange();
   });
-  debugWallContactsToggle?.addEventListener('change', e => {
+  listen(debugWallContactsToggle, 'change', e => {
     debugLayerState.wallContacts = e.target.checked;
     emitDebugLayerChange();
   });
 
-  debugRodNodesToggle?.addEventListener('change', e => {
+  listen(debugRodNodesToggle, 'change', e => {
     debugLayerState.rodNodes = e.target.checked;
     emitDebugLayerChange();
   });
@@ -423,7 +427,7 @@ export function initUI(options) {
     );
   }
 
-  catheterTypeSelect?.addEventListener('change', e => {
+  listen(catheterTypeSelect, 'change', e => {
     const next=e.target.value;
     releaseToolInputs();
     if(onCatheterToolChange?.(next)===false){catheterTypeSelect.value=selectedCatheterTool;return;}
@@ -436,36 +440,36 @@ export function initUI(options) {
     catheterLengthTenths=-1;
     updateRigidityReadouts();
   }
-  guidewireTypeSelect?.addEventListener('change', e => {
+  listen(guidewireTypeSelect, 'change', e => {
     selectedGuidewireType = e.target.value;
     updateRigidityReadouts();
   });
-  guidewireAutoWithdrawButton?.addEventListener('click', () => {
+  listen(guidewireAutoWithdrawButton, 'click', () => {
     guidewireAutoWithdraw.toggle();
     updateAutoWithdrawButton(guidewireAutoWithdrawButton, guidewireAutoWithdraw);
   });
-  catheterAutoWithdrawButton?.addEventListener('click', () => {
+  listen(catheterAutoWithdrawButton, 'click', () => {
     catheterAutoWithdraw.toggle();
     updateAutoWithdrawButton(catheterAutoWithdrawButton, catheterAutoWithdraw);
   });
   updateToolSelectionLocks();
 
-  prepareCatheterAortaButton?.addEventListener('click', () => {
+  listen(prepareCatheterAortaButton, 'click', () => {
     if (typeof onPrepareCatheterAorta === 'function') onPrepareCatheterAorta();
   });
-  reproduceIliacContrastBugButton?.addEventListener('click', () => {
+  listen(reproduceIliacContrastBugButton, 'click', () => {
     if (typeof onReproduceIliacContrastBug === 'function') onReproduceIliacContrastBug();
   });
-  reproduceRetrogradeGapButton?.addEventListener('click', () => {
+  listen(reproduceRetrogradeGapButton, 'click', () => {
     if (typeof onReproduceRetrogradeGap === 'function') onReproduceRetrogradeGap();
   });
-  reproduceArchBolusButton?.addEventListener('click', () => {
+  listen(reproduceArchBolusButton, 'click', () => {
     if (typeof onReproduceArchBolus === 'function') onReproduceArchBolus();
   });
-  runSoloCatheterBenchmarkButton?.addEventListener('click', () => {
+  listen(runSoloCatheterBenchmarkButton, 'click', () => {
     onStartBrowserBenchmark?.({durationMs:28000,skipWarmup:true,mode:'catheter-only'});
   });
-  runGuidewireBenchmarkButton?.addEventListener('click', () => {
+  listen(runGuidewireBenchmarkButton, 'click', () => {
     if (typeof onStartBrowserBenchmark === 'function') {
       onStartBrowserBenchmark({
         durationMs: 28000,
@@ -474,7 +478,7 @@ export function initUI(options) {
       });
     }
   });
-  runGuidewireBenchmarkFullButton?.addEventListener('click', () => {
+  listen(runGuidewireBenchmarkFullButton, 'click', () => {
     if (typeof onStartBrowserBenchmark === 'function') {
       onStartBrowserBenchmark({
         durationMs: 600000,
@@ -483,23 +487,23 @@ export function initUI(options) {
       });
     }
   });
-  runDeepCatheterBenchmarkButton?.addEventListener('click', () => {
+  listen(runDeepCatheterBenchmarkButton, 'click', () => {
     onStartBrowserBenchmark?.({ durationMs: 73000, skipWarmup: true, mode: 'deep-catheter' });
   });
-  runShortCatheterBenchmarkButton?.addEventListener('click', () => {
+  listen(runShortCatheterBenchmarkButton, 'click', () => {
     onStartBrowserBenchmark?.({ durationMs: 47000, skipWarmup: true, mode: 'short-catheter' });
   });
-  runBrowserBenchmarkSmokeButton?.addEventListener('click', () => {
+  listen(runBrowserBenchmarkSmokeButton, 'click', () => {
     if (typeof onStartBrowserBenchmark === 'function') {
       onStartBrowserBenchmark({ durationMs: 35000, skipWarmup: true });
     }
   });
-  runBrowserBenchmarkFullButton?.addEventListener('click', () => {
+  listen(runBrowserBenchmarkFullButton, 'click', () => {
     if (typeof onStartBrowserBenchmark === 'function') {
       onStartBrowserBenchmark({ durationMs: 600000 });
     }
   });
-  stopBrowserBenchmarkButton?.addEventListener('click', () => {
+  listen(stopBrowserBenchmarkButton, 'click', () => {
     if (typeof onStopBrowserBenchmark === 'function') onStopBrowserBenchmark();
   });
 
@@ -517,7 +521,7 @@ export function initUI(options) {
       });
     };
     controlTabs.forEach(tab => {
-      tab.addEventListener('click', () => activateControlTab(tab.dataset.controlTab));
+      listen(tab, 'click', () => activateControlTab(tab.dataset.controlTab));
     });
     if (new URLSearchParams(window.location.search).get('panel') === 'anatomy') activateControlTab('anatomy');
   }
@@ -552,10 +556,10 @@ export function initUI(options) {
     cardiacOutputSlider,
     contrastHeartRateSlider
   ].filter(Boolean);
-  sliders.forEach(s => s.addEventListener('change', () => s.blur()));
+  sliders.forEach(s => listen(s, 'change', () => s.blur()));
 
   if (voxelRenderToggle) {
-    voxelRenderToggle.addEventListener('change', e => {
+    listen(voxelRenderToggle, 'change', e => {
       voxelGroup.visible = e.target.checked;
     });
   }
@@ -576,7 +580,7 @@ export function initUI(options) {
       valueLabel.textContent = `${value}${slider.dataset.valueSuffix || ''}`;
     };
     update();
-    slider.addEventListener('input', update);
+    listen(slider, 'input', update);
   });
 
   const emitContrastHemodynamics = () => {
@@ -590,8 +594,8 @@ export function initUI(options) {
     if (heartRateValue) heartRateValue.textContent = `${Math.round(heartRateBpm)}/min`;
     onContrastHemodynamicsChange?.({ cardiacOutputMlPerMin, heartRateBpm });
   };
-  cardiacOutputSlider?.addEventListener('input', emitContrastHemodynamics);
-  contrastHeartRateSlider?.addEventListener('input', emitContrastHemodynamics);
+  listen(cardiacOutputSlider, 'input', emitContrastHemodynamics);
+  listen(contrastHeartRateSlider, 'input', emitContrastHemodynamics);
   emitContrastHemodynamics();
 
   const hydraulicParameterControls = [
@@ -663,7 +667,7 @@ export function initUI(options) {
     });
   };
   for (const [control] of hydraulicParameterControls) {
-    control?.addEventListener('input', emitContrastInjectionParameters);
+    listen(control, 'input', emitContrastInjectionParameters);
   }
   emitContrastInjectionParameters();
 
@@ -705,12 +709,12 @@ export function initUI(options) {
       button.setAttribute('aria-pressed', String(active));
     }
   };
-  injVolumeSlider?.addEventListener('input', () => {
+  listen(injVolumeSlider, 'input', () => {
     updateInjectionVolumePresetState();
     updateInjectionDuration();
   });
   for (const button of injectionVolumePresetButtons) {
-    button.addEventListener('click', () => {
+    listen(button, 'click', () => {
       if (!injVolumeSlider) return;
       injVolumeSlider.value = button.dataset.injectionVolume || '0';
       injVolumeSlider.dispatchEvent(new Event('input', {
@@ -718,15 +722,15 @@ export function initUI(options) {
       }));
     });
   }
-  injRateSlider?.addEventListener('input', updateInjectionDuration);
-  injSourceSelect?.addEventListener('change', updateInjectionDuration);
+  listen(injRateSlider, 'input', updateInjectionDuration);
+  listen(injSourceSelect, 'change', updateInjectionDuration);
   updateInjectionVolumePresetState();
   updateInjectionDuration();
   if (injectButton) injectButton.disabled = true;
 
   // Toggle visibility of control sections
   document.querySelectorAll('.section-header').forEach(header => {
-    header.addEventListener('click', () => {
+    listen(header, 'click', () => {
       const content = header.nextElementSibling;
       header.classList.toggle('collapsed');
       if (content) content.classList.toggle('hidden');
@@ -742,7 +746,7 @@ export function initUI(options) {
       autoExposureToggle.classList.toggle('active', autoExposureEnabled);
     };
     updateAutoExposureToggle();
-    autoExposureToggle.addEventListener('click', () => {
+    listen(autoExposureToggle, 'click', () => {
       autoExposureEnabled = !autoExposureEnabled;
       updateAutoExposureToggle();
       autoExposureToggle.blur();
@@ -750,7 +754,7 @@ export function initUI(options) {
   }
   if (noiseSlider) {
     displayMaterial.uniforms.noiseLevel.value = parseFloat(noiseSlider.value);
-    noiseSlider.addEventListener('input', e => {
+    listen(noiseSlider, 'input', e => {
       displayMaterial.uniforms.noiseLevel.value = parseFloat(e.target.value);
     });
   }
@@ -759,12 +763,12 @@ export function initUI(options) {
       displayMaterial.uniforms.pulseRate.value = parseFloat(e.target.value);
     };
     displayMaterial.uniforms.pulseRate.value = parseFloat(pulseRateSlider.value);
-    pulseRateSlider.addEventListener('input', updatePulseRate);
-    pulseRateSlider.addEventListener('change', updatePulseRate);
+    listen(pulseRateSlider, 'input', updatePulseRate);
+    listen(pulseRateSlider, 'change', updatePulseRate);
   }
   if (scatterStrengthSlider && displayMaterial.uniforms.scatterStrength) {
     displayMaterial.uniforms.scatterStrength.value = parseFloat(scatterStrengthSlider.value);
-    scatterStrengthSlider.addEventListener('input', e => {
+    listen(scatterStrengthSlider, 'input', e => {
       displayMaterial.uniforms.scatterStrength.value = parseFloat(e.target.value);
     });
   }
@@ -829,9 +833,9 @@ export function initUI(options) {
       collimationBottomSlider,
       sideCollimatorRotationSlider
     ]) {
-      slider.addEventListener('input', () => syncCollimatorControls({ notify: true }));
+      listen(slider, 'input', () => syncCollimatorControls({ notify: true }));
     }
-    resetCollimatorButton?.addEventListener('click', () => {
+    listen(resetCollimatorButton, 'click', () => {
       collimationLeftSlider.value = String(DEFAULT_COLLIMATION);
       collimationRightSlider.value = String(DEFAULT_COLLIMATION);
       collimationTopSlider.value = String(DEFAULT_COLLIMATION);
@@ -843,50 +847,50 @@ export function initUI(options) {
   }
   if (imageBrightnessSlider && displayMaterial.uniforms.imageBrightness) {
     displayMaterial.uniforms.imageBrightness.value = parseFloat(imageBrightnessSlider.value);
-    imageBrightnessSlider.addEventListener('input', e => {
+    listen(imageBrightnessSlider, 'input', e => {
       displayMaterial.uniforms.imageBrightness.value = parseFloat(e.target.value);
     });
   }
   if (imageContrastSlider && displayMaterial.uniforms.imageContrast) {
     displayMaterial.uniforms.imageContrast.value = parseFloat(imageContrastSlider.value);
-    imageContrastSlider.addEventListener('input', e => {
+    listen(imageContrastSlider, 'input', e => {
       displayMaterial.uniforms.imageContrast.value = parseFloat(e.target.value);
     });
   }
   if (edgeEnhancementSlider && displayMaterial.uniforms.edgeStrength) {
     displayMaterial.uniforms.edgeStrength.value = parseFloat(edgeEnhancementSlider.value);
-    edgeEnhancementSlider.addEventListener('input', e => {
+    listen(edgeEnhancementSlider, 'input', e => {
       displayMaterial.uniforms.edgeStrength.value = parseFloat(e.target.value);
     });
   }
   if (persistenceSlider) {
     blendMaterial.uniforms.decay.value = parseFloat(persistenceSlider.value);
-    persistenceSlider.addEventListener('input', e => {
+    listen(persistenceSlider, 'input', e => {
       blendMaterial.uniforms.decay.value = parseFloat(e.target.value);
     });
   }
   if (boneVisibilitySlider && displayMaterial.uniforms.boneOpacity) {
     displayMaterial.uniforms.boneOpacity.value = parseFloat(boneVisibilitySlider.value);
-    boneVisibilitySlider.addEventListener('input', e => {
+    listen(boneVisibilitySlider, 'input', e => {
       displayMaterial.uniforms.boneOpacity.value = parseFloat(e.target.value);
     });
   }
   if (contrastOpacitySlider && displayMaterial.uniforms.contrastOpacity) {
     displayMaterial.uniforms.contrastOpacity.value = parseFloat(contrastOpacitySlider.value) / 100;
-    contrastOpacitySlider.addEventListener('input', e => {
+    listen(contrastOpacitySlider, 'input', e => {
       displayMaterial.uniforms.contrastOpacity.value = parseFloat(e.target.value) / 100;
     });
   }
   if (contrastGainSlider && displayMaterial.uniforms.contrastGain) {
     displayMaterial.uniforms.contrastGain.value = parseFloat(contrastGainSlider.value);
-    contrastGainSlider.addEventListener('input', e => {
+    listen(contrastGainSlider, 'input', e => {
       displayMaterial.uniforms.contrastGain.value = parseFloat(e.target.value);
     });
   }
   if (roadmapOpacitySlider && displayMaterial.uniforms.roadmapOpacity) {
     displayMaterial.uniforms.roadmapOpacity.value =
       parseFloat(roadmapOpacitySlider.value) / 100;
-    roadmapOpacitySlider.addEventListener('input', e => {
+    listen(roadmapOpacitySlider, 'input', e => {
       displayMaterial.uniforms.roadmapOpacity.value =
         parseFloat(e.target.value) / 100;
     });
@@ -897,7 +901,7 @@ export function initUI(options) {
   ) {
     displayMaterial.uniforms.roadmapBackgroundVisibility.value =
       parseFloat(roadmapBackgroundSlider.value) / 100;
-    roadmapBackgroundSlider.addEventListener('input', e => {
+    listen(roadmapBackgroundSlider, 'input', e => {
       displayMaterial.uniforms.roadmapBackgroundVisibility.value =
         parseFloat(e.target.value) / 100;
     });
@@ -908,7 +912,7 @@ export function initUI(options) {
   ) {
     displayMaterial.uniforms.roadmapEdgeEnhancement.value =
       parseFloat(roadmapEdgeEnhancementSlider.value) / 100;
-    roadmapEdgeEnhancementSlider.addEventListener('input', e => {
+    listen(roadmapEdgeEnhancementSlider, 'input', e => {
       displayMaterial.uniforms.roadmapEdgeEnhancement.value =
         parseFloat(e.target.value) / 100;
     });
@@ -919,34 +923,34 @@ export function initUI(options) {
   ) {
     displayMaterial.uniforms.roadmapEdgeDarkness.value =
       parseFloat(roadmapEdgeDarknessSlider.value) / 100;
-    roadmapEdgeDarknessSlider.addEventListener('input', e => {
+    listen(roadmapEdgeDarknessSlider, 'input', e => {
       displayMaterial.uniforms.roadmapEdgeDarkness.value =
         parseFloat(e.target.value) / 100;
     });
   }
   if (dsaGainSlider && displayMaterial.uniforms.dsaGain) {
     displayMaterial.uniforms.dsaGain.value = parseFloat(dsaGainSlider.value);
-    dsaGainSlider.addEventListener('input', e => {
+    listen(dsaGainSlider, 'input', e => {
       displayMaterial.uniforms.dsaGain.value = parseFloat(e.target.value);
     });
   }
-  acquireDsaMaskButton?.addEventListener('click', () => {
+  listen(acquireDsaMaskButton, 'click', () => {
     onRequestDsaMask?.();
     acquireDsaMaskButton.blur();
   });
-  toggleDsaButton?.addEventListener('click', () => {
+  listen(toggleDsaButton, 'click', () => {
     onToggleDsa?.();
     toggleDsaButton.blur();
   });
-  captureRoadmapButton?.addEventListener('click', () => {
+  listen(captureRoadmapButton, 'click', () => {
     onCaptureRoadmap?.();
     captureRoadmapButton.blur();
   });
-  toggleRoadmapButton?.addEventListener('click', () => {
+  listen(toggleRoadmapButton, 'click', () => {
     onToggleRoadmap?.();
     toggleRoadmapButton.blur();
   });
-  clearRoadmapButton?.addEventListener('click', () => {
+  listen(clearRoadmapButton, 'click', () => {
     onClearRoadmap?.();
     clearRoadmapButton.blur();
   });
@@ -961,24 +965,24 @@ export function initUI(options) {
     dsaHoldActive = false;
     onStopDsaRecording?.();
   };
-  recordDsaSequenceButton?.addEventListener('pointerdown', e => {
+  listen(recordDsaSequenceButton, 'pointerdown', e => {
     startDsaHold();
     recordDsaSequenceButton.setPointerCapture?.(e.pointerId);
     e.preventDefault();
   });
-  recordDsaSequenceButton?.addEventListener('pointerup', stopDsaHold);
-  recordDsaSequenceButton?.addEventListener('pointercancel', stopDsaHold);
-  recordDsaSequenceButton?.addEventListener('lostpointercapture', stopDsaHold);
-  dsaSequenceSelect?.addEventListener('change', e => {
+  listen(recordDsaSequenceButton, 'pointerup', stopDsaHold);
+  listen(recordDsaSequenceButton, 'pointercancel', stopDsaHold);
+  listen(recordDsaSequenceButton, 'lostpointercapture', stopDsaHold);
+  listen(dsaSequenceSelect, 'change', e => {
     if (e.target.value !== '') onSelectDsaSequence?.(Number(e.target.value));
   });
-  dsaFrameSelect?.addEventListener('input', e => {
+  listen(dsaFrameSelect, 'input', e => {
     const sequenceId = Number(dsaSequenceSelect?.value);
     if (Number.isFinite(sequenceId) && dsaSequenceSelect?.value !== '') {
       onSelectDsaFrame?.(sequenceId, Number(e.target.value));
     }
   });
-  useBestDsaFrameButton?.addEventListener('click', () => {
+  listen(useBestDsaFrameButton, 'click', () => {
     const sequenceId = dsaSequenceSelect?.value === ''
       ? undefined
       : Number(dsaSequenceSelect.value);
@@ -1046,13 +1050,13 @@ export function initUI(options) {
       onPreviewDsaRangeFrame?.(sequenceId, Number(slider.value));
     }
   };
-  dsaRangeStartSlider?.addEventListener('input', () => {
+  listen(dsaRangeStartSlider, 'input', () => {
     previewDsaRangeFrame(dsaRangeStartSlider, dsaRangeEndSlider, true);
   });
-  dsaRangeEndSlider?.addEventListener('input', () => {
+  listen(dsaRangeEndSlider, 'input', () => {
     previewDsaRangeFrame(dsaRangeEndSlider, dsaRangeStartSlider, false);
   });
-  buildRoadmapRangeButton?.addEventListener('click', () => {
+  listen(buildRoadmapRangeButton, 'click', () => {
     const sequenceId = Number(dsaSequenceSelect?.value);
     if (Number.isFinite(sequenceId) && dsaSequenceSelect?.value !== '') {
       onBuildRoadmapRange?.(
@@ -1063,7 +1067,7 @@ export function initUI(options) {
     }
     buildRoadmapRangeButton.blur();
   });
-  dsaSequenceGalleryEl?.addEventListener('click', event => {
+  listen(dsaSequenceGalleryEl, 'click', event => {
     const actionButton = event.target.closest('[data-dsa-gallery-action]');
     if (!actionButton || !dsaSequenceGalleryEl.contains(actionButton)) return;
     const sequenceId = Number(actionButton.dataset.sequenceId);
@@ -1075,17 +1079,17 @@ export function initUI(options) {
     }
     actionButton.blur();
   });
-  dsaCinePlayPauseButton?.addEventListener('click', () => {
+  listen(dsaCinePlayPauseButton, 'click', () => {
     onToggleDsaCine?.();
     dsaCinePlayPauseButton.blur();
   });
-  dsaCineFrameSlider?.addEventListener('input', e => {
+  listen(dsaCineFrameSlider, 'input', e => {
     onSeekDsaCineFrame?.(Number(e.target.value));
   });
-  dsaCineSpeedSelect?.addEventListener('change', e => {
+  listen(dsaCineSpeedSelect, 'change', e => {
     onSetDsaCineSpeed?.(Number(e.target.value));
   });
-  dsaCineStopButton?.addEventListener('click', () => {
+  listen(dsaCineStopButton, 'click', () => {
     onStopDsaCine?.();
     dsaCineStopButton.blur();
   });
@@ -1134,11 +1138,11 @@ export function initUI(options) {
       });
     };
     applyCatheterStiffness();
-    catheterShaftStiffnessSlider.addEventListener('input', event => {
+    listen(catheterShaftStiffnessSlider, 'input', event => {
       shaftStiffnessScale = parseFloat(event.target.value);
       applyCatheterStiffness();
     });
-    catheterTipStiffnessSlider.addEventListener('input', event => {
+    listen(catheterTipStiffnessSlider, 'input', event => {
       tipStiffnessScale = parseFloat(event.target.value);
       applyCatheterStiffness();
     });
@@ -1168,11 +1172,11 @@ export function initUI(options) {
       });
     };
     applyStiffness();
-    shaftStiffnessSlider.addEventListener('input', e => {
+    listen(shaftStiffnessSlider, 'input', e => {
       shaftStiffnessScale = parseFloat(e.target.value);
       applyStiffness();
     });
-    tipStiffnessSlider.addEventListener('input', e => {
+    listen(tipStiffnessSlider, 'input', e => {
       tipStiffnessScale = parseFloat(e.target.value);
       applyStiffness();
     });
@@ -1187,11 +1191,11 @@ export function initUI(options) {
       onGuidewireFrictionChange?.({ staticFriction, kineticFriction });
     };
     applyFriction();
-    staticFricSlider.addEventListener('input', e => {
+    listen(staticFricSlider, 'input', e => {
       staticFriction = parseFloat(e.target.value);
       applyFriction();
     });
-    kineticFricSlider.addEventListener('input', e => {
+    listen(kineticFricSlider, 'input', e => {
       kineticFriction = parseFloat(e.target.value);
       applyFriction();
     });
@@ -1209,7 +1213,7 @@ export function initUI(options) {
     };
     updateModeToggle();
     displayMaterial.uniforms.fluoroscopy.value = true;
-    modeToggle.addEventListener('click', () => {
+    listen(modeToggle, 'click', () => {
       fluoroscopy = !fluoroscopy;
       displayMaterial.uniforms.fluoroscopy.value = fluoroscopy;
       updateModeToggle();
@@ -1248,7 +1252,7 @@ export function initUI(options) {
     advance = guidewireRotation = catheterAdvance = catheterRotation = 0;
     if(!preserveAutomaticWithdrawal){stopGuidewireAutoWithdraw();stopCatheterAutoWithdraw();}
   }
-  accessButtons.forEach(button => button.addEventListener('click', () => {
+  accessButtons.forEach(button => listen(button, 'click', () => {
     if (accessSwitchPending || button.getAttribute('aria-pressed') === 'true') return;
     releaseToolInputs({preserveAutomaticWithdrawal:true});
     accessSwitchPending = true;
@@ -1296,16 +1300,16 @@ export function initUI(options) {
 
   function wireHoldButton(button, onDown, onUp) {
     if (!button) return;
-    button.addEventListener('pointerdown', e => {
+    listen(button, 'pointerdown', e => {
       if (accessSwitchPending) return;
       onDown();
       button.setPointerCapture?.(e.pointerId);
       e.preventDefault();
     });
-    button.addEventListener('pointerup', onUp);
-    button.addEventListener('pointercancel', onUp);
-    button.addEventListener('lostpointercapture', onUp);
-    button.addEventListener('pointerleave', e => {
+    listen(button, 'pointerup', onUp);
+    listen(button, 'pointercancel', onUp);
+    listen(button, 'lostpointercapture', onUp);
+    listen(button, 'pointerleave', e => {
       if (e.buttons === 0) onUp();
     });
   }
@@ -1317,12 +1321,12 @@ export function initUI(options) {
   wireHoldButton(guidewireRotateRightButton, () => setGuidewireRotation(1), stopGuidewireRotation);
 
   const controlHelp = document.getElementById('control-help-panel');
-  document.addEventListener('simulation-pause', () => {
+  listen(document, 'simulation-pause', () => {
     releaseToolInputs();
     stopDsaHold();
   });
-  document.getElementById('control-help-close')?.addEventListener('click', () => controlHelp.close());
-  document.addEventListener('keydown', e => {
+  listen(document.getElementById('control-help-close'), 'click', () => controlHelp.close());
+  listen(document, 'keydown', e => {
     if (e.code === 'Escape' && controlHelp) {
       if (document.querySelector('dialog[open]') && !controlHelp.open) return;
       e.preventDefault();
@@ -1380,7 +1384,7 @@ export function initUI(options) {
       e.preventDefault();
     }
   }, true);
-  document.addEventListener('keyup', e => {
+  listen(document, 'keyup', e => {
     if (['KeyW', 'KeyS', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
       advance = 0; e.preventDefault();
     }
@@ -1398,7 +1402,7 @@ export function initUI(options) {
       e.preventDefault();
     }
   }, true);
-  window.addEventListener('blur', () => {
+  listen(window, 'blur', () => {
     advance = 0;
     guidewireRotation = 0;
     catheterAdvance = 0;
@@ -1408,7 +1412,7 @@ export function initUI(options) {
 
   // Injection buttons
   if (injectButton) {
-    injectButton.addEventListener('click', () => {
+    listen(injectButton, 'click', () => {
       if (typeof onStartInjection === 'function') {
         const rate = parseFloat(injRateSlider.value);
         const volume = parseFloat(injVolumeSlider.value);
@@ -1418,7 +1422,7 @@ export function initUI(options) {
     });
   }
   if (stopInjectButton) {
-    stopInjectButton.addEventListener('click', () => {
+    listen(stopInjectButton, 'click', () => {
       if (typeof onStopInjection === 'function') onStopInjection();
     });
   }

@@ -4,11 +4,13 @@ import { createOperatingTable } from './operatingTable.js';
 import { createCArmPreviewFramer } from './carmPreviewFraming.js';
 import { disposeThreeResources } from '../disposeThreeResources.js';
 import { startupDiagnostics } from '../startupDiagnostics.js';
+import {createManagedWebGLRenderer} from '../graphicsLifetime.js';
 
 let previewScene;
 let previewCamera;
 let previewRenderer;
 let previewResizeObserver;
+let previewGuard;
 let fitPreviewCamera;
 let cArmGroup;
 let cArmGantry;
@@ -17,7 +19,7 @@ let cArmTable;
 let cArmDetectorAssembly;
 const PREVIEW_CAMERA_TARGET = new THREE.Vector3(0, 24, -30);
 
-export function initCArmPreview() {
+export function initCArmPreview({runtime} = {}) {
     const container = document.getElementById('carm-preview');
     if (!container) return null;
     disposeCArmPreview();
@@ -50,11 +52,33 @@ export function initCArmPreview() {
     previewScene.add(previewCamera);
 
     startupDiagnostics.mark('Creating C-arm preview graphics context');
-    previewRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const canvas = document.createElement('canvas');
+    const showUnavailable = () => {
+        disposeCArmPreview();
+        const message = document.createElement('p');
+        message.textContent = 'Podgląd ramienia C niedostępny — błąd grafiki.';
+        container.replaceChildren(message);
+    };
+    try {
+        const managed = createManagedWebGLRenderer(
+            () => new THREE.WebGLRenderer({canvas, antialias: true, alpha: true}),
+            {canvas, label: 'c-arm-preview', runtime, onFailure: showUnavailable}
+        );
+        previewRenderer = managed.renderer;
+        previewGuard = managed.guard;
+    } catch (error) {
+        // The small secondary view must not retain a partially created context
+        // or prevent a healthy main fluoroscopy renderer from starting.
+        showUnavailable();
+        console.warn('C-arm preview unavailable', error);
+        return null;
+    }
+    runtime?.onDispose(disposeCArmPreview);
     previewRenderer.setSize(width, height, false);
     previewRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     viewport.appendChild(previewRenderer.domElement);
     previewResizeObserver = new ResizeObserver(() => {
+        if (!previewRenderer || !previewGuard.check()) return;
         const width = Math.max(1, viewport.clientWidth);
         const height = Math.max(1, viewport.clientHeight);
         previewCamera.aspect = width / height;
@@ -93,17 +117,20 @@ export function disposeCArmPreview() {
     previewResizeObserver?.disconnect();
     previewResizeObserver = null;
     fitPreviewCamera = null;
-    if (!previewRenderer) return;
+    previewGuard?.dispose();
+    previewGuard = null;
     disposeThreeResources({ roots: [previewScene] });
-    previewRenderer.dispose();
-    previewRenderer.forceContextLoss();
-    previewRenderer.domElement.remove();
+    if (previewRenderer) {
+        previewRenderer.dispose();
+        previewRenderer.forceContextLoss();
+        previewRenderer.domElement.remove();
+    }
     previewRenderer = previewScene = previewCamera = null;
     cArmGroup = cArmGantry = cArmLift = cArmTable = cArmDetectorAssembly = null;
 }
 
 export function renderCArmPreview() {
-    if (!previewRenderer || !previewScene || !previewCamera) return;
+    if (!previewRenderer || !previewScene || !previewCamera || !previewGuard.check()) return;
     fitPreviewCamera?.();
     previewRenderer.render(previewScene, previewCamera);
 }

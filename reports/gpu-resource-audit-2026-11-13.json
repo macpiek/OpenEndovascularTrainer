@@ -1,0 +1,149 @@
+{
+  "date": "2026-11-13",
+  "scope": "Read-only CPU construction of the production baseline renal anatomical column projector; byte counts of the exact GPU-bound typed arrays. No browser GPU allocation or peak VRAM measurement was performed.",
+  "sourceRevision": "7f31b2f48ba01681208c2b1ef4cdb1dfb300b382",
+  "anatomy": "res/Aorta_plain_renal.stl + res/Aorta_plain_renal.collision.bin",
+  "reproduction": {
+    "runtime": "Node.js, --max-old-space-size=8192",
+    "steps": [
+      "loadCoupledRuntimeAnatomy(undefined, \"baseline\") from tests/helpers/coupledRuntimeFixture.js",
+      "Build centerline segments from field.centerline, field.centerlineStride and field.arrays.centerlineEdges, retaining node IDs and radii.",
+      "Construct HybridContrastSystem({centerlineSegments}); compute per-edge flattened cell offsets.",
+      "Construct AnatomicalContrastSurface(flowNetwork, offsets, field, {projection: \"column\"}).",
+      "Sum mesh.geometry.attributes[*].array.byteLength for raster buffers and inspect projection uniforms texture.image.data.byteLength for texture payloads. Keep CPU sampling attributes separate."
+    ]
+  },
+  "counts": {
+    "sourceTriangles": 3509364,
+    "lumenTrianglesBeforeCaps": 1663907,
+    "capTriangles": 940,
+    "rasterVertices": 4994541
+  },
+  "gpuPayloadBytes": {
+    "rasterAttributes": 119868984,
+    "columnProjectionTextures": 100455448,
+    "coreTotal": 220324432,
+    "coreTotalMiB": 210.1177520751953,
+    "optionalLegacyFlowValuesTexture": 1228800,
+    "contrastRenderTargetMaximum": 33554432
+  },
+  "rasterAttributes": {
+    "position": {
+      "count": 4994541,
+      "bytes": 59934492,
+      "itemSize": 3
+    },
+    "columnCoordinate": {
+      "count": 4994541,
+      "bytes": 39956328,
+      "itemSize": 2
+    },
+    "columnFace": {
+      "count": 4994541,
+      "bytes": 19978164,
+      "itemSize": 1
+    }
+  },
+  "projectionTextures": {
+    "uniforms.lumenBvh.value.index": {
+      "width": 1291,
+      "height": 1291,
+      "bytes": 26666896
+    },
+    "uniforms.lumenBvh.value.position": {
+      "width": 914,
+      "height": 914,
+      "bytes": 13366336
+    },
+    "uniforms.lumenBvh.value.bvhBounds": {
+      "width": 1108,
+      "height": 1108,
+      "bytes": 19642624
+    },
+    "uniforms.lumenBvh.value.bvhContents": {
+      "width": 783,
+      "height": 783,
+      "bytes": 4904712
+    },
+    "uniforms.columnFaces.value": {
+      "width": 1291,
+      "height": 1290,
+      "bytes": 26646240
+    },
+    "uniforms.columnRanges.value": {
+      "width": 421,
+      "height": 420,
+      "bytes": 2829120
+    },
+    "uniforms.columnCurrent.value": {
+      "width": 1024,
+      "height": 86,
+      "bytes": 1409024
+    },
+    "uniforms.columnPrevious.value": {
+      "width": 1024,
+      "height": 86,
+      "bytes": 1409024
+    },
+    "uniforms.columnGeometry.value": {
+      "width": 283,
+      "height": 283,
+      "bytes": 1281424
+    },
+    "uniforms.columnGeometryRanges.value": {
+      "width": 172,
+      "height": 172,
+      "bytes": 473344
+    },
+    "uniforms.columnJunctionBounds.value": {
+      "width": 45,
+      "height": 45,
+      "bytes": 32400
+    },
+    "uniforms.columnJunctionRecords.value": {
+      "width": 324,
+      "height": 324,
+      "bytes": 1679616
+    },
+    "uniforms.columnSharedHistory.value": {
+      "width": 1024,
+      "height": 7,
+      "bytes": 114688
+    }
+  },
+  "cpuPayloadBytes": {
+    "sourcePositionAndNormal": 252674208,
+    "samplingAttributes": 299672460
+  },
+  "transferRisk": {
+    "file": "src/contrast/anatomicalContrastProjection.js:100",
+    "description": "Any changed deformation vertices mark the entire BVH position texture dirty. Three r160 uploads its full 13,366,336-byte payload on next use, even for a small local change. At 15 acquisitions/s this is up to 200,495,040 payload bytes/s; this is bandwidth/driver pressure, not an identified growing allocation.",
+    "positionTextureBytes": 13366336,
+    "bytesPerSecondAt15Hz": 200495040
+  },
+  "shaderReview": {
+    "file": "src/contrast/anatomicalColumnProjection.js",
+    "result": "No reachable infinite loop or out-of-bounds array write identified for the built atlas.",
+    "bounds": [
+      "Shared junction/path caches check capacity 16 before appending. Candidate mixtures check capacity 4 and fall back to an uncapped finite traversal.",
+      "Adaptive ray integration has 24 base intervals and maximum subdivision depth 4. Its four pending-right entries fit that bound even when comparisons involve NaN.",
+      "Junction and path BVH escape links are built in preorder and advance past the current node; finite node counts bound these traversals.",
+      "Lumen ray BVH uses a 64-entry shader stack; the MeshBVH builder default maxDepth is 40.",
+      "Outlet jet loop clamps count to 24; each path-membership list has a finite generated length."
+    ],
+    "hotspots": [
+      "A nonuniform junction ray can evaluate many nested nearest-path and concentration queries, with up to 16 leaves per each of 24 base integration intervals.",
+      "Contrast target resolves up to 2048 x 2048 exact rays; overlap and broad active bounds can multiply shaded fragments. This can cause long GPU work despite bounded loops."
+    ]
+  },
+  "lifetimeReview": {
+    "result": "Projection dispose covers its BVH textures, index geometry, face/range geometry textures, junction textures, spatial textures and both integral histories. No growing allocation proven in this core path.",
+    "sharing": "Raster position/coordinate/face attributes are borrowed from CPU sampling geometry, not copied into a second raster payload."
+  },
+  "limitations": [
+    "These are typed payload sizes, not total VRAM, driver-private storage, command-queue copies or peak resident memory.",
+    "Render targets other than the contrast target, bone and device geometry, C-arm context, debug buffers and DSA archives are excluded from the core total.",
+    "Source anatomy position/normal buffers are CPU-resident and may also become GPU-resident when used by debug rendering; they are not included in the contrast core GPU sum.",
+    "A large budget supports resource-pressure suspicion but does not establish out-of-memory as the cause of the reported context loss."
+  ]
+}

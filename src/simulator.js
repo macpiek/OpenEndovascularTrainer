@@ -15,7 +15,7 @@ import {prepareDeliveryMotion,configureDeliveryCatheter} from './devices/stentGr
 import {resolveAnatomyVariant} from './anatomyVariant.js';
 import {StentGraftSystem} from './devices/stentGraftSystem.js';
 import {renderMetalProjection} from './imaging/renderMetalProjection.js';
-import {createGuidewireProjectionMaterial, metalProjectionSize} from './imaging/guidewireProjection.js';
+import {createGuidewireProjectionMaterial, createMetalProjectionTarget, metalProjectionSize} from './imaging/guidewireProjection.js';
 import {createContrastProjectionTarget, contrastProjectionSize} from './imaging/contrastProjection.js';
 import {createPatientSoftTissue} from './imaging/patientSoftTissue.js';
 import {initStentGraftControls} from './ui/stentGraftControls.js';
@@ -39,7 +39,8 @@ import { SHORT_CATHETER_BENCHMARK_MODE, SHORT_CATHETER_BENCHMARK_DURATION_MS,
 } from './benchmark/shortCatheterBenchmark.js';
 // Main simulator entry: sets up scenes, physics, rendering passes, and UI.
 import * as THREE from 'three';
-import { createRuntimeLifetime } from './runtimeLifetime.js';
+import { createRuntimeLifetime, registerSimulatorRuntime } from './runtimeLifetime.js';
+import {createManagedWebGLRenderer, renderTargetDiagnostics, showSimulatorGraphicsFailure} from './graphicsLifetime.js';
 import { startupDiagnostics } from './startupDiagnostics.js';
 import { createPassiveContrastProbe } from './benchmark/passiveContrastProbe.js';
 import { createGpuTimerProbe } from './benchmark/gpuTimerProbe.js';
@@ -150,7 +151,10 @@ import {
 } from './benchmark/catheterAortaSetup.js';
 
 startupDiagnostics.mark('Initializing simulator state');
-const runtime = createRuntimeLifetime();
+const runtime = registerSimulatorRuntime(createRuntimeLifetime());
+// Register before UI initialization: a later startup exception must release
+// the preview context too, even before the final scene cleanup is installed.
+runtime.onDispose(disposeCArmPreview);
 const selectedCoupledSolver = resolveAppCoupledSolver(window.location.search);
 const projectiveCrossover = selectedCoupledSolver === 'shared-axis-projective-crossover';
 const crossoverBenchmarkMode=!projectiveCrossover&&import.meta.env.DEV&&['full','wide'].includes(new URLSearchParams(window.location.search).get('crossoverBenchmark'))?
@@ -359,6 +363,7 @@ function hideLoadingScreen() {
     if (loadingDismissed || !loadingScreen) return;
     loadingDismissed = true;
     startupDiagnostics.mark('Simulator ready');
+    graphicsGuard.snapshot('simulator-ready');
     setLoadingMessage('Ready');
     document.body.classList.remove('system-initializing');
     loadingScreen.classList.add('is-hidden');
@@ -407,14 +412,25 @@ function detectorDisplaySize() {
 }
 let detectorSize = detectorDisplaySize();
 const canvas = document.getElementById('sim');
-const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
-renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-renderer.setSize(detectorSize, detectorSize);
-startupDiagnostics.mark('Preparing fluoroscopy scenes and targets');
+let readGraphicsResources = () => ({});
+const {renderer, guard: graphicsGuard} = createManagedWebGLRenderer(
+    () => new THREE.WebGLRenderer({canvas, antialias: true}), {
+        canvas, label: 'fluoroscopy', runtime,
+        readResources: () => readGraphicsResources(),
+        onFailure: () => {
+            runtime.dispose();
+            showSimulatorGraphicsFailure('Utracono połączenie z grafiką. Symulacja została zatrzymana.');
+        }
+    }
+);
+// Register immediately: setPixelRatio/setSize can fail after creation too.
 runtime.onDispose(() => {
     renderer.dispose();
     renderer.forceContextLoss();
 });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+renderer.setSize(detectorSize, detectorSize);
+startupDiagnostics.mark('Preparing fluoroscopy scenes and targets');
 const anatomyLabelRenderer = new CSS2DRenderer();
 anatomyLabelRenderer.setSize(detectorSize, detectorSize);
 anatomyLabelRenderer.domElement.className = 'anatomy-label-layer';
@@ -447,8 +463,7 @@ const contrastScene = new THREE.Scene();
 // Offscreen render targets used by various post-processing passes
 const offscreenTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const contrastTarget = createContrastProjectionTarget(detectorSize, renderer.capabilities);
-const initialMetalTargetSize = metalProjectionSize(detectorSize, renderer.capabilities.maxTextureSize);
-const metalTarget = new THREE.WebGLRenderTarget(initialMetalTargetSize, initialMetalTargetSize, deviceMaskTargetOptions);
+const metalTarget = createMetalProjectionTarget(detectorSize, renderer.capabilities);
 const catheterTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const catheterMarkerTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
 const sheathTarget = new THREE.WebGLRenderTarget(initialFluoroTargetWidth, initialFluoroTargetHeight, deviceMaskTargetOptions);
@@ -475,6 +490,13 @@ const dsaContrastScoreTarget = new THREE.WebGLRenderTarget(
     initialDsaScoreDimensions.width,
     initialDsaScoreDimensions.height
 );
+readGraphicsResources = () => renderTargetDiagnostics({
+    offscreenTarget, contrastTarget, metalTarget, catheterTarget, catheterMarkerTarget,
+    sheathTarget, boneTarget, softTissueTarget, accumulateTarget1, accumulateTarget2,
+    frontDepthTarget, backDepthTarget, thicknessTarget, dsaMaskTarget, roadmapTarget,
+    dsaFrameCaptureTarget, dsaContrastScoreTarget
+});
+graphicsGuard.snapshot('targets-created');
 let dsaFrameReadback = new Uint8Array(
     initialDsaArchiveDimensions.width *
     initialDsaArchiveDimensions.height * 4
@@ -950,7 +972,9 @@ const aortaModel = createAortaModel(vessel, {
         }).catch(error => {
             if (runtime.disposed) return;
             console.error('Contrast projection preparation failed', error);
-            setLoadingMessage('Nie udało się przygotować grafiki kontrastu. Odśwież symulację.');
+            graphicsGuard.snapshot('preparation-failed', error.message);
+            runtime.dispose();
+            showSimulatorGraphicsFailure('Nie udało się przygotować grafiki kontrastu. Symulacja została zatrzymana.');
         });
     },
     onError: () => {
@@ -1144,6 +1168,7 @@ if (Number.isFinite(selectedAnatomy.focusY))
     document.getElementById('carmY').value = String(selectedAnatomy.focusY - vessel.branchPoint.y);
 startupDiagnostics.mark('Preparing controls and C-arm preview');
 const ui = initUI({
+    runtime,
     onCatheterToolChange: value=>stentGraftControls?.selectTool(value),
     readCatheterDeliveryState: ()=>stentGraftSystem?.accesses[accessController?.activeId]?.device,
     onAccessChange: requestAccessSwitch,
@@ -3542,7 +3567,7 @@ function initializeAccessTransaction() {
 }
 initializeAccessTransaction();
 const recoveryButtons=['retryToolMotionDebug'].map(id=>document.getElementById(id)).filter(Boolean);
-for(const button of recoveryButtons)button.addEventListener('click',()=>{
+for(const button of recoveryButtons)runtime.listen(button, 'click',()=>{
     for (const access of accessController.values()) accessController.run(access.activeAccessId, () => {
         if (simulationStepTransaction.retryRejected() && synchronizedInputs)
             synchronizedInputs[activeAccessId] = sampleSynchronizedInputs();
@@ -3653,7 +3678,7 @@ const introducerLengthSelect = document.getElementById('introducerLength');
 const introducerFrenchSelect = document.getElementById('introducerFrench');
 let dilatorFeedback='';
 let balloonFeedback='';
-document.getElementById('downloadCurrentSolverStep').addEventListener('click',()=>{
+runtime.listen(document.getElementById('downloadCurrentSolverStep'), 'click',()=>{
     const snapshot=sharedAxisAppSystem?.captureCurrentStep();if(!snapshot)return;
     const url=URL.createObjectURL(new Blob([JSON.stringify(snapshot)],{type:'application/json'}));
     const link=document.createElement('a');link.href=url;link.download='shared-axis-current-step.json';
@@ -3676,15 +3701,15 @@ function syncBalloonControls() {
     document.getElementById('balloonInflate').disabled=!!block||simulationPaused;
     document.getElementById('balloonDeflate').disabled=simulationPaused||!(drive>0||balloonTargets[activeAccessId]>0);
 }
-document.getElementById('catheterType').addEventListener('change',()=>{balloonFeedback='';syncBalloonControls();});
-document.getElementById('balloonInflate').addEventListener('click',()=>{
+runtime.listen(document.getElementById('catheterType'), 'change',()=>{balloonFeedback='';syncBalloonControls();});
+runtime.listen(document.getElementById('balloonInflate'), 'click',()=>{
     if(simulationPaused||accessController.switchRequested)return;
     const block=balloonBlock();if(block){balloonFeedback=block;syncBalloonControls();return;}
     const value=document.getElementById('balloonVolume').valueAsNumber;
     if(!Number.isFinite(value)||value<0||value>60){balloonFeedback='Wybierz objętość od 0 do 60 ml.';syncBalloonControls();return;}
     balloonFeedback='';balloonTargets[activeAccessId]=value;
 });
-document.getElementById('balloonDeflate').addEventListener('click',()=>{
+runtime.listen(document.getElementById('balloonDeflate'), 'click',()=>{
     if(simulationPaused||accessController.switchRequested)return;
     balloonFeedback='';balloonTargets[activeAccessId]=0;
 });
@@ -3728,13 +3753,13 @@ function syncDilatorControls() {
     document.getElementById('dilatorWithdraw').disabled=!xpbdDilatorBody||dilatorLength<=0;
     document.getElementById('dilatorAdvance').disabled=!xpbdDilatorBody||pigtailCatheter.progress>0||!!activeSheath.dilatorSeated;
 }
-document.getElementById('guidewireLength').addEventListener('change', event => {
+runtime.listen(document.getElementById('guidewireLength'), 'change', event => {
     const length = Number(event.target.value);
     if (guidewireTransport.progress <= 0.01 && GUIDEWIRE_LENGTHS_MM.includes(length))
         guidewireTransport.maxInsert = length;
     event.target.value = String(guidewireTransport.maxInsert);
 });
-for (const select of [introducerLengthSelect, introducerFrenchSelect]) select.addEventListener('change', () => {
+for (const select of [introducerLengthSelect, introducerFrenchSelect]) runtime.listen(select, 'change', () => {
     if (!canSelectIntroducer(activeSheath) || accessController.switchRequested || pendingIntroducerExchange) {
         syncIntroducerControls();
         return;
@@ -3751,26 +3776,26 @@ let introducerCommand = 0, dilatorCommand = 0;
 const stopIntroducer = () => { introducerCommand=0;dilatorCommand=0; };
 for(const [id,direction] of [['introducerWithdraw',-1],['introducerAdvance',1]]) {
     const button=document.getElementById(id);
-    button.addEventListener('pointerdown',e=>{if(accessController.switchRequested)return;introducerCommand=direction;button.setPointerCapture(e.pointerId);e.preventDefault();});
-    for(const event of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(event,stopIntroducer);
+    runtime.listen(button, 'pointerdown',e=>{if(accessController.switchRequested)return;introducerCommand=direction;button.setPointerCapture(e.pointerId);e.preventDefault();});
+    for(const event of ['pointerup','pointercancel','lostpointercapture'])runtime.listen(button, event,stopIntroducer);
 }
 for(const [id,direction] of [['dilatorWithdraw',-1],['dilatorAdvance',1]]) {
     const button=document.getElementById(id);
-    button.addEventListener('pointerdown',e=>{if(accessController.switchRequested||simulationPaused)return;
+    runtime.listen(button, 'pointerdown',e=>{if(accessController.switchRequested||simulationPaused)return;
         dilatorFeedback='';dilatorCommand=direction;button.setPointerCapture(e.pointerId);e.preventDefault();});
-    for(const event of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(event,()=>{dilatorCommand=0;});
+    for(const event of ['pointerup','pointercancel','lostpointercapture'])runtime.listen(button, event,()=>{dilatorCommand=0;});
 }
-document.addEventListener('keydown',e=>{
+runtime.listen(document, 'keydown',e=>{
     if(e.repeat||e.target?.matches?.('input,select,textarea,[contenteditable=true]')||document.querySelector('dialog[open]'))return;
     if(e.code==='KeyG'||e.code==='KeyH'){introducerCommand=e.code==='KeyH'?1:-1;e.preventDefault();}
     if(e.code==='KeyV'||e.code==='KeyB'){dilatorFeedback='';dilatorCommand=e.code==='KeyB'?1:-1;e.preventDefault();}
 });
-document.addEventListener('keyup',e=>{if(e.code==='KeyG'||e.code==='KeyH')stopIntroducer();});
-document.addEventListener('keyup',e=>{if(e.code==='KeyV'||e.code==='KeyB')dilatorCommand=0;});
-window.addEventListener('blur',stopIntroducer);
-document.addEventListener('simulation-controls-help-open',stopIntroducer);
-document.addEventListener('simulation-pause',stopIntroducer);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)stopIntroducer();});
+runtime.listen(document, 'keyup',e=>{if(e.code==='KeyG'||e.code==='KeyH')stopIntroducer();});
+runtime.listen(document, 'keyup',e=>{if(e.code==='KeyV'||e.code==='KeyB')dilatorCommand=0;});
+runtime.listen(window, 'blur',stopIntroducer);
+runtime.listen(document, 'simulation-controls-help-open',stopIntroducer);
+runtime.listen(document, 'simulation-pause',stopIntroducer);
+runtime.listen(document, 'visibilitychange',()=>{if(document.hidden)stopIntroducer();});
 
 function setSimulationPaused(paused) {
     simulationWallClock.reset();
@@ -3782,7 +3807,7 @@ function setSimulationPaused(paused) {
     for (const id of ['controls', 'carm-controls']) document.getElementById(id).inert = paused;
     if (paused) document.dispatchEvent(new Event('simulation-pause'));
 }
-document.getElementById('simulation-resume').addEventListener('click',()=>setSimulationPaused(false));
+runtime.listen(document.getElementById('simulation-resume'), 'click',()=>setSimulationPaused(false));
 runtime.listen(window,'keydown',event=>{
     if(event.code==='Space') {
         if(event.ctrlKey||event.metaKey||event.altKey||document.querySelector('dialog[open]')||
@@ -4759,6 +4784,7 @@ function scheduleIdlePhysicsCatchup() {
 // idle. Keep the unchanged fixed-step transactions progressing in bounded
 // timer tasks; the render loop consumes only their committed snapshots.
 function pumpIndependentPhysics() {
+    if (runtime.disposed || !graphicsGuard.check()) return;
     if (document.visibilityState === 'visible') {
         flushSimulationChanges();
         accessController.applyRequested();
@@ -4783,6 +4809,7 @@ function updateContrastPresentation() {
 }
 
 function animate(time) {
+    if (runtime.disposed || !graphicsGuard.check()) return;
     if(typeof crossoverAppBenchmark!=='undefined')crossoverAppBenchmark?.recordFrame();
     crossoverScenario?.frame();
     // Render loop: updates geometry, handles fluoroscopy accumulation, and UI

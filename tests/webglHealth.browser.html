@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pl"><meta charset="utf-8"><title>Diagnostyka tworzenia WebGL</title>
+<style>body{font:16px system-ui;background:#10202b;color:#eaf4ff;padding:24px}pre{white-space:pre-wrap}canvas{width:64px;height:64px}</style>
+<h1>Diagnostyka tworzenia WebGL</h1><p>Jedna powierzchnia 2 × 2 piksele; bez anatomii, shaderów symulacji i dodatkowych buforów.</p>
+<canvas id="probe" width="2" height="2"></canvas><pre id="report">Sprawdzanie…</pre>
+<script type="module">
+const canvas = document.getElementById('probe');
+const report = {date: new Date().toISOString(), drawingBuffer: [2,2], creationErrors: []};
+canvas.addEventListener('webglcontextcreationerror', e => report.creationErrors.push(e.statusMessage));
+const gl = canvas.getContext('webgl2', {antialias: true});
+report.created = !!gl;
+if (gl) {
+    report.lost = gl.isContextLost();
+    report.version = gl.getParameter(gl.VERSION);
+    report.renderer = gl.getParameter(gl.RENDERER);
+    report.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    gl.clearColor(.1,.7,.35,1); gl.clear(gl.COLOR_BUFFER_BIT);
+    report.error = gl.getError();
+    // No permanent diagnostic context alongside the full simulator.
+    window.addEventListener('pagehide', () => gl.getExtension('WEBGL_lose_context')?.loseContext(), {once:true});
+}
+document.getElementById('report').textContent = JSON.stringify(report,null,2);
+console.info('[webgl-health]', JSON.stringify(report));
+</script></html>

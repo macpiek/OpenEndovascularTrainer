@@ -1,0 +1,39 @@
+{
+  "status": "pass",
+  "samples": 4,
+  "size": 291,
+  "contextLost": false,
+  "glError": 0,
+  "cases": [
+    {
+      "position": [
+        0,
+        0,
+        45
+      ],
+      "differences": 0,
+      "maxDifference": 0,
+      "signal": 1569045
+    },
+    {
+      "position": [
+        18,
+        5,
+        35
+      ],
+      "differences": 0,
+      "maxDifference": 0,
+      "signal": 1941174
+    },
+    {
+      "position": [
+        0,
+        15,
+        30
+      ],
+      "differences": 0,
+      "maxDifference": 0,
+      "signal": 2700075
+    }
+  ]
+}

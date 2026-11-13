@@ -1,3 +1,20 @@
+let activeSimulatorRuntime = null;
+
+// The bootstrap owns failures that occur before simulator.js can finish its
+// module evaluation. Keep teardown available even when that import rejects.
+export function registerSimulatorRuntime(runtime) {
+    if (activeSimulatorRuntime && activeSimulatorRuntime !== runtime) activeSimulatorRuntime.dispose();
+    activeSimulatorRuntime = runtime;
+    runtime.onDispose(() => {
+        if (activeSimulatorRuntime === runtime) activeSimulatorRuntime = null;
+    });
+    return runtime;
+}
+
+export function disposeSimulatorRuntime() {
+    activeSimulatorRuntime?.dispose();
+}
+
 // Own only this simulator's scheduled work and listeners. Do not modify
 // browser globals or force collection with artificial allocations.
 export function createRuntimeLifetime(host = window) {
@@ -36,7 +53,8 @@ export function createRuntimeLifetime(host = window) {
             host.clearTimeout(id);
         },
         listen(target, type, callback, options = {}) {
-            target.addEventListener(type, callback, { ...options, signal: controller.signal });
+            const settings = typeof options === 'boolean' ? {capture: options} : options;
+            target.addEventListener(type, callback, { ...settings, signal: controller.signal });
         },
         dispose() {
             if (disposed) return;

@@ -1,0 +1,137 @@
+{
+  "date": "2026-11-13",
+  "status": "diagnosis-and-lifecycle-fixes-validated",
+  "observations": {
+    "initialProductionPage": "Simulator failed to start: Error creating WebGL context.",
+    "embeddedBrowserRecentGpuCrashes": 2,
+    "minimalWebGL2Creation": {
+      "date": "2026-11-13T20:48:57.293Z",
+      "drawingBuffer": [
+        2,
+        2
+      ],
+      "creationErrors": [],
+      "created": true,
+      "lost": false,
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "renderer": "WebKit WebGL",
+      "maxTextureSize": 16384,
+      "error": 0
+    },
+    "note": "The process crash counter does not identify the exact shader or prove out-of-memory. No crash dump identifying the terminating GPU instruction was available."
+  },
+  "changes": [
+    "Dispose partial simulator runtime when bootstrap fails.",
+    "Stop rendering, physics and UI work after loss; expose a recovery panel.",
+    "Own C-arm control RAF and DOM listeners through runtime.",
+    "Release preview early on startup failure; keep preview-only failure local.",
+    "Log bounded creation/loss/resource diagnostics.",
+    "Remove only the unused MSAA metal depth attachment; retain resolution, color format and 4x MSAA."
+  ],
+  "renderer": {
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+    "vendor": "Google Inc. (Apple)",
+    "maxTextureSize": 16384,
+    "maxSamples": 4
+  },
+  "memory": {
+    "coreContrastPayloadBytes": 220324432,
+    "renderTargetEstimateBytesAfter": 146987228,
+    "metalDepthBytesSavedAtCurrentViewport": 38787984,
+    "metalDepthBytesSavedAtMaximumResolution": 67108864,
+    "scope": "Payload/allocation estimates, not actual total or peak GPU memory. Excludes other geometry, drawing buffers and driver overhead."
+  },
+  "verification": {
+    "build": "pass",
+    "nodeTests": {
+      "passed": 33,
+      "failed": 0,
+      "suites": [
+        "runtime lifetime",
+        "graphics lifetime",
+        "C-arm controls/pose",
+        "metal projection"
+      ],
+      "skeletonSourceTransfer": "pass"
+    },
+    "metalPixelParity": {
+      "status": "pass",
+      "samples": 4,
+      "size": 291,
+      "contextLost": false,
+      "glError": 0,
+      "cases": [
+        {
+          "position": [
+            0,
+            0,
+            45
+          ],
+          "differences": 0,
+          "maxDifference": 0,
+          "signal": 1569045
+        },
+        {
+          "position": [
+            18,
+            5,
+            35
+          ],
+          "differences": 0,
+          "maxDifference": 0,
+          "signal": 1941174
+        },
+        {
+          "position": [
+            0,
+            15,
+            30
+          ],
+          "differences": 0,
+          "maxDifference": 0,
+          "signal": 2700075
+        }
+      ]
+    },
+    "contextLossRecovery": {
+      "status": "pass",
+      "contextLost": true,
+      "disposed": true,
+      "framesBeforeLoss": 294,
+      "framesAfterDisposal": 0,
+      "failureEvents": 1
+    },
+    "production": {
+      "injections": 2,
+      "volumeMlEach": 20,
+      "rateMlPerSecond": 15,
+      "source": "right 6F sheath",
+      "consoleErrors": [],
+      "finalRenderFps": 60,
+      "finalPhysicsHz": 60,
+      "finalVascularMassMg": 0,
+      "finalLocalMassMg": 0,
+      "finalOutflowMassMg": 12000,
+      "balanceErrorPercent": 0,
+      "firstInjectionTiming": {
+        "durationSeconds": 20.002,
+        "contrastActiveSeconds": 13.11040000000596,
+        "contrastActiveFps": 45.30754210395792,
+        "contrastActivePhysicsHz": 59.95240419816655,
+        "contrastGpu": {
+          "supported": true,
+          "disjointCount": 0,
+          "pending": 0,
+          "count": 266,
+          "meanMs": 13.835019834586467,
+          "p95Ms": 126.042416,
+          "maxMs": 327.367
+        },
+        "failedSteps": 0
+      },
+      "screenshot": "webgl-second-injection-2026-11-13.png"
+    }
+  },
+  "remaining": "The anatomical contrast shader still causes large GPU timing spikes (max327ms in this capture). These fixes reduce memory pressure and prevent continuing work/leaking contexts after startup/context failures; they do not prove all browser/driver crashes eliminated or sustained60FPS."
+}

@@ -4,6 +4,8 @@ import * as THREE from 'three';
 import {readFileSync} from 'node:fs';
 import {setupCArmControls} from '../src/carmControls.js';
 import {CARM_SOURCE_TO_ISOCENTER_MM} from '../src/imaging/carmProjection.js';
+import {createRuntimeLifetime} from '../src/runtimeLifetime.js';
+import {setMaxListeners} from 'node:events';
 
 class Element extends EventTarget {
     constructor(value='0',min='-1000',max='1000') {
@@ -18,7 +20,7 @@ class Element extends EventTarget {
     getBoundingClientRect(){return {left:0,top:0,width:120,height:120};}
 }
 
-function fixture(run, {sourceRadius=500, sliders={}}={}) {
+function fixture(run, {sourceRadius=500, sliders={}, withRuntime=false}={}) {
     const originals={document:globalThis.document,window:globalThis.window,requestAnimationFrame:globalThis.requestAnimationFrame};
     const elements=new Map();
     for(const id of ['carmX','carmY','carmZ','carmDetDist','carmYawReadout','carmPitchReadout','carmRollReadout',
@@ -38,9 +40,16 @@ function fixture(run, {sourceRadius=500, sliders={}}={}) {
     const window=new EventTarget();let callback,now=performance.now();
     globalThis.document=document;globalThis.window=window;
     globalThis.requestAnimationFrame=fn=>{callback=fn;return 1;};
+    let cancelledFrames=0;
+    window.requestAnimationFrame=globalThis.requestAnimationFrame;
+    window.cancelAnimationFrame=()=>{cancelledFrames++;};
+    window.setTimeout=()=>1;window.clearTimeout=()=>{};
+    const runtime=withRuntime?createRuntimeLifetime(window):null;
+    if(runtime)setMaxListeners(0,runtime.signal);
     const camera=new THREE.PerspectiveCamera(45,1,.1,2000);
     try {
-        const controls=setupCArmControls(camera,{branchPoint:{x:0,y:0,z:0}},sourceRadius);
+        const controls=setupCArmControls(camera,{branchPoint:{x:0,y:0,z:0}},sourceRadius,
+            undefined,undefined,undefined,undefined,undefined,undefined,runtime);
         const frame=(dt=16.6667)=>{now+=dt;callback(now);};
         const event=(target,type,props={})=>{
             const e=new Event(type,{cancelable:true});Object.assign(e,{pointerId:1,...props});
@@ -53,13 +62,25 @@ function fixture(run, {sourceRadius=500, sliders={}}={}) {
             assert.ok(Math.abs(Math.asin(camera.position.y/500))<=Math.PI/4+1e-8);
             assert.ok(camera.quaternion.toArray().every(Number.isFinite));
         };
-        frame();run({controls,camera,elements,window,document,event,frame,yaw,bounded,zoomButtons});
+        frame();run({controls,camera,elements,window,document,event,frame,yaw,bounded,zoomButtons,
+            runtime,cancelledFrames:()=>cancelledFrames});
     } finally {
+        runtime?.dispose();
         for(const [key,value] of Object.entries(originals)) {
             if(value===undefined)delete globalThis[key];else globalThis[key]=value;
         }
     }
 }
+
+test('runtime disposal cancels C-arm animation and detaches held-motion controls',()=>fixture(({event,frame,yaw,runtime,cancelledFrames})=>{
+    event('carmLao30','pointerdown');frame(100);
+    assert.ok(yaw()>0);
+    runtime.dispose();
+    const before=yaw();
+    event('carmRao30','pointerdown');frame(100);
+    assert.equal(yaw(),before,'a late RAF or control event must not mutate a disposed camera');
+    assert.equal(cancelledFrames(),1);
+}, {withRuntime:true}));
 
 test('reset cannot reverse direction or leave the C-arm range on a backward frame timestamp',()=>fixture(({event,frame,yaw,bounded})=>{
     event('carmLao30','pointerdown');for(let i=0;i<100;i++)frame();

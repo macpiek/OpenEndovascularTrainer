@@ -1,0 +1,32 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><title>Test zatrzymania po utracie WebGL</title>
+<style>body{font:16px system-ui;background:#10202b;color:#eaf4ff;padding:24px}pre{white-space:pre-wrap}canvas{width:64px;height:64px}</style>
+<h1>Test zatrzymania po utracie WebGL</h1><p>Celowa utrata wyłącznie małego kontekstu testowego, bez uruchamiania symulacji.</p>
+<canvas id="probe" width="2" height="2"></canvas><button id="lose">Sprawdź zatrzymanie po utracie kontekstu</button><pre id="report">Uruchamianie…</pre>
+<script type="module">
+import {WebGLRenderer} from 'three';
+import {createRuntimeLifetime} from '../src/runtimeLifetime.js';
+import {createManagedWebGLRenderer} from '../src/graphicsLifetime.js';
+const runtime=createRuntimeLifetime(), canvas=document.getElementById('probe');
+let frames=0, failures=0;
+const result=document.getElementById('report'), button=document.getElementById('lose');
+try {
+    const {renderer, guard}=createManagedWebGLRenderer(()=>new WebGLRenderer({canvas}),{
+        canvas,label:'lifecycle-test',runtime,onFailure(){
+            failures++;
+            const stoppedAt=frames;
+            runtime.dispose();
+            setTimeout(()=>{
+                result.textContent=JSON.stringify({status:runtime.disposed&&frames===stoppedAt&&failures===1?'pass':'fail',
+                    contextLost:renderer.getContext().isContextLost(),disposed:runtime.disposed,
+                    framesBeforeLoss:stoppedAt,framesAfterDisposal:frames-stoppedAt,failureEvents:failures},null,2);
+            },50);
+        }
+    });
+    runtime.onDispose(()=>{renderer.dispose();renderer.forceContextLoss();});
+    renderer.setSize(2,2,false);renderer.setClearColor(0x29b875);renderer.clear();
+    function frame(){if(!guard.check())return;frames++;runtime.frame(frame);}
+    runtime.frame(frame);
+    result.textContent='Gotowy: kontekst WebGL działa.';
+    runtime.listen(button,'click',()=>{button.disabled=true;renderer.getContext().getExtension('WEBGL_lose_context').loseContext();});
+}catch(error){runtime.dispose();result.textContent=JSON.stringify({status:'creation-failed',message:error.message});}
+</script></html>

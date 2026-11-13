@@ -1,4 +1,4 @@
-import { ShaderMaterial } from 'three';
+import { ShaderMaterial, WebGLRenderTarget } from 'three';
 import { DETECTOR_APERTURE_HALF_EXTENT } from './collimatorGeometry.js';
 import {
     GUIDEWIRE_TYPE_GLIDEWIRE,
@@ -11,6 +11,17 @@ import {
 export function metalProjectionSize(displaySize, maxTextureSize = 2048) {
     return Math.max(1, Math.min(2048, maxTextureSize,
         Math.ceil(displaySize * 2 / DETECTOR_APERTURE_HALF_EXTENT)));
+}
+
+export function createMetalProjectionTarget(displaySize, capabilities) {
+    const size = metalProjectionSize(displaySize, capabilities.maxTextureSize);
+    return new WebGLRenderTarget(size, size, {
+        samples: capabilities.isWebGL2 ? 4 : 0,
+        // Wire, graft and per-object projection materials all disable depth
+        // testing/writes. Retain every color/MSAA sample, but do not allocate
+        // an unused multisampled depth attachment (64 MiB at 2048², 4× MSAA).
+        depthBuffer: false
+    });
 }
 
 export function createGuidewireProjectionMaterial(type = GUIDEWIRE_TYPE_GLIDEWIRE) {

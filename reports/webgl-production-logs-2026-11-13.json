@@ -1,0 +1,206 @@
+[
+  {
+    "level": "debug",
+    "message": "[vite] connecting...",
+    "timestamp": "2026-11-13T20:58:30.409Z",
+    "url": "http://127.0.0.1:5174/@vite/client"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Loading simulator code {\"elapsedMs\":0,\"previousStageMs\":0}",
+    "timestamp": "2026-11-13T20:58:30.416Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "debug",
+    "message": "[vite] connected.",
+    "timestamp": "2026-11-13T20:58:30.437Z",
+    "url": "http://127.0.0.1:5174/@vite/client"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Initializing simulator state {\"elapsedMs\":679,\"previousStage\":\"Loading simulator code\",\"previousStageMs\":679}",
+    "timestamp": "2026-11-13T20:58:31.098Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Creating fluoroscopy graphics context {\"elapsedMs\":687,\"previousStage\":\"Initializing simulator state\",\"previousStageMs\":8}",
+    "timestamp": "2026-11-13T20:58:31.099Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[graphics] {\"kind\":\"context-created\",\"label\":\"fluoroscopy\",\"detail\":\"\",\"atMs\":949,\"contextLost\":false,\"drawingBuffer\":[300,150],\"memory\":{\"geometries\":0,\"textures\":0},\"programs\":0,\"capabilities\":{\"version\":\"WebGL 2.0 (OpenGL ES 3.0 Chromium)\",\"renderer\":\"ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)\",\"vendor\":\"Google Inc. (Apple)\",\"maxTextureSize\":16384,\"maxSamples\":4}}",
+    "timestamp": "2026-11-13T20:58:31.136Z",
+    "url": "http://127.0.0.1:5174/src/graphicsLifetime.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Preparing fluoroscopy scenes and targets {\"elapsedMs\":728,\"previousStage\":\"Creating fluoroscopy graphics context\",\"previousStageMs\":42}",
+    "timestamp": "2026-11-13T20:58:31.143Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[graphics] {\"kind\":\"targets-created\",\"label\":\"fluoroscopy\",\"detail\":\"\",\"atMs\":954,\"contextLost\":false,\"drawingBuffer\":[1370,1370],\"memory\":{\"geometries\":0,\"textures\":0},\"programs\":0,\"targets\":[{\"name\":\"offscreenTarget\",\"width\":582,\"height\":582,\"samples\":4,\"depthBuffer\":true,\"estimatedBytes\":12194064},{\"name\":\"contrastTarget\",\"width\":1557,\"height\":1557,\"samples\":0,\"depthBuffer\":false,\"estimatedBytes\":19393992},{\"name\":\"metalTarget\",\"width\":1557,\"height\":1557,\"samples\":4,\"depthBuffer\":false,\"estimatedBytes\":48484980},{\"name\":\"catheterTarget\",\"width\":582,\"height\":582,\"samples\":4,\"depthBuffer\":true,\"estimatedBytes\":12194064},{\"name\":\"catheterMarkerTarget\",\"width\":582,\"height\":582,\"samples\":4,\"depthBuffer\":true,\"estimatedBytes\":12194064},{\"name\":\"sheathTarget\",\"width\":582,\"height\":582,\"samples\":4,\"depthBuffer\":true,\"estimatedBytes\":12194064},{\"name\":\"boneTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":4064688},{\"name\":\"softTissueTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":false,\"estimatedBytes\":2709792},{\"name\":\"accumulateTarget1\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"accumulateTarget2\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"frontDepthTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"backDepthTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"thicknessTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"dsaMaskTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":4064688},{\"name\":\"roadmapTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"dsaFrameCaptureTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"dsaContrastScoreTarget\",\"width\":256,\"height\":256,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":524288}],\"estimatedTargetBytes\":146987228}",
+    "timestamp": "2026-11-13T20:58:31.144Z",
+    "url": "http://127.0.0.1:5174/src/graphicsLifetime.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Loading anatomy models {\"elapsedMs\":794,\"previousStage\":\"Preparing fluoroscopy scenes and targets\",\"previousStageMs\":66}",
+    "timestamp": "2026-11-13T20:58:31.209Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Preparing controls and C-arm preview {\"elapsedMs\":797,\"previousStage\":\"Loading anatomy models\",\"previousStageMs\":3}",
+    "timestamp": "2026-11-13T20:58:31.216Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Creating C-arm preview graphics context {\"elapsedMs\":828,\"previousStage\":\"Preparing controls and C-arm preview\",\"previousStageMs\":31}",
+    "timestamp": "2026-11-13T20:58:31.245Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[graphics] {\"kind\":\"context-created\",\"label\":\"c-arm-preview\",\"detail\":\"\",\"atMs\":1067,\"contextLost\":false,\"drawingBuffer\":[300,150],\"memory\":{\"geometries\":0,\"textures\":0},\"programs\":0,\"capabilities\":{\"version\":\"WebGL 2.0 (OpenGL ES 3.0 Chromium)\",\"renderer\":\"ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)\",\"vendor\":\"Google Inc. (Apple)\",\"maxTextureSize\":16384,\"maxSamples\":4}}",
+    "timestamp": "2026-11-13T20:58:31.259Z",
+    "url": "http://127.0.0.1:5174/src/graphicsLifetime.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building C-arm preview geometry {\"elapsedMs\":848,\"previousStage\":\"Creating C-arm preview graphics context\",\"previousStageMs\":20}",
+    "timestamp": "2026-11-13T20:58:31.267Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Rendering first C-arm preview {\"elapsedMs\":855,\"previousStage\":\"Building C-arm preview geometry\",\"previousStageMs\":7}",
+    "timestamp": "2026-11-13T20:58:31.275Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] C-arm preview ready {\"elapsedMs\":899,\"previousStage\":\"Rendering first C-arm preview\",\"previousStageMs\":45}",
+    "timestamp": "2026-11-13T20:58:31.313Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Parsing vessel anatomy {\"elapsedMs\":2777,\"previousStage\":\"C-arm preview ready\",\"previousStageMs\":1878}",
+    "timestamp": "2026-11-13T20:58:33.192Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building vessel collision geometry {\"elapsedMs\":4470,\"previousStage\":\"Parsing vessel anatomy\",\"previousStageMs\":1693}",
+    "timestamp": "2026-11-13T20:58:34.889Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building vessel contact field {\"elapsedMs\":6040,\"previousStage\":\"Building vessel collision geometry\",\"previousStageMs\":1570}",
+    "timestamp": "2026-11-13T20:58:36.457Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building vessel flow model {\"elapsedMs\":6187,\"previousStage\":\"Building vessel contact field\",\"previousStageMs\":147}",
+    "timestamp": "2026-11-13T20:58:36.600Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building vessel debug geometry {\"elapsedMs\":6565,\"previousStage\":\"Building vessel flow model\",\"previousStageMs\":378}",
+    "timestamp": "2026-11-13T20:58:36.978Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building contrast projection geometry {\"elapsedMs\":6673,\"previousStage\":\"Building vessel debug geometry\",\"previousStageMs\":107}",
+    "timestamp": "2026-11-13T20:58:37.086Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Classifying anatomical lumen triangles {\"elapsedMs\":6687,\"previousStage\":\"Building contrast projection geometry\",\"previousStageMs\":14}",
+    "timestamp": "2026-11-13T20:58:37.100Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Mapping anatomical lumen samples {\"elapsedMs\":27240,\"previousStage\":\"Classifying anatomical lumen triangles\",\"previousStageMs\":20553}",
+    "timestamp": "2026-11-13T20:58:57.658Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Reconciling anatomical junction samples {\"elapsedMs\":39359,\"previousStage\":\"Mapping anatomical lumen samples\",\"previousStageMs\":12119}",
+    "timestamp": "2026-11-13T20:59:09.794Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building anatomical junction reconstruction {\"elapsedMs\":39442,\"previousStage\":\"Reconciling anatomical junction samples\",\"previousStageMs\":83}",
+    "timestamp": "2026-11-13T20:59:09.855Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Closing anatomical lumen boundaries {\"elapsedMs\":39722,\"previousStage\":\"Building anatomical junction reconstruction\",\"previousStageMs\":280}",
+    "timestamp": "2026-11-13T20:59:10.135Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building anatomical projection acceleration {\"elapsedMs\":40205,\"previousStage\":\"Closing anatomical lumen boundaries\",\"previousStageMs\":484}",
+    "timestamp": "2026-11-13T20:59:10.618Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building anatomical projection activity {\"elapsedMs\":41143,\"previousStage\":\"Building anatomical projection acceleration\",\"previousStageMs\":938}",
+    "timestamp": "2026-11-13T20:59:11.557Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building auxiliary contrast geometry {\"elapsedMs\":41466,\"previousStage\":\"Building anatomical projection activity\",\"previousStageMs\":322}",
+    "timestamp": "2026-11-13T20:59:11.879Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Contrast projection geometry ready {\"elapsedMs\":43338,\"previousStage\":\"Building auxiliary contrast geometry\",\"previousStageMs\":1872}",
+    "timestamp": "2026-11-13T20:59:13.751Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Compiling contrast projection shader {\"elapsedMs\":43338,\"previousStage\":\"Contrast projection geometry ready\",\"previousStageMs\":0}",
+    "timestamp": "2026-11-13T20:59:13.751Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Contrast projection shader ready {\"elapsedMs\":43579,\"previousStage\":\"Compiling contrast projection shader\",\"previousStageMs\":241}",
+    "timestamp": "2026-11-13T20:59:13.993Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Simulator ready {\"elapsedMs\":43580,\"previousStage\":\"Contrast projection shader ready\",\"previousStageMs\":1}",
+    "timestamp": "2026-11-13T20:59:13.993Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js"
+  },
+  {
+    "level": "info",
+    "message": "[graphics] {\"kind\":\"simulator-ready\",\"label\":\"fluoroscopy\",\"detail\":\"\",\"atMs\":43806,\"contextLost\":false,\"drawingBuffer\":[1370,1370],\"memory\":{\"geometries\":23,\"textures\":28},\"programs\":10,\"targets\":[{\"name\":\"offscreenTarget\",\"width\":582,\"height\":582,\"samples\":4,\"depthBuffer\":true,\"estimatedBytes\":12194064},{\"name\":\"contrastTarget\",\"width\":1557,\"height\":1557,\"samples\":0,\"depthBuffer\":false,\"estimatedBytes\":19393992},{\"name\":\"metalTarget\",\"width\":1557,\"height\":1557,\"samples\":4,\"depthBuffer\":false,\"estimatedBytes\":48484980},{\"name\":\"catheterTarget\",\"width\":582,\"height\":582,\"samples\":4,\"depthBuffer\":true,\"estimatedBytes\":12194064},{\"name\":\"catheterMarkerTarget\",\"width\":582,\"height\":582,\"samples\":4,\"depthBuffer\":true,\"estimatedBytes\":12194064},{\"name\":\"sheathTarget\",\"width\":582,\"height\":582,\"samples\":4,\"depthBuffer\":true,\"estimatedBytes\":12194064},{\"name\":\"boneTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":4064688},{\"name\":\"softTissueTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":false,\"estimatedBytes\":2709792},{\"name\":\"accumulateTarget1\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"accumulateTarget2\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"frontDepthTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"backDepthTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"thicknessTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"dsaMaskTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":4064688},{\"name\":\"roadmapTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"dsaFrameCaptureTarget\",\"width\":582,\"height\":582,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":2709792},{\"name\":\"dsaContrastScoreTarget\",\"width\":256,\"height\":256,\"samples\":0,\"depthBuffer\":true,\"estimatedBytes\":524288}],\"estimatedTargetBytes\":146987228}",
+    "timestamp": "2026-11-13T20:59:13.993Z",
+    "url": "http://127.0.0.1:5174/src/graphicsLifetime.js"
+  }
+]

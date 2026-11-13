@@ -31,7 +31,7 @@
     "test:physics:optimization": "node tests/kirchhoffContactBlock.test.js && node tests/kirchhoffCenterlineSearch.test.js && node tests/kirchhoffDirectOptimization.test.js && node tests/kirchhoffCoupledConvergence.test.js && node tests/shortCatheterBenchmark.test.js",
     "test:guidewire:mechanics": "node tests/kirchhoffDirectSolver.test.js",
     "test:catheter:mechanics": "node tests/kirchhoffDirectCoupling.test.js && node tests/kirchhoffCatheterOverWireRegression.test.js",
-    "test:memory": "node tests/runtimeMemoryLifetime.test.js && node tests/skeletonGeometry.test.js",
+    "test:memory": "node --test tests/runtimeMemoryLifetime.test.js tests/graphicsLifetime.test.js && node tests/skeletonGeometry.test.js",
     "test:physics:coupled": "node scripts/run-tests.mjs physics:coupled",
     "test:physics:composite": "node scripts/run-tests.mjs physics:composite",
     "anatomy:rebuild": "node --max-old-space-size=8192 scripts/extend-lower-limb-arteries.mjs",
