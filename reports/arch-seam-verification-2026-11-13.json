@@ -1,0 +1,70 @@
+{
+  "status": "full-gpu-matrix-and-production-smoke-pass",
+  "productionCodeChangedToday": false,
+  "priorAutomatedValidation": {
+    "date": "2026-11-12",
+    "contrastPassed": 264,
+    "contrastFailed": 0,
+    "build": "pass"
+  },
+  "imageMatrix": {
+    "status": "pass",
+    "projections": 20,
+    "actualWallBoundaryChecks": 42,
+    "maximumArtificialWallJumpBefore": 0.06531524658203125,
+    "maximumArtificialWallJumpAfter": 0.00030517578125,
+    "contextLost": false,
+    "shaderError": false,
+    "report": "arch-seam-gpu-images-2026-11-13.json",
+    "screenshot": "arch-seam-gpu-comparison-2026-11-13.png"
+  },
+  "mainSimulator": {
+    "status": "pass",
+    "source": "right 6F sheath",
+    "injections": 2,
+    "volumeMlEach": 20,
+    "rateMlPerSecond": 15,
+    "consoleErrors": [],
+    "finalVascularMassMg": 0,
+    "finalLocalMassMg": 0,
+    "finalOutflowMassMg": 12000,
+    "reportedBalanceErrorPercent": 0,
+    "observedRenderFpsDuringInjection": [
+      33.6,
+      48.0
+    ],
+    "observedPhysicsHzDuringInjection": [
+      59.7,
+      56.0
+    ],
+    "afterWashoutRenderFps": 60,
+    "afterWashoutPhysicsHz": 60,
+    "screenshot": "arch-main-running-2026-11-13.png",
+    "limitation": "This is a smoke test with observed UI samples, not a sustained performance benchmark; 60 FPS during injection is not claimed."
+  },
+  "diagnosticHarness": {
+    "combinedProbeAndImageContext": "failed after 24 successful scalar scans when returning to anatomical rendering",
+    "isolatedProbeContext": "pass"
+  },
+  "fullGpuMatrix": {
+    "status": "pass",
+    "fieldScans": 24,
+    "projections": 20,
+    "actualWallBoundaryChecks": 42,
+    "contextLost": false,
+    "shaderError": false,
+    "gpuContexts": {
+      "image": {
+        "contextLost": false,
+        "shaderError": false
+      },
+      "probe": {
+        "contextLost": false,
+        "shaderError": false,
+        "intentionalDisposals": 1
+      },
+      "separate": true
+    },
+    "report": "arch-seam-gpu-full-2026-11-13.json"
+  }
+}

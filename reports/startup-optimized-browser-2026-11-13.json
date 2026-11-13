@@ -1,0 +1,170 @@
+[
+  {
+    "level": "info",
+    "message": "[startup] Loading simulator code {\"elapsedMs\":0,\"previousStageMs\":0}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Initializing simulator state {\"elapsedMs\":242,\"previousStage\":\"Loading simulator code\",\"previousStageMs\":242}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Creating fluoroscopy graphics context {\"elapsedMs\":242,\"previousStage\":\"Initializing simulator state\",\"previousStageMs\":1}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Preparing fluoroscopy scenes and targets {\"elapsedMs\":265,\"previousStage\":\"Creating fluoroscopy graphics context\",\"previousStageMs\":23}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Loading anatomy models {\"elapsedMs\":273,\"previousStage\":\"Preparing fluoroscopy scenes and targets\",\"previousStageMs\":8}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Preparing controls and C-arm preview {\"elapsedMs\":274,\"previousStage\":\"Loading anatomy models\",\"previousStageMs\":1}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Creating C-arm preview graphics context {\"elapsedMs\":285,\"previousStage\":\"Preparing controls and C-arm preview\",\"previousStageMs\":11}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building C-arm preview geometry {\"elapsedMs\":291,\"previousStage\":\"Creating C-arm preview graphics context\",\"previousStageMs\":6}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Rendering first C-arm preview {\"elapsedMs\":295,\"previousStage\":\"Building C-arm preview geometry\",\"previousStageMs\":5}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] C-arm preview ready {\"elapsedMs\":308,\"previousStage\":\"Rendering first C-arm preview\",\"previousStageMs\":12}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Parsing vessel anatomy {\"elapsedMs\":1186,\"previousStage\":\"C-arm preview ready\",\"previousStageMs\":878}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building vessel collision geometry {\"elapsedMs\":3334,\"previousStage\":\"Parsing vessel anatomy\",\"previousStageMs\":2148}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building vessel contact field {\"elapsedMs\":4971,\"previousStage\":\"Building vessel collision geometry\",\"previousStageMs\":1637}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building vessel flow model {\"elapsedMs\":5083,\"previousStage\":\"Building vessel contact field\",\"previousStageMs\":112}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building vessel debug geometry {\"elapsedMs\":5448,\"previousStage\":\"Building vessel flow model\",\"previousStageMs\":366}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building contrast projection geometry {\"elapsedMs\":5534,\"previousStage\":\"Building vessel debug geometry\",\"previousStageMs\":86}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Classifying anatomical lumen triangles {\"elapsedMs\":5545,\"previousStage\":\"Building contrast projection geometry\",\"previousStageMs\":10}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Mapping anatomical lumen samples {\"elapsedMs\":25762,\"previousStage\":\"Classifying anatomical lumen triangles\",\"previousStageMs\":20217}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Reconciling anatomical junction samples {\"elapsedMs\":39544,\"previousStage\":\"Mapping anatomical lumen samples\",\"previousStageMs\":13783}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building anatomical junction reconstruction {\"elapsedMs\":39917,\"previousStage\":\"Reconciling anatomical junction samples\",\"previousStageMs\":373}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Closing anatomical lumen boundaries {\"elapsedMs\":40700,\"previousStage\":\"Building anatomical junction reconstruction\",\"previousStageMs\":783}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building anatomical projection acceleration {\"elapsedMs\":42048,\"previousStage\":\"Closing anatomical lumen boundaries\",\"previousStageMs\":1348}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building anatomical projection activity {\"elapsedMs\":43725,\"previousStage\":\"Building anatomical projection acceleration\",\"previousStageMs\":1676}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Building auxiliary contrast geometry {\"elapsedMs\":44310,\"previousStage\":\"Building anatomical projection activity\",\"previousStageMs\":585}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Contrast projection geometry ready {\"elapsedMs\":47999,\"previousStage\":\"Building auxiliary contrast geometry\",\"previousStageMs\":3690}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Compiling contrast projection shader {\"elapsedMs\":48000,\"previousStage\":\"Contrast projection geometry ready\",\"previousStageMs\":0}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Contrast projection shader ready {\"elapsedMs\":49768,\"previousStage\":\"Compiling contrast projection shader\",\"previousStageMs\":1768}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  },
+  {
+    "level": "info",
+    "message": "[startup] Simulator ready {\"elapsedMs\":49780,\"previousStage\":\"Contrast projection shader ready\",\"previousStageMs\":12}",
+    "timestamp": "2026-11-13T20:17:18.628Z",
+    "url": "http://127.0.0.1:5174/src/startupDiagnostics.js?t=1794600154305"
+  }
+]

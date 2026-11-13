@@ -7,7 +7,7 @@ export function createStartupDiagnostics({
         const element = host.document?.getElementById('loadingMessage');
         if (element) element.textContent = message;
     },
-    log = (message, timing) => host.console?.info('[startup]', message, timing)
+    log = (message, timing) => host.console?.info('[startup]', message, JSON.stringify(timing))
 } = {}) {
     let startedAt;
     let previousAt;

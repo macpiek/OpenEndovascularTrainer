@@ -225,18 +225,20 @@ for (const name of ['Aorta_plain_renal', 'Aorta_infrarenal_aneurysm_renal']) {
         const s = system(name), net = s.flowNetwork;
         const connectors = net.intraluminalAorticConnectorDiagnostics;
         const paths = net.aorticBranchPrefixDiagnostics.paths.filter(p =>
+            !net.edges[p.rootEdgeIndex].transportExcluded &&
             net.edges[p.rootEdgeIndex].start.y > 0 &&
             net.edges[net.edges[p.rootEdgeIndex].parentEdgeIndex].intraluminalAorticConnector);
-        assert.equal(paths.length, 6, 'include the small terminal routes as well as three major branches');
+        assert.equal(paths.length, 3, 'retain the independent small terminal routes');
         assert.ok(connectors.sharedStems.length > 10, 'repair reservoirs upstream of nested connectors');
-        const major = paths.filter(p => net.nodes.get(net.edges[p.rootEdgeIndex].endNodeId).terminalOutletCount > 3);
+        const major = net.archOstiumReattachmentDiagnostics.repairs;
         assert.equal(major.length, 3, 'preserve all three major arch branches');
-        const tracked = paths.map(p => p.edgeIndices);
-        tracked.push(connectors.sharedStems.map(p => p.edgeIndex).filter(i => net.edges[i].start.y > 0));
+        const tracked = paths.map(p => p.edgeIndices.filter(i => !net.edges[i].transportExcluded));
+        tracked.push(...major.map(p => [p.rootEdgeIndex]));
+        tracked.push(connectors.sharedStems.map(p => p.edgeIndex).filter(i => net.edges[i].start.y > 0 && !net.edges[i].transportExcluded));
         const peaks = tracked.map(() => 0);
         const mass = indices => indices.reduce((sum, i) =>
             sum + net.edges[i].massMg.reduce((a, b) => a + b, 0), 0);
-        let source = net.edges[connectors.connectors.find(c => net.edges[c.parentEdgeIndex].start.y > 0).parentEdgeIndex], upstream = 0;
+        let source = net.edges[major[0].parentEdgeIndex], upstream = 0;
         while (source.parentEdgeIndex >= 0 && upstream < 20) {
             upstream += source.length;
             source = net.edges[source.parentEdgeIndex];
@@ -255,6 +257,9 @@ for (const name of ['Aorta_plain_renal', 'Aorta_infrarenal_aneurysm_renal']) {
             });
         }
         tracked.forEach(indices => assert.ok(mass(indices) < 1e-4, 'no residual plug at 12 s'));
+        assert.ok(net.edges.filter(e => e.retiredArchPrefix).every(e =>
+            e.meanFlowMm3PerS === 0 && e.massMg.every(value => value === 0)),
+        'retired medial strands must never become extra outlets or contrast reservoirs');
         assert.ok(net.edges.filter(e => e.renalSide).every(e => !e.transportExcluded));
     });
 }

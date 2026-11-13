@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import {MeshBVH} from 'three-mesh-bvh';
+import {createLumenOcclusionTest} from './lumenOcclusion.js';
+import {ExactCoordinateMap} from './exactCoordinateMap.js';
 import {createLumenSurfaceMapping} from './lumenSurfaceMapping.js';
 import {FlowConcentrationField} from './flowConcentrationField.js';
 import {JunctionSurfaceReconstruction} from './junctionSurfaceReconstruction.js';
@@ -7,6 +9,7 @@ import {closeLumenBoundaries} from './lumenBoundaryCaps.js';
 import {buildAnatomicalContrastProjection} from './anatomicalContrastProjection.js';
 import {buildAnatomicalColumnProjection} from './anatomicalColumnProjection.js';
 import {createProjectionActivity} from './projectionActivity.js';
+import {isIntraluminalOpticalBridge, opticalMappedEdgeIndex} from './flowOpticalTopology.js';
 
 function continuousTerritories(network) {
     const territories = new Int32Array(network.edges.length).fill(-1);
@@ -69,7 +72,8 @@ function projectionAxes(network, territories, continuations) {
 // Render the blood-facing triangles of the anatomical wall, in their original
 // coordinates. The transport graph supplies concentration, never the outline.
 // This also retains vessels smaller than the collision SDF's voxel spacing.
-export function buildAnatomicalContrastSurface(network, field, concentrationField, {junctionReconstruction = true, projection = 'volume'} = {}) {
+export function buildAnatomicalContrastSurface(network, field, concentrationField, {junctionReconstruction = true, projection = 'volume', onStage} = {}) {
+    onStage?.('Classifying anatomical lumen triangles');
     const source = field.fallbackGeometry;
     const position = source.getAttribute('position');
     const index = source.index;
@@ -83,6 +87,7 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
     let wallGeometry;
     const wallTree = source.boundsTree ?? new MeshBVH((wallGeometry = new THREE.BufferGeometry()
         .setAttribute('position',position).setIndex(index?.clone() ?? null)),{indirect:true});
+    const occluded = createLumenOcclusionTest(wallTree);
     const {territories, continuations} = continuousTerritories(network);
     const opticalAxes = projectionAxes(network, territories, continuations);
     const edgeArcStart = new Float64Array(network.edges.length);
@@ -96,7 +101,7 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
     const connections = new Map();
     const connectionKey = (a, b) => a < b ? `${a},${b}` : `${b},${a}`;
     for (const node of network.nodes?.values?.() ?? []) {
-        const adjacent = [...new Set([node.parentEdgeIndex, ...node.childEdgeIndices]
+        const adjacent = [...new Set([opticalMappedEdgeIndex(network, territories, node.parentEdgeIndex), ...node.childEdgeIndices]
             .filter(i => i >= 0).map(i => territories[i]).filter(i => i >= 0))];
         for (let a = 0; a < adjacent.length; a++) for (let b = a + 1; b < adjacent.length; b++) {
             const key = connectionKey(adjacent[a], adjacent[b]);
@@ -116,8 +121,9 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
         ray.origin.copy(center);
         ray.direction.set(location.centerX-center.x,location.centerY-center.y,location.centerZ-center.z).normalize();
         const inward=normal.dot(ray.direction)*location.distance;
-        const hit=wallTree.raycastFirst(ray,THREE.DoubleSide,1e-4,location.distance-1e-4);
-        if (hit || inward<=1e-5) {
+        // A back-facing nearest axis already requires the constrained search.
+        // Raycasting that rejected axis cannot change the decision.
+        if (inward<=1e-5 || occluded(ray,1e-4,location.distance-1e-4)) {
             // Test orientation against each candidate, not just the closest
             // axis: a small neighbour can be closer than this wall's own axis.
             // A concave inner wall can face away from the nearest axis and
@@ -132,6 +138,7 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
         // It cannot move vertices or dilate the projected silhouette.
         radii.push(Math.max(0.01, location.distance));
     }
+    onStage?.('Mapping anatomical lumen samples');
     const positions = new Float32Array(accepted.length * 9);
     const normals = new Int16Array(positions.length);
     const stencils = new Float32Array(accepted.length * 12);
@@ -147,7 +154,7 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
     // its flow sample once per continuous lumen, not once per triangle owner:
     // clamping to those different short edges exposes a sawtooth bolus front.
     // Real forks stay separate, so an empty side branch cannot borrow iodine.
-    const sharedSamples = new Map();
+    const sharedSamples = new ExactCoordinateMap();
     const sharedVertices = new Uint32Array(accepted.length * 3);
     const canonicalSamples = new Int32Array(accepted.length * 3).fill(-1);
     const representative = sample => {
@@ -180,8 +187,7 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
             const territory = territories[edge.index];
             // Procedural tubes duplicate the seam with sin(2π) roundoff.
             // Weld only numerical zero; physical coordinates stay untouched.
-            const key = `${Math.abs(p.x) < 1e-7 ? 0 : p.x},${Math.abs(p.y) < 1e-7 ? 0 : p.y},${Math.abs(p.z) < 1e-7 ? 0 : p.z}`;
-            const head = sharedSamples.get(key);
+            const head = sharedSamples.get(p.x, p.y, p.z);
             let sample = head;
             while (sample && sample.territory !== territory) sample = sample.next;
             if (!sample) {
@@ -223,7 +229,7 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
                     if (!joints.some(point => point && p.distanceToSquared(point) <= reach * reach)) continue;
                     joinSamples(sample, other);
                 }
-                sharedSamples.set(key, sample);
+                sharedSamples.set(p.x, p.y, p.z, sample);
             } else {
                 for (let k = 0; k < 4; k++) stencils[vertex * 4 + k] = stencils[sample.vertex * 4 + k];
                 for (let k = 0; k < 3; k++) axes[vertex * 3 + k] = axes[sample.vertex * 3 + k];
@@ -238,6 +244,7 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
             }
         }
     }
+    onStage?.('Reconciling anatomical junction samples');
     const canonicalEdges = new Map();
     for (const head of sharedSamples.values()) for (let sample = head; sample; sample = sample.next) {
         const canonical = representative(sample);
@@ -257,6 +264,7 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
         sharedVertices[vertex] = canonical;
         chunks[Math.floor(vertex / (CHUNK_TRIANGLES * 3))].edges.add(canonicalEdges.get(canonical));
     }
+    onStage?.('Building anatomical junction reconstruction');
     const junctionField = new JunctionSurfaceReconstruction(network, concentrationField,
         territories, continuations, junctionReconstruction);
     // Reuse the temporary canonical map instead of another whole-mesh buffer.
@@ -281,6 +289,7 @@ export function buildAnatomicalContrastSurface(network, field, concentrationFiel
         ['opticalRadius', optical, 1], ['flowAxis', axes, 3], ['projectionOwner', projectionOwners, 1],
         ['columnCoordinate', columnCoordinates, 2]
     ]) geometry.setAttribute(name, new THREE.BufferAttribute(array, size, array instanceof Int16Array));
+    onStage?.('Closing anatomical lumen boundaries');
     let caps = {triangles: 0, loops: 0, boundaryEdges: 0, skippedLoops: 0};
     if (projection !== 'surface') {
         // Geometric identity is independent of concentration territories.
@@ -372,11 +381,13 @@ export class AnatomicalContrastSurface {
         this.data = new Float32Array(width * height * 4);
         this.texture = new THREE.DataTexture(this.data, width, height, THREE.RGBAFormat, THREE.FloatType);
         this.texture.needsUpdate = true;
+        options?.onStage?.('Building anatomical projection acceleration');
         const projectionBuilder = options?.projection === 'column' ? buildAnatomicalColumnProjection : buildAnatomicalContrastProjection;
         this.projection = options?.projection === 'surface' ? null :
             projectionBuilder(network, built.geometry, this.field,
                 {junctionField: built.junctionField, territories: built.territories,
                     opticalAxes: built.opticalAxes, continuations: built.continuations});
+        options?.onStage?.('Building anatomical projection activity');
         this.activity = this.projection ? createProjectionActivity(network, built.geometry, this.field,
             built.triangleEdges, built.junctionField) : null;
         this.diagnostics = {sourceTriangleCount: built.sourceTriangleCount, lumenTriangleCount: built.triangleEdges.length,
@@ -441,7 +452,12 @@ export class AnatomicalContrastSurface {
                 this.excludedCells[i] = Boolean(e.transportExcluded || e.renderExcluded ||
                     (graftReplacesLumen && e.graftSections?.[cell]));
                 const pending = spatialJet ? (outletJet.fallbackMassByCell?.[i] ?? 0) : plume[i];
-                this.cellValues[i] = this.excludedCells[i] ? 0 :
+                // A hidden atlas connector still transports real blood and
+                // supplies the downstream ostial mixture. Keep its scalar
+                // concentration while its excluded mask prevents geometry.
+                const transportOnly = isIntraluminalOpticalBridge(e) &&
+                    !(graftReplacesLumen && e.graftSections?.[cell]);
+                this.cellValues[i] = this.excludedCells[i] && !transportOnly ? 0 :
                     (e.massMg[cell] + pending) / e.volumes[cell] / stock;
                 visible ||= this.cellValues[i] > 0 || this.previous[i] > 0;
             }

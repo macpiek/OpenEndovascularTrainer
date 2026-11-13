@@ -1,4 +1,5 @@
 import {Box3, Vector3, Vector4} from 'three';
+import {isIntraluminalOpticalBridge, opticalParentEdgeIndex} from './flowOpticalTopology.js';
 
 // The local solver carries the iodine which has not entrained into the bulk
 // network yet. Reconstruct that SAME mass as a compact set of smooth 3-D
@@ -23,7 +24,28 @@ function erfDifference(a, b) {
     return 2 - erfcPositive(-a) - erfcPositive(b);
 }
 function eligible(kernel, a, b) {
-    return kernel.pathA === a || kernel.pathA === b || kernel.pathB === a || kernel.pathB === b;
+    return kernel.paths?.has(a) || kernel.paths?.has(b) ||
+        kernel.pathA === a || kernel.pathA === b || kernel.pathB === a || kernel.pathB === b;
+}
+
+// Distance from a fork centre to the finite anisotropic kernel support.
+// The fork's common blood volume can reach a side-facing ostium wall even
+// when the kernel misses the medial-axis point at the centre of the aorta.
+function kernelReachesFork(kernel, connection) {
+    const dx = connection.point.x - kernel.x, dy = connection.point.y - kernel.y, dz = connection.point.z - kernel.z;
+    const axial = Math.abs(dx * kernel.ax + dy * kernel.ay + dz * kernel.az);
+    const radial = Math.sqrt(Math.max(0, dx * dx + dy * dy + dz * dz - axial * axial));
+    const rr = SUPPORT_SIGMAS ** 2 / kernel.inverseRadialVariance;
+    const zz = SUPPORT_SIGMAS ** 2 / kernel.inverseAxialVariance;
+    if (radial * radial / rr + axial * axial / zz <= 1) return true;
+    if (Math.hypot(radial, axial) > connection.radius + Math.sqrt(Math.max(rr, zz))) return false;
+    let lo = 0, hi = Math.hypot(Math.sqrt(rr) * radial, Math.sqrt(zz) * axial);
+    for (let i = 0; i < 32; i++) {
+        const mid = .5 * (lo + hi);
+        const sum = rr * radial * radial / (rr + mid) ** 2 + zz * axial * axial / (zz + mid) ** 2;
+        if (sum > 1) lo = mid; else hi = mid;
+    }
+    return Math.hypot(radial - rr * radial / (rr + hi), axial - zz * axial / (zz + hi)) <= connection.radius;
 }
 
 /** Exact ray integral of one normalized Gaussian, bounded to six sigmas. */
@@ -63,7 +85,64 @@ export function createOutletJetField(network, territories) {
     const shape = Array.from({length: MAX_OUTLET_JET_KERNELS}, () => new Vector4());
     const bounds = new Box3();
     const uniforms = {outletJetCount: {value: 0}, outletJetCenter: {value: center}, outletJetAxis: {value: axis}, outletJetShape: {value: shape},
+        outletJetPathOffset: {value: -1},
         outletJetMin: {value: bounds.min}, outletJetMax: {value: bounds.max}};
+    const pathIds = new Set(Array.from(territories).filter(path => path >= 0)), connections = new Map();
+    for (const path of pathIds) {
+        const child = network.edges[path], parentIndex = opticalParentEdgeIndex(network, territories, path);
+        const parent = network.edges[parentIndex], parentPath = territories[parentIndex];
+        if (!child?.start || !parent?.end || parentPath < 0 || parentPath === path) continue;
+        const bridges = [];
+        for (let edge = network.edges[child.parentEdgeIndex]; edge && edge.index !== parentIndex;
+            edge = network.edges[edge.parentEdgeIndex]) bridges.push(edge);
+        const connection = {a: path, b: parentPath, child, parent,
+            bridges, point: child.start, radius: Math.max(parent.radiusEnd, child.radiusStart)};
+        for (const id of [path, parentPath]) {
+            if (!connections.has(id)) connections.set(id, []);
+            connections.get(id).push(connection);
+        }
+    }
+    let pathTexture = null;
+    const membership = [];
+    function syncPathMembership() {
+        membership.length = 0;
+        const offset = uniforms.outletJetPathOffset.value;
+        const records = pathTexture?.image.data;
+        let cursor = offset + MAX_OUTLET_JET_KERNELS;
+        for (let i = 0; i < uniforms.outletJetCount.value; i++) {
+            const c = center[i], a = axis[i], s = shape[i];
+            const kernel = {x: c.x, y: c.y, z: c.z, ax: a.x, ay: a.y, az: a.z,
+                inverseAxialVariance: a.w, inverseRadialVariance: s.x};
+            const paths = new Set([s.y, s.z]), queue = [...paths];
+            for (let at = 0; at < queue.length; at++) for (const connection of connections.get(queue[at]) ?? []) {
+                const next = connection.a === queue[at] ? connection.b : connection.a;
+                if (paths.has(next) || !visibleEdge(connection.child) || !visibleEdge(connection.parent) ||
+                    !connection.bridges.every(isIntraluminalOpticalBridge) ||
+                    !kernelReachesFork(kernel, connection)) continue;
+                paths.add(next); queue.push(next);
+            }
+            if (kernels[i]) kernels[i].paths = paths;
+            membership.push(paths);
+            if (records) {
+                records.set([cursor, paths.size, 0, 0], (offset + i) * 4);
+                let written = 0;
+                for (const path of paths) records[cursor * 4 + written++] = path;
+                cursor += Math.ceil(paths.size / 4);
+            }
+        }
+        if (pathTexture) pathTexture.needsUpdate = true;
+        return membership;
+    }
+    function attachPathMembership(target) {
+        pathTexture = target;
+        const original = target.image.data, offset = original.length / 4;
+        uniforms.outletJetPathOffset.value = offset;
+        const floats = original.length + MAX_OUTLET_JET_KERNELS * (4 + Math.max(1, Math.ceil(pathIds.size / 4)) * 4);
+        const width = Math.min(1024, Math.max(1, Math.ceil(floats / 4))), height = Math.ceil(floats / (width * 4));
+        const records = new Float32Array(width * height * 4); records.set(original);
+        target.image = {data: records, width, height}; target.needsUpdate = true;
+        syncPathMembership();
+    }
     const offsets = new Uint32Array(network.edges.length);
     let cellCount = 0;
     for (const edge of network.edges) {offsets[edge.index] = cellCount; cellCount += edge.cellCount;}
@@ -182,8 +261,9 @@ export function createOutletJetField(network, territories) {
             for (const sign of [-1, 1]) bounds.expandByPoint(point.set(x + sign * support, y + sign * support, z + sign * support));
         }
         uniforms.outletJetCount.value = kernels.length;
+        syncPathMembership();
     }
-    return {uniforms, bounds, kernels, fallbackMassByCell, offsets, update,
+    return {uniforms, bounds, kernels, fallbackMassByCell, offsets, update, attachPathMembership, syncPathMembership,
         get count() {return kernels.length;}, get active() {return kernels.length > 0;},
         get massMg() {return representedMassMg;}, get totalMassMg() {return totalMassMg;},
         sample(p, a, b = a) {
@@ -206,6 +286,7 @@ uniform int outletJetCount;
 uniform vec4 outletJetCenter[${MAX_OUTLET_JET_KERNELS}];
 uniform vec4 outletJetAxis[${MAX_OUTLET_JET_KERNELS}];
 uniform vec4 outletJetShape[${MAX_OUTLET_JET_KERNELS}];
+uniform int outletJetPathOffset;
 uniform vec3 outletJetMin;
 uniform vec3 outletJetMax;
 float outletJetErfc(float x) {
@@ -216,6 +297,19 @@ float outletJetErfDifference(float a, float b) {
     if (a >= 0.) return outletJetErfc(a) - outletJetErfc(b);
     if (b <= 0.) return outletJetErfc(-b) - outletJetErfc(-a);
     return 2. - outletJetErfc(-a) - outletJetErfc(b);
+}
+bool outletJetAllowsPath(int index, int entryPath, int exitPath) {
+    if (outletJetPathOffset < 0) return false;
+    vec4 header = texelFetch1D(columnSharedHistory, uint(outletJetPathOffset + index));
+    int first = int(header.x), count = int(header.y);
+    vec4 paths = vec4(-1.);
+    for (int i = 0; i < count; i++) {
+        int channel = i % 4;
+        if (channel == 0) paths = texelFetch1D(columnSharedHistory, uint(first + i / 4));
+        int path = int(paths[channel]);
+        if (path == entryPath || path == exitPath) return true;
+    }
+    return false;
 }
 float outletJetIntegral(vec3 entry, vec3 ray, float chord, int entryPath, int exitPath) {
     if (outletJetCount <= 0) return 0.;
@@ -240,7 +334,7 @@ float outletJetIntegral(vec3 entry, vec3 ray, float chord, int entryPath, int ex
     for (int i = 0; i < kernelCount; i++) {
         vec4 shape = outletJetShape[i];
         int a = int(shape.y + .5), b = int(shape.z + .5);
-        if (a != entryPath && a != exitPath && b != entryPath && b != exitPath) continue;
+        bool directPath = a == entryPath || a == exitPath || b == entryPath || b == exitPath;
         vec3 offset = entry - outletJetCenter[i].xyz;
         float nearest = clamp(-dot(offset,ray), 0., chord);
         vec3 separation = offset + ray * nearest;
@@ -254,6 +348,10 @@ float outletJetIntegral(vec3 entry, vec3 ray, float chord, int entryPath, int ex
         if (transverse >= 36.) continue;
         float span = sqrt((36.-transverse)/A), lo=max(0.,t-span), hi=min(chord,t+span);
         if (hi <= lo) continue;
+        // The Gaussian and its analytic integral are identical for every
+        // boundary label within a physically reached common fork. Membership
+        // is computed once per update; no graph walk is done per fragment.
+        if (!directPath && !outletJetAllowsPath(i, entryPath, exitPath)) continue;
         float scale = sqrt(A*.5);
         sum += max(0.,outletJetCenter[i].w*sqrt(1.5707963267948966/A)*exp(-.5*transverse)*outletJetErfDifference((lo-t)*scale,(hi-t)*scale));
     }

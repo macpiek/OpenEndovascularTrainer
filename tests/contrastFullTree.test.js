@@ -1066,17 +1066,8 @@ const postSheathIliacDisplayPeaks = new Map(
     iliacMixingTarget.childEdgeIndices.map(edgeIndex => [edgeIndex, 0])
 );
 const postSheathArchDisplayPeaks = new Map(
-    [
-        topology.intraluminalAorticConnectors.connectors[0]
-            .branchRootEdgeIndices,
-        // Only the major arch roots: other corrected prefixes include
-        // small terminal branches and abdominal/iliac ostia.
-        topology.intraluminalAorticConnectors.connectors
-            .flatMap(connector => connector.branchRootEdgeIndices)
-            .filter(index => system.flowNetwork.nodes.get(
-                system.flowNetwork.edges[index].endNodeId
-            ).terminalOutletCount > 3)
-    ].flat().map(edgeIndex => [edgeIndex, 0])
+    topology.archOstiumReattachments.repairs
+        .map(repair => [repair.rootEdgeIndex, 0])
 );
 assert.equal(postSheathArchDisplayPeaks.size, 3, 'observe all three major arch roots');
 // The physiological aortic root makes the arch-to-iliac residence time about

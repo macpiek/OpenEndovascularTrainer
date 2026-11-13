@@ -358,6 +358,7 @@ function loadingAssetsReady() {
 function hideLoadingScreen() {
     if (loadingDismissed || !loadingScreen) return;
     loadingDismissed = true;
+    startupDiagnostics.mark('Simulator ready');
     setLoadingMessage('Ready');
     document.body.classList.remove('system-initializing');
     loadingScreen.classList.add('is-hidden');
@@ -931,7 +932,9 @@ const aortaModel = createAortaModel(vessel, {
         applyDebugLayerVisibility();
         xpbdWireBody?.wake();
         startupDiagnostics.mark('Building contrast projection geometry');
-        contrastVolumeRenderer = new ContrastVolumeRenderer(contrastSystem,{vesselDeformation});
+        contrastVolumeRenderer = new ContrastVolumeRenderer(contrastSystem,{
+            vesselDeformation, onStage: message => startupDiagnostics.mark(message)
+        });
         contrastVolumeRenderer.setDebugMode(!fluoroscopy);
         voxelGroup.add(contrastVolumeRenderer.group);
         // Compile and upload the unchanged anatomical projection while the

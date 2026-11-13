@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {opticalParentEdgeIndex} from './flowOpticalTopology.js';
 
 // Static geometry only: concentration still comes from the conservative flow
 // field. Uniform arclength addressing makes a local spatial query independent
@@ -68,7 +69,7 @@ export function createFlowColumnGeometry(network, integral, territories, continu
     }
     const depths = new Map();
     const parentOf = path => {
-        const edge = network.edges[path], parent = edge.parentEdgeIndex;
+        const parent = opticalParentEdgeIndex(network, territories, path);
         return parent < 0 ? null : {path: territories[parent], s: integral.edgeStart[parent] + network.edges[parent].length};
     };
     function depth(path) {

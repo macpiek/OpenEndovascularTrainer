@@ -29,8 +29,18 @@ test('shared junction wall follows the local bolus gradient instead of a constan
         cells[offsets[e.index] + i] = profile(e.start.y + (e.end.y - e.start.y) * (i + .5) / e.cellCount);
     field.update(cells);
     const built = buildAnatomicalContrastSurface(network, {fallbackGeometry: wall}, field);
+    // The production surface allocates and updates the reconstructed common
+    // lumen samples. The topology-only builder's original field array cannot
+    // be used to read those virtual stencil indices.
+    const surface = new AnatomicalContrastSurface(network, offsets, {fallbackGeometry: wall}, {projection: 'surface'});
+    const updateSurface = () => {
+        for (const edge of network.edges) for (let i = 0; i < edge.cellCount; i++)
+            edge.massMg[i] = edge.volumes[i] * .3 * cells[offsets[edge.index] + i];
+        surface.update(new Float32Array(count), .3, false);
+    };
+    updateSurface();
     try {
-        const {position: p, flowStencil: s} = built.geometry.attributes;
+        const {position: p, flowStencil: s} = surface.samplingGeometry.attributes;
         const shared = new Map();
         for (let i = 0; i < p.count; i++) {
             const key = [p.getX(i), p.getY(i), p.getZ(i)].join(',');
@@ -43,7 +53,7 @@ test('shared junction wall follows the local bolus gradient instead of a constan
             if (owners.size < 2) continue;
             const first = indices[0], y = p.getY(first);
             if (y < 32 || y > 48) continue;
-            const values = indices.map(i => sampleFlowConcentration(field.values, s.getX(i), s.getY(i), s.getZ(i), s.getW(i)));
+            const values = indices.map(i => sampleFlowConcentration(surface.current, s.getX(i), s.getY(i), s.getZ(i), s.getW(i)));
             assert.ok(Math.max(...values) - Math.min(...values) < 1e-7,
                 `Connected wall point ${p.getX(first)},${y},${p.getZ(first)} must have one concentration`);
             assert.ok(Math.abs(values[0] - profile(y)) < .075,
@@ -61,7 +71,7 @@ test('shared junction wall follows the local bolus gradient instead of a constan
             offsets[edge.index], offsets[edge.index] + edge.cellCount);
         network.getFaceSignedFlowMm3PerS = i => network.edges[i].sourceIndex === 0 ? 3000 :
             network.edges[i].sourceIndex === 2 ? -5000 : 8000;
-        field.update(cells);
+        updateSurface();
         const parent = network.edges.find(e => e.sourceIndex === 0);
         const parentCell = offsets[parent.index] + parent.cellCount - 1;
         let limited = 0;
@@ -69,14 +79,14 @@ test('shared junction wall follows the local bolus gradient instead of a constan
             if (owners.size < 2) continue;
             for (const i of indices) {
                 if (s.getX(i) !== parentCell && s.getY(i) !== parentCell) continue;
-                const c = sampleFlowConcentration(field.values, s.getX(i), s.getY(i), s.getZ(i), s.getW(i));
+                const c = sampleFlowConcentration(surface.current, s.getX(i), s.getY(i), s.getZ(i), s.getW(i));
                 assert.ok(c <= .080001,
                     `The seam cannot bypass the dilute parent's reconstruction and expose a dense node (${c})`);
                 limited++;
             }
         }
         assert.ok(limited > 50, 'Exercise shared parent/reflux wall samples with unequal incoming concentrations');
-    } finally {built.geometry.dispose(); wall.dispose(); geometry.dispose();}
+    } finally {surface.dispose(); built.geometry.dispose(); wall.dispose(); geometry.dispose();}
 });
 
 test('an intraluminal side-branch prefix cannot cut or darken a bolus in the parent wall', () => {

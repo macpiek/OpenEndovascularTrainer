@@ -65,7 +65,7 @@ test('opposing nozzle momentum mixes locally upstream without modifying the hydr
     assert.ok(Math.abs(network.getIodineMassMg() + network.outletIodineMassMg - 30) < 1e-10);
 });
 
-test('source-connected mapping crosses ordinary segments and never jumps into a neighbouring branch', () => {
+test('source-connected mapping follows a reached parent without jumping laterally into a neighbouring branch', () => {
     const network = new ContrastFlowNetwork([
         segment(0, 0, 1, [-10, 0, 0], [0, 0, 0]),
         segment(1, 1, 2, [0, 0, 0], [20, 0, 0]),
@@ -83,8 +83,18 @@ test('source-connected mapping crosses ordinary segments and never jumps into a 
     assert.ok(network.edges[3].massMg.some(m => m > 0));
     assert.equal(network.edges[2].massMg.reduce((a, b) => a + b, 0), 0);
     solver.positionX[0] = -5;
-    assert.equal(solver.resolveSourceHandoffLocation(0).edgeIndex, 1,
-        'the source arm stops at its true fork rather than choosing an upstream or sibling lumen');
+    const upstream = solver.resolveSourceHandoffLocation(0);
+    assert.equal(upstream.edgeIndex, 0, 'The parcel has physically crossed the fork into its containing parent');
+    assert.equal(upstream.lowerEdgeIndex, 0);
+    assert.equal(upstream.upperEdgeIndex, 0);
+    assert.ok(Math.abs(upstream.t - .5) < 1e-7);
+    solver._depositSourceEntrainment(0, .25);
+    network.update(1e-6);
+    assert.ok(network.edges[0].massMg.reduce((a, b) => a + b, 0) > .24,
+        'Upstream entrainment remains at the reached position instead of returning to the source cell');
+    assert.equal(network.edges[2].massMg.reduce((a, b) => a + b, 0), 0,
+        'The closer parallel sibling never acquires source iodine through spatial proximity');
+    assert.ok(Math.abs(network.getIodineMassMg() + network.outletIodineMassMg - 1) < 1e-12);
 });
 
 test('a divergent hydraulic source divides entrained iodine by its outgoing face flows', () => {

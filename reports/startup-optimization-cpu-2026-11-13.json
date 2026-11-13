@@ -1,0 +1,113 @@
+{
+  "date": "2026-11-13",
+  "environment": "Node v24.6.0, local baseline renal anatomy, no WebGL",
+  "scope": "Complete AnatomicalContrastSurface constructor, including source triangle classification, shared samples, exact closure, column BVH and projection activity. This is not total browser startup, GPU compilation, or the entire ContrastVolumeRenderer constructor.",
+  "anatomy": {
+    "sourceTriangles": 3509364,
+    "flowEdges": 29529
+  },
+  "baseline": {
+    "surfaceConstructorMs": 52399.8,
+    "phasesMs": {
+      "contrast renderer": 13,
+      "Classifying anatomical lumen triangles": 37151.6,
+      "Mapping anatomical lumen samples": 12771.5,
+      "Reconciling anatomical junction samples": 95,
+      "Building anatomical junction reconstruction": 312.1,
+      "Closing anatomical lumen boundaries": 595.4,
+      "Building anatomical projection acceleration": 1118,
+      "Building anatomical projection activity": 343.2
+    },
+    "geometryHashes": {
+      "position": "4203831c703aac85661e60984fe7feecb514bb640787095715665fcf206f2919",
+      "normal": "388c69873fe23e97ff90ea8f5a9697dc377cf1facae38bd5f8c3b4483380100c",
+      "flowStencil": "4a684941d1b0be7bcf06f77c8d27905d48c93dd5b09b3b46b1c0250861abfbbf",
+      "opticalRadius": "ca29c012adac59e6f8e47e6613f05a202f7b58fd4ab0c2e70ef93dcbc6e020da",
+      "flowAxis": "4428af2526b2df193fad758d1c98d7d1d9d1230e6d99404288ef21f458a64274",
+      "projectionOwner": "b5c128e206c7cae425b07078a8442e5236d44bfb1fb93b9c0d46bf9d9ec5952d",
+      "columnCoordinate": "5ee752d93d3ae39368af9cd5eb5840261f77adea7b9a883c9d5ce63769713ef3",
+      "columnFace": "b85744a9e7c07d2f930a2a85bc299c955c71e38ee5f4cc8c07ac5dad0cd2019e",
+      "index": null
+    }
+  },
+  "final": {
+    "surfaceConstructorMs": 39434.6,
+    "phasesMs": {
+      "contrast renderer": 15.5,
+      "Classifying anatomical lumen triangles": 22594.8,
+      "Mapping anatomical lumen samples": 13633.7,
+      "Reconciling anatomical junction samples": 95.3,
+      "Building anatomical junction reconstruction": 419,
+      "Closing anatomical lumen boundaries": 808.4,
+      "Building anatomical projection acceleration": 1462.9,
+      "Building anatomical projection activity": 405
+    },
+    "geometryHashes": {
+      "position": "4203831c703aac85661e60984fe7feecb514bb640787095715665fcf206f2919",
+      "normal": "388c69873fe23e97ff90ea8f5a9697dc377cf1facae38bd5f8c3b4483380100c",
+      "flowStencil": "4a684941d1b0be7bcf06f77c8d27905d48c93dd5b09b3b46b1c0250861abfbbf",
+      "opticalRadius": "ca29c012adac59e6f8e47e6613f05a202f7b58fd4ab0c2e70ef93dcbc6e020da",
+      "flowAxis": "4428af2526b2df193fad758d1c98d7d1d9d1230e6d99404288ef21f458a64274",
+      "projectionOwner": "b5c128e206c7cae425b07078a8442e5236d44bfb1fb93b9c0d46bf9d9ec5952d",
+      "columnCoordinate": "5ee752d93d3ae39368af9cd5eb5840261f77adea7b9a883c9d5ce63769713ef3",
+      "columnFace": "b85744a9e7c07d2f930a2a85bc299c955c71e38ee5f4cc8c07ac5dad0cd2019e",
+      "index": null
+    }
+  },
+  "reductionPercent": 24.74,
+  "exactGeometryParity": true,
+  "intermediateSurfaceConstructorMs": {
+    "seeded": 46005.2,
+    "anyHit": 43232.3
+  },
+  "otherMeasurements": {
+    "initialFullContrastVolumeRendererConstructorMs": 58233.2,
+    "initialBaselineSurfaceConstructorMs": 56770.5,
+    "note": "Separate runs; nontrivial timing variance. The main comparison uses the successful baseline run that also saved all geometry hashes."
+  },
+  "validation": {
+    "focusedTests": 29,
+    "booleanRayCases": 16020,
+    "independentMappingDifferentialCases": 96000,
+    "wallPlaneThresholdCases": 30,
+    "contrastSuite": {
+      "nodeTestsPassed": 275,
+      "failed": 0,
+      "hybridModel": "pass",
+      "fullTree": "pass",
+      "catheterFullTree": "pass"
+    },
+    "startupAndWarmupTestsPassed": 19,
+    "productionBuild": "pass"
+  },
+  "changes": [
+    "Avoid raycast for nearest axes already rejected by inward-normal test",
+    "Exact coherent seed followed by complete nearest-axis search",
+    "Lazy territory-specific axis BVHs with same tie breaks",
+    "Conservative wall-plane BVH pruning and reused bounds distance",
+    "Boolean wall occlusion using public shapecast and the same Three triangle intersection",
+    "Exact numeric coordinate weld map preserving insertion order and Float64 identity"
+  ],
+  "limits": "No sampling reduction, mesh simplification, deferred first-injection work, transport or mechanical solver changes.",
+  "browserValidation": {
+    "startupElapsedMs": 49780,
+    "projectionShaderPreparationMs": 1768,
+    "timingsReport": "startup-optimized-browser-2026-11-13.json",
+    "image": "startup-optimized-ready-2026-11-13.png",
+    "injection": {
+      "source": "right 6F sheath",
+      "volumeMl": 20,
+      "rateMlPerSecond": 15,
+      "errors": [],
+      "vascularMassAfterWashoutMg": 0,
+      "localMassAfterWashoutMg": 0,
+      "outflowMassMg": 6000,
+      "reportedBalanceErrorPercent": 0,
+      "observedRenderFpsDuringFirstInjection": 26.3,
+      "observedPhysicsHzDuringFirstInjection": 22.6,
+      "renderFpsAfterWashout": 60,
+      "physicsHzAfterWashout": 60
+    },
+    "limitation": "Browser startup measured on a loaded/cached local application, not a cold download. Injection check verifies completion, washout and absence of WebGL errors; sustained 60 FPS during injection is not claimed."
+  }
+}

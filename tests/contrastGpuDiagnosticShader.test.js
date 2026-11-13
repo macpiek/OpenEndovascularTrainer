@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {columnProjectionFragmentShader} from '../src/contrast/anatomicalColumnProjection.js';
-import {contrastGpuDiagnosticModes, contrastGpuDiagnosticShader} from './helpers/contrastGpuDiagnosticShader.js';
+import {contrastGpuDiagnosticModes, contrastGpuDiagnosticShader, shaderFunctionBody} from './helpers/contrastGpuDiagnosticShader.js';
 import {contrastColumnQuadratureReference} from './helpers/contrastColumnQuadratureReference.js';
 import {columnNearestReference} from './helpers/columnNearestReference.js';
 import {columnSampleHistoryReference, columnPathConstantHistoryReference} from './helpers/columnHistoryReference.js';
@@ -51,17 +51,17 @@ test('stack and candidate A/B modes keep the main ray calculation unchanged', ()
     const reference = contrastGpuDiagnosticShader(shader, 'referenceStack');
     assert.ok(reference.includes(contrastColumnQuadratureReference.trim()));
     assert.equal(main(reference), main(shader));
-    assert.ok(reference.includes('vec3 candidates[4]'));
+    assert.ok(reference.includes('vec4 candidates[4]'));
     const wide = contrastGpuDiagnosticShader(shader, 'wideCandidates');
-    assert.ok(wide.includes('vec3 candidates[16]'));
+    assert.ok(wide.includes('vec4 candidates[16]'));
     assert.ok(wide.includes('if (count == 16) return junctionColumnValueUncached('));
     assert.ok(wide.includes('vec4 pendingRight[4]'));
     assert.equal(main(wide), main(shader));
     const both = contrastGpuDiagnosticShader(shader, 'referenceWide');
     assert.ok(both.includes(contrastColumnQuadratureReference.trim()));
-    assert.ok(both.includes('vec3 candidates[16]'));
+    assert.ok(both.includes('vec4 candidates[16]'));
     assert.equal(main(both), main(shader));
-    assert.throws(() => contrastGpuDiagnosticShader(shader.replace('vec3 candidates[4]', 'vec3 candidates[8]'), 'wideCandidates'), /marker/);
+    assert.throws(() => contrastGpuDiagnosticShader(shader.replace('vec4 candidates[4]', 'vec4 candidates[8]'), 'wideCandidates'), /marker/);
 });
 
 test('overflow mask only adds a flag at the genuine uncapped fallback and final discard', () => {
@@ -70,7 +70,7 @@ test('overflow mask only adds a flag at the genuine uncapped fallback and final 
     assert.ok(mask.includes('if (count == 4) { diagnosticCacheOverflow = true; return junctionColumnValueUncached('));
     assert.equal(main(mask).replace('    if (!diagnosticCacheOverflow) discard;\n', ''), main(shader));
     assert.equal((mask.match(/diagnosticCacheOverflow = true/g) ?? []).length, 1);
-    assert.ok(mask.includes('vec3 candidates[4]'));
+    assert.ok(mask.includes('vec4 candidates[4]'));
 });
 
 test('reference nearest mode restores only the frozen projection function', () => {
@@ -79,6 +79,11 @@ test('reference nearest mode restores only the frozen projection function', () =
     assert.equal(main(reference), main(shader));
     assert.ok(!reference.includes('int cachedIndex = -1;'));
     assert.ok(shader.includes('int cachedIndex = -1;'));
+    const originalBody = shaderFunctionBody(shader, 'float columnNearestRefined(');
+    const restoredBody = shaderFunctionBody(reference, 'float columnNearestRefined(');
+    assert.equal(reference.slice(0, restoredBody.start), shader.slice(0, originalBody.start),
+        'Forward declarations and preceding common-lumen functions must remain unchanged');
+    assert.equal(reference.slice(restoredBody.close + 1), shader.slice(originalBody.close + 1));
 });
 
 test('reference history mode restores finite interpolation and constant-path proof', () => {
@@ -86,4 +91,15 @@ test('reference history mode restores finite interpolation and constant-path pro
     assert.ok(reference.includes(columnSampleHistoryReference.trim()));
     assert.ok(reference.includes(columnPathConstantHistoryReference.trim()));
     assert.equal(main(reference), main(shader));
+});
+
+
+test('shader body extraction skips prototypes but still rejects duplicate implementations', () => {
+    const declaration = 'float project(float x);\n';
+    const implementation = 'float project(float x) { if (x > 0.) { return x; } return 0.; }';
+    const source = declaration + implementation;
+    const body = shaderFunctionBody(source, 'float project(');
+    assert.equal(source.slice(body.start, body.close + 1), implementation);
+    assert.throws(() => shaderFunctionBody(declaration, 'float project('), /exactly one/);
+    assert.throws(() => shaderFunctionBody(source + implementation, 'float project('), /exactly one/);
 });

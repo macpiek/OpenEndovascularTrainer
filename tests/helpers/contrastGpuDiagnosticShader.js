@@ -23,11 +23,16 @@ export const contrastGpuDiagnosticModes = Object.freeze({
     uncached: 'Pełna projekcja bez pamięci podręcznej punktów'
 });
 
-function functionBody(source, signature) {
-    const start = source.indexOf(signature);
-    if (start < 0 || source.indexOf(signature, start + signature.length) >= 0)
-        throw Error(`Expected exactly one shader function: ${signature}`);
-    const open = source.indexOf('{', start);
+export function shaderFunctionBody(source, signature) {
+    const definitions = [];
+    for (let start = source.indexOf(signature); start >= 0; start = source.indexOf(signature, start + signature.length)) {
+        const open = source.indexOf('{', start), semicolon = source.indexOf(';', start);
+        // A forward declaration ends at its semicolon. It must not capture
+        // the next function's body or count as a second implementation.
+        if (open >= 0 && (semicolon < 0 || open < semicolon)) definitions.push({start, open});
+    }
+    if (definitions.length !== 1) throw Error(`Expected exactly one shader function: ${signature}`);
+    const {start, open} = definitions[0];
     let depth = 1, end = open + 1;
     for (; end < source.length && depth; end++) {
         if (source[end] === '{') depth++;
@@ -47,28 +52,29 @@ export function contrastGpuDiagnosticShader(source, mode = 'full') {
     if (!Object.hasOwn(contrastGpuDiagnosticModes, mode)) throw Error(`Unknown GPU diagnostic mode: ${mode}`);
     if (['full', 'rasterOriginal', 'noRayCache'].includes(mode)) return source;
     if (mode === 'referenceNearest') {
-        const {start, close} = functionBody(source, 'float columnNearestRefined(');
+        const {start, close} = shaderFunctionBody(source, 'float columnNearestRefined(');
         return source.slice(0, start) + columnNearestReference.trim() + source.slice(close + 1);
     }
     if (mode === 'referenceHistory') {
         for (const [signature, reference] of [['vec4 columnSample(', columnSampleHistoryReference],
             ['bool columnPathConstant(', columnPathConstantHistoryReference]]) {
-            const {start, close} = functionBody(source, signature);
+            const {start, close} = shaderFunctionBody(source, signature);
             source = source.slice(0, start) + reference.trim() + source.slice(close + 1);
         }
         return source;
     }
     if (mode === 'referenceStack' || mode === 'referenceWide') {
-        const {start, close} = functionBody(source, 'float junctionColumnAverage(');
+        const {start, close} = shaderFunctionBody(source, 'float junctionColumnAverage(');
         source = source.slice(0, start) + contrastColumnQuadratureReference.trim() + source.slice(close + 1);
         if (mode === 'referenceStack') return source;
     }
     if (mode === 'wideCandidates' || mode === 'referenceWide') {
-        const {open, close} = functionBody(source, 'vec3 junctionColumnValue(');
+        const {open, close} = shaderFunctionBody(source, 'vec3 junctionColumnValue(');
         let body = source.slice(open + 1, close);
-        body = replaceRequired(body, 'vec3 candidates[4]', 'vec3 candidates[16]');
+        body = replaceRequired(body, 'vec4 candidates[4]', 'vec4 candidates[16]');
         body = replaceRequired(body, 'if (count == 4)', 'if (count == 16)');
         body = replaceRequired(body, 'for (int i = 0; i < 4; i++)', 'for (int i = 0; i < 16; i++)');
+        body = replaceRequired(body, 'for (int retainedIndex = 0; retainedIndex < 4; retainedIndex++)', 'for (int retainedIndex = 0; retainedIndex < 16; retainedIndex++)');
         return source.slice(0, open + 1) + body + source.slice(close);
     }
     if (mode === 'cacheOverflow') {
@@ -76,7 +82,7 @@ export function contrastGpuDiagnosticShader(source, mode = 'full') {
             'if (count == 4) return junctionColumnValueUncached(point, a, sa, b, sb, componentA, componentB);',
             'if (count == 4) { diagnosticCacheOverflow = true; return junctionColumnValueUncached(point, a, sa, b, sb, componentA, componentB); }');
         source = 'bool diagnosticCacheOverflow = false;\n' + source;
-        const {open, close} = functionBody(source, 'void main()');
+        const {open, close} = shaderFunctionBody(source, 'void main()');
         let body = source.slice(open + 1, close);
         body = replaceRequired(body, '    float depth =',
             '    if (!diagnosticCacheOverflow) discard;\n    float depth =');
@@ -87,11 +93,11 @@ export function contrastGpuDiagnosticShader(source, mode = 'full') {
     }
     if (mode === 'uncached') {
         const signature = 'float junctionColumnAverage(';
-        functionBody(source, signature);
+        shaderFunctionBody(source, signature);
         return source.replace(signature, '#define junctionColumnValue junctionColumnValueUncached\n' + signature);
     }
     const signature = mode === 'noRestDeformation' ? 'vec3 columnRestPosition(' : 'void main()';
-    const {open, close} = functionBody(source, signature);
+    const {open, close} = shaderFunctionBody(source, signature);
     if (mode === 'rasterOnly') return source.slice(0, open + 1) +
         '\n    gl_FragColor = vec4(.05); // DIAGNOSTIC: raster coverage, not iodine.\n' + source.slice(close);
     if (mode === 'noRestDeformation') return source.slice(0, open + 1) +

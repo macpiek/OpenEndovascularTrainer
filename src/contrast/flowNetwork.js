@@ -3,6 +3,7 @@ import {mixRefluxJunctionBoundaries} from './refluxJunctionMixing.js';
 import * as THREE from 'three';
 import {FlowAdvection} from './flowAdvection.js';
 import {initializeOutletResistances} from './outletResistance.js';
+import {reattachArchOstia} from './archOstiumReattachment.js';
 import { repairArterialFlowTopology } from '../arterialFlowTopology.js';
 
 const MM3_PER_ML = 1000;
@@ -278,6 +279,7 @@ export class ContrastFlowNetwork {
         this._regularizeAorticBranchPrefixes();
         this._regularizeSideJunctionRadiusPeaks();
         this._regularizeIntraluminalAorticConnectorVolumes();
+        this.archOstiumReattachmentDiagnostics = reattachArchOstia(this);
         this._flowOverridesMm3PerS = new Float64Array(this.edges.length);
         this._flowOverridesMm3PerS.fill(Number.NaN);
         this._branchInletFlowMm3PerS =
@@ -2178,6 +2180,7 @@ export class ContrastFlowNetwork {
                 this.intraluminalAorticArtifactDiagnostics,
             intraluminalAorticConnectors:
                 this.intraluminalAorticConnectorDiagnostics,
+            archOstiumReattachments: this.archOstiumReattachmentDiagnostics,
             physiologicalTopologyRepair:
                 this.topologyRepairDiagnostics
         };

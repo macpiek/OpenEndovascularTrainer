@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Vector3, CylinderGeometry} from 'three';
 import {ContrastFlowNetwork} from '../src/contrast/flowNetwork.js';
-import {FlowConcentrationField} from '../src/contrast/flowConcentrationField.js';
+import {FlowConcentrationField, sampleFlowConcentration} from '../src/contrast/flowConcentrationField.js';
 import {JunctionSurfaceReconstruction} from '../src/contrast/junctionSurfaceReconstruction.js';
 import {AnatomicalContrastSurface} from '../src/contrast/anatomicalContrastSurface.js';
 
@@ -11,12 +11,13 @@ const segment = (id, from, to, a, b) => ({id, nodeStartId: from, nodeEndId: to,
     start: point(...a), end: point(...b), radiusStart: 4, radiusEnd: 4});
 const close = (a, b, tolerance = 1e-7) => assert.ok(Math.abs(a - b) <= tolerance, `${a} != ${b}`);
 function fixture(overlap = false) {
+    const separation = typeof overlap === 'number' ? overlap : 14;
     const network = new ContrastFlowNetwork(overlap ? [
         segment(0, 0, 1, [0, 30], [0, 0]),
         segment(1, 1, 2, [0, 0], [-20, -30]),
-        segment(2, 1, 3, [0, 0], [14, 0]),
-        segment(3, 3, 4, [14, 0], [40, -15]),
-        segment(4, 3, 5, [14, 0], [40, 15])
+        segment(2, 1, 3, [0, 0], [separation, 0]),
+        segment(3, 3, 4, [separation, 0], [40, -15]),
+        segment(4, 3, 5, [separation, 0], [40, 15])
     ] : [
         segment(0, 0, 1, [0, 30], [0, 0]),
         segment(1, 1, 2, [0, 0], [-30, -40]),
@@ -62,6 +63,37 @@ test('junction field preserves uniform concentration and stays within transporte
     for (const index of samples) close(f.read(index), .42);
     f.fill(0, .03); f.fill(1, .8); f.fill(2, .12); f.update();
     for (const index of samples) assert.ok(f.read(index) >= 0 && f.read(index) <= .800001);
+});
+
+test('an unequal-caliber ostium retains a smaller common field bounded by its physical arms', () => {
+    const make = daughterRadius => {
+        const segments = [segment(0, 0, 1, [0, 40], [0, 0]),
+            segment(1, 1, 2, [0, 0], [0, -40]), segment(2, 1, 3, [0, 0], [40, 0])];
+        for (const part of segments) part.radiusStart = part.radiusEnd = part.id === 2 ? daughterRadius : 10;
+        const network = new ContrastFlowNetwork(segments, {rootPoint: point(0, 40), cellLengthMm: 2});
+        // Isolate reconstruction from the network's separate proximal-radius
+        // regularization of this deliberately sparse synthetic centerline.
+        const daughter = network.edges.find(edge => edge.sourceIndex === 2);
+        daughter.radiusStart = daughter.radiusEnd = daughterRadius;
+        let count = 0;
+        const offsets = Uint32Array.from(network.edges, edge => {const offset = count; count += edge.cellCount; return offset;});
+        const field = new FlowConcentrationField(network, offsets, count);
+        const reconstruction = new JunctionSurfaceReconstruction(network, field,
+            Int32Array.from(network.edges, edge => edge.index), new Int32Array(network.edges.length).fill(-1));
+        return {network, field, reconstruction};
+    };
+    const f = make(3), junction = f.reconstruction.junctions[0];
+    assert.equal(f.reconstruction.junctions.length, 1,
+        'A real ostium below the old 35% cutoff must not lose its shared concentration field');
+    close(junction.radius, 3);
+    assert.equal(junction.boundedToArms, true,
+        'Its smaller chamber cannot extend iodine into adjacent unrelated tissue or vessels');
+    const outside = point(0, 0, 15);
+    assert.equal(f.reconstruction.addSample(outside, 0, f.field.stencil(0, 1)), -1,
+        'A point within the broad ellipsoid but outside every physical arm remains unaffected');
+    const twig = make(.3);
+    assert.equal(twig.reconstruction.junctions.length, 0,
+        'Sub-resolution twigs keep their exact local column instead of adding a macroscopic chamber');
 });
 
 test('a selective outflow injection and a not-yet-arrived reflux cannot activate the common lumen', () => {
@@ -145,16 +177,62 @@ test('a daughter projection crossing the hub plane continuously joins the proxim
 });
 
 test('overlapping connected junction supports form one continuous field', () => {
-    const f = fixture(true), samples = [];
+    const f = fixture(true), sweeps = [[], []];
     assert.equal(f.reconstruction.junctions.length, 2);
-    for (let x = 5; x <= 12; x += .02) samples.push(f.add(point(x, 4, 0), 2, x / 14));
-    assert.ok(samples.every(index => index >= 0));
+    for (const [sweep,y] of [[sweeps[0],3.5],[sweeps[1],4]])
+        for (let x = 5; x <= 12; x += .02) sweep.push({index:f.add(point(x,y,0),2,x/14),
+            stencil:f.field.stencil(f.edge(2).index,x/14)});
+    assert.ok(sweeps[0].every(sample=>sample.index>=0), 'Exercise the overlapping fields just inside the wall');
     f.finish();
     [.1, .9, .4, .2, .8].forEach((c, i) => f.fill(i, c));
     f.flow(0, 1000); f.flow(1, -1000); f.flow(2, 2000); f.flow(3, 1000); f.flow(4, 1000);
     f.update();
-    for (let i = 1; i < samples.length; i++) assert.ok(Math.abs(f.read(samples[i]) - f.read(samples[i - 1])) < .01,
+    // At the outer edge of the physical arm, reconstruction fades to the
+    // transported wall stencil. This is the same fallback as the surface
+    // builder uses when no virtual sample is needed.
+    const value=sample=>sample.index>=0?f.read(sample.index):sampleFlowConcentration(f.field.values,...sample.stencil);
+    for(const samples of sweeps)for (let i = 1; i < samples.length; i++) assert.ok(Math.abs(value(samples[i])-value(samples[i-1])) < .01,
         `Overlapping junctions cannot select different fields at a winner boundary (sample ${i})`);
+});
+
+test('close serial ostia retain local junction arms without sampling the next fork', () => {
+    const f = fixture(6);
+    assert.equal(f.reconstruction.junctions.length, 2,
+        'a short branch between arch-like ostia must not discard both common-lumen fields');
+    const first = f.reconstruction.junctions.find(j => j.edges[0] === f.edge(0).index);
+    const second = f.reconstruction.junctions.find(j => j.edges[0] === f.edge(2).index);
+    close(first.anchors[2].travelled, 5);
+    close(second.anchors[0].travelled, 5);
+    for (const [junction, arm] of [[first, 2], [second, 0]]) {
+        const anchor = junction.anchors[arm];
+        const [a, b, fraction] = anchor.stencil;
+        const nodeWeight = (a >= f.field.cellCount ? 1 - fraction : 0) + (b >= f.field.cellCount ? fraction : 0);
+        assert.ok(nodeWeight < 1e-12,
+            'the short arm ends at a transported cell centre rather than the neighbouring mixed node');
+    }
+    const ownerSamples = [0, 1, 2].map(source => f.add(point(0, 0, 1), source, .5));
+    assert.ok(ownerSamples.every(index => index >= 0));
+    f.finish();
+    f.cells.fill(.42); f.update();
+    for (const index of ownerSamples) close(f.read(index), .42);
+    // A distal, refluxing mixture has not entered the intervening clear
+    // segment yet. Its nearby endpoint cannot prefill the upstream ostium.
+    f.cells.fill(0); f.fill(3, .9); f.fill(4, .9);
+    f.flow(0, 1000); f.flow(1, 2000); f.flow(2, -1000); f.flow(3, -500); f.flow(4, -500);
+    f.update();
+    for (const index of ownerSamples) close(f.read(index), 0);
+});
+
+test('shared wall labels follow overlapping local arms, not the whole connected artery', () => {
+    const closeForks = fixture(6), distantForks = fixture(30);
+    for (const junction of closeForks.reconstruction.junctions)
+        assert.equal(junction.territories.size, 5, 'The local overlapping forks share their wall labels');
+    const first = distantForks.reconstruction.junctions.find(j => j.edges[0] === distantForks.edge(0).index);
+    const second = distantForks.reconstruction.junctions.find(j => j.edges[0] === distantForks.edge(2).index);
+    assert.ok(first && second);
+    assert.equal(first.territories.has(distantForks.edge(3).index), false,
+        'A remote fork cannot participate merely because it lies on the same vascular component');
+    assert.equal(second.territories.has(distantForks.edge(0).index), false);
 });
 
 test('an emptied junction clears its virtual values and leaves samples outside support untouched', () => {

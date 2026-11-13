@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {columnProjectionFragmentShader} from '../src/contrast/anatomicalColumnProjection.js';
 import {columnNearestReference} from './helpers/columnNearestReference.js';
+import {shaderFunctionBody} from './helpers/contrastGpuDiagnosticShader.js';
 
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/contrast-renal-nearest.json', import.meta.url)));
 const f = Math.fround;
@@ -47,9 +48,8 @@ function project({range, atlas}, point, seed, cached) {
 }
 
 test('cached shader preserves the entire frozen Newton arithmetic and iteration sequence', () => {
-    const start = columnProjectionFragmentShader.indexOf('float columnNearestRefined(');
-    const end = columnProjectionFragmentShader.indexOf('\nfloat columnNearestCoordinate(', start);
-    let actual = columnProjectionFragmentShader.slice(start, end).trim();
+    const {start, close} = shaderFunctionBody(columnProjectionFragmentShader, 'float columnNearestRefined(');
+    let actual = columnProjectionFragmentShader.slice(start, close + 1).trim();
     const cachedStart = actual.indexOf('        // Repeated Newton iterates');
     const cachedEnd = actual.indexOf('\n        float next =', cachedStart);
     assert.ok(cachedStart > 0 && cachedEnd > cachedStart);

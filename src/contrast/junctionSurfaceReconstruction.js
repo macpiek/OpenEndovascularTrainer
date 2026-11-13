@@ -14,39 +14,57 @@ export class JunctionSurfaceReconstruction {
         this.updatedSamples = 0; this.activeJunctions = 0;
         if (!enabled || !network.nodes || !field.values) return;
         const walk = (edge, distance, backwards) => {
-            let travelled = 0;
+            let travelled = 0, supportLength = 0;
             const path = [];
             while (distance > edge.length) {
+                const next = backwards ? edge.parentEdgeIndex : continuations[edge.index];
+                const bridge = backwards && edge.intraluminalAorticConnector && !edge.transportExcluded;
+                if (next < 0 || (backwards && !bridge && continuations[next] !== edge.index)) {
+                    // Nearby arch ostia often leave less than 2.5 radii of
+                    // uninterrupted artery. Keep the local arm instead of
+                    // dropping the entire common-lumen field. Stop at its
+                    // last cell centre: sampling the next fork's endpoint
+                    // would borrow its mixture before contrast arrives here.
+                    distance = Math.max(0, edge.length - edge.cellLength * .5);
+                    supportLength = travelled + edge.length;
+                    break;
+                }
                 path.push({edge: edge.index, start: travelled, length: edge.length});
                 distance -= edge.length; travelled += edge.length;
-                const next = backwards ? edge.parentEdgeIndex : continuations[edge.index];
-                if (next < 0 || (backwards && continuations[next] !== edge.index)) return null;
                 edge = network.edges[next];
             }
             path.push({edge: edge.index, start: travelled, length: distance});
             const t = backwards ? 1 - distance / edge.length : distance / edge.length;
+            const optical = path.find(part => territories[part.edge] >= 0);
             return {point: edge.start.clone().lerp(edge.end, t), edge: edge.index,
-                stencil: field.stencil(edge.index, t), travelled: travelled + distance, path, backwards};
+                stencil: field.stencil(edge.index, t), travelled: travelled + distance, path, backwards,
+                opticalEdgeIndex: optical?.edge ?? -1, opticalStartDistance: optical?.start ?? 0, supportLength};
         };
         for (const node of network.nodes.values()) {
             const parent = network.edges[node.parentEdgeIndex];
             const children = node.childEdgeIndices.map(i => network.edges[i])
                 .filter(e => !e.transportExcluded && !e.lumenMappingExcluded);
-            if (!parent || parent.transportExcluded || children.length !== 2) continue;
-            const radius = parent.radiusEnd;
-            // Sub-pixel twigs and narrow side ostia do not form a broad common
-            // chamber. Their existing exact-lumen reconstruction is retained.
-            if (radius < 1.5 || children.some(e => e.radiusStart < radius * .35)) continue;
+            if (!parent || parent.transportExcluded ||
+                (parent.lumenMappingExcluded && !parent.intraluminalAorticConnector) || children.length !== 2) continue;
+            // An unequal-caliber fork still has a common blood volume. Scale
+            // that volume with its narrowest daughter instead of removing it
+            // at a caliber threshold: otherwise the daughter's wall triangles
+            // suddenly lose the neighbouring junction's shared mixture.
+            const daughterRadius = Math.min(...children.map(e => e.radiusStart));
+            const narrow = daughterRadius < parent.radiusEnd * .35;
+            const radius = narrow ? daughterRadius : parent.radiusEnd;
+            if (radius < 1.5) continue;
             const reach = radius * 2.5;
             const anchors = [walk(parent, reach, true), ...children.map(e => walk(e, reach, false))];
-            // Do not span another true fork: each reconstruction belongs to
-            // one connected physical junction, not nearby unrelated branches.
-            if (anchors.some(a => !a)) continue;
+            // Every arm remains on this fork's connected local path. A
+            // transport-only intraluminal bridge can precede its visible
+            // parent, but must never create an independent optical lumen.
+            if (anchors.some(a => !(a.travelled > 0) || a.opticalEdgeIndex < 0)) continue;
             const center = node.point.clone();
             for (const anchor of anchors) anchor.direction = anchor.point.clone().sub(center).normalize();
             const axis = anchors[0].direction;
-            const junction = {index: this.junctions.length, center, radius, axis, anchors,
-                territories: new Set([parent, ...children].map(e => territories[e.index])),
+            const junction = {index: this.junctions.length, center, radius, axis, anchors, narrow,
+                territories: new Set(anchors.map(a => territories[a.opticalEdgeIndex])),
                 edges: [parent, ...children].map(e => e.index),
                 boundary: [field.offsets[parent.index] + parent.cellCount - 1,
                     ...children.map(e => field.offsets[e.index])],
@@ -65,6 +83,33 @@ export class JunctionSurfaceReconstruction {
                         this.grid.get(key).push(junction);
                     }
         }
+        // Closely spaced ostia form overlapping common blood volumes. Their
+        // wall labels are interchangeable only when their local transported
+        // arms actually overlap along the same edge. Spatial proximity alone
+        // must not connect separate crossing arteries.
+        const roots = this.junctions.map((_, i) => i);
+        const root = i => roots[i] === i ? i : (roots[i] = root(roots[i]));
+        const edgeArms = new Map();
+        for (const junction of this.junctions) for (const anchor of junction.anchors) for (const part of anchor.path) {
+            const length = network.edges[part.edge].length;
+            const lo = anchor.backwards ? length - part.length : 0;
+            const hi = anchor.backwards ? length : part.length;
+            const arms = edgeArms.get(part.edge) ?? [];
+            for (const arm of arms) if (Math.max(lo, arm.lo) <= Math.min(hi, arm.hi) + 1e-7)
+                roots[root(junction.index)] = root(arm.junction);
+            arms.push({lo, hi, junction: junction.index}); edgeArms.set(part.edge, arms);
+        }
+        const clusterTerritories = new Map();
+        for (const junction of this.junctions) {
+            const id = root(junction.index), paths = clusterTerritories.get(id) ?? new Set();
+            for (const path of junction.territories) paths.add(path);
+            clusterTerritories.set(id, paths);
+        }
+        for (const junction of this.junctions) {
+            const paths=clusterTerritories.get(root(junction.index));
+            junction.boundedToArms=junction.narrow||paths.size>junction.territories.size;
+            junction.territories=paths;
+        }
         this.territories = territories;
     }
     addSample(point, edgeIndex, stencil) {
@@ -80,7 +125,32 @@ export class JunctionSurfaceReconstruction {
             // Cover the wide radial wall of the actual common lumen without
             // extending the core equally far upstream along the aorta.
             const metric = Math.sqrt((axial / (junction.radius * 1.2)) ** 2 + transverse2 / (junction.radius * 2) ** 2);
-            const weight = 1 - smooth(metric - 1);
+            let weight = 1 - smooth(metric - 1);
+            for (const anchor of junction.anchors) if (anchor.supportLength > 0) {
+                const projected = dx * anchor.direction.x + dy * anchor.direction.y + dz * anchor.direction.z;
+                // A short arm must not repeat its final cell beyond the next
+                // true fork. Fade its common volume before that boundary;
+                // the neighbouring junction supplies its own local field.
+                weight *= 1 - smooth(2 * projected / anchor.supportLength - 1);
+            }
+            if(weight>0&&junction.boundedToArms){
+                let coverage=0;
+                const feather=Math.max(.08,Math.min(1,junction.radius*.12));
+                for(const anchor of junction.anchors){
+                    for(const part of anchor.path){
+                        const edge=this.network.edges[part.edge],length=edge.length;
+                        const lo=anchor.backwards?1-part.length/length:0,hi=anchor.backwards?1:part.length/length;
+                        const x=edge.end.x-edge.start.x,y=edge.end.y-edge.start.y,z=edge.end.z-edge.start.z;
+                        const t=Math.max(lo,Math.min(hi,((point.x-edge.start.x)*x+(point.y-edge.start.y)*y+(point.z-edge.start.z)*z)/(length*length)));
+                        const distance=Math.hypot(point.x-edge.start.x-t*x,point.y-edge.start.y-t*y,point.z-edge.start.z-t*z);
+                        const score=distance-(edge.radiusStart+t*(edge.radiusEnd-edge.radiusStart));
+                        coverage=Math.max(coverage,1-smooth((score+feather)/feather));
+                        if(coverage===1)break;
+                    }
+                    if(coverage===1)break;
+                }
+                weight*=coverage;
+            }
             if (weight > 0) {
                 const local = junction.anchors.map((anchor, arm) => {
                     let projected = dx * anchor.direction.x + dy * anchor.direction.y + dz * anchor.direction.z;

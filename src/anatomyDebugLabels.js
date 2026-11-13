@@ -174,6 +174,18 @@ function aorticPathFromRoot(flowNetwork, distalEdge) {
 }
 
 function diagnosticSupraAorticRoots(flowNetwork) {
+    const physicalRoots = flowNetwork.archOstiumReattachmentDiagnostics?.repairs
+        ?.slice().sort((a, b) => a.mainDistanceMm - b.mainDistanceMm)
+        .map(repair => flowNetwork.edges[repair.rootEdgeIndex]);
+    if (physicalRoots?.length === 3 && physicalRoots.every(edge => edge && !edge.transportExcluded)) {
+        // The real necks are separate branches of the aortic lumen. Their
+        // original shared medial-axis prefix is no longer a blood vessel.
+        return {
+            brachiocephalic: physicalRoots[0],
+            leftCommonCarotid: physicalRoots[1],
+            leftSubclavian: physicalRoots[2]
+        };
+    }
     const prefixPaths = flowNetwork.getTopologyDiagnostics?.()
         ?.aorticBranchPrefixes?.paths
         ?.filter(path => {

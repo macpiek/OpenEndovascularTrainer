@@ -2076,7 +2076,7 @@ function createPlumeGeometry(capacity) {
 }
 
 export class ContrastVolumeRenderer {
-    constructor(system, {vesselDeformation=null, anatomicalProjection='column'}={}) {
+    constructor(system, {vesselDeformation=null, anatomicalProjection='column', onStage}={}) {
         if (!system?.flowNetwork || !system?.localSolver) {
             throw new TypeError('A hybrid contrast system is required');
         }
@@ -2127,7 +2127,7 @@ export class ContrastVolumeRenderer {
         this._flowVolume = anatomy?.fallbackGeometry?.getAttribute('position')
             // One exact anatomical interval plus a preintegrated blood column
             // fills anterior ostia without surface rings or nested GPU searches.
-            ? new AnatomicalContrastSurface(system.flowNetwork, this._flowCellOffset, anatomy, {projection: anatomicalProjection})
+            ? new AnatomicalContrastSurface(system.flowNetwork, this._flowCellOffset, anatomy, {projection: anatomicalProjection, onStage})
             : anatomy?.sdfInsideBits && anatomy?.sdfBrickLookup
             ? new AnatomicalContrastVolume(system.flowNetwork, this._flowCellOffset, anatomy)
             : new FlowContrastVolume(system.flowNetwork, this._flowCellOffset);
@@ -2139,10 +2139,12 @@ export class ContrastVolumeRenderer {
             for(const edge of system.flowNetwork.edges) if(edge.renalSide) this._flowVolume.weights[edge.index]=0;
         this.renalRenderer = system.renalPerfusion ? new RenalParenchymaRenderer(system.renalPerfusion) : null;
         if(this.renalRenderer) this.group.add(this.renalRenderer.group);
+        onStage?.('Building auxiliary contrast geometry');
         this._createFlowLumen();
         this._createLocalPlume();
         this.group.add(this.flowMesh, this.plumeMesh, this._flowVolume.mesh);
         this.update();
+        onStage?.('Contrast projection geometry ready');
     }
 
     _createFlowLumen() {

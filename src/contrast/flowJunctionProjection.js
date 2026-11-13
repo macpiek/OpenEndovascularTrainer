@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {createFlowColumnRayCandidates} from './flowColumnRayCandidates.js';
 import {createColumnJunctionMixing} from './columnJunctionMixing.js';
+import {opticalMappedEdgeIndex, opticalParentEdgeIndex} from './flowOpticalTopology.js';
 
 function makeTexture(records) {
     const width = Math.min(2048, Math.max(1, Math.ceil(Math.sqrt(records.length / 4))));
@@ -16,7 +17,7 @@ function makeTexture(records) {
 // whether a visible ray contains a daughter: a complete small ostium may have
 // both boundary triangles assigned to its larger parent.
 export function createFlowJunctionProjection(network, integral, territories, spatial, junctionField = null) {
-    const shared = createColumnJunctionMixing(network, integral, territories, junctionField);
+    const shared = createColumnJunctionMixing(network, integral, territories, junctionField, spatial);
     const components = new Int32Array(network.edges.length).fill(-1);
     const maxRadii = new Float32Array(network.edges.length);
     for (const edge of network.edges) if (territories[edge.index] >= 0) {
@@ -28,14 +29,14 @@ export function createFlowJunctionProjection(network, integral, territories, spa
     for (const path of integral.ranges.keys()) maxRadii[path] += Math.max(1e-6, maxRadii[path] * 1e-6);
     function component(path) {
         if (components[path] >= 0) return components[path];
-        const parent = network.edges[path].parentEdgeIndex;
+        const parent = opticalParentEdgeIndex(network, territories, path);
         return components[path] = parent < 0 || territories[parent] < 0 ? path : component(territories[parent]);
     }
     for (const path of integral.ranges.keys()) component(path);
     const junctions = [], leaves = new Array(network.edges.length * 4).fill(0);
     const eligible = edge => edge && !edge.transportExcluded && !edge.lumenMappingExcluded && territories[edge.index] >= 0;
     for (const node of network.nodes?.values?.() ?? []) {
-        const parent = network.edges[node.parentEdgeIndex];
+        const parent = network.edges[opticalMappedEdgeIndex(network, territories, node.parentEdgeIndex)];
         if (!eligible(parent)) continue;
         const arms = [parent, ...node.childEdgeIndices.map(index => network.edges[index]).filter(eligible)];
         const seeds = new Map();
@@ -44,7 +45,7 @@ export function createFlowJunctionProjection(network, integral, territories, spa
         const radius = Math.max(...arms.map(edge => Math.max(edge.radiusStart, edge.radiusEnd)));
         const reach = 3 * radius + .25, center = node.point ?? parent.end;
         const first = leaves.length / 4, root = component(territories[parent.index]);
-        leaves.push(seeds.size, root, radius, (shared.indexByParent.get(parent.index) ?? -1) + 1);
+        leaves.push(seeds.size, root, radius, (shared.indexByParent.get(node.parentEdgeIndex) ?? -1) + 1);
         for (const [path, s] of seeds) leaves.push(path, s, 0, 0);
         junctions.push({min: [center.x - reach, center.y - reach, center.z - reach],
             max: [center.x + reach, center.y + reach, center.z + reach], first, root, seeds});
@@ -179,7 +180,7 @@ export function createFlowJunctionProjection(network, integral, territories, spa
                     const count = records[node.first * 4];
                     for (let incident = 0; incident < count; incident++) {
                         const at = (node.first + 1 + incident) * 4, path = records[at];
-                        if ((!cache?.valid || cache.paths.has(path)) && !choices.has(path)) choices.set(path, {seed: records[at + 1], own: false});
+                        if (!choices.has(path)) choices.set(path, {seed: records[at + 1], own: false});
                     }
                 }
             }
@@ -190,9 +191,10 @@ export function createFlowJunctionProjection(network, integral, territories, spa
             return sharedWeighted / sharedTotal;
         }
         const width = Math.max(.08, Math.min(1.2, .2 * localRadius));
-        let best = Infinity, owner = a;
+        let best = Infinity, physicalBest = Infinity, maximumCoverage = 0, owner = a;
         for (const [path, choice] of choices) {
-            const info = pathInfo(path, point, choice.seed); let alpha = choice.own ? 1 : info.alpha;
+            const info = pathInfo(path, point, choice.seed);
+            const alpha = info.alpha > 0 ? info.alpha : choice.own ? 1 : 0;
             if (alpha <= 0) {choice.effective = Infinity; continue;}
             spatial.nearest(path, point, info.seed, 6, sample);
             let distance = point.distanceToSquared(sample.point), coordinate = sample.s, score = sample.score, localRadius = sample.radius;
@@ -201,22 +203,29 @@ export function createFlowJunctionProjection(network, integral, territories, spa
                 const next = point.distanceToSquared(sample.point);
                 if (next < distance || (next === distance && sample.s < coordinate)) {coordinate = sample.s; score = sample.score; localRadius = sample.radius;}
             }
-            if (!choice.own) {
-                const fade = Math.min(.5 * width, .2 * Math.max(localRadius, 1e-4));
-                const u = Math.max(0, Math.min(1, -score / fade));
-                alpha *= u * u * (3 - 2 * u);
-            }
-            choice.effective = alpha > 0 ? score - width * Math.log(alpha) : Infinity; choice.coordinate = coordinate;
+            const fade = Math.min(.5 * width, .2 * Math.max(localRadius, 1e-4));
+            const u = Math.max(0, Math.min(1, -score / fade)), coverage = u * u * (3 - 2 * u);
+            maximumCoverage = Math.max(maximumCoverage, coverage);
+            choice.effective = score - width * Math.log(alpha); choice.coordinate = coordinate;
+            choice.physical = coverage > 0 ? choice.effective - width * Math.log(coverage) : Infinity;
+            physicalBest = Math.min(physicalBest, choice.physical);
             if (choice.effective < best || (choice.effective === best && path < owner)) {best = choice.effective; owner = path;}
         }
-        let weighted = 0, total = 0;
+        let weighted = 0, total = 0, physicalWeighted = 0, physicalTotal = 0;
         for (const [path, choice] of choices) {
             const u = Math.max(0, Math.min(1, 1 - (choice.effective - best) / width));
             const weight = u * u * (3 - 2 * u);
-            if (weight > 0) {weighted += weight * integral.sample(path, choice.coordinate); total += weight;}
+            const v = Number.isFinite(choice.physical) ? Math.max(0, Math.min(1, 1 - (choice.physical - physicalBest) / width)) : 0;
+            const physicalWeight = v * v * (3 - 2 * v);
+            if (weight > 0 || physicalWeight > 0) {
+                const value = integral.sample(path, choice.coordinate);
+                weighted += weight * value; total += weight;
+                physicalWeighted += physicalWeight * value; physicalTotal += physicalWeight;
+            }
         }
         if (result) {result.owner = owner; result.support = beta;}
-        const baseline = total > 0 ? weighted / total : 0;
+        const geometric = total > 0 ? weighted / total : 0;
+        const baseline = physicalTotal > 0 ? geometric + maximumCoverage * (physicalWeighted / physicalTotal - geometric) : geometric;
         return sharedTotal > 0 ? baseline * remaining + sharedWeighted / sharedTotal * (1 - remaining) : baseline;
     }
     function average(a, sa, b, sb, entry, exit) {

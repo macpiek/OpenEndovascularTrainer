@@ -29,11 +29,6 @@ function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
 
-function chainParent(edges, edge) {
-    const parent = edges[edge.parentEdgeIndex];
-    return parent?.childEdgeIndices.length === 1 && !parent.transportExcluded ? parent : null;
-}
-
 function chainChild(edges, edge) {
     const child = edge.childEdgeIndices.length === 1 ? edges[edge.childEdgeIndices[0]] : null;
     return child && !child.transportExcluded ? child : null;
@@ -48,6 +43,14 @@ function projectedDistanceSquared(edge, axial, x, y, z) {
     return (x - edge.start.x - edge.axis.x * axial) ** 2 +
         (y - edge.start.y - edge.axis.y * axial) ** 2 +
         (z - edge.start.z - edge.axis.z * axial) ** 2;
+}
+
+function insideTransportLumen(edge, axial, distanceSquared) {
+    const radius = edge.radiusStart + (edge.radiusEnd - edge.radiusStart) * axial / edge.length;
+    // Match source selection's allowance for the sampled medial axis.
+    // Explicitly excluded/occluded paths remain barriers.
+    return !edge.transportExcluded && (!edge.lumenMappingExcluded || edge.intraluminalAorticConnector) &&
+        distanceSquared <= (radius * 1.05) ** 2;
 }
 
 function portArea(port) {
@@ -963,9 +966,10 @@ export class LocalContrastInjectionSolver {
         }
     }
 
-    // Follow only the source's continuous vessel, never a closer but unrelated
-    // axis. At a true fork the jet joins its incident lumen; the conservative
-    // signed-flow solver then decides which connected arms receive iodine.
+    // Follow the parcel through connected blood lumens. A true fork is not a
+    // wall: the upstream-directed jet may physically cross its parent plane,
+    // and a downstream jet may enter a containing daughter. Re-querying the
+    // whole atlas here could jump to an unrelated nearby artery.
     resolveSourceHandoffLocation(index, out = {}) {
         const edges = this.flowNetwork.edges;
         let edgeIndex = this.handoffEdgeIndex[index] >= 0
@@ -975,14 +979,57 @@ export class LocalContrastInjectionSolver {
         const x = this.positionX[index], y = this.positionY[index], z = this.positionZ[index];
         let axial = projectedAxial(edge, x, y, z);
         let distance = projectedDistanceSquared(edge, axial, x, y, z);
+        const source = edges[this.sourceEdgeIndex[index]];
+        if (source && (x - source.start.x) * source.axis.x +
+            (y - source.start.y) * source.axis.y + (z - source.start.z) * source.axis.z < 0) {
+            // Near the outer wall of a curved arch the closest point may lie
+            // several short atlas edges upstream, despite an intervening
+            // segment being slightly farther away. Look through only this
+            // finite connected parent neighbourhood, never another artery.
+            const reach = Math.max(source.radiusStart, source.radiusEnd) * 2;
+            let parent = edges[source.parentEdgeIndex], travelled = 0;
+            while (parent && travelled < reach && !parent.transportExcluded &&
+                (!parent.lumenMappingExcluded || parent.intraluminalAorticConnector)) {
+                const s = projectedAxial(parent, x, y, z);
+                const d = projectedDistanceSquared(parent, s, x, y, z);
+                if (insideTransportLumen(parent, s, d) && d < distance) {
+                    edge = parent; edgeIndex = edge.index; axial = s; distance = d;
+                }
+                travelled += parent.length;
+                parent = edges[parent.parentEdgeIndex];
+            }
+        }
         for (let hop = 0; hop < edges.length; hop++) {
             let candidate = null, candidateAxial = axial, candidateDistance = distance;
-            for (let side = 0; side < 2; side++) {
-                const adjacent = side ? chainChild(edges, edge) : chainParent(edges, edge);
-                if (!adjacent) continue;
+            const parent = edges[edge.parentEdgeIndex];
+            for (let side = -1; side < edge.childEdgeIndices.length; side++) {
+                const adjacent = side < 0 ? parent : edges[edge.childEdgeIndices[side]];
+                if (!adjacent || adjacent.transportExcluded) continue;
                 const s = projectedAxial(adjacent, x, y, z);
                 const d = projectedDistanceSquared(adjacent, s, x, y, z);
-                if (d + 1e-10 < candidateDistance) {
+                const backwards = adjacent === parent;
+                const fork = backwards ? parent.childEdgeIndices.length > 1 : edge.childEdgeIndices.length > 1;
+                if (fork) {
+                    const from = backwards ? edge : adjacent;
+                    const signed = (x - from.start.x) * from.axis.x +
+                        (y - from.start.y) * from.axis.y + (z - from.start.z) * from.axis.z;
+                    if ((backwards ? signed > 0 : signed < 0) || !insideTransportLumen(adjacent, s, d)) continue;
+                    // A small ostial axis runs inside the larger parent blood
+                    // volume. Its shorter centreline distance cannot siphon
+                    // a jet out of that shared volume. Select the daughter
+                    // once the parcel really exits the parent lumen; until
+                    // then ordinary junction outflow divides entrained iodine.
+                    if (!backwards && adjacent.radiusStart < edge.radiusEnd * .85 &&
+                        insideTransportLumen(edge, axial, distance)) continue;
+                }
+                // At a bent fork both incident polylines can initially clamp
+                // to their identical node. Permit the upstream crossing of
+                // that shared endpoint; the next parent segment then locates
+                // the real parcel instead of trapping it at the source cap.
+                const crossesSharedStart = backwards && axial === 0 && s === adjacent.length &&
+                    (x - edge.start.x) * edge.axis.x + (y - edge.start.y) * edge.axis.y +
+                    (z - edge.start.z) * edge.axis.z < 0;
+                if (d + 1e-10 < candidateDistance || (crossesSharedStart && d <= candidateDistance + 1e-10)) {
                     candidate = adjacent; candidateAxial = s; candidateDistance = d;
                 }
             }
@@ -997,11 +1044,18 @@ export class LocalContrastInjectionSolver {
         let upper = clamp(Math.ceil(cellPosition), 0, edge.cellCount - 1);
         let upperWeight = clamp(cellPosition - lower, 0, 1);
         if (cellPosition < 0) {
-            const parent = chainParent(edges, edge);
+            const candidate = edges[edge.parentEdgeIndex];
+            const parent = candidate && !candidate.transportExcluded &&
+                (candidate.childEdgeIndices.length === 1 || insideTransportLumen(candidate,
+                    projectedAxial(candidate, x, y, z), projectedDistanceSquared(candidate,
+                        projectedAxial(candidate, x, y, z), x, y, z))) ? candidate : null;
             if (parent) {
                 lowerEdge = parent; lower = parent.cellCount - 1; upper = 0;
-                upperWeight = (axial + parent.cellLength * 0.5) /
-                    ((parent.cellLength + edge.cellLength) * 0.5);
+                // At a fork its parent terminal volume owns the shared node.
+                // Blend from that same volume into the reached daughter, so
+                // crossing the node cannot switch a whole parcel's handoff.
+                upperWeight = parent.childEdgeIndices.length > 1 ? axial / (edge.cellLength * .5) :
+                    (axial + parent.cellLength * .5) / ((parent.cellLength + edge.cellLength) * .5);
             }
         } else if (cellPosition > edge.cellCount - 1) {
             const child = chainChild(edges, edge);

@@ -1,0 +1,2839 @@
+{
+  "status": "pass",
+  "scope": "full",
+  "mode": "cached",
+  "sourceFrameCounters": {
+    "7": {
+      "source": "source134",
+      "elapsed": 0.5,
+      "expected": 9,
+      "completed": 9,
+      "views": [
+        "135/0",
+        "135/30",
+        "135/-30",
+        "157/0",
+        "157/30",
+        "157/-30",
+        "230/0",
+        "230/30",
+        "230/-30"
+      ]
+    },
+    "9": {
+      "source": "source44",
+      "elapsed": 0.5,
+      "expected": 9,
+      "completed": 9,
+      "views": [
+        "135/0",
+        "135/30",
+        "135/-30",
+        "157/0",
+        "157/30",
+        "157/-30",
+        "230/0",
+        "230/30",
+        "230/-30"
+      ]
+    },
+    "10": {
+      "source": "source44long",
+      "elapsed": 0.9,
+      "expected": 1,
+      "completed": 1,
+      "views": [
+        "135/30"
+      ]
+    },
+    "11": {
+      "source": "source44long",
+      "elapsed": 1.5,
+      "expected": 1,
+      "completed": 1,
+      "views": [
+        "135/30"
+      ]
+    }
+  },
+  "provenance": {
+    "reference": "Frozen post-retopology Nov12 renderer, before current continuity correction",
+    "sourceFingerprint": {
+      "src/contrast/anatomicalColumnProjection.js": "907fa45555cbc68566f5cc00941d8e42a29579210bda13abdd25d4210ae05861",
+      "src/contrast/anatomicalContrastSurface.js": "42b4f87f8d62c3779ed6ed87119234410fd22404ce39b2dfd4eddd4747efc7a2",
+      "src/contrast/columnJunctionMixing.js": "28a6d4eb76cbfba30303a43d19b1ddb8d92acfca8d81bbd625c3ccc25eff7070",
+      "src/contrast/flowJunctionProjection.js": "c1e16ffbe1ff4065b03da19e85618ccbae1a50f1722b15b3e481867bb4d29142",
+      "src/contrast/junctionSurfaceReconstruction.js": "2316d46ddc51341d37cf49849bc244a8a96c5113d72bc294fb3072cbad024cb5",
+      "src/contrast/flowNetwork.js": "9f126706fb4e20282ff08469d7a1ea410fb05f4c3981efe0d1dc71c23dd43ab8",
+      "src/contrast/archOstiumReattachment.js": "eb1ccf657863ac62ce136a6d541e7f0f1e72554fc6816fc4810e0a689f5c61cb",
+      "src/contrast/localInjectionSolver.js": "404a271e5bbca3b5654be188985e3b2bf883786e565fcab3636df10d6a912957",
+      "src/contrast/outletJetField.js": "f71170b3e3d96a7ddfff10c285dc857e5c7d7c84b14e8b93c06516566e8ce085",
+      "src/contrast/flowOpticalTopology.js": "9687e816adc28da38e18b234b195ec08b759498efe9af2619300c9613e8df350"
+    },
+    "description": "Frozen and current transport use identical anatomy, camera, exact catheter outlet, dose, rate and seed. Baseline render textures remain independent of current mass and jet states. Owner probes lie inside both incident lumens.",
+    "currentSourceFingerprint": {
+      "src/contrast/anatomicalColumnProjection.js": "3eb6025b66c29a2e271605545818d33e6de13051d263fe67fd10599613f2d746",
+      "src/contrast/anatomicalContrastSurface.js": "42b4f87f8d62c3779ed6ed87119234410fd22404ce39b2dfd4eddd4747efc7a2",
+      "src/contrast/columnJunctionMixing.js": "39c62a36e5fdad752276a0dbb9d8ab0316d66000fabd1f166d236dfd0bf23fc4",
+      "src/contrast/flowJunctionProjection.js": "c1e16ffbe1ff4065b03da19e85618ccbae1a50f1722b15b3e481867bb4d29142",
+      "src/contrast/junctionSurfaceReconstruction.js": "f8bc4bcd23aade7580a75f09987e5f5cacd7e60d3052c29234d63c416671379f",
+      "src/contrast/flowNetwork.js": "9f126706fb4e20282ff08469d7a1ea410fb05f4c3981efe0d1dc71c23dd43ab8",
+      "src/contrast/archOstiumReattachment.js": "eb1ccf657863ac62ce136a6d541e7f0f1e72554fc6816fc4810e0a689f5c61cb",
+      "src/contrast/localInjectionSolver.js": "7acf864ead86241d6a3fc4dc5ec26ddbd821c31ff711325c7cc941ace1fa5d0f",
+      "src/contrast/outletJetField.js": "508ff87d424027e69d0533dc627ccb10d9e31131f225d177234c5980a2e8c817",
+      "src/contrast/flowOpticalTopology.js": "9687e816adc28da38e18b234b195ec08b759498efe9af2619300c9613e8df350"
+    }
+  },
+  "planes": [
+    {
+      "frame": 0,
+      "label": "Ujście135 · gęsta aorta / rozcieńczona gałąź",
+      "root": 135,
+      "before": {
+        "ownerDifference": 0,
+        "spatialJump": 0.00048828125,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.00048828125,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 1,
+      "label": "Ujście135 · gęsta gałąź / rozcieńczona aorta",
+      "root": 135,
+      "before": {
+        "ownerDifference": 0,
+        "spatialJump": 0.000244140625,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.000244140625,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 2,
+      "label": "Ujście157 · gęsta aorta / rozcieńczona gałąź",
+      "root": 157,
+      "before": {
+        "ownerDifference": 0,
+        "spatialJump": 0,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.00048828125,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 3,
+      "label": "Ujście157 · gęsta gałąź / rozcieńczona aorta",
+      "root": 157,
+      "before": {
+        "ownerDifference": 0,
+        "spatialJump": 0,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.000244140625,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 4,
+      "label": "Ujście230 · gęsta aorta / rozcieńczona gałąź",
+      "root": 230,
+      "before": {
+        "ownerDifference": 0,
+        "spatialJump": 0,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 5,
+      "label": "Ujście230 · gęsta gałąź / rozcieńczona aorta",
+      "root": 230,
+      "before": {
+        "ownerDifference": 0,
+        "spatialJump": 0,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 6,
+      "label": "Bolus source134 · 10 ml · 0.20 s",
+      "root": 135,
+      "before": {
+        "ownerDifference": 0.000002205371856689453,
+        "spatialJump": 0.0000013709068298339844,
+        "excessJump": 0.0000013709068298339844,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0.000002205371856689453
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 5.960464477539063e-8,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 6,
+      "label": "Bolus source134 · 10 ml · 0.20 s",
+      "root": 157,
+      "before": {
+        "ownerDifference": 0.02685546875,
+        "spatialJump": 0.0242919921875,
+        "excessJump": 0.024169921875,
+        "bulkOwnerDifference": 0.0518798828125,
+        "jetOwnerDifference": 0.06378173828125
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.00030517578125,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 6,
+      "label": "Bolus source134 · 10 ml · 0.20 s",
+      "root": 230,
+      "before": {
+        "ownerDifference": 0,
+        "spatialJump": 0,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.00006103515625,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 7,
+      "label": "Bolus source134 · 10 ml · 0.50 s",
+      "root": 135,
+      "before": {
+        "ownerDifference": 0.000003159046173095703,
+        "spatialJump": 0.0000019669532775878906,
+        "excessJump": 0.0000019073486328125,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0.000003159046173095703
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 1.1920928955078125e-7,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 7,
+      "label": "Bolus source134 · 10 ml · 0.50 s",
+      "root": 157,
+      "before": {
+        "ownerDifference": 0.0679931640625,
+        "spatialJump": 0.0653076171875,
+        "excessJump": 0.065185546875,
+        "bulkOwnerDifference": 0.09423828125,
+        "jetOwnerDifference": 0.0675048828125
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.0003662109375,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 7,
+      "label": "Bolus source134 · 10 ml · 0.50 s",
+      "root": 230,
+      "before": {
+        "ownerDifference": 0,
+        "spatialJump": 0.0001220703125,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 8,
+      "label": "Bolus source44 · 10 ml · 0.20 s",
+      "root": 135,
+      "before": {
+        "ownerDifference": 0.548828125,
+        "spatialJump": 0.53759765625,
+        "excessJump": 0.53662109375,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0.548828125
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.001953125,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 8,
+      "label": "Bolus source44 · 10 ml · 0.20 s",
+      "root": 157,
+      "before": {
+        "ownerDifference": 0.05255126953125,
+        "spatialJump": 0.052337646484375,
+        "excessJump": 0.05230712890625,
+        "bulkOwnerDifference": 0.05255126953125,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.00006103515625,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 8,
+      "label": "Bolus source44 · 10 ml · 0.20 s",
+      "root": 230,
+      "before": {
+        "ownerDifference": 0,
+        "spatialJump": 0.00006103515625,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "root": 135,
+      "before": {
+        "ownerDifference": 0.5849609375,
+        "spatialJump": 0.580078125,
+        "excessJump": 0.57958984375,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0.5849609375
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.00146484375,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "root": 157,
+      "before": {
+        "ownerDifference": 0.072998046875,
+        "spatialJump": 0.0726318359375,
+        "excessJump": 0.0726318359375,
+        "bulkOwnerDifference": 0.072998046875,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.00006103515625,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "root": 230,
+      "before": {
+        "ownerDifference": 0,
+        "spatialJump": 0,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "root": 135,
+      "before": {
+        "ownerDifference": 0.56103515625,
+        "spatialJump": 0.556640625,
+        "excessJump": 0.55615234375,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0.56103515625
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.00146484375,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "root": 157,
+      "before": {
+        "ownerDifference": 0.1307373046875,
+        "spatialJump": 0.1302490234375,
+        "excessJump": 0.1302490234375,
+        "bulkOwnerDifference": 0.1307373046875,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.0001220703125,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "root": 230,
+      "before": {
+        "ownerDifference": 0,
+        "spatialJump": 0,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.0001220703125,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "root": 135,
+      "before": {
+        "ownerDifference": 0.564453125,
+        "spatialJump": 0.56298828125,
+        "excessJump": 0.56298828125,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0.564453125
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.0009765625,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "root": 157,
+      "before": {
+        "ownerDifference": 0.09625244140625,
+        "spatialJump": 0.09564208984375,
+        "excessJump": 0.0955810546875,
+        "bulkOwnerDifference": 0.09625244140625,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.00006103515625,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "root": 230,
+      "before": {
+        "ownerDifference": 0,
+        "spatialJump": 0,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      },
+      "after": {
+        "ownerDifference": 0,
+        "spatialJump": 0.0001220703125,
+        "excessJump": 0,
+        "bulkOwnerDifference": 0,
+        "jetOwnerDifference": 0
+      }
+    }
+  ],
+  "images": [
+    {
+      "frame": 7,
+      "label": "Bolus source134 · 10 ml · 0.50 s",
+      "root": 135,
+      "angle": 0,
+      "before": {
+        "sum": 7708.273238956928,
+        "max": 0.89599609375,
+        "timing": {
+          "renderMs": 0.19999998807907104,
+          "readbackMs": 286.5,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 7821.826317131519,
+        "max": 0.92822265625,
+        "timing": {
+          "renderMs": 0.20000000298023224,
+          "readbackMs": 376.8999999910593,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.006784614459611475,
+        "max": 0.2161865234375
+      }
+    },
+    {
+      "frame": 7,
+      "label": "Bolus source134 · 10 ml · 0.50 s",
+      "root": 135,
+      "angle": 30,
+      "before": {
+        "sum": 5573.592818498611,
+        "max": 0.72412109375,
+        "timing": {
+          "renderMs": 0.10000000894069672,
+          "readbackMs": 179.09999999403954,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 5895.954467594624,
+        "max": 0.81640625,
+        "timing": {
+          "renderMs": 0.10000000894069672,
+          "readbackMs": 293.6000000089407,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.009628840941586532,
+        "max": 0.198486328125
+      }
+    },
+    {
+      "frame": 7,
+      "label": "Bolus source134 · 10 ml · 0.50 s",
+      "root": 135,
+      "angle": -30,
+      "before": {
+        "sum": 9242.64732593298,
+        "max": 0.81494140625,
+        "timing": {
+          "renderMs": 0.09999999403953552,
+          "readbackMs": 324.29999999701977,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 9402.372035205364,
+        "max": 0.85693359375,
+        "timing": {
+          "renderMs": 0.19999998807907104,
+          "readbackMs": 511.79999999701977,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.008417851303238421,
+        "max": 0.484375
+      }
+    },
+    {
+      "frame": 7,
+      "label": "Bolus source134 · 10 ml · 0.50 s",
+      "root": 157,
+      "angle": 0,
+      "before": {
+        "sum": 8182.36754322052,
+        "max": 0.89599609375,
+        "timing": {
+          "renderMs": 0.19999998807907104,
+          "readbackMs": 202.70000000298023,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 8312.982127606869,
+        "max": 0.92822265625,
+        "timing": {
+          "renderMs": 0.10000000894069672,
+          "readbackMs": 345.20000000298023,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.007668255768367089,
+        "max": 0.2236328125
+      }
+    },
+    {
+      "frame": 7,
+      "label": "Bolus source134 · 10 ml · 0.50 s",
+      "root": 157,
+      "angle": 30,
+      "before": {
+        "sum": 7849.89951634407,
+        "max": 0.72412109375,
+        "timing": {
+          "renderMs": 0.20000000298023224,
+          "readbackMs": 214.20000000298023,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 8022.416768014431,
+        "max": 0.81591796875,
+        "timing": {
+          "renderMs": 0.29999999701976776,
+          "readbackMs": 374.40000000596046,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.012150784131954424,
+        "max": 0.18060302734375
+      }
+    },
+    {
+      "frame": 7,
+      "label": "Bolus source134 · 10 ml · 0.50 s",
+      "root": 157,
+      "angle": -30,
+      "before": {
+        "sum": 9340.333801269531,
+        "max": 0.81689453125,
+        "timing": {
+          "renderMs": 0.20000000298023224,
+          "readbackMs": 203.1000000089407,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 9548.018294930458,
+        "max": 0.85693359375,
+        "timing": {
+          "renderMs": 0.30000001192092896,
+          "readbackMs": 309.5,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.008964927413035183,
+        "max": 0.48583984375
+      }
+    },
+    {
+      "frame": 7,
+      "label": "Bolus source134 · 10 ml · 0.50 s",
+      "root": 230,
+      "angle": 0,
+      "before": {
+        "sum": 8266.263202726841,
+        "max": 0.89599609375,
+        "timing": {
+          "renderMs": 0,
+          "readbackMs": 223.29999999701977,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 8432.037508547306,
+        "max": 0.92822265625,
+        "timing": {
+          "renderMs": 0,
+          "readbackMs": 381.5,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.008125173568259925,
+        "max": 0.224853515625
+      }
+    },
+    {
+      "frame": 7,
+      "label": "Bolus source134 · 10 ml · 0.50 s",
+      "root": 230,
+      "angle": 30,
+      "before": {
+        "sum": 9557.711503505707,
+        "max": 0.72412109375,
+        "timing": {
+          "renderMs": 0.09999999403953552,
+          "readbackMs": 246,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 9585.728347182274,
+        "max": 0.81640625,
+        "timing": {
+          "renderMs": 0.09999999403953552,
+          "readbackMs": 430.59999999403954,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.013848269229056314,
+        "max": 0.1949462890625
+      }
+    },
+    {
+      "frame": 7,
+      "label": "Bolus source134 · 10 ml · 0.50 s",
+      "root": 230,
+      "angle": -30,
+      "before": {
+        "sum": 9401.433368206024,
+        "max": 0.8154296875,
+        "timing": {
+          "renderMs": 0.09999999403953552,
+          "readbackMs": 276.1000000089407,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 9651.24424880743,
+        "max": 0.8564453125,
+        "timing": {
+          "renderMs": 0,
+          "readbackMs": 401.5,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.009402496809489094,
+        "max": 0.486328125
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "root": 135,
+      "angle": 0,
+      "before": {
+        "sum": 8228.92871516943,
+        "max": 0.59521484375,
+        "timing": {
+          "renderMs": 0.10000000894069672,
+          "readbackMs": 284.19999998807907,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 9113.878985404968,
+        "max": 0.479736328125,
+        "timing": {
+          "renderMs": 0.19999998807907104,
+          "readbackMs": 373.1000000089407,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.032733158283517694,
+        "max": 0.193511962890625
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "root": 135,
+      "angle": 30,
+      "before": {
+        "sum": 6471.74124956131,
+        "max": 0.297607421875,
+        "timing": {
+          "renderMs": 0.09999999403953552,
+          "readbackMs": 190.3999999910593,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 7758.332030653954,
+        "max": 0.362060546875,
+        "timing": {
+          "renderMs": 0.09999999403953552,
+          "readbackMs": 291.80000001192093,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.0330299200268928,
+        "max": 0.23193359375
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "root": 135,
+      "angle": -30,
+      "before": {
+        "sum": 9612.462011992931,
+        "max": 0.7275390625,
+        "timing": {
+          "renderMs": 0.10000000894069672,
+          "readbackMs": 340.1000000089407,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 10301.463130533695,
+        "max": 0.7568359375,
+        "timing": {
+          "renderMs": 0.19999998807907104,
+          "readbackMs": 512.5,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.016331209250492976,
+        "max": 0.1745738983154297
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "root": 157,
+      "angle": 0,
+      "before": {
+        "sum": 8679.238933980465,
+        "max": 0.595703125,
+        "timing": {
+          "renderMs": 0.09999999403953552,
+          "readbackMs": 222.1000000089407,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 9791.35829091072,
+        "max": 0.47998046875,
+        "timing": {
+          "renderMs": 0,
+          "readbackMs": 323.09999999403954,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.0368992901413003,
+        "max": 0.19366073608398438
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "root": 157,
+      "angle": 30,
+      "before": {
+        "sum": 8501.464359104633,
+        "max": 0.297607421875,
+        "timing": {
+          "renderMs": 0,
+          "readbackMs": 216.40000000596046,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 9513.500488042831,
+        "max": 0.362060546875,
+        "timing": {
+          "renderMs": 0,
+          "readbackMs": 378.29999999701977,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.03963129516283516,
+        "max": 0.23211669921875
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "root": 157,
+      "angle": -30,
+      "before": {
+        "sum": 9740.204540252686,
+        "max": 0.7275390625,
+        "timing": {
+          "renderMs": 0,
+          "readbackMs": 218.79999999701977,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 10731.816188156605,
+        "max": 0.7568359375,
+        "timing": {
+          "renderMs": 0.20000000298023224,
+          "readbackMs": 308.1000000089407,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.019820622318075038,
+        "max": 0.18358302116394043
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "root": 230,
+      "angle": 0,
+      "before": {
+        "sum": 8790.442258656025,
+        "max": 0.59521484375,
+        "timing": {
+          "renderMs": 0.09999999403953552,
+          "readbackMs": 248.09999999403954,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 9868.836061239243,
+        "max": 0.47998046875,
+        "timing": {
+          "renderMs": 0,
+          "readbackMs": 364.5,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.03703868070791941,
+        "max": 0.19364166259765625
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "root": 230,
+      "angle": 30,
+      "before": {
+        "sum": 9643.04254245758,
+        "max": 0.297607421875,
+        "timing": {
+          "renderMs": 0,
+          "readbackMs": 261.09999999403954,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 8824.119012713432,
+        "max": 0.317138671875,
+        "timing": {
+          "renderMs": 0.09999999403953552,
+          "readbackMs": 430.6000000089407,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.028484423803165557,
+        "max": 0.1931915283203125
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "root": 230,
+      "angle": -30,
+      "before": {
+        "sum": 9828.832814991474,
+        "max": 0.7275390625,
+        "timing": {
+          "renderMs": 0.09999999403953552,
+          "readbackMs": 290.59999999403954,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 11130.49200373888,
+        "max": 0.7568359375,
+        "timing": {
+          "renderMs": 0.09999999403953552,
+          "readbackMs": 402.59999999403954,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.023236944309901447,
+        "max": 0.18358135223388672
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "root": 135,
+      "angle": 30,
+      "before": {
+        "sum": 10741.294993698597,
+        "max": 0.54931640625,
+        "timing": {
+          "renderMs": 0,
+          "readbackMs": 191.79999999701977,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 12595.421370148659,
+        "max": 0.455078125,
+        "timing": {
+          "renderMs": 0.20000000298023224,
+          "readbackMs": 292.8999999910593,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.05089335384371225,
+        "max": 0.3101806640625
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "root": 135,
+      "angle": 30,
+      "before": {
+        "sum": 8277.780626058578,
+        "max": 0.381591796875,
+        "timing": {
+          "renderMs": 0.10000000894069672,
+          "readbackMs": 191.40000000596046,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "after": {
+        "sum": 10206.185687482357,
+        "max": 0.46484375,
+        "timing": {
+          "renderMs": 0.10000000894069672,
+          "readbackMs": 292.70000000298023,
+          "calls": 1,
+          "triangles": 49006
+        }
+      },
+      "difference": {
+        "mean": 0.04486638914968353,
+        "max": 0.310546875
+      }
+    }
+  ],
+  "boundaryScans": [
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 65,
+      "y": 89,
+      "before": {
+        "x": 65,
+        "y": 89,
+        "samples": [
+          0.0020656585693359375,
+          0.0024318695068359375,
+          0.0028400421142578125,
+          0.0032901763916015625
+        ],
+        "jump": 0.000408172607421875,
+        "localGradient": 0.00045013427734375,
+        "excessJump": 0
+      },
+      "after": {
+        "x": 65,
+        "y": 89,
+        "samples": [
+          0.12005615234375,
+          0.12445068359375,
+          0.129150390625,
+          0.1331787109375
+        ],
+        "jump": 0.00469970703125,
+        "localGradient": 0.00439453125,
+        "excessJump": 0.00030517578125
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 70,
+      "y": 91,
+      "before": {
+        "x": 70,
+        "y": 91,
+        "samples": [
+          0.0081024169921875,
+          0.00910186767578125,
+          0.0101776123046875,
+          0.0113067626953125
+        ],
+        "jump": 0.00107574462890625,
+        "localGradient": 0.001129150390625,
+        "excessJump": 0
+      },
+      "after": {
+        "x": 70,
+        "y": 91,
+        "samples": [
+          0.1812744140625,
+          0.1846923828125,
+          0.1884765625,
+          0.1923828125
+        ],
+        "jump": 0.0037841796875,
+        "localGradient": 0.00390625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 75,
+      "y": 90,
+      "before": {
+        "x": 75,
+        "y": 90,
+        "samples": [
+          0.0147247314453125,
+          0.0165252685546875,
+          0.0291900634765625,
+          0.026702880859375
+        ],
+        "jump": 0.012664794921875,
+        "localGradient": 0.0024871826171875,
+        "excessJump": 0.0101776123046875
+      },
+      "after": {
+        "x": 75,
+        "y": 90,
+        "samples": [
+          0.2166748046875,
+          0.22119140625,
+          0.225830078125,
+          0.2303466796875
+        ],
+        "jump": 0.004638671875,
+        "localGradient": 0.0045166015625,
+        "excessJump": 0.0001220703125
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 80,
+      "y": 83,
+      "before": {
+        "x": 80,
+        "y": 83,
+        "samples": [
+          0.01010894775390625,
+          0.01169586181640625,
+          0.05999755859375,
+          0.059417724609375
+        ],
+        "jump": 0.04830169677734375,
+        "localGradient": 0.0015869140625,
+        "excessJump": 0.04671478271484375
+      },
+      "after": {
+        "x": 80,
+        "y": 83,
+        "samples": [
+          0.1993408203125,
+          0.203369140625,
+          0.207763671875,
+          0.212890625
+        ],
+        "jump": 0.00439453125,
+        "localGradient": 0.005126953125,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 85,
+      "y": 83,
+      "before": {
+        "x": 85,
+        "y": 83,
+        "samples": [
+          0.015411376953125,
+          0.0177764892578125,
+          0.0689697265625,
+          0.07427978515625
+        ],
+        "jump": 0.0511932373046875,
+        "localGradient": 0.00531005859375,
+        "excessJump": 0.0458831787109375
+      },
+      "after": {
+        "x": 85,
+        "y": 83,
+        "samples": [
+          0.216796875,
+          0.2216796875,
+          0.2266845703125,
+          0.2322998046875
+        ],
+        "jump": 0.0050048828125,
+        "localGradient": 0.005615234375,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 90,
+      "y": 82,
+      "before": {
+        "x": 90,
+        "y": 82,
+        "samples": [
+          0.01776123046875,
+          0.02056884765625,
+          0.06988525390625,
+          0.0751953125
+        ],
+        "jump": 0.04931640625,
+        "localGradient": 0.00531005859375,
+        "excessJump": 0.04400634765625
+      },
+      "after": {
+        "x": 90,
+        "y": 82,
+        "samples": [
+          0.2276611328125,
+          0.23291015625,
+          0.238525390625,
+          0.2447509765625
+        ],
+        "jump": 0.005615234375,
+        "localGradient": 0.0062255859375,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 95,
+      "y": 81,
+      "before": {
+        "x": 95,
+        "y": 81,
+        "samples": [
+          0.018157958984375,
+          0.021087646484375,
+          0.06915283203125,
+          0.0743408203125
+        ],
+        "jump": 0.048065185546875,
+        "localGradient": 0.00518798828125,
+        "excessJump": 0.042877197265625
+      },
+      "after": {
+        "x": 95,
+        "y": 81,
+        "samples": [
+          0.2337646484375,
+          0.2391357421875,
+          0.2449951171875,
+          0.251220703125
+        ],
+        "jump": 0.005859375,
+        "localGradient": 0.0062255859375,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 100,
+      "y": 81,
+      "before": {
+        "x": 100,
+        "y": 81,
+        "samples": [
+          0.0194244384765625,
+          0.0227508544921875,
+          0.0709228515625,
+          0.0765380859375
+        ],
+        "jump": 0.0481719970703125,
+        "localGradient": 0.005615234375,
+        "excessJump": 0.0425567626953125
+      },
+      "after": {
+        "x": 100,
+        "y": 81,
+        "samples": [
+          0.2398681640625,
+          0.2449951171875,
+          0.250244140625,
+          0.2548828125
+        ],
+        "jump": 0.0052490234375,
+        "localGradient": 0.005126953125,
+        "excessJump": 0.0001220703125
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 105,
+      "y": 78,
+      "before": {
+        "x": 105,
+        "y": 78,
+        "samples": [
+          0.0118255615234375,
+          0.01404571533203125,
+          0.057342529296875,
+          0.061981201171875
+        ],
+        "jump": 0.04329681396484375,
+        "localGradient": 0.004638671875,
+        "excessJump": 0.03865814208984375
+      },
+      "after": {
+        "x": 105,
+        "y": 78,
+        "samples": [
+          0.22900390625,
+          0.2330322265625,
+          0.23681640625,
+          0.2408447265625
+        ],
+        "jump": 0.0037841796875,
+        "localGradient": 0.0040283203125,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 110,
+      "y": 76,
+      "before": {
+        "x": 110,
+        "y": 76,
+        "samples": [
+          0.00780487060546875,
+          0.0094757080078125,
+          0.050994873046875,
+          0.0538330078125
+        ],
+        "jump": 0.0415191650390625,
+        "localGradient": 0.002838134765625,
+        "excessJump": 0.0386810302734375
+      },
+      "after": {
+        "x": 110,
+        "y": 76,
+        "samples": [
+          0.2222900390625,
+          0.2252197265625,
+          0.22802734375,
+          0.230712890625
+        ],
+        "jump": 0.0028076171875,
+        "localGradient": 0.0029296875,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 115,
+      "y": 74,
+      "before": {
+        "x": 115,
+        "y": 74,
+        "samples": [
+          0.0049896240234375,
+          0.006221771240234375,
+          0.046051025390625,
+          0.048675537109375
+        ],
+        "jump": 0.039829254150390625,
+        "localGradient": 0.00262451171875,
+        "excessJump": 0.037204742431640625
+      },
+      "after": {
+        "x": 115,
+        "y": 74,
+        "samples": [
+          0.213623046875,
+          0.2161865234375,
+          0.2186279296875,
+          0.220703125
+        ],
+        "jump": 0.00244140625,
+        "localGradient": 0.0025634765625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 120,
+      "y": 70,
+      "before": {
+        "x": 120,
+        "y": 70,
+        "samples": [
+          0.0022411346435546875,
+          0.0026950836181640625,
+          0.039825439453125,
+          0.039886474609375
+        ],
+        "jump": 0.03713035583496094,
+        "localGradient": 0.000453948974609375,
+        "excessJump": 0.03667640686035156
+      },
+      "after": {
+        "x": 120,
+        "y": 70,
+        "samples": [
+          0.1986083984375,
+          0.201416015625,
+          0.2041015625,
+          0.2066650390625
+        ],
+        "jump": 0.002685546875,
+        "localGradient": 0.0028076171875,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 125,
+      "y": 70,
+      "before": {
+        "x": 125,
+        "y": 70,
+        "samples": [
+          0.0025424957275390625,
+          0.003322601318359375,
+          0.0419921875,
+          0.043853759765625
+        ],
+        "jump": 0.038669586181640625,
+        "localGradient": 0.001861572265625,
+        "excessJump": 0.036808013916015625
+      },
+      "after": {
+        "x": 125,
+        "y": 70,
+        "samples": [
+          0.19287109375,
+          0.1956787109375,
+          0.1981201171875,
+          0.2003173828125
+        ],
+        "jump": 0.00244140625,
+        "localGradient": 0.0028076171875,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 9,
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "x": 130,
+      "y": 64,
+      "before": {
+        "x": 130,
+        "y": 64,
+        "samples": [
+          0.0012912750244140625,
+          0.0014448165893554688,
+          0.035614013671875,
+          0.037841796875
+        ],
+        "jump": 0.03416919708251953,
+        "localGradient": 0.002227783203125,
+        "excessJump": 0.03194141387939453
+      },
+      "after": {
+        "x": 130,
+        "y": 64,
+        "samples": [
+          0.16650390625,
+          0.1700439453125,
+          0.1734619140625,
+          0.1768798828125
+        ],
+        "jump": 0.00341796875,
+        "localGradient": 0.0035400390625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 65,
+      "y": 89,
+      "before": {
+        "x": 65,
+        "y": 89,
+        "samples": [
+          0.0010395050048828125,
+          0.0012502670288085938,
+          0.0014896392822265625,
+          0.00176239013671875
+        ],
+        "jump": 0.00023937225341796875,
+        "localGradient": 0.0002727508544921875,
+        "excessJump": 0
+      },
+      "after": {
+        "x": 65,
+        "y": 89,
+        "samples": [
+          0.1558837890625,
+          0.1614990234375,
+          0.1671142578125,
+          0.1724853515625
+        ],
+        "jump": 0.005615234375,
+        "localGradient": 0.005615234375,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 70,
+      "y": 91,
+      "before": {
+        "x": 70,
+        "y": 91,
+        "samples": [
+          0.00472259521484375,
+          0.00540924072265625,
+          0.00616455078125,
+          0.006984710693359375
+        ],
+        "jump": 0.00075531005859375,
+        "localGradient": 0.000820159912109375,
+        "excessJump": 0
+      },
+      "after": {
+        "x": 70,
+        "y": 91,
+        "samples": [
+          0.2325439453125,
+          0.2364501953125,
+          0.24072265625,
+          0.2451171875
+        ],
+        "jump": 0.0042724609375,
+        "localGradient": 0.00439453125,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 75,
+      "y": 90,
+      "before": {
+        "x": 75,
+        "y": 90,
+        "samples": [
+          0.0092620849609375,
+          0.01059722900390625,
+          0.0238494873046875,
+          0.020477294921875
+        ],
+        "jump": 0.01325225830078125,
+        "localGradient": 0.0033721923828125,
+        "excessJump": 0.00988006591796875
+      },
+      "after": {
+        "x": 75,
+        "y": 90,
+        "samples": [
+          0.275146484375,
+          0.280029296875,
+          0.28466796875,
+          0.28955078125
+        ],
+        "jump": 0.004638671875,
+        "localGradient": 0.0048828125,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 80,
+      "y": 83,
+      "before": {
+        "x": 80,
+        "y": 83,
+        "samples": [
+          0.006160736083984375,
+          0.007251739501953125,
+          0.0595703125,
+          0.058197021484375
+        ],
+        "jump": 0.052318572998046875,
+        "localGradient": 0.001373291015625,
+        "excessJump": 0.050945281982421875
+      },
+      "after": {
+        "x": 80,
+        "y": 83,
+        "samples": [
+          0.257568359375,
+          0.26171875,
+          0.266357421875,
+          0.271728515625
+        ],
+        "jump": 0.004638671875,
+        "localGradient": 0.00537109375,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 85,
+      "y": 83,
+      "before": {
+        "x": 85,
+        "y": 83,
+        "samples": [
+          0.010284423828125,
+          0.0120697021484375,
+          0.0673828125,
+          0.0723876953125
+        ],
+        "jump": 0.0553131103515625,
+        "localGradient": 0.0050048828125,
+        "excessJump": 0.0503082275390625
+      },
+      "after": {
+        "x": 85,
+        "y": 83,
+        "samples": [
+          0.27880859375,
+          0.28369140625,
+          0.288818359375,
+          0.294677734375
+        ],
+        "jump": 0.005126953125,
+        "localGradient": 0.005859375,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 90,
+      "y": 82,
+      "before": {
+        "x": 90,
+        "y": 82,
+        "samples": [
+          0.0127410888671875,
+          0.01500701904296875,
+          0.06829833984375,
+          0.0732421875
+        ],
+        "jump": 0.05329132080078125,
+        "localGradient": 0.00494384765625,
+        "excessJump": 0.04834747314453125
+      },
+      "after": {
+        "x": 90,
+        "y": 82,
+        "samples": [
+          0.29296875,
+          0.29833984375,
+          0.30419921875,
+          0.310546875
+        ],
+        "jump": 0.005859375,
+        "localGradient": 0.00634765625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 95,
+      "y": 81,
+      "before": {
+        "x": 95,
+        "y": 81,
+        "samples": [
+          0.01397705078125,
+          0.0164947509765625,
+          0.068603515625,
+          0.07354736328125
+        ],
+        "jump": 0.0521087646484375,
+        "localGradient": 0.00494384765625,
+        "excessJump": 0.0471649169921875
+      },
+      "after": {
+        "x": 95,
+        "y": 81,
+        "samples": [
+          0.302001953125,
+          0.307861328125,
+          0.31396484375,
+          0.32080078125
+        ],
+        "jump": 0.006103515625,
+        "localGradient": 0.0068359375,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 100,
+      "y": 81,
+      "before": {
+        "x": 100,
+        "y": 81,
+        "samples": [
+          0.016265869140625,
+          0.0194244384765625,
+          0.07183837890625,
+          0.0775146484375
+        ],
+        "jump": 0.0524139404296875,
+        "localGradient": 0.00567626953125,
+        "excessJump": 0.0467376708984375
+      },
+      "after": {
+        "x": 100,
+        "y": 81,
+        "samples": [
+          0.311279296875,
+          0.31689453125,
+          0.32275390625,
+          0.328857421875
+        ],
+        "jump": 0.005859375,
+        "localGradient": 0.006103515625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 105,
+      "y": 78,
+      "before": {
+        "x": 105,
+        "y": 78,
+        "samples": [
+          0.0102081298828125,
+          0.01235198974609375,
+          0.05963134765625,
+          0.06439208984375
+        ],
+        "jump": 0.04727935791015625,
+        "localGradient": 0.0047607421875,
+        "excessJump": 0.04251861572265625
+      },
+      "after": {
+        "x": 105,
+        "y": 78,
+        "samples": [
+          0.300537109375,
+          0.305419921875,
+          0.31005859375,
+          0.31494140625
+        ],
+        "jump": 0.004638671875,
+        "localGradient": 0.0048828125,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 110,
+      "y": 76,
+      "before": {
+        "x": 110,
+        "y": 76,
+        "samples": [
+          0.00702667236328125,
+          0.00868988037109375,
+          0.054107666015625,
+          0.05706787109375
+        ],
+        "jump": 0.04541778564453125,
+        "localGradient": 0.002960205078125,
+        "excessJump": 0.04245758056640625
+      },
+      "after": {
+        "x": 110,
+        "y": 76,
+        "samples": [
+          0.293701171875,
+          0.29736328125,
+          0.301025390625,
+          0.304931640625
+        ],
+        "jump": 0.003662109375,
+        "localGradient": 0.00390625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 115,
+      "y": 74,
+      "before": {
+        "x": 115,
+        "y": 74,
+        "samples": [
+          0.004627227783203125,
+          0.0058746337890625,
+          0.049530029296875,
+          0.052276611328125
+        ],
+        "jump": 0.0436553955078125,
+        "localGradient": 0.00274658203125,
+        "excessJump": 0.0409088134765625
+      },
+      "after": {
+        "x": 115,
+        "y": 74,
+        "samples": [
+          0.283447265625,
+          0.286865234375,
+          0.290283203125,
+          0.29345703125
+        ],
+        "jump": 0.00341796875,
+        "localGradient": 0.00341796875,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 120,
+      "y": 70,
+      "before": {
+        "x": 120,
+        "y": 70,
+        "samples": [
+          0.00208282470703125,
+          0.002513885498046875,
+          0.043212890625,
+          0.043212890625
+        ],
+        "jump": 0.040699005126953125,
+        "localGradient": 0.000431060791015625,
+        "excessJump": 0.0402679443359375
+      },
+      "after": {
+        "x": 120,
+        "y": 70,
+        "samples": [
+          0.263916015625,
+          0.267578125,
+          0.271240234375,
+          0.27490234375
+        ],
+        "jump": 0.003662109375,
+        "localGradient": 0.003662109375,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 125,
+      "y": 70,
+      "before": {
+        "x": 125,
+        "y": 70,
+        "samples": [
+          0.0024166107177734375,
+          0.003185272216796875,
+          0.045562744140625,
+          0.0474853515625
+        ],
+        "jump": 0.042377471923828125,
+        "localGradient": 0.001922607421875,
+        "excessJump": 0.040454864501953125
+      },
+      "after": {
+        "x": 125,
+        "y": 70,
+        "samples": [
+          0.256591796875,
+          0.260498046875,
+          0.26416015625,
+          0.267333984375
+        ],
+        "jump": 0.003662109375,
+        "localGradient": 0.00390625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 10,
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "x": 130,
+      "y": 64,
+      "before": {
+        "x": 130,
+        "y": 64,
+        "samples": [
+          0.0013589859008789062,
+          0.00148773193359375,
+          0.039520263671875,
+          0.041900634765625
+        ],
+        "jump": 0.03803253173828125,
+        "localGradient": 0.00238037109375,
+        "excessJump": 0.03565216064453125
+      },
+      "after": {
+        "x": 130,
+        "y": 64,
+        "samples": [
+          0.2205810546875,
+          0.2257080078125,
+          0.2305908203125,
+          0.235107421875
+        ],
+        "jump": 0.0048828125,
+        "localGradient": 0.005126953125,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 65,
+      "y": 89,
+      "before": {
+        "x": 65,
+        "y": 89,
+        "samples": [
+          0.0011053085327148438,
+          0.001323699951171875,
+          0.0015716552734375,
+          0.00185394287109375
+        ],
+        "jump": 0.000247955322265625,
+        "localGradient": 0.00028228759765625,
+        "excessJump": 0
+      },
+      "after": {
+        "x": 65,
+        "y": 89,
+        "samples": [
+          0.15576171875,
+          0.161865234375,
+          0.1678466796875,
+          0.17333984375
+        ],
+        "jump": 0.0059814453125,
+        "localGradient": 0.006103515625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 70,
+      "y": 91,
+      "before": {
+        "x": 70,
+        "y": 91,
+        "samples": [
+          0.0048980712890625,
+          0.005603790283203125,
+          0.006374359130859375,
+          0.007213592529296875
+        ],
+        "jump": 0.00077056884765625,
+        "localGradient": 0.0008392333984375,
+        "excessJump": 0
+      },
+      "after": {
+        "x": 70,
+        "y": 91,
+        "samples": [
+          0.2337646484375,
+          0.2376708984375,
+          0.241943359375,
+          0.246337890625
+        ],
+        "jump": 0.0042724609375,
+        "localGradient": 0.00439453125,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 75,
+      "y": 90,
+      "before": {
+        "x": 75,
+        "y": 90,
+        "samples": [
+          0.00951385498046875,
+          0.01087188720703125,
+          0.02764892578125,
+          0.0228271484375
+        ],
+        "jump": 0.01677703857421875,
+        "localGradient": 0.00482177734375,
+        "excessJump": 0.01195526123046875
+      },
+      "after": {
+        "x": 75,
+        "y": 90,
+        "samples": [
+          0.276611328125,
+          0.281494140625,
+          0.286376953125,
+          0.291015625
+        ],
+        "jump": 0.0048828125,
+        "localGradient": 0.0048828125,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 80,
+      "y": 83,
+      "before": {
+        "x": 80,
+        "y": 83,
+        "samples": [
+          0.006351470947265625,
+          0.00745391845703125,
+          0.0748291015625,
+          0.0726318359375
+        ],
+        "jump": 0.06737518310546875,
+        "localGradient": 0.002197265625,
+        "excessJump": 0.06517791748046875
+      },
+      "after": {
+        "x": 80,
+        "y": 83,
+        "samples": [
+          0.258544921875,
+          0.263427734375,
+          0.268798828125,
+          0.274658203125
+        ],
+        "jump": 0.00537109375,
+        "localGradient": 0.005859375,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 85,
+      "y": 83,
+      "before": {
+        "x": 85,
+        "y": 83,
+        "samples": [
+          0.01045989990234375,
+          0.01226043701171875,
+          0.08331298828125,
+          0.08905029296875
+        ],
+        "jump": 0.07105255126953125,
+        "localGradient": 0.0057373046875,
+        "excessJump": 0.06531524658203125
+      },
+      "after": {
+        "x": 85,
+        "y": 83,
+        "samples": [
+          0.281982421875,
+          0.287841796875,
+          0.29345703125,
+          0.2998046875
+        ],
+        "jump": 0.005615234375,
+        "localGradient": 0.00634765625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 90,
+      "y": 82,
+      "before": {
+        "x": 90,
+        "y": 82,
+        "samples": [
+          0.01285552978515625,
+          0.015106201171875,
+          0.0833740234375,
+          0.0888671875
+        ],
+        "jump": 0.068267822265625,
+        "localGradient": 0.0054931640625,
+        "excessJump": 0.062774658203125
+      },
+      "after": {
+        "x": 90,
+        "y": 82,
+        "samples": [
+          0.297607421875,
+          0.3037109375,
+          0.310302734375,
+          0.317138671875
+        ],
+        "jump": 0.006591796875,
+        "localGradient": 0.0068359375,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 95,
+      "y": 81,
+      "before": {
+        "x": 95,
+        "y": 81,
+        "samples": [
+          0.0139923095703125,
+          0.0164947509765625,
+          0.0831298828125,
+          0.0885009765625
+        ],
+        "jump": 0.0666351318359375,
+        "localGradient": 0.00537109375,
+        "excessJump": 0.0612640380859375
+      },
+      "after": {
+        "x": 95,
+        "y": 81,
+        "samples": [
+          0.307861328125,
+          0.314453125,
+          0.321044921875,
+          0.328369140625
+        ],
+        "jump": 0.006591796875,
+        "localGradient": 0.00732421875,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 100,
+      "y": 81,
+      "before": {
+        "x": 100,
+        "y": 81,
+        "samples": [
+          0.0161895751953125,
+          0.0194091796875,
+          0.0863037109375,
+          0.092529296875
+        ],
+        "jump": 0.06689453125,
+        "localGradient": 0.0062255859375,
+        "excessJump": 0.0606689453125
+      },
+      "after": {
+        "x": 100,
+        "y": 81,
+        "samples": [
+          0.318603515625,
+          0.324951171875,
+          0.3310546875,
+          0.3369140625
+        ],
+        "jump": 0.006103515625,
+        "localGradient": 0.00634765625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 105,
+      "y": 78,
+      "before": {
+        "x": 105,
+        "y": 78,
+        "samples": [
+          0.01013946533203125,
+          0.0123138427734375,
+          0.07281494140625,
+          0.0782470703125
+        ],
+        "jump": 0.0605010986328125,
+        "localGradient": 0.00543212890625,
+        "excessJump": 0.0550689697265625
+      },
+      "after": {
+        "x": 105,
+        "y": 78,
+        "samples": [
+          0.3076171875,
+          0.31298828125,
+          0.31787109375,
+          0.3232421875
+        ],
+        "jump": 0.0048828125,
+        "localGradient": 0.00537109375,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 110,
+      "y": 76,
+      "before": {
+        "x": 110,
+        "y": 76,
+        "samples": [
+          0.007007598876953125,
+          0.00873565673828125,
+          0.0670166015625,
+          0.0703125
+        ],
+        "jump": 0.05828094482421875,
+        "localGradient": 0.0032958984375,
+        "excessJump": 0.05498504638671875
+      },
+      "after": {
+        "x": 110,
+        "y": 76,
+        "samples": [
+          0.30078125,
+          0.304931640625,
+          0.30908203125,
+          0.31298828125
+        ],
+        "jump": 0.004150390625,
+        "localGradient": 0.004150390625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 115,
+      "y": 74,
+      "before": {
+        "x": 115,
+        "y": 74,
+        "samples": [
+          0.00466156005859375,
+          0.005992889404296875,
+          0.06219482421875,
+          0.06536865234375
+        ],
+        "jump": 0.056201934814453125,
+        "localGradient": 0.003173828125,
+        "excessJump": 0.053028106689453125
+      },
+      "after": {
+        "x": 115,
+        "y": 74,
+        "samples": [
+          0.290283203125,
+          0.294189453125,
+          0.298095703125,
+          0.30126953125
+        ],
+        "jump": 0.00390625,
+        "localGradient": 0.00390625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 120,
+      "y": 70,
+      "before": {
+        "x": 120,
+        "y": 70,
+        "samples": [
+          0.00212860107421875,
+          0.002559661865234375,
+          0.05511474609375,
+          0.054901123046875
+        ],
+        "jump": 0.052555084228515625,
+        "localGradient": 0.000431060791015625,
+        "excessJump": 0.0521240234375
+      },
+      "after": {
+        "x": 120,
+        "y": 70,
+        "samples": [
+          0.269287109375,
+          0.2734375,
+          0.277587890625,
+          0.28173828125
+        ],
+        "jump": 0.004150390625,
+        "localGradient": 0.004150390625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 125,
+      "y": 70,
+      "before": {
+        "x": 125,
+        "y": 70,
+        "samples": [
+          0.0025234222412109375,
+          0.003387451171875,
+          0.05810546875,
+          0.060394287109375
+        ],
+        "jump": 0.054718017578125,
+        "localGradient": 0.002288818359375,
+        "excessJump": 0.05242919921875
+      },
+      "after": {
+        "x": 125,
+        "y": 70,
+        "samples": [
+          0.26220703125,
+          0.266357421875,
+          0.270263671875,
+          0.27392578125
+        ],
+        "jump": 0.00390625,
+        "localGradient": 0.004150390625,
+        "excessJump": 0
+      }
+    },
+    {
+      "frame": 11,
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "x": 130,
+      "y": 64,
+      "before": {
+        "x": 130,
+        "y": 64,
+        "samples": [
+          0.0014867782592773438,
+          0.0016126632690429688,
+          0.050048828125,
+          0.05303955078125
+        ],
+        "jump": 0.04843616485595703,
+        "localGradient": 0.00299072265625,
+        "excessJump": 0.04544544219970703
+      },
+      "after": {
+        "x": 130,
+        "y": 64,
+        "samples": [
+          0.2225341796875,
+          0.2281494140625,
+          0.233642578125,
+          0.23876953125
+        ],
+        "jump": 0.0054931640625,
+        "localGradient": 0.005615234375,
+        "excessJump": 0
+      }
+    }
+  ],
+  "transport": [
+    {
+      "label": "Bolus source134 · 10 ml · 0.20 s",
+      "port": {
+        "name": "source134",
+        "position": [
+          20.797064451630813,
+          51.21208796661758,
+          -14.132795969281586
+        ],
+        "direction": [
+          -0.381571375,
+          0.178985373,
+          0.906844817
+        ],
+        "volumeMl": 10,
+        "steps": [
+          12,
+          30
+        ]
+      },
+      "after": {
+        "135": {
+          "subtreeMassMg": 1.434439157138547,
+          "maxConcentration": 0.0032519359886669036,
+          "rootMassMg": 0.06383189820932504
+        },
+        "157": {
+          "subtreeMassMg": 29.148067367773734,
+          "maxConcentration": 0.1183642203653809,
+          "rootMassMg": 9.699155766806783
+        },
+        "230": {
+          "subtreeMassMg": 45.19803383981053,
+          "maxConcentration": 0.11658563248734993,
+          "rootMassMg": 17.672985234174973
+        }
+      },
+      "before": {
+        "135": {
+          "subtreeMassMg": 0,
+          "maxConcentration": 0,
+          "rootMassMg": 0
+        },
+        "157": {
+          "subtreeMassMg": 0,
+          "maxConcentration": 0,
+          "rootMassMg": 0
+        },
+        "230": {
+          "subtreeMassMg": 50.17470149425296,
+          "maxConcentration": 0.12307438865045021,
+          "rootMassMg": 18.228599436137426
+        }
+      }
+    },
+    {
+      "label": "Bolus source134 · 10 ml · 0.50 s",
+      "port": {
+        "name": "source134",
+        "position": [
+          20.797064451630813,
+          51.21208796661758,
+          -14.132795969281586
+        ],
+        "direction": [
+          -0.381571375,
+          0.178985373,
+          0.906844817
+        ],
+        "volumeMl": 10,
+        "steps": [
+          12,
+          30
+        ]
+      },
+      "after": {
+        "135": {
+          "subtreeMassMg": 5.500590943685467,
+          "maxConcentration": 0.0068767811556537765,
+          "rootMassMg": 0.18387366938772842
+        },
+        "157": {
+          "subtreeMassMg": 81.14262874807316,
+          "maxConcentration": 0.13325110376983812,
+          "rootMassMg": 14.409157312936486
+        },
+        "230": {
+          "subtreeMassMg": 132.70830320900677,
+          "maxConcentration": 0.14979446369899074,
+          "rootMassMg": 21.942172643021124
+        }
+      },
+      "before": {
+        "135": {
+          "subtreeMassMg": 0,
+          "maxConcentration": 0,
+          "rootMassMg": 0
+        },
+        "157": {
+          "subtreeMassMg": 0,
+          "maxConcentration": 0,
+          "rootMassMg": 0
+        },
+        "230": {
+          "subtreeMassMg": 144.07222054008685,
+          "maxConcentration": 0.16507657916751864,
+          "rootMassMg": 24.161555247008163
+        }
+      }
+    },
+    {
+      "label": "Bolus source44 · 10 ml · 0.20 s",
+      "port": {
+        "name": "source44",
+        "position": [
+          18.39336014451009,
+          50.51634444100875,
+          5.364111258641297
+        ],
+        "direction": [
+          -0.3321058793729568,
+          -0.5767459806294072,
+          0.7463710596705493
+        ],
+        "volumeMl": 10,
+        "steps": [
+          12,
+          30
+        ]
+      },
+      "after": {
+        "135": {
+          "subtreeMassMg": 107.18363792182382,
+          "maxConcentration": 0.18307653208139535,
+          "rootMassMg": 49.934561267894196
+        },
+        "157": {
+          "subtreeMassMg": 18.624833273545917,
+          "maxConcentration": 0.10174253026067259,
+          "rootMassMg": 11.977284421678135
+        },
+        "230": {
+          "subtreeMassMg": 22.871823875621782,
+          "maxConcentration": 0.10227844523207794,
+          "rootMassMg": 14.785458561648094
+        }
+      },
+      "before": {
+        "135": {
+          "subtreeMassMg": 0,
+          "maxConcentration": 0,
+          "rootMassMg": 0
+        },
+        "157": {
+          "subtreeMassMg": 25.94496466604495,
+          "maxConcentration": 0.12816501050093193,
+          "rootMassMg": 14.581097069590587
+        },
+        "230": {
+          "subtreeMassMg": 34.25843570470695,
+          "maxConcentration": 0.12844304665741968,
+          "rootMassMg": 19.345117379972706
+        }
+      }
+    },
+    {
+      "label": "Bolus source44 · 10 ml · 0.50 s",
+      "port": {
+        "name": "source44",
+        "position": [
+          18.39336014451009,
+          50.51634444100875,
+          5.364111258641297
+        ],
+        "direction": [
+          -0.3321058793729568,
+          -0.5767459806294072,
+          0.7463710596705493
+        ],
+        "volumeMl": 10,
+        "steps": [
+          12,
+          30
+        ]
+      },
+      "after": {
+        "135": {
+          "subtreeMassMg": 320.1631616329498,
+          "maxConcentration": 0.24265737630658074,
+          "rootMassMg": 65.40699036198238
+        },
+        "157": {
+          "subtreeMassMg": 58.61673713261927,
+          "maxConcentration": 0.11627799166521953,
+          "rootMassMg": 13.123726267962457
+        },
+        "230": {
+          "subtreeMassMg": 90.89312550041039,
+          "maxConcentration": 0.10692197338106338,
+          "rootMassMg": 15.679502301849137
+        }
+      },
+      "before": {
+        "135": {
+          "subtreeMassMg": 0,
+          "maxConcentration": 0,
+          "rootMassMg": 0
+        },
+        "157": {
+          "subtreeMassMg": 77.49008009236287,
+          "maxConcentration": 0.15403095653049284,
+          "rootMassMg": 17.535181285037623
+        },
+        "230": {
+          "subtreeMassMg": 119.81482757436515,
+          "maxConcentration": 0.1433912291785409,
+          "rootMassMg": 21.041070890958757
+        }
+      }
+    },
+    {
+      "label": "Bolus source44long · 20 ml · 0.90 s",
+      "port": {
+        "name": "source44long",
+        "position": [
+          18.39336014451009,
+          50.51634444100875,
+          5.364111258641297
+        ],
+        "direction": [
+          -0.3321058793729568,
+          -0.5767459806294072,
+          0.7463710596705493
+        ],
+        "volumeMl": 20,
+        "steps": [
+          54,
+          90
+        ]
+      },
+      "after": {
+        "135": {
+          "subtreeMassMg": 526.3897358123787,
+          "maxConcentration": 0.3116558740711969,
+          "rootMassMg": 105.93691395395369
+        },
+        "157": {
+          "subtreeMassMg": 111.63906178452532,
+          "maxConcentration": 0.2254635334429851,
+          "rootMassMg": 24.377253326710612
+        },
+        "230": {
+          "subtreeMassMg": 160.78383651350123,
+          "maxConcentration": 0.19687008242845913,
+          "rootMassMg": 27.91950231601294
+        }
+      },
+      "before": {
+        "135": {
+          "subtreeMassMg": 0,
+          "maxConcentration": 0,
+          "rootMassMg": 0
+        },
+        "157": {
+          "subtreeMassMg": 147.70819505108682,
+          "maxConcentration": 0.2777560572344785,
+          "rootMassMg": 31.927647134768492
+        },
+        "230": {
+          "subtreeMassMg": 213.0860213776659,
+          "maxConcentration": 0.26456423577312177,
+          "rootMassMg": 37.80203718797493
+        }
+      }
+    },
+    {
+      "label": "Bolus source44long · 20 ml · 1.50 s",
+      "port": {
+        "name": "source44long",
+        "position": [
+          18.39336014451009,
+          50.51634444100875,
+          5.364111258641297
+        ],
+        "direction": [
+          -0.3321058793729568,
+          -0.5767459806294072,
+          0.7463710596705493
+        ],
+        "volumeMl": 20,
+        "steps": [
+          54,
+          90
+        ]
+      },
+      "after": {
+        "135": {
+          "subtreeMassMg": 782.2493739690003,
+          "maxConcentration": 0.3365770865026596,
+          "rootMassMg": 83.31149724700111
+        },
+        "157": {
+          "subtreeMassMg": 173.00525786474842,
+          "maxConcentration": 0.2147504416194962,
+          "rootMassMg": 16.635632755106784
+        },
+        "230": {
+          "subtreeMassMg": 263.1923614209399,
+          "maxConcentration": 0.215015237891176,
+          "rootMassMg": 19.562699834869118
+        }
+      },
+      "before": {
+        "135": {
+          "subtreeMassMg": 0,
+          "maxConcentration": 0,
+          "rootMassMg": 0
+        },
+        "157": {
+          "subtreeMassMg": 215.54659876067694,
+          "maxConcentration": 0.2624033214983975,
+          "rootMassMg": 22.001898258107502
+        },
+        "230": {
+          "subtreeMassMg": 327.3197388679002,
+          "maxConcentration": 0.26260332061889885,
+          "rootMassMg": 25.7190381438514
+        }
+      }
+    }
+  ],
+  "contextLost": false,
+  "shaderError": false,
+  "gpuContexts": {
+    "image": {
+      "contextLost": false,
+      "shaderError": false
+    },
+    "probe": {
+      "contextLost": false,
+      "shaderError": false,
+      "intentionalDisposals": 1
+    },
+    "separate": true
+  }
+}

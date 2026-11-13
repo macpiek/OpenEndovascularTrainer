@@ -7,6 +7,7 @@ import {createFlowColumnGeometry} from './flowColumnGeometry.js';
 import {createFlowJunctionProjection} from './flowJunctionProjection.js';
 import {columnJunctionMixingGLSL} from './columnJunctionMixing.js';
 import {createOutletJetField, outletJetGLSL} from './outletJetField.js';
+import {opticalParentEdgeIndex} from './flowOpticalTopology.js';
 import {attachColumnRasterPosition} from './columnRasterPosition.js';
 import {vesselDeformationGLSL} from '../vesselDeformation.js';
 import {boundedRayFunctions, deformationHooks, attachAnatomicalProjectionDeformation,
@@ -366,7 +367,12 @@ bool columnUniformRay(int a, int b, out float value) {
     for (int i = 0; i < 16; i++) {
         if (i >= columnRayJunctionCount) break;
         vec4 high = texelFetch1D(columnJunctionBounds, uint(columnRayJunctions[i] * 2 + 1));
-        int shared = int(texelFetch1D(columnJunctionRecords, uint(high.w)).w) - 1;
+        vec4 junction = texelFetch1D(columnJunctionRecords, uint(high.w));
+        for (int arm = 0; arm < int(junction.x); arm++) {
+            int path = int(texelFetch1D(columnJunctionRecords, uint(int(high.w) + 1 + arm)).x);
+            if (!columnPathConstant(path, other) || other != value) return false;
+        }
+        int shared = int(junction.w) - 1;
         if (shared < 0 || !sharedJunctionHasPath(shared, a, b)) continue;
         if (sharedNodeConcentration(shared) != value) return false;
         for (int arm = 0; arm < 3; arm++) {
@@ -431,41 +437,44 @@ float columnCanonicalProjection(int path, vec3 point, vec4 support, out float co
 }
 
 bool columnEvaluateMixCandidate(int path, float seed, bool own, int reference, vec3 point, float width,
-    float margin, float best, out vec3 candidate) {
+    float margin, float best, float physicalBest, out vec4 candidate, inout float maximumCoverage) {
     float lowerBound = -texelFetch1D(columnRanges, uint(path * 2 + 1)).w;
-    if (lowerBound > best + margin) return false;
+    if (maximumCoverage >= 1. && lowerBound > max(best, physicalBest < 1e30 ? physicalBest : best) + margin) return false;
     vec4 support = columnPathSupport(path, point, seed);
     if (!own && support.y != float(reference)) return false;
-    float alpha = own ? 1. : support.x;
+    float alpha = support.x > 0. ? support.x : (own ? 1. : 0.);
     if (alpha <= 0.) return false;
-    if (!own) lowerBound -= width * log(alpha);
-    if (lowerBound > best + margin) return false;
+    lowerBound -= width * log(alpha);
+    if (maximumCoverage >= 1. && lowerBound > max(best, physicalBest < 1e30 ? physicalBest : best) + margin) return false;
     float coordinate, localRadius;
     float score = columnCanonicalProjection(path, point, support, coordinate, localRadius);
-    if (!own) {
-        // A nearby connected artery across a wall must not lend iodine merely
-        // because it lies in a broad-phase junction box.
-        float fade = min(.5 * width, .2 * max(localRadius, 1e-4));
-        float u = clamp(-score / fade, 0., 1.);
-        alpha *= u * u * (3. - 2. * u);
-    }
-    if (alpha <= 0.) return false;
-    float effective = own ? score : score - width * log(alpha);
-    candidate = vec3(effective, coordinate, float(path));
+    float fade = min(.5 * width, .2 * max(localRadius, 1e-4));
+    float coverage = smoothstep(0., 1., clamp(-score / fade, 0., 1.));
+    maximumCoverage = max(maximumCoverage, coverage);
+    float effective = score - width * log(alpha);
+    float physical = coverage > 0. ? effective - width * log(max(coverage, 1e-20)) : 1e30;
+    // Outside the approximate tubes physicalBest remains inactive. It must
+    // not disable the geometric score's exact contribution bound: otherwise
+    // every remote arm overflows the four-entry cache at every ray sample.
+    if (effective > best + margin && (coverage <= 0. || physical > physicalBest + margin)) return false;
+    candidate = vec4(effective, physical, coordinate, float(path));
     return true;
 }
 
 void columnMixCandidate(int path, float seed, bool own, int reference, vec3 point, float width, int pass,
-    inout float best, inout int owner, inout float weighted, inout float total) {
-    vec3 candidate;
-    if (!columnEvaluateMixCandidate(path, seed, own, reference, point, width, pass == 0 ? 0. : width, best, candidate)) return;
-    float effective = candidate.x, coordinate = candidate.y;
+    inout float best, inout float physicalBest, inout float maximumCoverage, inout int owner,
+    inout vec2 weighted, inout vec2 total) {
+    vec4 candidate;
+    if (!columnEvaluateMixCandidate(path, seed, own, reference, point, width, pass == 0 ? 0. : width,
+        best, physicalBest, candidate, maximumCoverage)) return;
     if (pass == 0) {
-        if (effective < best || (effective == best && path < owner)) {best = effective; owner = path;}
+        if (candidate.x < best || (candidate.x == best && path < owner)) {best = candidate.x; owner = path;}
+        physicalBest = min(physicalBest, candidate.y);
     } else {
-        float u = clamp(1. - (effective - best) / width, 0., 1.);
-        float weight = u * u * (3. - 2. * u);
-        if (weight > 0.) {weighted += weight * columnSample(path, coordinate).x; total += weight;}
+        vec2 u = clamp(1. - (candidate.xy - vec2(best, physicalBest)) / width, 0., 1.);
+        if (candidate.y >= 1e30) u.y = 0.;
+        vec2 weight = u * u * (3. - 2. * u);
+        if (max(weight.x, weight.y) > 0.) {weighted += weight * columnSample(path, candidate.z).x; total += weight;}
     }
 }
 
@@ -495,10 +504,10 @@ vec3 junctionColumnValueUncached(vec3 point, int a, float sa, int b, float sb, f
     if (beta <= 0.) return vec3(0., 0., float(a));
     if (remaining == 0.) return vec3(sharedWeighted / sharedTotal, beta, -1.);
     float width = clamp(.2 * localRadius, .08, 1.2);
-    float best = 1e30, weighted = 0., total = 0.; int owner = a;
+    float best = 1e30, physicalBest = 1e30, maximumCoverage = 0.; vec2 weighted = vec2(0.), total = vec2(0.); int owner = a;
     for (int pass = 0; pass < 2; pass++) {
-        columnMixCandidate(a, sa, true, -1, point, width, pass, best, owner, weighted, total);
-        if (b != a) columnMixCandidate(b, sb, true, -1, point, width, pass, best, owner, weighted, total);
+        columnMixCandidate(a, sa, true, -1, point, width, pass, best, physicalBest, maximumCoverage, owner, weighted, total);
+        if (b != a) columnMixCandidate(b, sb, true, -1, point, width, pass, best, physicalBest, maximumCoverage, owner, weighted, total);
         node = 0;
         while (node < columnJunctionNodeCount) {
             vec4 low = texelFetch1D(columnJunctionBounds, uint(node * 2));
@@ -512,14 +521,17 @@ vec3 junctionColumnValueUncached(vec3 point, int a, float sa, int b, float sb, f
                         vec4 candidate = texelFetch1D(columnJunctionRecords, uint(reference));
                         int path = int(candidate.x);
                         if (path == a || path == b) continue;
-                        columnMixCandidate(path, candidate.y, false, reference, point, width, pass, best, owner, weighted, total);
+                        columnMixCandidate(path, candidate.y, false, reference, point, width, pass, best, physicalBest, maximumCoverage, owner, weighted, total);
                     }
                 }
             }
             node++;
         }
     }
-    float baseline = total > 0. ? weighted / total : 0.;
+    float geometric = weighted.x / max(total.x, 1e-20);
+    float physical = geometric;
+    if (total.y > 0.) physical = weighted.y / max(total.y, 1e-20);
+    float baseline = mix(geometric, physical, maximumCoverage);
     float value = sharedTotal > 0. ? mix(sharedWeighted / sharedTotal, baseline, remaining) : baseline;
     return vec3(value, beta, float(owner));
 }
@@ -548,16 +560,16 @@ vec3 junctionColumnValue(vec3 point, int a, float sa, int b, float sb, float com
     }
     if (beta <= 0.) return vec3(0., 0., float(a));
     if (remaining == 0.) return vec3(sharedWeighted / sharedTotal, beta, -1.);
-    float width = clamp(.2 * localRadius, .08, 1.2), best = 1e30;
-    vec3 candidates[4], candidate; int count = 0, owner = a;
+    float width = clamp(.2 * localRadius, .08, 1.2), best = 1e30, physicalBest = 1e30, maximumCoverage = 0.;
+    vec4 candidates[4], candidate; int count = 0, owner = a;
     // Geometry and its canonical arc coordinate do not depend on iodine or
     // on the eventual minimum score. Retain them once for the weighting pass.
     // The width margin preserves candidates which cannot win but still mix.
-    if (columnEvaluateMixCandidate(a, sa, true, -1, point, width, width, best, candidate)) {
-        candidates[count++] = candidate; best = candidate.x; owner = a;
+    if (columnEvaluateMixCandidate(a, sa, true, -1, point, width, width, best, physicalBest, candidate, maximumCoverage)) {
+        candidates[count++] = candidate; best = candidate.x; physicalBest = candidate.y; owner = a;
     }
-    if (b != a && columnEvaluateMixCandidate(b, sb, true, -1, point, width, width, best, candidate)) {
-        candidates[count++] = candidate;
+    if (b != a && columnEvaluateMixCandidate(b, sb, true, -1, point, width, width, best, physicalBest, candidate, maximumCoverage)) {
+        candidates[count++] = candidate; physicalBest = min(physicalBest, candidate.y);
         if (candidate.x < best || (candidate.x == best && b < owner)) {best = candidate.x; owner = b;}
     }
     node = 0; cursor = 0;
@@ -574,28 +586,42 @@ vec3 junctionColumnValue(vec3 point, int a, float sa, int b, float sb, float com
                     vec4 arm = texelFetch1D(columnJunctionRecords, uint(reference));
                     int path = int(arm.x);
                     if (path == a || path == b) continue;
-                    if (!columnRayContainsPath(path)) continue;
-                    if (!columnEvaluateMixCandidate(path, arm.y, false, reference, point, width, width, best, candidate)) continue;
+                    if (!columnEvaluateMixCandidate(path, arm.y, false, reference, point, width, width, best, physicalBest, candidate, maximumCoverage)) continue;
+                    // A better geometry/coverage minimum can make old
+                    // entries provably weightless. Compact only those exact
+                    // zero contributors before considering an uncapped pass.
+                    float nextBest = min(best, candidate.x), nextPhysical = min(physicalBest, candidate.y);
+                    int retained = 0;
+                    for (int retainedIndex = 0; retainedIndex < 4; retainedIndex++) {
+                        if (retainedIndex >= count) break;
+                        vec4 old = candidates[retainedIndex];
+                        if (old.x <= nextBest + width || (old.y < 1e30 && old.y <= nextPhysical + width))
+                            candidates[retained++] = old;
+                    }
+                    count = retained;
                     // Capacity bounds register/storage cost, never anatomy.
-                    // Custom high-degree or overlapping forks use the exact
-                    // original uncapped traversal rather than lose any arm.
+                    // A genuinely wider mixture still uses the exact pass.
                     if (count == 4) return junctionColumnValueUncached(point, a, sa, b, sb, componentA, componentB);
-                    candidates[count++] = candidate;
+                    candidates[count++] = candidate; physicalBest = min(physicalBest, candidate.y);
                     if (candidate.x < best || (candidate.x == best && path < owner)) {best = candidate.x; owner = path;}
                 }
             }
         }
         node++;
     }
-    float weighted = 0., total = 0.;
+    vec2 weighted = vec2(0.), total = vec2(0.);
     for (int i = 0; i < 4; i++) {
         if (i >= count) break;
         candidate = candidates[i];
-        float u = clamp(1. - (candidate.x - best) / width, 0., 1.);
-        float weight = u * u * (3. - 2. * u);
-        if (weight > 0.) {weighted += weight * columnSample(int(candidate.z), candidate.y).x; total += weight;}
+        vec2 u = clamp(1. - (candidate.xy - vec2(best, physicalBest)) / width, 0., 1.);
+        if (candidate.y >= 1e30) u.y = 0.;
+        vec2 weight = u * u * (3. - 2. * u);
+        if (max(weight.x, weight.y) > 0.) {weighted += weight * columnSample(int(candidate.w), candidate.z).x; total += weight;}
     }
-    float baseline = total > 0. ? weighted / total : 0.;
+    float geometric = weighted.x / max(total.x, 1e-20);
+    float physical = geometric;
+    if (total.y > 0.) physical = weighted.y / max(total.y, 1e-20);
+    float baseline = mix(geometric, physical, maximumCoverage);
     float value = sharedTotal > 0. ? mix(sharedWeighted / sharedTotal, baseline, remaining) : baseline;
     return vec3(value, beta, float(owner));
 }
@@ -713,6 +739,7 @@ export function buildAnatomicalColumnProjection(network, geometry, field, {terri
     const integral = createFlowColumnIntegral(network, field, territories, continuations);
     const spatial = createFlowColumnGeometry(network, integral, territories, continuations);
     const junctions = createFlowJunctionProjection(network, integral, territories, spatial, junctionField);
+    outletJet.attachPathMembership(junctions.shared.history);
     const indexed = createProjectionIndexedGeometry(geometry); indexed.clearGroups();
     // Indirect ordering preserves the triangle-to-flow metadata. The texture
     // is explicitly reordered to the BVH's GPU face indices below.
@@ -736,11 +763,11 @@ export function buildAnatomicalColumnProjection(network, geometry, field, {terri
     const ranges = new Float32Array(network.edges.length * 8), depths = new Int32Array(network.edges.length).fill(-1);
     const depth = path => {
         if (depths[path] >= 0) return depths[path];
-        const parent = network.edges[path].parentEdgeIndex;
+        const parent = opticalParentEdgeIndex(network, territories, path);
         return depths[path] = parent < 0 || territories[parent] < 0 ? 0 : depth(territories[parent]) + 1;
     };
     for (const [path, range] of integral.ranges) {
-        const parent = network.edges[path].parentEdgeIndex;
+        const parent = opticalParentEdgeIndex(network, territories, path);
         ranges.set([range.start, range.count, range.length, depth(path), parent < 0 ? -1 : territories[parent],
             parent < 0 ? 0 : integral.edgeStart[parent] + network.edges[parent].length, junctions.components[path], junctions.maxRadii[path]], path * 8);
     }

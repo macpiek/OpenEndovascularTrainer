@@ -221,9 +221,11 @@ const contractedConnectorParent =
     network.edges[contractedArchConnector.parentEdgeIndex];
 assert.equal(
     contractedConnectorEdge.transportExcluded,
-    undefined,
-    'the connector must remain in the transport tree to preserve branch continuity'
+    true,
+    'the redundant shared prefix must retire after its real branches receive separate anatomical ostia'
 );
+const physicalArchRepairs = network.archOstiumReattachmentDiagnostics.repairs;
+assert.equal(physicalArchRepairs.length, 3, 'the three real arch branches remain supplied');
 assert.equal(
     contractedConnectorEdge.renderExcluded,
     true,
@@ -240,7 +242,8 @@ const archPrefixEdgeIndices = new Set(
 const overlappingArchPrefixPath = archPrefixDiagnostics.paths.find(
     path =>
         path.rootEdgeIndex ===
-        archAnchors.brachiocephalicTrunkRootEdgeIndex
+        physicalArchRepairs.find(repair => repair.rootEdgeIndex ===
+            archAnchors.brachiocephalicTrunkRootEdgeIndex).originalRootEdgeIndex
 );
 assert.ok(
     overlappingArchPrefixPath,
@@ -320,8 +323,33 @@ const retrogradeArchBranchPeaks = new Map([
 ].map(edgeIndex => [edgeIndex, 0]));
 const retrogradeArchBranchSupply = new Map([...retrogradeArchBranchPeaks.keys()].map(edgeIndex => [edgeIndex, {
     parentIndex: retrogradeArchNetwork.edges[edgeIndex].parentEdgeIndex,
-    parentPeak: 0, branchPeak: 0, rawBranchPeak: 0, plumeMassPeak: 0, parentArrival: Infinity, branchArrival: Infinity
+    parentPeak: 0, inflowPulsePeak: 0, branchPeak: 0, rawBranchPeak: 0, plumeMassPeak: 0, parentArrival: Infinity, branchArrival: Infinity
 }]));
+// A short bolus can cross the ostium within one transport update, before the
+// final parent cell average is sampled. Measure the actual incoming events
+// for the maximum-principle bound, rather than missing their transient peak.
+const archAdvection = retrogradeArchNetwork._advection;
+const advanceArchAdvection = archAdvection.update.bind(archAdvection);
+archAdvection.update = dt => {
+    const result = advanceArchAdvection(dt);
+    for (const supply of retrogradeArchBranchSupply.values()) {
+        const parent = retrogradeArchNetwork.edges[supply.parentIndex];
+        const vertex = archAdvection.cellCount + archAdvection.nodeIds.indexOf(parent.endNodeId);
+        const events = archAdvection.events[vertex], changes = [];
+        for (let i = 0; i < events.length; i += 3)
+            changes.push([events[i], events[i + 2]], [events[i + 1], -events[i + 2]]);
+        changes.sort((a, b) => a[0] - b[0]);
+        let rate = 0, peak = 0;
+        for (let i = 0; i < changes.length;) {
+            const time = changes[i][0];
+            while (i < changes.length && changes[i][0] === time) rate += changes[i++][1];
+            peak = Math.max(peak, rate);
+        }
+        supply.inflowPulsePeak = Math.max(supply.inflowPulsePeak,
+            peak / Math.max(1e-12, archAdvection.outflow[vertex]));
+    }
+    return result;
+};
 let retrogradeArchAortaPeak = 0;
 let retrogradeArchMaximumSourceVolumeError = 0;
 let retrogradeArchMaximumCardiacFlowError = 0;
@@ -384,6 +412,7 @@ for (let frame = 0; frame < 720; frame++) {
         );
     }
 }
+archAdvection.update = advanceArchAdvection;
 const retrogradeArchMetrics = retrogradeArchSystem.getMetrics();
 assert.ok(
     !archPrefixEdgeIndices.has(
@@ -430,7 +459,7 @@ assert.equal(
 for (const [edgeIndex, supply] of retrogradeArchBranchSupply) {
     assert.ok(supply.branchArrival >= supply.parentArrival,
         `arch branch ${edgeIndex} cannot opacify before its supplying aorta (${JSON.stringify(supply)})`);
-    assert.ok(supply.branchPeak <= supply.parentPeak + 1e-8,
+    assert.ok(supply.branchPeak <= supply.inflowPulsePeak + 1e-8,
         `arch branch ${edgeIndex} cannot concentrate its parent supply (${JSON.stringify(supply)})`);
     // The production STL surface reads raw cell + pending plume mass, not
     // the legacy smoothed display field. An overlapping technical prefix
@@ -587,24 +616,25 @@ assert.ok(
     'the connector should deliver the complete combined flow to both branch roots'
 );
 assert.ok(
-    contractedConnectorParent.childEdgeIndices.includes(
+    !contractedConnectorParent.childEdgeIndices.includes(
         contractedConnectorEdge.index
     ),
-    'the connector should remain attached to its geometrical aortic origin'
+    'the retired shared connector must be detached from the perfused aorta'
 );
-for (const branchRootEdgeIndex of
-    contractedArchConnector.branchRootEdgeIndices) {
+for (const repair of physicalArchRepairs) {
+    const parent = network.edges[repair.parentEdgeIndex];
     assert.ok(
-        contractedConnectorEdge.childEdgeIndices.includes(
-            branchRootEdgeIndex
-        ),
-        `real branch ${branchRootEdgeIndex} should remain connected through the short bridge`
+        parent.childEdgeIndices.includes(repair.rootEdgeIndex),
+        `real branch ${repair.rootEdgeIndex} must be attached at its separate ostium`
     );
     assert.equal(
-        network.edges[branchRootEdgeIndex].parentEdgeIndex,
-        contractedConnectorEdge.index,
-        `branch ${branchRootEdgeIndex} should keep its geometrical parent`
+        network.edges[repair.rootEdgeIndex].parentEdgeIndex,
+        parent.index,
+        'the hydraulic parent must match the anatomical attachment'
     );
+    assert.ok(Math.abs(parent.meanFlowMm3PerS - parent.childEdgeIndices.reduce(
+        (sum, index) => sum + network.edges[index].meanFlowMm3PerS, 0)) < 1e-8,
+    'moving an ostium must conserve the complete parent flow');
 }
 assert.equal(
     aorticArtifactDiagnostics.suppressedEdgeCount,
@@ -687,26 +717,25 @@ const archBolusConnector =
     archBolusNetwork.intraluminalAorticConnectorDiagnostics.connectors[0];
 const archBolusConnectorEdge =
     archBolusNetwork.edges[archBolusConnector.connectorEdgeIndex];
-const archBranchOrigin = archBolusArtifact
-    ? {
-        parent: archBolusNetwork.edges[
-            archBolusArtifact.parentEdgeIndex
-        ],
-        aorticContinuation: archBolusNetwork.edges[
-            archBolusArtifact.mainContinuationEdgeIndex
-        ]
-    }
-    : findAorticBranchOrigin(
-        archBolusNetwork,
-        archAnchors.leftSubclavianRootEdgeIndex
-    );
+const subclavianRepair = archBolusNetwork.archOstiumReattachmentDiagnostics.repairs
+    .find(repair => repair.rootEdgeIndex === archAnchors.leftSubclavianRootEdgeIndex);
+const subclavianParent = archBolusNetwork.edges[subclavianRepair.parentEdgeIndex];
+const archBranchOrigin = {
+    parent: subclavianParent,
+    aorticContinuation: subclavianParent.childEdgeIndices
+        .filter(index => index !== subclavianRepair.rootEdgeIndex)
+        .map(index => archBolusNetwork.edges[index])
+        .filter(edge => !edge.transportExcluded)
+        .sort((a, b) => b.radiusEnd - a.radiusEnd)[0]
+};
 assert.ok(
-    archBranchOrigin,
-    'the packed tree should expose the common supra-aortic origin'
+    archBranchOrigin.aorticContinuation,
+    'the physical subclavian ostium must preserve the descending aortic continuation'
 );
 const archBolusParent = archBranchOrigin.parent;
 const archBolusContinuation = archBranchOrigin.aorticContinuation;
-let archBolusSource = archBolusParent;
+let archBolusSource = archBolusNetwork.edges[
+    archBolusNetwork.archOstiumReattachmentDiagnostics.repairs[0].parentEdgeIndex];
 let archBolusUpstreamDistanceMm = 0;
 while (
     archBolusSource.parentEdgeIndex >= 0 &&
@@ -797,15 +826,10 @@ assert.ok(
     archBolusConnectorEdge.totalVolume < 400,
     `the bridge should be a sub-0.4 ml transit volume (${archBolusConnectorEdge.totalVolume} mm3)`
 );
-assert.ok(
-    archBolusConnectorEdge.totalVolume /
-        Math.max(1e-9, archBolusConnectorEdge.meanFlowMm3PerS) < 0.03,
-    'contrast should cross the bridge in less than 30 ms'
-);
-assert.ok(
-    archBolusConnectorPeakMassMg > 0,
-    'the retained bridge should carry, rather than delete, branch-bound contrast'
-);
+assert.equal(archBolusConnectorEdge.meanFlowMm3PerS, 0,
+    'the redundant shared connector must not create an additional outlet');
+assert.equal(archBolusConnectorPeakMassMg, 0,
+    'branch-bound contrast must cross real ostia, not the retired medial strand');
 for (const [edgeIndex, peak] of archBolusBranchPeaks) {
     assert.ok(
         peak >= 0.25,
@@ -825,7 +849,7 @@ assert.ok(
     `the bridge should wash out after the bolus (${archBolusConnectorResidualFraction})`
 );
 const correctedArchRootIndices = new Set(
-    archPrefixDiagnostics.paths.map(path => path.rootEdgeIndex)
+    physicalArchRepairs.map(repair => repair.rootEdgeIndex)
 );
 for (const rootEdgeIndex of [
     archAnchors.brachiocephalicTrunkRootEdgeIndex,
@@ -834,7 +858,7 @@ for (const rootEdgeIndex of [
 ]) {
     assert.ok(
         correctedArchRootIndices.has(rootEdgeIndex),
-        `aorta-caliber technical prefix ${rootEdgeIndex} should be volume-corrected`
+        `arch branch ${rootEdgeIndex} should connect at its anatomical ostium`
     );
 }
 const archResidenceSeconds = {
@@ -873,7 +897,10 @@ const archWashoutNetwork = new ContrastFlowNetwork(
     loadCenterlineSegments()
 );
 const archWashoutPaths =
-    archWashoutNetwork.aorticBranchPrefixDiagnostics.paths;
+    archWashoutNetwork.aorticBranchPrefixDiagnostics.paths
+        .filter(path => !archWashoutNetwork.edges[path.rootEdgeIndex].transportExcluded)
+        .concat(archWashoutNetwork.archOstiumReattachmentDiagnostics.repairs
+            .map(repair => ({rootEdgeIndex: repair.rootEdgeIndex, edgeIndices: [repair.rootEdgeIndex]})));
 for (const path of archWashoutPaths) {
     for (const edgeIndex of path.edgeIndices) {
         const edge = archWashoutNetwork.edges[edgeIndex];

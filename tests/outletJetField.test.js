@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Vector3} from 'three';
+import {DataTexture, Vector3} from 'three';
 import {createOutletJetField, MAX_OUTLET_JET_KERNELS, outletJetGLSL} from '../src/contrast/outletJetField.js';
 import {ContrastFlowNetwork} from '../src/contrast/flowNetwork.js';
 import {LocalContrastInjectionSolver, DEFAULT_CONTRAST_MEDIUM} from '../src/contrast/localInjectionSolver.js';
@@ -32,6 +32,60 @@ test('a local outlet has a filled smooth centre, carries its own mass, and never
     assert.equal(field.integrate([0, 0, -10], [0, 0, 1], 20, 1), 0);
     assert.ok(field.integrate([0, 0, -10], [0, 0, 1], 20, 0) > 0);
     assert.ok(field.bounds.containsPoint(new Vector3(0, 0, 0)));
+});
+
+test('a jet crossing a common fork has one analytic field across wall labels without entering a remote crossing artery', () => {
+    const {solver, network} = fixture(1, 5);
+    const coordinates = [
+        [[0, 30, 0], [0, 0, 0], 4], [[0, 0, 0], [20, -20, 0], 0],
+        [[0, 0, 0], [-20, -20, 0], 0], [[0, 30, 0], [0, 0, 0], 4],
+        [[0, 100, 0], [0, 30, 0], -1]
+    ];
+    network.edges.forEach((edge, i) => Object.assign(edge, {
+        start: new Vector3(...coordinates[i][0]), end: new Vector3(...coordinates[i][1]), parentEdgeIndex: coordinates[i][2]
+    }));
+    const field = createOutletJetField(network, Int32Array.from(network.edges, e => e.index));
+    const oldHistory = new Float32Array([.2, .1, 0, 0]);
+    const history = new DataTexture(oldHistory, 1, 1);
+    field.attachPathMembership(history);
+    field.update(solver, .3);
+    const centre = field.sample([0, 0, 0], 0), ray = field.integrate([0, 0, -3], [0, 0, 1], 6, 0);
+    assert.ok(centre > 0 && ray > 0);
+    for (const wall of [1, 2]) {
+        assert.equal(field.sample([0, 0, 0], wall), centre, 'A boundary triangle cannot erase the common jet');
+        assert.equal(field.integrate([0, 0, -3], [0, 0, 1], 6, wall), ray, 'Keep the exact same Gaussian ray integral');
+    }
+    assert.equal(field.sample([0, 0, 0], 3), 0,
+        'The nearby crossing artery joins upstream outside the kernel support and cannot borrow the jet');
+    assert.equal(field.sample([0, 0, 0], 4), 0);
+    const offset = field.uniforms.outletJetPathOffset.value, records = history.image.data;
+    const first = records[offset * 4], count = records[offset * 4 + 1];
+    assert.deepEqual(new Set(records.slice(first * 4, first * 4 + count)), new Set([0, 1, 2]));
+    assert.deepEqual(Array.from(records.slice(0, 4)), Array.from(oldHistory), 'Existing scalar history stays intact');
+    for (const flag of ['transportExcluded', 'renderExcluded', 'lumenMappingExcluded']) {
+        network.edges[1][flag] = true; field.update(solver, .3);
+        assert.equal(field.sample([0, 0, 0], 1), 0, 'A newly excluded daughter must not reappear through jet sharing');
+        network.edges[1][flag] = false;
+    }
+    history.dispose();
+});
+
+test('an oblique fork outside anisotropic kernel support is not admitted by its bounding sphere', () => {
+    const {solver, network} = fixture(1, 2);
+    const fork = new Vector3(100, 100, 0);
+    Object.assign(network.edges[0], {start: new Vector3(0, 0, 0), end: fork, parentEdgeIndex: -1,
+        radiusStart: 138.7, radiusEnd: 138.7});
+    Object.assign(network.edges[1], {start: fork, end: new Vector3(120, 120, 0), parentEdgeIndex: 0});
+    const field = createOutletJetField(network, new Int32Array([0, 1]));
+    field.update(solver, .3);
+    // Six-sigma ellipse semiaxes2 and3: its true distance from the fork is
+    // ~138.88, although its enclosing sphere comes within138.42. The exact
+    // local support test must reject a common volume of radius138.7.
+    field.uniforms.outletJetAxis.value[0].set(0, 1, 0, 4);
+    field.uniforms.outletJetShape.value[0].set(9, 0, 0, 9);
+    field.syncPathMembership();
+    assert.equal(field.sample([0, 0, 0], 1), 0);
+    assert.ok(field.sample([0, 0, 0], 0) > 0);
 });
 
 test('analytic projected iodine agrees with independent quadrature and conserves all-space volume', () => {
